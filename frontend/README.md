@@ -1,41 +1,85 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped
-with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Frontend using React in Next.js and Tauri
 
-## Getting Started
+The UI Frontend of YAMS is implemented as a TypeScript React App shipped with [Next.js](https://nextjs.org/).
+It may be started as a web application, but may also be shipped as standalone desktop application with
+[Tauri](https://tauri.app).
 
-First, run the development server:
+## Web Application
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+The web application uses a centralized remote data storage. It runs in the browser
+and can be accessed from any device with a web browser.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Prerequisites
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+- Installed [Node.js](https://nodejs.org) and [npm](https://www.npmjs.com/)
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed
-on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited
-in `pages/api/hello.ts`.
+### Preparation
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated
-as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Run `npm install` when interacting with the project for the first time to download all dependencies.
 
-## Learn More
+### Development
 
-To learn more about Next.js, take a look at the following resources:
+To run the web application in development mode with hot reloading run:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`npm run dev`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions
-are welcome!
+Open [http://localhost:3000](http://localhost:3000) and make sure you the data storage is up and running
+locally on your machine as described in the [backend README](../backend/README.md).
 
-## Deploy on Vercel
+### Deployment
 
-The easiest way to deploy your Next.js app is to use
-the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
-from the creators of Next.js.
+To deploy the application in production mode run the following commands:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- `npm run build` to build the application
+- `npm run start -p 8080` to serve the application on port 8080
+
+The port can be changed accordingly.
+
+Also make sure that the configured data storage is installed and running as described in the
+[backend README](../backend/README.md).
+
+### Usage
+
+Open [http://localhost:8080](http://localhost:8080) to access the running application locally.   
+To access it on other devices, open `http://<hostname>:8080`.
+
+## Desktop Application
+
+The desktop application is a bundle of the web application with native capabilities and an embedded
+[SurrealDB](https://surrealdb.com) data storage, which is used by default, using Tauri. Although it is still possible to
+connect to a remote data
+storage.
+
+### Prerequisites
+
+- Installed [Rust](https://rust-lang.org) (recommended tool:
+  [Rustup](https://tauri.app/v1/guides/getting-started/prerequisites))
+- [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your system
+- `patch` program in your $PATH environment variable
+- Installed `tauri-cli` using `cargo install tauri-cli`
+
+#### Linux
+
+- Installed `clang` package suite
+
+### Development
+
+To start the app in development mode with hot reloading run:
+
+`cargo tauri dev`
+
+This will start the web application in dev mode and opens a Tauri window to display it.
+
+### Building
+
+To build the app for distribution and production run following command:
+
+`cargo tauri build`
+
+This bundles everything into a single distributable binary for your host system. The bundles can be found under
+[`src-tauri/target/release/bundle/`](src-tauri/target/release/bundle/).
+
+### Usage
+
+If configured to use a centralized data storage, also make sure that this storage is set up as described in the
+[backend README](../backend/README.md).

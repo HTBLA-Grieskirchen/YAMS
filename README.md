@@ -7,7 +7,7 @@
 # YAMS
 
 **Y**et **A**nother **M**anagement **S**oftware is a management system for patients, customers and their pets.
-It uses a centralized data storage system to allow seemless utilization of different client platforms.
+It uses a centralized data storage system to allow seamless utilization of different client platforms.
 
 ## Introduction
 

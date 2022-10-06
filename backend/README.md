@@ -11,9 +11,15 @@ on a remote server - the following chapters help to set up the system on the ser
 
 ### Installation
 
-The DB can be installed locally using the [`install.sh`](scripts/install.sh) script. The script
-installs the DB from the official online sources, starts it in a screen session and loads the
-provided [`setup.sql`](setup.sql).
+The DB can be installed locally using the provided scripts.
+
+#### Steps
+
+- Change working directory to where this README resides
+- Execute `./scripts/install.sh` to run the [install script](scripts/install.sh). 
+
+The script installs the DB from the official online sources, starts it in a screen session and imports 
+the provided [setup.sql](setup.sql) file.
 
 #### Prerequisites
 

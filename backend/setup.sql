@@ -5,24 +5,32 @@
 OPTION IMPORT;
 
 -- ------------------------------
--- TABLE: addresse
+-- TABLE: address
 -- ------------------------------
 
-DEFINE TABLE addresse SCHEMAFULL;
+DEFINE
+TABLE address SCHEMAFULL;
 
-DEFINE FIELD city ON addresse TYPE record(city) ASSERT $after != NULL;
-DEFINE FIELD extra ON addresse TYPE string ASSERT $after != NULL;
-DEFINE FIELD street ON addresse TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD city ON address TYPE record(city) ASSERT $after != NULL;
+DEFINE
+FIELD extra ON address TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD street ON address TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: animal
 -- ------------------------------
 
-DEFINE TABLE animal SCHEMAFULL;
+DEFINE
+TABLE animal SCHEMAFULL;
 
-DEFINE FIELD birthdate ON animal TYPE datetime;
-DEFINE FIELD name ON animal TYPE string ASSERT $after != NULL;
-DEFINE FIELD race ON animal TYPE record(race) ASSERT $after != NULL;
+DEFINE
+FIELD birthdate ON animal TYPE datetime;
+DEFINE
+FIELD name ON animal TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD race ON animal TYPE record(race) ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: animal_type
@@ -50,26 +58,44 @@ DEFINE TABLE client SCHEMAFULL;
 
 DEFINE FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD consent ON client TYPE record(image) ASSERT $after != NULL;
-DEFINE FIELD email ON client TYPE string ASSERT $after != NULL;
-DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
-DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
-DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
+DEFINE
+FIELD first_name ON client TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD last_name ON client TYPE string ASSERT $after != NULL;
+DEFINE
+FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: client_file
 -- ------------------------------
 
-DEFINE TABLE client_file SCHEMAFULL;
+DEFINE
+TABLE client_file SCHEMAFULL;
+
+DEFINE
+FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NULL;
+DEFINE
+FIELD extra ON client_file TYPE string;
+DEFINE
+FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
+DEFINE
+FIELD treatment ON client_file VALUE [];
 
 -- ------------------------------
 -- TABLE: event
 -- ------------------------------
 
-DEFINE TABLE event SCHEMAFULL;
+DEFINE
+TABLE event SCHEMAFULL;
 
-DEFINE FIELD date ON event TYPE datetime ASSERT $after != NULL;
-DEFINE FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
-DEFINE FIELD location_name ON event TYPE string;
+DEFINE
+FIELD date ON event TYPE datetime ASSERT $after != NULL;
+DEFINE
+FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
+DEFINE
+FIELD location_name ON event TYPE string;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
 
@@ -89,6 +115,8 @@ DEFINE FIELD width ON image TYPE int ASSERT $after != NULL;
 
 DEFINE TABLE invoice SCHEMAFULL;
 
+DEFINE FIELD sum ON invoice VALUE <future> { math::sum(<-paid_in.cost) };
+DEFINE FIELD is_settled ON invoice TYPE bool ASSET $after != null;
 DEFINE FIELD issue_date ON invoice TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD number ON invoice TYPE int ASSERT $after != NULL;
 DEFINE FIELD receipt ON invoice TYPE record(image) ASSERT $after != NULL;
@@ -104,10 +132,23 @@ DEFINE FIELD name ON land TYPE string ASSERT $after != NULL;
 DEFINE FIELD short ON land TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
--- TABLE: participant
+-- TABLE: paid
 -- ------------------------------
 
-DEFINE TABLE participant SCHEMAFULL;
+DEFINE TABLE paid_in SCHEMAFULL;
+
+DEFINE FIELD out ON paid TYPE record(invoice) ASSERT $after != NULL;
+DEFINE FIELD cost ON paid TYPE decimal ASSERT $after != NULL;
+DEFINE FIELD payer ON paid TYPE record(client) ASSERT $after != NULL;
+
+-- ------------------------------
+-- TABLE: participated
+-- ------------------------------
+
+DEFINE TABLE participated_in SCHEMAFULL;
+
+DEFINE FIELD in ON participated_in TYPE record(client) ASSERT $after != NULL;
+DEFINE FIELD out ON participated_in TYPE record(event) ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: product
@@ -116,6 +157,7 @@ DEFINE TABLE participant SCHEMAFULL;
 DEFINE TABLE product SCHEMAFULL;
 
 DEFINE FIELD description ON product TYPE string ASSERT $after != NULL;
+DEFINE FIELD price ON product TYPE decimal ASSERT $after != NULL;
 DEFINE FIELD type ON product TYPE record(product_type) ASSERT $after != NULL;
 
 -- ------------------------------
@@ -127,10 +169,14 @@ DEFINE TABLE product_type SCHEMAFULL;
 DEFINE FIELD description ON product_type TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
--- TABLE: purchase
+-- TABLE: purchased
 -- ------------------------------
 
-DEFINE TABLE purchase SCHEMAFULL;
+DEFINE TABLE purchased SCHEMAFULL;
+
+DEFINE FIELD in ON purchased TYPE record(client) ASSERT $after != NULL;
+DEFINE FIELD out ON purchased TYPE record(product) ASSERT $after != NULL;
+DEFINE FIELD amount ON purchased TYPE int ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: race
@@ -250,7 +296,12 @@ BEGIN TRANSACTION;
 
 
 -- ------------------------------
--- TABLE DATA: participant
+-- TABLE DATA: paid
+-- ------------------------------
+
+
+-- ------------------------------
+-- TABLE DATA: participated
 -- ------------------------------
 
 
@@ -265,7 +316,7 @@ BEGIN TRANSACTION;
 
 
 -- ------------------------------
--- TABLE DATA: purchase
+-- TABLE DATA: purchased
 -- ------------------------------
 
 

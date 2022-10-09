@@ -1,46 +1,85 @@
-# Getting Started with Create React App
+# Frontend using React in Next.js and Tauri
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The UI Frontend of YAMS is implemented as a TypeScript React App shipped with [Next.js](https://nextjs.org/).
+It may be started as a web application, but may also be shipped as standalone desktop application with
+[Tauri](https://tauri.app).
 
-## Available Scripts
+## Web Application
 
-In the project directory, you can run:
+The web application uses a centralized remote data storage. It runs in the browser
+and can be accessed from any device with a web browser.
 
-### `npm start`
+### Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Installed [Node.js](https://nodejs.org) and [npm](https://www.npmjs.com/)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Preparation
 
-### `npm test`
+Run `npm install` when interacting with the project for the first time to download all dependencies.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Development
 
-### `npm run build`
+To run the web application in development mode with hot reloading run:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+`npm run dev`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Open [http://localhost:3000](http://localhost:3000) and make sure you the data storage is up and running
+locally on your machine as described in the [backend README](../backend/README.md).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Deployment
 
-### `npm run eject`
+To deploy the application in production mode run the following commands:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- `npm run build` to build the application
+- `npm run start -p 8080` to serve the application on port 8080
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The port can be changed accordingly.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Also make sure that the configured data storage is installed and running as described in the
+[backend README](../backend/README.md).
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Usage
 
-## Learn More
+Open [http://localhost:8080](http://localhost:8080) to access the running application locally.   
+To access it on other devices, open `http://<hostname>:8080`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Desktop Application
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The desktop application is a bundle of the web application with native capabilities and an embedded
+[SurrealDB](https://surrealdb.com) data storage, which is used by default, using Tauri. Although it is still possible to
+connect to a remote data
+storage.
+
+### Prerequisites
+
+- Installed [Rust](https://rust-lang.org) (recommended tool:
+  [Rustup](https://tauri.app/v1/guides/getting-started/prerequisites))
+- [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your system
+- `patch` program in your $PATH environment variable
+- Installed `tauri-cli` using `cargo install tauri-cli`
+
+#### Linux
+
+- Installed `clang` package suite
+
+### Development
+
+To start the app in development mode with hot reloading run:
+
+`cargo tauri dev`
+
+This will start the web application in dev mode and opens a Tauri window to display it.
+
+### Building
+
+To build the app for distribution and production run following command:
+
+`cargo tauri build`
+
+This bundles everything into a single distributable binary for your host system. The bundles can be found under
+[`src-tauri/target/release/bundle/`](src-tauri/target/release/bundle/).
+
+### Usage
+
+If configured to use a centralized data storage, also make sure that this storage is set up as described in the
+[backend README](../backend/README.md).

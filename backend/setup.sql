@@ -8,29 +8,21 @@ OPTION IMPORT;
 -- TABLE: address
 -- ------------------------------
 
-DEFINE
-TABLE address SCHEMAFULL;
+DEFINE TABLE address SCHEMAFULL;
 
-DEFINE
-FIELD city ON address TYPE record(city) ASSERT $after != NULL;
-DEFINE
-FIELD extra ON address TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD street ON address TYPE string ASSERT $after != NULL;
+DEFINE FIELD city ON address TYPE record(city) ASSERT $after != NULL;
+DEFINE FIELD extra ON address TYPE string ASSERT $after != NULL;
+DEFINE FIELD street ON address TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: animal
 -- ------------------------------
 
-DEFINE
-TABLE animal SCHEMAFULL;
+DEFINE TABLE animal SCHEMAFULL;
 
-DEFINE
-FIELD birthdate ON animal TYPE datetime;
-DEFINE
-FIELD name ON animal TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD race ON animal TYPE record(race) ASSERT $after != NULL;
+DEFINE FIELD birthdate ON animal TYPE datetime;
+DEFINE FIELD name ON animal TYPE string ASSERT $after != NULL;
+DEFINE FIELD race ON animal TYPE record(race) ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: animal_type
@@ -57,45 +49,32 @@ DEFINE FIELD plz ON city TYPE string ASSERT $after != NULL;
 DEFINE TABLE client SCHEMAFULL;
 
 DEFINE FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
-DEFINE FIELD consent ON client TYPE record(image) ASSERT $after != NULL;
-DEFINE
-FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
-DEFINE
-FIELD first_name ON client TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD last_name ON client TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD consent ON client TYPE record(pdf) ASSERT $after != NULL;
+DEFINE FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
+DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: client_file
 -- ------------------------------
 
-DEFINE
-TABLE client_file SCHEMAFULL;
+DEFINE TABLE client_file SCHEMAFULL;
 
-DEFINE
-FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NULL;
-DEFINE
-FIELD extra ON client_file TYPE string;
-DEFINE
-FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
-DEFINE
-FIELD treatment ON client_file VALUE [];
+DEFINE FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NULL;
+DEFINE FIELD extra ON client_file TYPE string;
+DEFINE FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
+DEFINE FIELD treatment ON client_file VALUE [];
 
 -- ------------------------------
 -- TABLE: event
 -- ------------------------------
 
-DEFINE
-TABLE event SCHEMAFULL;
+DEFINE TABLE event SCHEMAFULL;
 
-DEFINE
-FIELD date ON event TYPE datetime ASSERT $after != NULL;
-DEFINE
-FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
-DEFINE
-FIELD location_name ON event TYPE string;
+DEFINE FIELD date ON event TYPE datetime ASSERT $after != NULL;
+DEFINE FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
+DEFINE FIELD location_name ON event TYPE string;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
 
@@ -105,9 +84,17 @@ DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
 
 DEFINE TABLE image SCHEMAFULL;
 
-DEFINE FIELD data ON image TYPE string ASSERT is::hexadecimal($after);
+DEFINE FIELD data ON image TYPE string ASSERT $after != NULL;
 DEFINE FIELD height ON image TYPE int ASSERT $after != NULL;
 DEFINE FIELD width ON image TYPE int ASSERT $after != NULL;
+
+-- ------------------------------
+-- TABLE: pdf
+-- ------------------------------
+
+DEFINE TABLE pdf SCHEMAFULL;
+
+DEFINE FIELD data ON pdf TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: invoice
@@ -119,7 +106,7 @@ DEFINE FIELD sum ON invoice VALUE <future> { math::sum(<-paid_in.cost) };
 DEFINE FIELD is_settled ON invoice TYPE bool ASSET $after != null;
 DEFINE FIELD issue_date ON invoice TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD number ON invoice TYPE int ASSERT $after != NULL;
-DEFINE FIELD receipt ON invoice TYPE record(image) ASSERT $after != NULL;
+DEFINE FIELD receipt ON invoice TYPE record(pdf);
 DEFINE FIELD transaction_type ON invoice TYPE record(transaction_type) ASSERT $after != NULL;
 
 -- ------------------------------

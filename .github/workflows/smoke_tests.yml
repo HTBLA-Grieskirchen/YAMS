@@ -63,7 +63,7 @@ jobs:
         run: npm run test
 
       - name: Test backend code
-        working-directory: frontend
+        working-directory: frontend/src-tauri
         run: cargo test
 
       - name: Build tauri application

@@ -52,6 +52,10 @@ jobs:
       - name: Test backend code
         run: cargo test
 
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: frontend
+
       - name: Build web application
         run: npm run build && npm run export
         working-directory: frontend

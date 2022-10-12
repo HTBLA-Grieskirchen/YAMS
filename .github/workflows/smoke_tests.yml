@@ -53,13 +53,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
 
+      - name: CD into frontend
+        run: cd frontend
+
       - name: Install npm dependencies
         run: npm install
-        working-directory: frontend
 
       - name: Test web build
         run: npm run test
-        working-directory: frontend
 
       
 

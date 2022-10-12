@@ -49,17 +49,17 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
+      - name: CD into frontend
+        run: cd frontend
+
       - name: Test backend code
         run: cargo test
 
       - name: Install npm dependencies
         run: npm install
-        working-directory: frontend
 
       - name: Build web application
         run: npm run build && npm run export
-        working-directory: frontend
 
       - name: Test web build
         run: npm run test
-        working-directory: frontend

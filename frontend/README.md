@@ -23,7 +23,7 @@ To run the web application in development mode with hot reloading run:
 
 `npm run dev`
 
-Open [http://localhost:3000](http://localhost:3000) and make sure you the data storage is up and running
+Open [http://localhost:3000](http://localhost:3000) and make sure the data storage is up and running
 locally on your machine as described in the [backend README](../backend/README.md).
 
 ### Deployment

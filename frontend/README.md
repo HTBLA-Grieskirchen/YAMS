@@ -56,11 +56,8 @@ storage.
   [Rustup](https://tauri.app/v1/guides/getting-started/prerequisites))
 - [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your system
 - `patch` program in your $PATH environment variable
+- Installed `clang` for [Rust bindgen](https://rust-lang.github.io/rust-bindgen/requirements.html)
 - Installed `tauri-cli` using `cargo install tauri-cli`
-
-#### Linux
-
-- Installed `clang` package suite
 
 ### Development
 

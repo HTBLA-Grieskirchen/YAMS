@@ -40,5 +40,5 @@ script to initialize the DB upon first use.
 ## Miscellaneous
 
 The [`setup.sql`](setup.sql) SurrealQL script, which configures and prepares the DB to be used with this project,
-can be used in any way (f.e. to setup dev environments). It represents the [Data Model](resources/backend_model.jpg)
+can be used in any way (f.e. to setup dev environments). It represents the [Data Model](../resources/Sabine_Projekt.pdf)
 in a way understandable for SurrealDB.

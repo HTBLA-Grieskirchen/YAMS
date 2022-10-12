@@ -23,7 +23,7 @@ To run the web application in development mode with hot reloading run:
 
 `npm run dev`
 
-Open [http://localhost:3000](http://localhost:3000) and make sure you the data storage is up and running
+Open [http://localhost:3000](http://localhost:3000) and make sure the data storage is up and running
 locally on your machine as described in the [backend README](../backend/README.md).
 
 ### Deployment
@@ -56,11 +56,8 @@ storage.
   [Rustup](https://tauri.app/v1/guides/getting-started/prerequisites))
 - [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your system
 - `patch` program in your $PATH environment variable
+- Installed `clang` for [Rust bindgen](https://rust-lang.github.io/rust-bindgen/requirements.html)
 - Installed `tauri-cli` using `cargo install tauri-cli`
-
-#### Linux
-
-- Installed `clang` package suite
 
 ### Development
 

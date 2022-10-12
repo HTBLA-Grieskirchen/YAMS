@@ -38,6 +38,10 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: desktop-cache
+          workspaces: frontend/src-tauri
+          cache-on-failure: true
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-latest'

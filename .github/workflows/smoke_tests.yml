@@ -36,7 +36,8 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "frontend/src-tauri"
+          shared-key: desktop-cache
+          workspaces: frontend/src-tauri
           cache-on-failure: true
 
       - name: Install dependencies (ubuntu only)
@@ -62,7 +63,7 @@ jobs:
         working-directory: frontend
         run: npm run test
 
-      - name: Test backend code
+      - name: Test Tauri code
         working-directory: frontend/src-tauri
         run: cargo test
 

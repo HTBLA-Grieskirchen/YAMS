@@ -1,0 +1,58 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    name: "Integration tests on all platforms"
+    uses: HTBLA-Grieskirchen/YAMS/.github/workflows/smoke_tests.yml@dev
+
+  unit-tests:
+    name: "Unit test on all platforms"
+    uses: HTBLA-Grieskirchen/YAMS/.github/workflows/unit_tests.yml@dev
+
+  release:
+    name: "Release for all platforms"
+    needs: [ smoke-test, unit-test ]
+    strategy:
+      matrix:
+        platform: [ macos-latest, ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Node.js setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Rust setup
+        uses: actions-rs/toolchain@v3
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__ # tauri-action replaces \_\_VERSION\_\_ with the app version
+          releaseName: 'YAMS - v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false

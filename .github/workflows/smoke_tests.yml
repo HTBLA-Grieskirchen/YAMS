@@ -1,17 +1,15 @@
-name: "Unit Test"
+name: "Integration Test"
 on:
-  # Triggers the workflow on pull request events but only for default and protected branches
+  # Triggers the workflow on pull request events but only for default branches
   pull_request:
     branches:
       - main
-      - dev
   push:
     branches:
       - main
-      - dev
 
   schedule:
-    - cron: '41 4 * * 5'
+    - cron: '0 9 1 * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -24,14 +22,14 @@ jobs:
     name: "Test build for all platforms"
     uses: HTBLA-Grieskirchen/YAMS/.github/workflows/build_tests.yml@dev
 
-  unit-tests:
-    name: "Unit test on all platforms"
+  smoke-test:
+    name: "Integration tests on all platforms"
     needs: test-build
     strategy:
-      fail-fast: false
       matrix:
         platform: [ macos-latest, ubuntu-20.04, windows-latest ]
 
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
 
@@ -49,13 +47,16 @@ jobs:
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Test backend code
-        run: cargo test
-
-      - name: Build web application
-        run: npm run build && npm run export
-        working-directory: frontend
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
 
       - name: Test web build
         run: npm run test
         working-directory: frontend
+
+      
+
+

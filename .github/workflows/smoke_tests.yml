@@ -39,7 +39,7 @@ jobs:
           node-version: 16
 
       - name: Install Rust stable
-        uses: actions-rs/toolchain@v3
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal

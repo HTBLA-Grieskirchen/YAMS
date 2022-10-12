@@ -1,0 +1,62 @@
+name: "Integration Test"
+on:
+  # Triggers the workflow on pull request events but only for default branches
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+  schedule:
+    - cron: '0 9 1 * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+
+jobs:
+  test-build:
+    name: "Test build for all platforms"
+    uses: HTBLA-Grieskirchen/YAMS/.github/workflows/build_tests.yml@dev
+
+  smoke-test:
+    name: "Integration tests on all platforms"
+    needs: test-build
+    strategy:
+      matrix:
+        platform: [ macos-latest, ubuntu-20.04, windows-latest ]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Rust stable
+        uses: actions-rs/toolchain@v3
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Test web build
+        run: npm run test
+        working-directory: frontend
+
+      
+
+

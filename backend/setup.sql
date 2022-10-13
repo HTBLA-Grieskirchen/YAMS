@@ -103,7 +103,7 @@ DEFINE FIELD data ON pdf TYPE string ASSERT $after != NULL;
 DEFINE TABLE invoice SCHEMAFULL;
 
 DEFINE FIELD sum ON invoice VALUE <future> { math::sum(<-paid_in.cost) };
-DEFINE FIELD is_settled ON invoice TYPE bool ASSET $after != null;
+DEFINE FIELD is_settled ON invoice TYPE bool ASSERT $after != null;
 DEFINE FIELD issue_date ON invoice TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD number ON invoice TYPE int ASSERT $after != NULL;
 DEFINE FIELD receipt ON invoice TYPE record(pdf);

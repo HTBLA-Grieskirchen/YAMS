@@ -1,7 +1,6 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
-use include_path::include_path_str;
 use surrealdb::{Datastore, Error, Session};
 use surrealdb::sql::{Object, Value};
 use tauri::async_runtime::Mutex;
@@ -82,6 +81,6 @@ impl Database {
     }
 
     pub fn setup_script() -> String {
-        include_path_str!("..", "..", "..", "backend", "setup.sql").to_string()
+        include_str!("../../../backend/setup.sql").to_string()
     }
 }

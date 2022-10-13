@@ -3,32 +3,23 @@ all(not(debug_assertions), target_os = "windows"),
 windows_subsystem = "windows"
 )]
 
-use std::ops::Deref;
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::collections::BTreeMap as Map;
+use std::default::Default;
 
-use directories::ProjectDirs;
-use include_path::include_path_str;
-use surrealdb::{Datastore, Error, Response, Session};
-use surrealdb::sql::{Object, Value};
-use tauri::async_runtime::Mutex;
+use surrealdb::{Error, Response};
+use surrealdb::sql::json;
+use tauri::{Builder, Wry};
 
-#[derive(Default)]
-struct Database(Arc<Mutex<Option<Datastore>>>);
+use crate::config::{YAMSBackendConfig, YAMSFileConfig, YAMSFrontendConfig};
+use crate::database::Database;
 
-impl Deref for Database {
-    type Target = Arc<Mutex<Option<Datastore>>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+mod config;
+mod database;
 
 #[tauri::command]
 async fn setup_database(
     database: tauri::State<'_, Database>,
-    session: tauri::State<'_, Session>,
-    dirs: tauri::State<'_, ProjectDirs>,
+    config: tauri::State<'_, YAMSBackendConfig>,
 ) -> Result<(), Error> {
     // Don't setup database if already exists
     let mut database_lock = if check_database(tauri::State::clone(&database)).await.unwrap_or(false) {
@@ -37,39 +28,10 @@ async fn setup_database(
         database.lock().await
     };
 
-    // Determine storage location based on env
-    let in_dev: &str = &std::env::var("YAMS_DEV").unwrap_or("0".to_string());
-    let location = match in_dev {
-        "1" => format!("file:{}", ["..", "..", "backend", "surreal_data"]
-            .iter().collect::<PathBuf>().to_str().unwrap()),
-        _ => format!("file:{}", dirs.data_dir().join("surreal_data").to_str().unwrap())
-    };
+    // Inject new datastore in database
+    let _ = database_lock.insert(
+        Database::new_datastore(&config.local_database_location, database.session()).await?);
 
-    // Create actual datastore
-    let datastore = Datastore::new(&location).await?;
-    // Set datastore
-    let datastore = database_lock.insert(datastore);
-
-    // Load sql script if datastore is new
-    let mut import = true;
-    let result = datastore.execute("INFO FOR DB", &session, None, false).await?;
-    if let Some(single_result) = result.first() {
-        if let Ok(valid_result) = &single_result.result {
-            if let Value::Object(Object(data)) = valid_result {
-                if let Some(Value::Object(Object(tb_data))) = data.get("tb") {
-                    if !tb_data.is_empty() {
-                        import = false;
-                    }
-                }
-            }
-        }
-    }
-
-    if import {
-        let sql_script = include_path_str!("..", "..", "..", "backend", "setup.sql");
-        println!("Import data scheme into SurrealDB");
-        datastore.execute(sql_script, &session, None, false).await?;
-    };
     Ok(())
 }
 
@@ -87,23 +49,65 @@ async fn check_database(
 #[tauri::command]
 async fn query_database(
     query: &str,
+    vars: Option<Map<String, serde_json::Value>>,
     database: tauri::State<'_, Database>,
-    session: tauri::State<'_, Session>,
 ) -> Result<Vec<Response>, Error> {
     if let Some(datastore) = &*database.lock().await {
-        Ok(datastore.execute(query, &session, None, false).await?)
+        let mut parse_failure: Option<Result<Vec<Response>, Error>> = None;
+
+        let vars = vars.map(|map| {
+            map.iter().filter_map(|(k, v)| {
+                let json_str = serde_json::to_string(&v).unwrap();
+                let value_result = json(&json_str);
+                match value_result {
+                    Ok(value) => Some((k.clone(), value)),
+                    Err(err) => {
+                        let _ = parse_failure.insert(Err(err));
+                        None
+                    }
+                }
+            }).collect()
+        });
+
+        if let Some(failure) = parse_failure { return failure; }
+        Ok(datastore.execute(query, database.session(), vars, false).await?)
     } else {
         Err(Error::Ds("Not set up".to_string()))
     }
 }
 
+#[tauri::command]
+fn frontend_config(
+    config: tauri::State<'_, YAMSFrontendConfig>
+) -> YAMSFrontendConfig {
+    (*config).clone()
+}
+
 fn main() {
-    tauri::Builder::default()
-        .manage(Database::default())
-        .manage(Session::for_db("yams", "yams"))
-        .manage(ProjectDirs::from("at", "HTL Grieskirchen", "YAMS")
-            .expect("unsupported OS"))
-        .invoke_handler(tauri::generate_handler![setup_database, check_database, query_database])
-        .run(tauri::generate_context!())
+    let builder = tauri::Builder::default();
+
+    let builder = load_initial_state(builder);
+    let builder = add_invoke_handlers(builder);
+
+    builder.run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn add_invoke_handlers(builder: Builder<Wry>) -> Builder<Wry> {
+    builder.invoke_handler(tauri::generate_handler![
+        setup_database, check_database, query_database, frontend_config
+    ])
+}
+
+fn load_initial_state(builder: Builder<Wry>) -> Builder<Wry> {
+    let (backend_config, frontend_config) = YAMSFileConfig::load();
+
+    let database = tauri::async_runtime::block_on(
+        Database::setup(&backend_config)
+    ).expect("was not able to set up SurrealDB");
+
+
+    builder.manage(database)
+        .manage(backend_config)
+        .manage(frontend_config)
 }

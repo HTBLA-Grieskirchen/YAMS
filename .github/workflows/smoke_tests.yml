@@ -13,16 +13,13 @@ on:
 
 jobs:
   smoke-test:
-    name: "Integration tests on all platforms"
-    strategy:
-      matrix:
-        platform: [ ubuntu-20.04 ]
+    name: "Integration tests"
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -51,10 +48,6 @@ jobs:
         run: npm install
 
         # Here should be integration tests but setup is complicated and therefore priority set to low
-      - name: Test web build
-        working-directory: frontend
-        run: npm run test
-
       - name: Build web application
         working-directory: frontend
         run: npm run build && npm run export
@@ -67,7 +60,7 @@ jobs:
         working-directory: frontend/src-tauri
         run: cargo test
 
-      - name: Build tauri application
+      - name: Build Tauri application
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

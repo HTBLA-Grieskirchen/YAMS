@@ -54,7 +54,7 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build the app
+      - name: Release Tauri application
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

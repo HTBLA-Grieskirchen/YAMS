@@ -10,7 +10,7 @@ jobs:
     name: "Integration tests on all platforms"
     uses: HTBLA-Grieskirchen/YAMS/.github/workflows/smoke_tests.yml@dev
 
-  unit-tests:
+  unit-test:
     name: "Unit test on all platforms"
     uses: HTBLA-Grieskirchen/YAMS/.github/workflows/unit_tests.yml@dev
 

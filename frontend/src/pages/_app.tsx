@@ -36,7 +36,7 @@ const MyApp = () => {
                     <button onClick={(e) => addEntry(entryText)}>Add the Entry</button>
                 </div>
                 <div className="flex flex-col">
-                    {entries.map((item) => <p>{item}</p>)}
+                    {entries.map((item, index) => <p key={index}>{item}</p>)}
                 </div>
             </div>
         </div>

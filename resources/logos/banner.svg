@@ -2,8 +2,6 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
         width="2000"
         height="500"
         viewBox="0 0 2000 500"
@@ -11,9 +9,11 @@
         id="SVGRoot"
         sodipodi:docname="banner.svg"
         inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
-        inkscape:export-filename="banner.png"
-        inkscape:export-xdpi="96"
-        inkscape:export-ydpi="96"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        inkscape:export-filename="banner_wix.png"
+        inkscape:export-xdpi="12.454737"
+        inkscape:export-ydpi="12.454737"
         xmlns="http://www.w3.org/2000/svg"
 >
   <sodipodi:namedview
@@ -28,8 +28,8 @@
           inkscape:document-units="px"
           showgrid="false"
           inkscape:zoom="0.57391671"
-          inkscape:cx="1163.932"
-          inkscape:cy="509.65583"
+          inkscape:cx="1165.6744"
+          inkscape:cy="511.39825"
           inkscape:window-width="1920"
           inkscape:window-height="1023"
           inkscape:window-x="0"
@@ -76,9 +76,9 @@
             transform="translate(-727.59961,-99.587516)"><tspan
          x="1380.334"
          y="417.86877"
-         id="tspan14741"><tspan
+         id="tspan167"><tspan
            style="-inkscape-font-specification:sans-serif;paint-order:stroke fill markers"
-           id="tspan14739">A M S</tspan></tspan></text>
+           id="tspan165">A M S</tspan></tspan></text>
     <path
             style="fill:#000000;image-rendering:auto"
             d="m 230.95886,395.06187 c 43.1155,148.14288 9.62213,-95.14117 23.3434,-106.41963 0,0 -0.93786,-47.22132 79.94256,-99.32147 64.29835,-41.4186 62.79173,-71.501 7.5927,-33.05668 -61.1224,42.56974 -87.4418,89.8758 -112.22219,54.1875 -19.56266,-9.68118 -14.86166,139.05578 1.34353,184.61028 z"

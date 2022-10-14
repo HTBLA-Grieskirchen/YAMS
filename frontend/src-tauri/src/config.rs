@@ -80,11 +80,11 @@ impl YAMSFileConfig {
             if let Ok(file_config) = file_config_result {
                 return file_config.to_configs();
             } else {
-                println!("The config file {{{:?}}} is malformed.\
+                println!("The config file {{{:?}}} is malformed. \
                  Resorting to default config.", file_location);
             }
         } else {
-            println!("The config file {{{:?}}} does not exist.\
+            println!("The config file {{{:?}}} does not exist. \
                  Resorting to default config.", file_location);
         }
 

@@ -7,8 +7,8 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "yams",
-    "version": "0.1.0"
+    "productName": "Yet Another Management Software",
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
@@ -22,7 +22,7 @@
       "longDescription": "Yet Another Management Software is a management system for patients, customers and their pets.\nIt uses an embedded or centralized data storage system to allow seamless utilization of different client platforms.",
       "shortDescription": "A management software for patients and animals",
       "category": "Utility",
-      "copyright": "",
+      "copyright": "Copyright © 2022 HTBLA Grieskirchen",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -46,7 +46,12 @@
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "license": "../../LICENSE",
+          "bannerPath": "TODO",
+          "dialogImagePath": "TODO"
+        }
       }
     },
     "security": {
@@ -58,8 +63,8 @@
     "windows": [
       {
         "title": "Yet Another Management Software",
-        "width": 800,
-        "height": 600,
+        "width": 1280,
+        "height": 720,
         "resizable": true,
         "fullscreen": false
       }

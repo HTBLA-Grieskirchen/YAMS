@@ -11,14 +11,15 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "@tauri-apps/api": "^1.1.0",
+    "autoprefixer": "^10.4.12",
     "mobx": "^6.6.2",
     "mobx-react": "^7.5.3",
-    "surrealdb.js": "^0.5.0",
-    "autoprefixer": "^10.4.12",
+    "next": "latest",
     "postcss": "^8.4.17",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "surrealdb.js": "^0.5.0",
     "tailwindcss": "^3.1.8"
   },
   "devDependencies": {

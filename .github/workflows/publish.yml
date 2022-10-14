@@ -7,7 +7,7 @@ on:
 
 jobs:
   smoke-test:
-    name: "Integration tests on all platforms"
+    name: "Integration test"
     uses: HTBLA-Grieskirchen/YAMS/.github/workflows/smoke_tests.yml@dev
 
   unit-test:

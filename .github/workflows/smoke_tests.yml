@@ -37,8 +37,7 @@ jobs:
           workspaces: frontend/src-tauri
           cache-on-failure: true
 
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-20.04'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf

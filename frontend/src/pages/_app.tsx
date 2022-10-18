@@ -6,6 +6,7 @@ import {observer} from "mobx-react";
 const MyApp = observer(() => {
     const [entryText, setEntryText] = useState("")
     const [entries, refreshEntries] = useQuery("SELECT content FROM entry", undefined, 1000)
+    const entriesExtracted = entries.length > 0 ? entries[0].result : []
 
     async function addEntry(text: string) {
         console.log("Adding entry")
@@ -25,8 +26,8 @@ const MyApp = observer(() => {
                     <button onClick={(e) => addEntry(entryText)}>Add the Entry</button>
                 </div>
                 <div className="flex flex-col">
-                    {entries.length > 0 ? entries[0].result.map((item: any, index: number) => <p
-                        key={index}>{item.content}</p>) : <></>}
+                    {entriesExtracted.map((item: any, index: number) => <p
+                        key={index}>{item.content}</p>)}
                 </div>
             </div>
         </div>

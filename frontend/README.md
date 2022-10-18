@@ -81,5 +81,15 @@ This bundles everything into a single distributable binary for your host system.
 
 ### Usage
 
+The configuration file can be found under the current OS's standard config path and is named `yamsconfig.json`. It can
+be used to specify a remote database connection to use, even in the local desktop app. It may for example look like
+this:
+
+```json
+{
+  "remoteDatabaseLocation": "http://127.0.0.1:8004/rpc"
+}
+```
+
 If configured to use a centralized data storage, also make sure that this storage is set up as described in the
 [backend README](../backend/README.md).

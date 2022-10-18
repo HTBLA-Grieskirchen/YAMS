@@ -1,4 +1,4 @@
-import '../styles/globals.css'
+import "../styles/globals.css"
 import {useState} from "react";
 import {query, useQuery} from "../libs/dbConnection";
 import {observer} from "mobx-react";
@@ -21,9 +21,11 @@ const MyApp = observer(() => {
         <div>
             <div className="flex flex-row space-x-4">
                 <p className="text-lg">Hello World!</p>
-                <div className="flex flex-col">
+                <div className="flex flex-col space-y-2">
                     <input onChange={(e) => setEntryText(e.target.value)}/>
-                    <button onClick={(e) => addEntry(entryText)}>Add the Entry</button>
+                    <button className="border rounded-lg bg-gray-400 text-black hover:bg-gray-200"
+                            onClick={(e) => addEntry(entryText)}>Add the Entry
+                    </button>
                 </div>
                 <div className="flex flex-col">
                     {entriesExtracted.map((item: any, index: number) => <p

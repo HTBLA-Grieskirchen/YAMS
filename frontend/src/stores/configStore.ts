@@ -1,11 +1,12 @@
 import store from "./index";
 import FrontendConfig, {defaultConfig} from "../config/frontendConfig";
 import {tauri} from "@tauri-apps/api";
+import {makeAutoObservable} from "mobx";
 
 export default class ConfigStore {
+    private root: typeof store
     config!: FrontendConfig
     tauri: typeof tauri | null
-    private root: typeof store
 
     constructor(root: typeof store) {
         this.root = root
@@ -14,6 +15,8 @@ export default class ConfigStore {
         } else {
             this.tauri = null
         }
+
+        makeAutoObservable(this)
     }
 
     async setup() {

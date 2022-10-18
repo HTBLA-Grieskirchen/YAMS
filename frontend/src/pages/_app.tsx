@@ -1,46 +1,36 @@
 import '../styles/globals.css'
-import {useStore} from "../stores";
-import {useEffect, useState} from "react";
+import {useState} from "react";
+import {query, useQuery} from "../libs/dbConnection";
+import {observer} from "mobx-react";
 
-const MyApp = () => {
-    const root = useStore()
-
+const MyApp = observer(() => {
     const [entryText, setEntryText] = useState("")
-    const [entries, setEntries] = useState<string[]>([])
-
-
-    async function syncEntries() {
-        const response = await root.dbStore.query("SELECT content FROM entry")
-        const entries = response[0].result
-        setEntries(entries.map((item: any) => item.content))
-    }
+    const [entries, refreshEntries] = useQuery("SELECT content FROM entry", undefined, 1000)
 
     async function addEntry(text: string) {
-        await root.dbStore.query("CREATE entry SET content = $content", {
+        console.log("Adding entry")
+        await query("CREATE entry SET content = $content", {
             "content": text
         })
 
-        await syncEntries()
+        refreshEntries()
     }
-
-    useEffect(() => {
-        syncEntries()
-    }, [])
 
     return (
         <div>
-            <div className="flex flex-row">
+            <div className="flex flex-row space-x-4">
                 <p className="text-lg">Hello World!</p>
                 <div className="flex flex-col">
                     <input onChange={(e) => setEntryText(e.target.value)}/>
                     <button onClick={(e) => addEntry(entryText)}>Add the Entry</button>
                 </div>
                 <div className="flex flex-col">
-                    {entries.map((item, index) => <p key={index}>{item}</p>)}
+                    {entries.length > 0 ? entries[0].result.map((item: any, index: number) => <p
+                        key={index}>{item.content}</p>) : <></>}
                 </div>
             </div>
         </div>
     )
-}
+})
 
 export default MyApp

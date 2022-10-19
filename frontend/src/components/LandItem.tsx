@@ -4,12 +4,13 @@ import {Result} from "surrealdb.js";
 import {query} from "../libs/dbConnection";
 import {useState} from "react";
 
-const LandListItem = observer(({land, refresh}: { land: Land, refresh: () => void }) => {
+const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land[], refresh: () => void }) => {
     const [fullName, setFullName] = useState(land.name)
     const [shorthand, setShorthand] = useState(land.short)
     const [editing, setEditing] = useState(false)
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
     const [changeSubmitted, setChangeSubmitted] = useState(false)
+    const [validationError, setValidationError] = useState<string | null>(null)
 
     const deleteSubmit = async () => {
         setDeleteSubmitted(true)
@@ -19,76 +20,93 @@ const LandListItem = observer(({land, refresh}: { land: Land, refresh: () => voi
     }
 
     const changeSubmit = async () => {
-        setChangeSubmitted(true)
-        if ((await updateLand(new Land(land.id, fullName, shorthand)))?.result) {
-            setChangeSubmitted(false)
-            setEditing(false)
-            refresh()
+        const shorthandUpper = shorthand.trim().toUpperCase()
+        const fullNameTrimmed = fullName.trim()
+        const valError = validate(land.id, fullNameTrimmed, shorthandUpper, lands)
+        setValidationError(valError)
+        if (valError == null) {
+            setChangeSubmitted(true)
+            if ((await updateLand(new Land(land.id, fullNameTrimmed, shorthandUpper)))?.result) {
+                setChangeSubmitted(false)
+                setEditing(false)
+                refresh()
+                setFullName(fullNameTrimmed)
+                setShorthand(shorthandUpper)
+            }
         }
     }
 
-    return <div className="flex flex-row space-x-6 items-center">
-        <div className="flex flex-row space-x-4">
-            <div className="flex flex-col">
-                <label className="text-gray-700 text-sm">Full Name</label>
-                {editing ?
-                    <input onChange={e => setFullName(e.target.value)} value={fullName} type="text"
-                           placeholder="Austria"
-                           className="w-48 p-1
+    return <div className="flex flex-col">
+        <div className="flex flex-row space-x-6 items-center">
+            <div className="flex flex-row space-x-4">
+                <div className="flex flex-col">
+                    <label className="text-gray-700 text-sm">Full Name</label>
+                    {editing ?
+                        <input onChange={e => setFullName(e.target.value)} value={fullName} type="text"
+                               placeholder={land.name}
+                               className="w-48 p-1
                            text-md font-normal
                            form-control block
                            rounded-lg border-2 border-transparent outline-none
                            transition
                            focus:border-blue-600"/> :
-                    <p className="text-lg">{land.name}</p>}
-            </div>
-            <div className="flex flex-col">
-                <label className="text-gray-700 text-sm">Shorthand</label>
-                {editing ?
-                    <input onChange={e => setShorthand(e.target.value)} value={shorthand} type="text" placeholder="AT"
-                           className="w-24 p-1
+                        <p className="text-lg">{land.name}</p>}
+                </div>
+                <div className="flex flex-col">
+                    <label className="text-gray-700 text-sm">Shorthand</label>
+                    {editing ?
+                        <input onChange={e => setShorthand(e.target.value)} value={shorthand} type="text"
+                               placeholder={land.short}
+                               className="w-24 p-1
                            text-md font-normal
                            form-control block
                            rounded-lg border-2 border-transparent outline-none
                            transition
                            focus:border-blue-600"/> :
-                    <p className="text-lg">{land.short}</p>}
+                        <p className="text-lg">{land.short}</p>}
+                </div>
             </div>
+
+
+            {editing ?
+                <form onSubmit={e => {
+                    e.preventDefault()
+                    changeSubmit()
+                }} className="flex flex-row h-full self-end pb-1 space-x-1">
+                    <button type="submit" disabled={changeSubmitted}
+                            className="align-text-bottom text-3xl hover:text-4xl hover:text-green-700 text-green-600 w-8 h-8 transition-all">
+                        <i className="fa-solid fa-check"/>
+                    </button>
+                    <button type="button" onClick={e => {
+                        setFullName(land.name)
+                        setShorthand(land.short)
+                        setValidationError(null)
+                        setEditing(false)
+                        setChangeSubmitted(false)
+                    }}
+                            className="align-text-bottom text-2xl hover:text-3xl hover:text-orange-700 text-orange-600 w-8 h-8 transition-all">
+                        <i className="fa-solid fa-cancel"/>
+                    </button>
+                </form> :
+                <div className="flex flex-row h-full items-center space-x-1">
+                    <button type="button" onClick={e => {
+                        setEditing(true)
+                    }} disabled={deleteSubmitted}
+                            className="align-text-bottom text-2xl hover:text-3xl hover:text-gray-600 w-8 h-8 transition-all">
+                        <i className="fa-solid fa-edit"/>
+                    </button>
+                    <button type="button" onClick={e => {
+                        deleteSubmit()
+                    }} disabled={deleteSubmitted}
+                            className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
+                        <i className="fa-solid fa-remove"/>
+                    </button>
+                </div>}
         </div>
-
-
-        {editing ?
-            <form onSubmit={e => {
-                e.preventDefault()
-                changeSubmit()
-            }} className="flex flex-row h-full self-end pb-1 space-x-1">
-                <button type="submit" disabled={changeSubmitted}
-                        className="align-text-bottom text-3xl hover:text-4xl hover:text-green-700 text-green-600 w-8 h-8 transition-all">
-                    <i className="fa-solid fa-check"/>
-                </button>
-                <button type="button" onClick={e => {
-                    setFullName(land.name)
-                    setShorthand(land.short)
-                    setEditing(false)
-                    setChangeSubmitted(false)
-                }}
-                        className="align-text-bottom text-2xl hover:text-3xl hover:text-orange-700 text-orange-600 w-8 h-8 transition-all">
-                    <i className="fa-solid fa-cancel"/>
-                </button>
-            </form> :
-            <div className="flex flex-row h-full items-center space-x-1">
-                <button type="button" onClick={e => {
-                    setEditing(true)
-                }} disabled={deleteSubmitted}
-                        className="align-text-bottom text-2xl hover:text-3xl hover:text-gray-600 w-8 h-8 transition-all">
-                    <i className="fa-solid fa-edit"/>
-                </button>
-                <button type="button" onClick={e => {
-                    deleteSubmit()
-                }} disabled={deleteSubmitted}
-                        className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
-                    <i className="fa-solid fa-remove"/>
-                </button>
+        {validationError &&
+            <div className="flex flex-col space-y-0">
+                {validationError.split("\n").map((error) => error.trim().length > 0 &&
+                    <p className="text-red-600">* {error}</p>)}
             </div>}
     </div>
 })
@@ -100,12 +118,13 @@ const LandCreation = observer(({lands, onFinish}: { lands: Land[], onFinish: (re
     const [validationError, setValidationError] = useState<string | null>(null)
 
     const onSubmit = async () => {
-        const shorthandUpper = shorthand.toUpperCase()
-        const valError = validate(fullName, shorthandUpper, lands)
+        const shorthandUpper = shorthand.trim().toUpperCase()
+        const fullNameTrimmed = fullName.trim()
+        const valError = validate(null, fullNameTrimmed, shorthandUpper, lands)
         setValidationError(valError)
         if (valError == null) {
             setSubmitted(true)
-            onFinish(await sendLand(fullName, shorthandUpper))
+            onFinish(await sendLand(fullNameTrimmed, shorthandUpper))
         }
     }
 
@@ -191,7 +210,7 @@ async function deleteLand(land: Land): Promise<Result<any>> {
     }
 }
 
-function validate(fullName: string, short: string, lands: Land[]): string | null {
+function validate(selfID: string, fullName: string, short: string, lands: Land[]): string | null {
     let error = ""
     if (fullName.trim().length == 0) {
         error += "Full Name may not be empty\n"
@@ -204,7 +223,7 @@ function validate(fullName: string, short: string, lands: Land[]): string | null
         return error
     }
 
-    if (lands.find((land) => land.short == short)) {
+    if (lands.find((land) => land.short == short && land.id != selfID)) {
         return "That Shorthand already exists"
     }
     return null

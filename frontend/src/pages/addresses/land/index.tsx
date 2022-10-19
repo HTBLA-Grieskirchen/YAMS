@@ -44,7 +44,7 @@ const LandOverview = observer(() => {
                 {lands.length > 0 ?
                     <div className="divide-gray-400 divide-y">
                         {lands.map((land) => <div key={land.record()} className="p-2">
-                            <LandListItem land={land} refresh={refreshLands}/>
+                            <LandListItem land={land} lands={lands} refresh={refreshLands}/>
                         </div>)}
                     </div> :
                     <p className="p-2 text-gray-600">No land available!</p>}

@@ -1,39 +1,12 @@
-import "../styles/globals.css"
-import {useState} from "react";
-import {query, useQuery} from "../libs/dbConnection";
-import {observer} from "mobx-react";
+import '../styles/globals.css'
+import type {AppProps} from 'next/app'
+import {StoreProvider} from "../stores";
+import {Layout} from "./_layout"
 
-const MyApp = observer(() => {
-    const [entryText, setEntryText] = useState("")
-    const [entries, refreshEntries] = useQuery("SELECT content FROM entry", undefined, 1000)
-    const entriesExtracted = entries.length > 0 ? entries[0].result : []
-
-    async function addEntry(text: string) {
-        console.log("Adding entry")
-        await query("CREATE entry SET content = $content", {
-            "content": text
-        })
-
-        refreshEntries()
-    }
-
-    return (
-        <div>
-            <div className="flex flex-row space-x-4">
-                <p className="text-lg">Hello World!</p>
-                <div className="flex flex-col space-y-2">
-                    <input onChange={(e) => setEntryText(e.target.value)}/>
-                    <button className="border rounded-lg bg-gray-400 text-black hover:bg-gray-200"
-                            onClick={(e) => addEntry(entryText)}>Add the Entry
-                    </button>
-                </div>
-                <div className="flex flex-col">
-                    {entriesExtracted.map((item: any, index: number) => <p
-                        key={index}>{item.content}</p>)}
-                </div>
-            </div>
-        </div>
-    )
-})
-
-export default MyApp
+export default function MyApp({Component, pageProps}: AppProps) {
+    return <StoreProvider>
+        <Layout>
+            <Component {...pageProps} />
+        </Layout>
+    </StoreProvider>
+}

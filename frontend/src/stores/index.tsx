@@ -1,25 +1,21 @@
 import {createContext, ReactNode, useContext} from "react";
-import DatabaseStore from "./databaseStore";
 import ConfigStore from "./configStore";
 
 class Store {
     configStore: ConfigStore
-    dbStore: DatabaseStore
 
     constructor() {
         this.configStore = new ConfigStore(this)
-        this.dbStore = new DatabaseStore(this)
     }
 
     async setup() {
         await this.configStore.setup()
-        await this.dbStore.setup()
     }
 }
 
 // Create and setup static store
 const store = new Store()
-store.setup().then()
+export const setupStore = store.setup()
 
 // Provide react integration for accessing
 const StoreContext = createContext(store)

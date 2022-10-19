@@ -1,6 +1,6 @@
-# Backend using SurrealDB
+# Backend <img src="../resources/builton-surrealdb-light.svg" alt="using SurrealDB" height="35"/>
 
-The backend is implemented using SurrealDB and its embedded or native Rest capabilities. This
+The backend is implemented using [SurrealDB](https://surrealdb.com) and its embedded or native Rest capabilities. This
 allows us to directly access the DB with authentication and saves us from having to write
 a custom backend.
 

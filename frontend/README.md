@@ -65,7 +65,10 @@ To start the app in development mode with hot reloading run:
 
 `cargo tauri dev`
 
-This will start the web application in dev mode and opens a Tauri window to display it.
+This will start the web application and opens a Tauri window to display it.
+
+It is recommended to export a `YAMS_DEV=1` environment variable in order to start the app in development mode.
+This makes the app use paths optimized for the development process.
 
 ### Building
 

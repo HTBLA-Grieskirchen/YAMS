@@ -1,4 +1,4 @@
-![YAMS Banner](resources/banner.png)
+![YAMS Banner](resources/logos/banner.png)
 
 [![HTL Grieskirchen](https://img.shields.io/badge/Education-HTL%20Grieskirchen-ffffff?style=flat&logo=internetarchive&logoColor=ffffff)](https://htl-grieskirchen.net)
 ---

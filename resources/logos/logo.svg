@@ -2,8 +2,6 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
         width="512"
         height="512"
         viewBox="0 0 512 512"
@@ -11,9 +9,11 @@
         id="svg5"
         inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
         sodipodi:docname="logo.svg"
-        inkscape:export-filename="logo.png"
-        inkscape:export-xdpi="96"
-        inkscape:export-ydpi="96"
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        inkscape:export-filename="yams_wix.png"
+        inkscape:export-xdpi="67.611427"
+        inkscape:export-ydpi="67.611427"
         xmlns="http://www.w3.org/2000/svg"
 >
     <sodipodi:namedview
@@ -27,9 +27,9 @@
             inkscape:deskcolor="#505050"
             inkscape:document-units="px"
             showgrid="false"
-            inkscape:zoom="2.5515579"
-            inkscape:cx="126.98125"
-            inkscape:cy="221.62931"
+            inkscape:zoom="0.9077071"
+            inkscape:cx="246.77564"
+            inkscape:cy="244.02145"
             inkscape:window-width="1920"
             inkscape:window-height="1023"
             inkscape:window-x="0"
@@ -77,11 +77,16 @@
                 width="495.67187"
                 height="333.57968"
                 id="rect110"/>
-    </defs>
+  </defs>
     <g
             inkscape:label="Layer 1"
             inkscape:groupmode="layer"
             id="layer1">
+        <path
+                id="rect748"
+                style="fill:#e5f3ff;stroke:#3771c8;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;fill-opacity:1"
+                d="M 68.925659,57.55401 282.492,57.553 l 34.57167,44.001 121.99811,1e-5 c 19.12922,0 34.52927,15.40006 34.52927,34.52928 v 284.35019 c 0,19.12922 -15.40005,34.52928 -34.52927,34.52928 H 68.925659 c -19.12922,0 -34.529278,-15.40006 -34.529278,-34.52928 V 92.08329 c 0,-19.12922 15.400058,-34.529149 34.529278,-34.52928 z"
+                sodipodi:nodetypes="sccssssssss"/>
         <text
                 xml:space="preserve"
                 id="text108"
@@ -124,14 +129,9 @@
                 sodipodi:arc-type="slice"
                 d="m 279.68681,175.99997 a 24.40934,21.712107 0 0 1 -24.38496,21.7121 24.40934,21.712107 0 0 1 -24.43368,-21.66872 24.40934,21.712107 0 0 1 24.33614,-21.75539 24.40934,21.712107 0 0 1 24.4823,21.62524 l -24.40914,0.0868 z"/>
         <path
-                id="rect748"
-                style="fill:none;stroke:#3771c8;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-                d="M 68.925659,57.55401 282.492,57.553 l 34.57167,44.001 121.99811,1e-5 c 19.12922,0 34.52927,15.40006 34.52927,34.52928 v 284.35019 c 0,19.12922 -15.40005,34.52928 -34.52927,34.52928 H 68.925659 c -19.12922,0 -34.529278,-15.40006 -34.529278,-34.52928 V 92.08329 c 0,-19.12922 15.400058,-34.529149 34.529278,-34.52928 z"
-                sodipodi:nodetypes="sccssssssss"/>
-        <path
                 style="fill:none;stroke:#3771c8;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
                 d="m 59.861692,101.554 222.862748,0"
                 id="path11401"
                 sodipodi:nodetypes="cc"/>
-    </g>
+  </g>
 </svg>

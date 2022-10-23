@@ -41,6 +41,9 @@ type NotificationActions = {
 type NotificationInfoType = NotificationInfo
 export type {NotificationInfoType as NotificationInfo}
 
+/**
+ * Leave title empty if no title should be shown in the notification
+ */
 export type NotificationContent = {
     title?: string
     message: string
@@ -48,21 +51,77 @@ export type NotificationContent = {
 
 // TODO: Add possibility to also display notification on host system if in Tauri
 const notification = {
+    /**
+     * This opens an info notification in the lower right corner of the screen. The content and actions can be specified
+     * using the parameters down below. The notification can either be closed manually or automatically after the
+     * specified amount of time.
+     *
+     *
+     * @param content - The content to be displayed. Must contain a message, but may optionally also contain a title,
+     * which will be displayed as title in the notification.
+     * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
+     * closed.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
+     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
+     * action.
+     */
     info(content: NotificationContent, duration: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
             new NotificationInfo(NotificationType.Info, content.title, content.message, duration * 1000, actions)
         )
     },
+    /**
+     * This opens a warning in the lower right corner of the screen. The content and actions can be specified
+     * using the parameters down below. The notification can either be closed manually or automatically after the
+     * specified amount of time.
+     *
+     *
+     * @param content - The content to be displayed. Must contain a message, but may optionally also contain a title,
+     * which will be displayed as title in the notification.
+     * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
+     * closed.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
+     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
+     * action.
+     */
     warn(content: NotificationContent, duration: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
             new NotificationInfo(NotificationType.Warn, content.title, content.message, duration * 1000, actions)
         )
     },
+    /**
+     * This opens a success notification in the lower right corner of the screen. The content and actions can be
+     * specified using the parameters down below. The notification can either be closed manually or automatically after
+     * the specified amount of time.
+     *
+     *
+     * @param content - The content to be displayed. Must contain a message, but may optionally also contain a title,
+     * which will be displayed as title in the notification.
+     * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
+     * closed.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
+     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
+     * action.
+     */
     success(content: NotificationContent, duration: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
             new NotificationInfo(NotificationType.Success, content.title, content.message, duration * 1000, actions)
         )
     },
+    /**
+     * This opens an error message in the lower right corner of the screen. The content and actions can be specified
+     * using the parameters down below. The notification can either be closed manually or automatically after the
+     * specified amount of time.
+     *
+     *
+     * @param content - The content to be displayed. Must contain a message, but may optionally also contain a title,
+     * which will be displayed as title in the notification.
+     * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
+     * closed.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
+     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
+     * action.
+     */
     error(content: NotificationContent, duration: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
             new NotificationInfo(NotificationType.Error, content.title, content.message, duration * 1000, actions)

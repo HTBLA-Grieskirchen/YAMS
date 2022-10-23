@@ -1,11 +1,14 @@
 import {createContext, ReactNode, useContext} from "react";
 import ConfigStore from "./configStore";
+import NotificationStore from "./notificationStore";
 
 class Store {
     configStore: ConfigStore
+    notificationStore: NotificationStore
 
     constructor() {
         this.configStore = new ConfigStore(this)
+        this.notificationStore = new NotificationStore(this)
     }
 
     async setup() {

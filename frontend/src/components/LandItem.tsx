@@ -22,7 +22,7 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
     const changeSubmit = async () => {
         const shorthandUpper = shorthand.trim().toUpperCase()
         const fullNameTrimmed = fullName.trim()
-        const valError = validate(land.id, fullNameTrimmed, shorthandUpper, lands)
+        const valError = await validate(land.id, fullNameTrimmed, shorthandUpper, lands)
         setValidationError(valError)
         if (valError == null) {
             setChangeSubmitted(true)
@@ -40,7 +40,7 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
         <div className="flex flex-row space-x-6 items-center">
             <div className="flex flex-row space-x-4">
                 <div className="flex flex-col">
-                    <label className="text-gray-700 text-sm">Full Name</label>
+                    <label className="text-gray-700 text-sm sm:w-48 w-fit">Full Name</label>
                     {editing ?
                         <input onChange={e => setFullName(e.target.value)} value={fullName} type="text"
                                placeholder={land.name}
@@ -50,7 +50,7 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
                            rounded-lg border-2 border-transparent outline-none
                            transition
                            focus:border-blue-600"/> :
-                        <p className="text-lg">{land.name}</p>}
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">{land.name}</p>}
                 </div>
                 <div className="flex flex-col">
                     <label className="text-gray-700 text-sm">Shorthand</label>
@@ -111,16 +111,19 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
     </div>
 })
 
-const LandCreation = observer(({lands, onFinish}: { lands: Land[], onFinish: (result: Result<any> | null) => {} }) => {
+const LandCreation = observer(({
+                                   lands,
+                                   onFinish
+                               }: { lands: Land[], onFinish: (result: Result<any> | null) => void }) => {
     const [fullName, setFullName] = useState("")
     const [shorthand, setShorthand] = useState("")
-    const [submitted, setSubmitted] = useState("")
+    const [submitted, setSubmitted] = useState(false)
     const [validationError, setValidationError] = useState<string | null>(null)
 
     const onSubmit = async () => {
         const shorthandUpper = shorthand.trim().toUpperCase()
         const fullNameTrimmed = fullName.trim()
-        const valError = validate(null, fullNameTrimmed, shorthandUpper, lands)
+        const valError = await validate("", fullNameTrimmed, shorthandUpper, lands)
         setValidationError(valError)
         if (valError == null) {
             setSubmitted(true)
@@ -132,6 +135,10 @@ const LandCreation = observer(({lands, onFinish}: { lands: Land[], onFinish: (re
         <form onSubmit={e => {
             e.preventDefault()
             onSubmit()
+        }} onKeyDown={e => {
+            if (e.key == "Escape") {
+                onFinish(null)
+            }
         }}>
             <div className="flex flex-row space-x-4 items-end">
                 <div className="flex flex-col space-y-1">
@@ -210,7 +217,7 @@ async function deleteLand(land: Land): Promise<Result<any>> {
     }
 }
 
-function validate(selfID: string, fullName: string, short: string, lands: Land[]): string | null {
+async function validate(selfID: string, fullName: string, short: string, lands: Land[]): Promise<string | null> {
     let error = ""
     if (fullName.trim().length == 0) {
         error += "Full Name may not be empty\n"
@@ -224,6 +231,10 @@ function validate(selfID: string, fullName: string, short: string, lands: Land[]
     }
 
     if (lands.find((land) => land.short == short && land.id != selfID)) {
+        return "That Shorthand already exists"
+    } else if ((await query("SELECT * FROM land WHERE short = $short", {
+        short: short
+    }))[0]?.result.length > 0) {
         return "That Shorthand already exists"
     }
     return null

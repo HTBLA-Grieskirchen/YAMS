@@ -2,6 +2,8 @@ import type {NextPage} from 'next'
 import {observer} from "mobx-react";
 import {useState} from "react";
 import {query, useQuery} from "../libs/dbConnection";
+import Link from "next/link";
+import notification from "../libs/notification";
 
 const Home: NextPage = observer(() => {
     const [entryText, setEntryText] = useState("")
@@ -21,7 +23,16 @@ const Home: NextPage = observer(() => {
         <main className="">
             <div>
                 <div className="flex flex-row space-x-4">
-                    <p className="text-lg">Hello World!</p>
+                    <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 20, {
+                        "Remove": () => true,
+                        "Alert": () => {
+                            alert("This is an alert")
+                            return false
+                        }
+                    })}
+                            className="text-lg">Notify!
+                    </button>
+                    <Link href="/addresses/land">To Lands</Link>
                     <div className="flex flex-col space-y-2">
                         <input onChange={(e) => setEntryText(e.target.value)}/>
                         <button className="border rounded-lg bg-gray-400 text-black hover:bg-gray-200"

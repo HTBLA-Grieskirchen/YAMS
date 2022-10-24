@@ -1,7 +1,7 @@
 import type {NextPage} from 'next'
 import Head from 'next/head'
 import {StoreProvider} from "../../stores";
-import FormPage from "./FormPage";
+import FormPage from "./formPage";
 
 const Home: NextPage = () => {
     return (

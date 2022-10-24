@@ -7,7 +7,9 @@ import {isPromise} from "../util/types";
 const NotificationComponent = observer(({notification}: { notification: NotificationInfo }) => {
     const store = useStore()
 
-    const percent = notification.remaining * 100 / notification.duration
+    const percent = notification.duration ?
+        (notification.duration - notification.passed) * 100 / notification.duration :
+        undefined
     const circumference = 12 * 2 * Math.PI
 
     const colors = getNotificationColors(notification.type)
@@ -49,32 +51,34 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
             {notification.title}
         </p>}
         <button onClick={e => store.notificationStore.removeNotification(notification)}
-                className="absolute inline-flex items-center justify-center overflow-hidden rounded-full top-0 right-0 text-sm text-gray-600 hover:text-gray-800 transition-all">
+                className="absolute inline-flex items-center justify-center overflow-hidden rounded-full top-0 right-0 text-gray-600 hover:text-gray-800 transition-all">
             <svg className="w-6 h-6 items-center justify-center" viewBox="0 0 36 36">
-                <circle
-                    className={colors.circleBackground}
-                    strokeWidth={3}
-                    stroke="currentColor"
-                    fill="transparent"
-                    r="12"
-                    cx="18"
-                    cy="18"
-                />
-                <circle
-                    className={colors.circleForeground}
-                    strokeWidth={3}
-                    strokeDasharray={circumference}
-                    strokeDashoffset={circumference - percent / 100 * circumference}
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="transparent"
-                    r="12"
-                    cx="18"
-                    cy="18"
-                />
+                {percent && <>
+                    <circle
+                        className={colors.circleBackground}
+                        strokeWidth={3}
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="12"
+                        cx="18"
+                        cy="18"
+                    />
+                    <circle
+                        className={colors.circleForeground}
+                        transform="rotate(-90, 18 18)"
+                        strokeWidth={3}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference - percent / 100 * circumference}
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="12"
+                        cx="18"
+                        cy="18"/>
+                </>}
             </svg>
             <div className="absolute align-text-bottom">
-                <i className="fa-solid fa-xmark"/>
+                <i className={percent ? "fa-solid fa-xmark text-sm" : "fa-regular fa-xmark text-lg"}/>
             </div>
         </button>
         <div

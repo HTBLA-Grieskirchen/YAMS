@@ -16,19 +16,22 @@ export default class NotificationStore {
     }
 
     addNotification(notification: NotificationInfo) {
-        const interval = setInterval(() => {
-            notification.tick(25)
-        }, 25)
+        let interval: NodeJS.Timer | undefined = undefined
+        if (notification.duration !== undefined) {
+            interval = setInterval(() => {
+                notification.tick(25)
+            }, 25)
+
+            autorun(() => {
+                if (notification.passed >= notification.duration!!) {
+                    this.removeNotification(notification)
+                }
+            })
+        }
 
         this.notifications.push({
             info: notification,
-            interval: interval
-        })
-
-        autorun(() => {
-            if (notification.remaining < 0) {
-                this.removeNotification(notification)
-            }
+            interval
         })
     }
 
@@ -46,5 +49,5 @@ export default class NotificationStore {
 
 type NotificationEntry = {
     info: NotificationInfo,
-    interval: NodeJS.Timer
+    interval: NodeJS.Timer | undefined
 }

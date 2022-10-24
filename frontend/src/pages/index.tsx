@@ -23,7 +23,7 @@ const Home: NextPage = observer(() => {
         <main className="">
             <div>
                 <div className="flex flex-row space-x-4">
-                    <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 20, {
+                    <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 10, {
                         "Remove": () => true,
                         "Remove Wait": async () => {
                             function sleep(ms: number) {

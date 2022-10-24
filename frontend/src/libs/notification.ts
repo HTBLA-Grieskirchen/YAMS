@@ -35,7 +35,7 @@ export enum NotificationType {
 }
 
 type NotificationActions = {
-    [key: string]: () => boolean
+    [key: string]: () => Promise<boolean> | boolean
 }
 
 type NotificationInfoType = NotificationInfo
@@ -51,7 +51,6 @@ export type NotificationContent = {
 
 // TODO: Add possibility to also display notification on host system if in Tauri
 // TODO: Add support for undefined duration which keeps the notification open till manuel closure
-// TODO: Add support for async actions
 const notification = {
     /**
      * This opens an info notification in the lower right corner of the screen. The content and actions can be specified

@@ -1,6 +1,8 @@
 import {observer} from "mobx-react";
 import {NotificationInfo, NotificationType} from "../libs/notification";
 import {useStore} from "../stores";
+import {useState} from "react";
+import {isPromise} from "../util/types";
 
 const NotificationComponent = observer(({notification}: { notification: NotificationInfo }) => {
     const store = useStore()
@@ -10,13 +12,44 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
 
     const colors = getNotificationColors(notification.type)
 
+    const ActionButton = (
+        {label, action}: { label: string, action: () => Promise<boolean> | boolean }
+    ) => {
+        const [clicked, setClicked] = useState(false)
+        const handleClick = async () => {
+            const result = action()
+            if (isPromise(result)) {
+                setClicked(true)
+                const remove = await result
+                setClicked(false)
+                if (remove) {
+                    store.notificationStore.removeNotification(notification)
+                }
+            } else if (result) {
+                store.notificationStore.removeNotification(notification)
+            }
+        }
+
+        return <button onClick={e => {
+            handleClick()
+        }} disabled={clicked}
+                       className={"inline-block rounded-md px-1 py-0 text-sm shadow-md " +
+                           "hover:shadow-lg transition " +
+                           "disabled:cursor-not-allowed disabled:opacity-75 "
+                           + " " + " " + colors.buttonBackground
+                           + " " + colors.buttonText
+                           + " enabled:" + colors.buttonHover}>
+            {label}
+        </button>
+    }
+
     return <div
         className={"relative rounded-lg border border-4 w-full h-fit max-h-20 " + colors.background + " " + colors.border}>
         {notification.title && <p className={"static truncate text-lg pr-7 p-1 pt-0 " + colors.title}>
             {notification.title}
         </p>}
-        <button
-            className="absolute inline-flex items-center justify-center overflow-hidden rounded-full top-0 right-0 text-sm text-gray-600 hover:text-gray-800 transition-all">
+        <button onClick={e => store.notificationStore.removeNotification(notification)}
+                className="absolute inline-flex items-center justify-center overflow-hidden rounded-full top-0 right-0 text-sm text-gray-600 hover:text-gray-800 transition-all">
             <svg className="w-6 h-6 items-center justify-center" viewBox="0 0 36 36">
                 <circle
                     className={colors.circleBackground}
@@ -40,8 +73,7 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
                     cy="18"
                 />
             </svg>
-            <div onClick={e => store.notificationStore.removeNotification(notification)}
-                 className="absolute align-text-bottom">
+            <div className="absolute align-text-bottom">
                 <i className="fa-solid fa-xmark"/>
             </div>
         </button>
@@ -53,18 +85,7 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
             {notification.actions &&
                 <div className="flex flex-row space-x-2">
                     {Object.entries(notification.actions).map(([label, action], index) =>
-                        <button key={index} onClick={e => {
-                            if (action()) {
-                                store.notificationStore.removeNotification(notification)
-                            }
-                        }}
-                                className={"inline-block rounded-md px-1 py-0 text-sm shadow-md hover:bg-green-700 hover:shadow-lg transition "
-                                    + colors.buttonBackground
-                                    + " " + colors.buttonText
-                                    + " " + colors.buttonHover}>
-                            {label}
-                        </button>)
-                    }
+                        ActionButton({label: label, action: action}))}
                 </div>
             }
         </div>

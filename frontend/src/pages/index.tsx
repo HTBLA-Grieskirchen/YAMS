@@ -25,6 +25,16 @@ const Home: NextPage = observer(() => {
                 <div className="flex flex-row space-x-4">
                     <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 20, {
                         "Remove": () => true,
+                        "Remove Wait": async () => {
+                            function sleep(ms: number) {
+                                return new Promise(resolve => {
+                                    setTimeout(resolve, ms)
+                                });
+                            }
+
+                            await sleep(2500)
+                            return true
+                        },
                         "Alert": () => {
                             alert("This is an alert")
                             return false

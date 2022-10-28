@@ -17,12 +17,13 @@ export default class NotificationStore {
 
     addNotification(notification: NotificationInfo) {
         let interval: NodeJS.Timer | undefined = undefined
+        let disposeCheck: (() => void) | undefined = undefined
         if (notification.duration !== undefined) {
             interval = setInterval(() => {
                 notification.tick(25)
             }, 25)
 
-            autorun(() => {
+            disposeCheck = autorun(() => {
                 if (notification.passed >= notification.duration!!) {
                     this.removeNotification(notification)
                 }
@@ -31,6 +32,7 @@ export default class NotificationStore {
 
         this.notifications.push({
             info: notification,
+            clean: disposeCheck,
             interval
         })
     }
@@ -39,7 +41,12 @@ export default class NotificationStore {
         this.notifications.splice(
             this.notifications.findIndex(
                 (entry) => entry.info === notification),
-            1).forEach((entry) => clearInterval(entry.interval))
+            1).forEach((entry) => {
+            if (entry.clean) {
+                entry.clean()
+            }
+            clearInterval(entry.interval)
+        })
     }
 
     currentNavigations(): NotificationInfo[] {
@@ -49,5 +56,6 @@ export default class NotificationStore {
 
 type NotificationEntry = {
     info: NotificationInfo,
+    clean: (() => void) | undefined,
     interval: NodeJS.Timer | undefined
 }

@@ -35,7 +35,12 @@ export enum NotificationType {
 }
 
 type NotificationActions = {
-    [key: string]: () => Promise<boolean> | boolean
+    [key: string]: NotificationBehaviour
+}
+
+export type NotificationBehaviour = {
+    action: () => Promise<boolean> | boolean
+    disabled?: () => boolean
 }
 
 type NotificationInfoType = NotificationInfo
@@ -61,9 +66,10 @@ const notification = {
      * which will be displayed as title in the notification.
      * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
      * closed. May be undefined to indicate no automatic closure.
-     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
-     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
-     * action.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `object`
+     * (behaviour) pairs. The `action` in the behaviour returns a boolean which indicates whether to close the
+     * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
+     * be clicked (defaults to false).
      */
     info(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
@@ -86,9 +92,10 @@ const notification = {
      * which will be displayed as title in the notification.
      * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
      * closed. May be undefined to indicate no automatic closure.
-     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
-     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
-     * action.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `object`
+     * (behaviour) pairs. The `action` in the behaviour returns a boolean which indicates whether to close the
+     * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
+     * be clicked (defaults to false).
      */
     warn(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
@@ -111,9 +118,10 @@ const notification = {
      * which will be displayed as title in the notification.
      * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
      * closed. May be undefined to indicate no automatic closure.
-     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
-     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
-     * action.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `object`
+     * (behaviour) pairs. The `action` in the behaviour returns a boolean which indicates whether to close the
+     * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
+     * be clicked (defaults to false).
      */
     success(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
@@ -136,9 +144,10 @@ const notification = {
      * which will be displayed as title in the notification.
      * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
      * closed. May be undefined to indicate no automatic closure.
-     * @param actions - The possible actions in response to the notification. These are `string` (label) - `function`
-     * (action) pairs. The action returns a boolean which indicates whether to close the notification after the
-     * action.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `object`
+     * (behaviour) pairs. The `action` in the behaviour returns a boolean which indicates whether to close the
+     * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
+     * be clicked (defaults to false).
      */
     error(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(

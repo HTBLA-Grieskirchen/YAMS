@@ -1,8 +1,9 @@
 import {observer} from "mobx-react";
-import {NotificationInfo, NotificationType} from "../libs/notification";
+import {NotificationBehaviour, NotificationInfo, NotificationType} from "../libs/notification";
 import {useStore} from "../stores";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {isPromise} from "../util/types";
+import {autorun} from "mobx";
 
 const NotificationComponent = observer(({notification}: { notification: NotificationInfo }) => {
     const store = useStore()
@@ -15,11 +16,12 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
     const colors = getNotificationColors(notification.type)
 
     const ActionButton = (
-        {label, action}: { label: string, action: () => Promise<boolean> | boolean }
+        {label, behaviour}: { label: string, behaviour: NotificationBehaviour }
     ) => {
         const [clicked, setClicked] = useState(false)
+        const [disabled, setDisabled] = useState(false)
         const handleClick = async () => {
-            const result = action()
+            const result = behaviour.action()
             if (isPromise(result)) {
                 setClicked(true)
                 const remove = await result
@@ -32,9 +34,21 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
             }
         }
 
+        useEffect(() => {
+            const dispose = autorun(() => {
+                if (behaviour.disabled) {
+                    setDisabled(behaviour.disabled())
+                } else {
+                    setDisabled(false)
+                }
+            })
+
+            return () => dispose()
+        }, [])
+
         return <button onClick={e => {
             handleClick()
-        }} disabled={clicked}
+        }} disabled={clicked || disabled}
                        className={"inline-block rounded-md px-1 py-0 text-sm shadow-md " +
                            "hover:shadow-lg transition " +
                            "disabled:cursor-not-allowed disabled:opacity-75 "
@@ -88,8 +102,8 @@ const NotificationComponent = observer(({notification}: { notification: Notifica
             </p>
             {notification.actions &&
                 <div className="flex flex-row space-x-2">
-                    {Object.entries(notification.actions).map(([label, action], index) =>
-                        ActionButton({label: label, action: action}))}
+                    {Object.entries(notification.actions).map(([label, behaviour], index) =>
+                        ActionButton({label: label, behaviour: behaviour}))}
                 </div>
             }
         </div>

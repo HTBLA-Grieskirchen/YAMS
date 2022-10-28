@@ -5,6 +5,7 @@ import {query, useQuery} from "../libs/dbConnection";
 import Link from "next/link";
 import notification from "../libs/notification";
 import {useStore} from "../stores";
+import dialog from "../libs/dialog";
 
 const Home: NextPage = observer(() => {
     const [entryText, setEntryText] = useState("")
@@ -30,7 +31,7 @@ const Home: NextPage = observer(() => {
                         <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 10, {
                             "Remove": {
                                 action: () => true,
-                                disabled: () => !!store.dialogStore.currentDialog.length
+                                disabled: () => store.dialogStore.dialogsShown()
                             },
                             "Remove Wait": {
                                 action: async () => {
@@ -52,6 +53,20 @@ const Home: NextPage = observer(() => {
                             }
                         })} className="text-lg">
                             Notify!
+                        </button>
+                        <button
+                            onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
+                                {store.notificationStore.currentNavigations().length}
+                                <button onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
+                                    {store.notificationStore.currentNavigations().length}
+                                    <button onClick={e => close()}>Click to close all</button>
+                                    <button onClick={e => close(false)}>Click to close this</button>
+                                </div>)}>New Dialog
+                                </button>
+                                <button onClick={e => close()}>Click to close</button>
+                            </div>)}
+                            className="text-lg">
+                            Dialog!
                         </button>
                     </div>
                     <Link href="/addresses/land">To Lands</Link>

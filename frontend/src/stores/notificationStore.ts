@@ -40,7 +40,7 @@ export default class NotificationStore {
     removeNotification(notification: NotificationInfo) {
         this.notifications.splice(
             this.notifications.findIndex(
-                (entry) => entry.info === notification),
+                (entry) => entry.info.uuid === notification.uuid),
             1).forEach((entry) => {
             if (entry.clean) {
                 entry.clean()

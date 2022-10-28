@@ -1,7 +1,9 @@
 import {makeAutoObservable} from "mobx";
 import store from "../stores";
+import * as uuid from "uuid";
 
 class NotificationInfo {
+    readonly uuid: string
     type: NotificationType
     title?: string
     message: string
@@ -16,6 +18,7 @@ class NotificationInfo {
         this.actions = actions
         this.passed = 0
         this.duration = duration
+        this.uuid = uuid.v4()
 
         makeAutoObservable(this, {
             actions: false

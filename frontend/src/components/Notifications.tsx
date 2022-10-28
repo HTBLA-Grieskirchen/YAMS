@@ -17,8 +17,8 @@ const Notifications = observer(() => {
 
     return <div ref={notifications}
                 className="fixed bottom-0 right-2 space-y-2 pl-16 pt-8 pb-4 pr-2 max-w-full max-h-full overflow-y-auto overscroll-auto hover:overscroll-contain">
-        {store.notificationStore.currentNavigations().map((notification, index) =>
-            <NotificationComponent key={index} notification={notification}/>)}
+        {store.notificationStore.currentNavigations().map((notification) =>
+            <NotificationComponent key={notification.uuid} notification={notification}/>)}
     </div>
 })
 

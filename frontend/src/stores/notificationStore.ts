@@ -49,7 +49,7 @@ export default class NotificationStore {
         })
     }
 
-    currentNavigations(): NotificationInfo[] {
+    currentNotifications(): NotificationInfo[] {
         return this.notifications.map((entry) => entry.info)
     }
 }

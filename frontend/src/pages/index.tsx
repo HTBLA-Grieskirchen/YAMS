@@ -56,9 +56,9 @@ const Home: NextPage = observer(() => {
                         </button>
                         <button
                             onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
-                                {store.notificationStore.currentNavigations().length}
+                                {store.notificationStore.currentNotifications().length}
                                 <button onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
-                                    {store.notificationStore.currentNavigations().length}
+                                    {store.notificationStore.currentNotifications().length}
                                     <button onClick={e => close()}>Click to close all</button>
                                     <button onClick={e => close(false)}>Click to close this</button>
                                 </div>)}>New Dialog

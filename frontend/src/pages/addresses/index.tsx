@@ -1,7 +1,8 @@
-import {NextPage} from "next";
 import Head from "next/head";
+import {NextLayoutPage} from "../../types/layout";
+import AddressLayout from "./layout";
 
-const Addresses: NextPage = () => {
+const Addresses: NextLayoutPage = () => {
     return (<>
             <Head>
                 <title>YAMS - Addresses</title>
@@ -91,5 +92,7 @@ const Addresses: NextPage = () => {
         </>
     )
 }
+
+Addresses.Layout = AddressLayout
 
 export default Addresses

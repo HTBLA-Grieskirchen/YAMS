@@ -1,12 +1,16 @@
 import {observer} from "mobx-react";
-import Land from "../model/land";
+import Country from "../model/country";
 import {Result} from "surrealdb.js";
 import {query} from "../libs/dbConnection";
 import {useState} from "react";
 
-const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land[], refresh: () => void }) => {
-    const [fullName, setFullName] = useState(land.name)
-    const [shorthand, setShorthand] = useState(land.short)
+const CountryListItem = observer(({
+                                      country,
+                                      countries,
+                                      refresh
+                                  }: { country: Country, countries: Country[], refresh: () => void }) => {
+    const [fullName, setFullName] = useState(country.name)
+    const [shorthand, setShorthand] = useState(country.short)
     const [editing, setEditing] = useState(false)
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
     const [changeSubmitted, setChangeSubmitted] = useState(false)
@@ -14,7 +18,7 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
 
     const deleteSubmit = async () => {
         setDeleteSubmitted(true)
-        if ((await deleteLand(land))?.result) {
+        if ((await deleteCountry(country))?.result) {
             refresh()
         }
     }
@@ -22,11 +26,11 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
     const changeSubmit = async () => {
         const shorthandUpper = shorthand.trim().toUpperCase()
         const fullNameTrimmed = fullName.trim()
-        const valError = await validate(land.id, fullNameTrimmed, shorthandUpper, lands)
+        const valError = await validate(country.id, fullNameTrimmed, shorthandUpper, countries)
         setValidationError(valError)
         if (valError == null) {
             setChangeSubmitted(true)
-            if ((await updateLand(new Land(land.id, fullNameTrimmed, shorthandUpper)))?.result) {
+            if ((await updateCountry(new Country(country.id, fullNameTrimmed, shorthandUpper)))?.result) {
                 setChangeSubmitted(false)
                 setEditing(false)
                 refresh()
@@ -43,27 +47,27 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
                     <label className="text-gray-700 text-sm sm:w-48 w-fit">Full Name</label>
                     {editing ?
                         <input onChange={e => setFullName(e.target.value)} value={fullName} type="text"
-                               placeholder={land.name}
+                               placeholder={country.name}
                                className="w-48 p-1
                            text-md font-normal
                            form-control block
                            rounded-lg border-2 border-transparent outline-none
                            transition
                            focus:border-blue-600"/> :
-                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">{land.name}</p>}
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">{country.name}</p>}
                 </div>
                 <div className="flex flex-col">
                     <label className="text-gray-700 text-sm">Shorthand</label>
                     {editing ?
                         <input onChange={e => setShorthand(e.target.value)} value={shorthand} type="text"
-                               placeholder={land.short}
+                               placeholder={country.short}
                                className="w-24 p-1
                            text-md font-normal
                            form-control block
                            rounded-lg border-2 border-transparent outline-none
                            transition
                            focus:border-blue-600"/> :
-                        <p className="text-lg">{land.short}</p>}
+                        <p className="text-lg">{country.short}</p>}
                 </div>
             </div>
 
@@ -78,8 +82,8 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
                         <i className="fa-solid fa-check"/>
                     </button>
                     <button type="button" onClick={e => {
-                        setFullName(land.name)
-                        setShorthand(land.short)
+                        setFullName(country.name)
+                        setShorthand(country.short)
                         setValidationError(null)
                         setEditing(false)
                         setChangeSubmitted(false)
@@ -111,10 +115,10 @@ const LandListItem = observer(({land, lands, refresh}: { land: Land, lands: Land
     </div>
 })
 
-const LandCreation = observer(({
-                                   lands,
-                                   onFinish
-                               }: { lands: Land[], onFinish: (result: Result<any> | null) => void }) => {
+const CountryCreation = observer(({
+                                      countries,
+                                      onFinish
+                                  }: { countries: Country[], onFinish: (result: Result<any> | null) => void }) => {
     const [fullName, setFullName] = useState("")
     const [shorthand, setShorthand] = useState("")
     const [submitted, setSubmitted] = useState(false)
@@ -123,11 +127,11 @@ const LandCreation = observer(({
     const onSubmit = async () => {
         const shorthandUpper = shorthand.trim().toUpperCase()
         const fullNameTrimmed = fullName.trim()
-        const valError = await validate("", fullNameTrimmed, shorthandUpper, lands)
+        const valError = await validate("", fullNameTrimmed, shorthandUpper, countries)
         setValidationError(valError)
         if (valError == null) {
             setSubmitted(true)
-            onFinish(await sendLand(fullNameTrimmed, shorthandUpper))
+            onFinish(await sendCountry(fullNameTrimmed, shorthandUpper))
         }
     }
 
@@ -172,8 +176,8 @@ const LandCreation = observer(({
     </div>
 })
 
-async function sendLand(name: string, short: string): Promise<Result<any>> {
-    const response = await query("CREATE land SET name = $name, short = $short", {
+async function sendCountry(name: string, short: string): Promise<Result<any>> {
+    const response = await query("CREATE country SET name = $name, short = $short", {
         name: name,
         short: short
     })
@@ -183,12 +187,12 @@ async function sendLand(name: string, short: string): Promise<Result<any>> {
     }
 }
 
-async function updateLand(land: Land): Promise<Result<any>> {
+async function updateCountry(country: Country): Promise<Result<any>> {
     const response = await query("UPDATE type::thing($landTable, $landID) SET name = $name, short = $short", {
-        landTable: Land.TABLE_NAME,
-        landID: land.id,
-        name: land.name,
-        short: land.short
+        landTable: Country.TABLE_NAME,
+        landID: country.id,
+        name: country.name,
+        short: country.short
     })
 
     return response[0] ?? {
@@ -196,20 +200,20 @@ async function updateLand(land: Land): Promise<Result<any>> {
     }
 }
 
-async function deleteLand(land: Land): Promise<Result<any>> {
-    const checkResult = await query("SELECT * FROM city WHERE land = type::thing($landTable, $landID)", {
-        landTable: Land.TABLE_NAME,
-        landID: land.id
+async function deleteCountry(country: Country): Promise<Result<any>> {
+    const checkResult = await query("SELECT * FROM city WHERE country = type::thing($landTable, $landID)", {
+        landTable: Country.TABLE_NAME,
+        landID: country.id
     })
     if (checkResult[0] && checkResult[0].result.length > 0) {
         return {
-            error: new Error("Land is still used in some cities")
+            error: new Error("Country is still used in some cities")
         }
     }
 
     const response = await query("DELETE type::thing($landTable, $landID)", {
-        landTable: Land.TABLE_NAME,
-        landID: land.id
+        landTable: Country.TABLE_NAME,
+        landID: country.id
     })
 
     return response[0] ?? {
@@ -217,7 +221,7 @@ async function deleteLand(land: Land): Promise<Result<any>> {
     }
 }
 
-async function validate(selfID: string, fullName: string, short: string, lands: Land[]): Promise<string | null> {
+async function validate(selfID: string, fullName: string, short: string, countries: Country[]): Promise<string | null> {
     let error = ""
     if (fullName.trim().length == 0) {
         error += "Full Name may not be empty\n"
@@ -230,9 +234,9 @@ async function validate(selfID: string, fullName: string, short: string, lands: 
         return error
     }
 
-    if (lands.find((land) => land.short == short && land.id != selfID)) {
+    if (countries.find((land) => land.short == short && land.id != selfID)) {
         return "That Shorthand already exists"
-    } else if ((await query("SELECT * FROM land WHERE short = $short", {
+    } else if ((await query("SELECT * FROM country WHERE short = $short", {
         short: short
     }))[0]?.result.length > 0) {
         return "That Shorthand already exists"
@@ -240,4 +244,4 @@ async function validate(selfID: string, fullName: string, short: string, lands: 
     return null
 }
 
-export {LandListItem, LandCreation}
+export {CountryListItem, CountryCreation}

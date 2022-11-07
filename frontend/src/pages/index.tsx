@@ -9,7 +9,7 @@ import dialog from "../libs/dialog";
 
 const Home: NextPage = observer(() => {
     const [entryText, setEntryText] = useState("")
-    const [entries, refreshEntries] = useQuery("SELECT content FROM entry ORDER BY content", undefined, 1000)
+    const [entries, refreshEntries] = useLive("SELECT content FROM entry ORDER BY content", undefined, 1000)
     const entriesExtracted = entries.length > 0 ? entries[0].result : []
 
     async function addEntry(text: string) {
@@ -69,7 +69,7 @@ const Home: NextPage = observer(() => {
                             Dialog!
                         </button>
                     </div>
-                    <Link href="/addresses/land">To Lands</Link>
+                    <Link href="/addresses/country">To Lands</Link>
                     <div className="flex flex-col space-y-2">
                         <input onChange={(e) => setEntryText(e.target.value)}/>
                         <button className="border rounded-lg bg-gray-400 text-black hover:bg-gray-200"

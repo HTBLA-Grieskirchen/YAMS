@@ -4,9 +4,10 @@ import {useLive} from "../../../libs/database";
 import Country from "../../../model/country";
 import {CountryCreation, CountryListItem} from "../../../components/CountryItem";
 import {useState} from "react";
-import {NextPage} from "next";
+import {NextLayoutPage} from "../../../types/layout";
+import AddressLayout from "../_layout";
 
-const CountryOverview: NextPage = observer(() => {
+const CountryOverview: NextLayoutPage = observer(() => {
     const [countriesRaw, refreshCountries] = useLive("SELECT * FROM country ORDER BY name")
     const countries: Country[] = countriesRaw.response && countriesRaw.response[0].result ? countriesRaw.response[0].result.map((landRaw: any) => {
         if (landRaw.id !== undefined && landRaw.name !== undefined && landRaw.short !== undefined) {
@@ -53,5 +54,7 @@ const CountryOverview: NextPage = observer(() => {
         </main>
     </>
 })
+
+CountryOverview.Layout = AddressLayout
 
 export default CountryOverview

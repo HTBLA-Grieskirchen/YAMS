@@ -1,6 +1,6 @@
 import Head from "next/head";
 import {NextLayoutPage} from "../../types/layout";
-import AddressLayout from "./layout";
+import AddressLayout from "./_layout";
 
 const Addresses: NextLayoutPage = () => {
     return (<>

@@ -9,7 +9,7 @@ const AddressLayout: Layout = observer(({children}) => {
     return <div className="flex flex-row">
         <div className="flex flex-col bg-gray-600 h-screen text-white">
             <AddressLayoutLink href={paths.addresses}>Addresses</AddressLayoutLink>
-            <AddressLayoutLink href={paths.countries}>Lands</AddressLayoutLink>
+            <AddressLayoutLink href={paths.countries}>Countries</AddressLayoutLink>
         </div>
         <div className="w-full">
             {children}

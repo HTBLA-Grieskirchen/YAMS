@@ -1,6 +1,6 @@
 const paths = {
     addresses: "/addresses",
-    countries: "/addresses/land"
+    countries: "/addresses/country"
 }
 
 export default paths

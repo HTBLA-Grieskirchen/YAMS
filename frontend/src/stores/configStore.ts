@@ -19,7 +19,7 @@ export default class ConfigStore {
         makeAutoObservable(this)
     }
 
-    async setup() {
+    async init() {
         if (this.tauri != null) {
             this.config = await this.tauri.invoke("frontend_config")
         } else {

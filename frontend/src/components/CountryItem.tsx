@@ -1,14 +1,14 @@
 import {observer} from "mobx-react";
 import Country from "../model/country";
 import {Result} from "surrealdb.js";
-import {query} from "../libs/database";
+import {LiveRefresher, query} from "../libs/database";
 import {useState} from "react";
 
 const CountryListItem = observer(({
                                       country,
                                       countries,
                                       refresh
-                                  }: { country: Country, countries: Country[], refresh: () => void }) => {
+                                  }: { country: Country, countries: Country[], refresh: LiveRefresher }) => {
     const [fullName, setFullName] = useState(country.name)
     const [shorthand, setShorthand] = useState(country.short)
     const [editing, setEditing] = useState(false)

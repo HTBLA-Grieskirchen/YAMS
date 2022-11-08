@@ -1,22 +1,23 @@
-import store, {setupStore} from "../stores";
+import store, {initStore} from "../stores";
 import {tauri} from "@tauri-apps/api";
 import Surreal, {Result} from "surrealdb.js";
 import {observable, runInAction} from "mobx";
 import {useEffect, useState} from "react";
 import Live from "surrealdb.js/types/classes/live";
+import {ano, no} from "../util/consts";
 
 class DatabaseConnection {
     private db: Surreal | undefined
     private tauri: typeof tauri | undefined
-    private readonly setupPromise: Promise<void>
+    private setupPromise: Promise<void> | undefined
 
 
     constructor() {
-        this.setupPromise = this.setup()
+        this.setupPromise = undefined
     }
 
     async setup() {
-        await setupStore
+        await initStore
         if (store.configStore.config.remoteDatabaseLocation !== null) {
             await this.connectToDB(store.configStore.config.remoteDatabaseLocation)
         } else if (store.configStore.isTauri()) {
@@ -26,7 +27,12 @@ class DatabaseConnection {
     }
 
     async setupCompleted() {
-        await this.setupPromise
+        // TODO: Move store config to own independent file
+        if (this.setupPromise) {
+            await this.setupPromise
+        } else {
+            this.setupPromise = this.setup()
+        }
     }
 
     async query(statement: string, vars?: Record<string, unknown>): Promise<Result<any>[]> {
@@ -100,7 +106,7 @@ export class DatabaseError {
     }
 }
 
-export type LiveRefresher = () => void
+export type LiveRefresher = () => Promise<void>
 // TODO: Remove once sync is implemented
 export type LiveCleaner = () => void
 
@@ -128,9 +134,7 @@ export async function live(
     const live = await db.live(statement, vars)
     if (live) {
         // TODO: Provide live support once sync is implemented
-        return [[] as Result<any>[], () => {
-        }, () => {
-        }]
+        return [[] as Result<any>[], ano, no]
     }
 
     const getObservableResult = async () => {
@@ -144,6 +148,7 @@ export async function live(
         const observableResult = await getObservableResult()
 
         runInAction(() => {
+            // TODO: Maybe support diff changes via id as key (benefit is questionable?)
             result.length = 0
             result.push(...observableResult)
         })
@@ -155,7 +160,7 @@ export async function live(
         interval = setInterval(updateResult, 1250)
     }
 
-    return [result, () => updateResult, () => clearInterval(interval)]
+    return [result, updateResult, () => clearInterval(interval)]
 }
 
 interface QueryResult<T> {
@@ -203,13 +208,12 @@ export function useLive(
     vars?: Record<string, unknown>
 ): [RequestedResult<any>, LiveRefresher] {
     const [result, setResult] = useState<RequestedResult<any>>({loading: true})
-    const [update, setUpdate] = useState<() => void>(() => {
-    })
+    const [update, setUpdate] = useState<LiveRefresher>(() => ano)
 
     const init = async () => {
         const [response, refresh, clear] = await live(statement, vars)
         setResult({response})
-        setUpdate(refresh)
+        setUpdate(() => refresh)
         return clear
     }
 

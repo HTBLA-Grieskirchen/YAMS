@@ -3,6 +3,7 @@ import Country from "../model/country";
 import {Result} from "surrealdb.js";
 import {LiveRefresher, query} from "../libs/database";
 import {useState} from "react";
+import {makeRecord} from "../model/surreal";
 
 const CountryListItem = observer(({
                                       country,
@@ -26,11 +27,11 @@ const CountryListItem = observer(({
     const changeSubmit = async () => {
         const shorthandUpper = shorthand.trim().toUpperCase()
         const fullNameTrimmed = fullName.trim()
-        const valError = await validate(country.id, fullNameTrimmed, shorthandUpper, countries)
+        const valError = await validate(country.record.join(), fullNameTrimmed, shorthandUpper, countries)
         setValidationError(valError)
         if (valError == null) {
             setChangeSubmitted(true)
-            if ((await updateCountry(new Country(country.id, fullNameTrimmed, shorthandUpper)))?.result) {
+            if ((await updateCountry(new Country(country.record.join(), fullNameTrimmed, shorthandUpper)))?.result) {
                 setChangeSubmitted(false)
                 setEditing(false)
                 refresh()
@@ -170,8 +171,8 @@ const CountryCreation = observer(({
         </form>
         {validationError &&
             <div className="flex flex-col space-y-0">
-                {validationError.split("\n").map((error) => error.trim().length > 0 &&
-                    <p className="text-red-600">* {error}</p>)}
+                {validationError.split("\n").map((error, index) => error.trim().length > 0 &&
+                    <p key={index} className="text-red-600">* {error}</p>)}
             </div>}
     </div>
 })
@@ -189,8 +190,8 @@ async function sendCountry(name: string, short: string): Promise<Result<any>> {
 
 async function updateCountry(country: Country): Promise<Result<any>> {
     const response = await query("UPDATE type::thing($landTable, $landID) SET name = $name, short = $short", {
-        landTable: Country.TABLE_NAME,
-        landID: country.id,
+        landTable: country.record.table,
+        landID: country.record.id,
         name: country.name,
         short: country.short
     })
@@ -202,8 +203,8 @@ async function updateCountry(country: Country): Promise<Result<any>> {
 
 async function deleteCountry(country: Country): Promise<Result<any>> {
     const checkResult = await query("SELECT * FROM city WHERE country = type::thing($landTable, $landID)", {
-        landTable: Country.TABLE_NAME,
-        landID: country.id
+        landTable: country.record.table,
+        landID: country.record.id
     })
     if (checkResult[0] && checkResult[0].result.length > 0) {
         return {
@@ -212,8 +213,8 @@ async function deleteCountry(country: Country): Promise<Result<any>> {
     }
 
     const response = await query("DELETE type::thing($landTable, $landID)", {
-        landTable: Country.TABLE_NAME,
-        landID: country.id
+        landTable: country.record.table,
+        landID: country.record.id
     })
 
     return response[0] ?? {
@@ -234,7 +235,7 @@ async function validate(selfID: string, fullName: string, short: string, countri
         return error
     }
 
-    if (countries.find((land) => land.short == short && land.id != selfID)) {
+    if (countries.find((land) => land.short == short && land.record != makeRecord(selfID))) {
         return "That Shorthand already exists"
     } else if ((await query("SELECT * FROM country WHERE short = $short", {
         short: short

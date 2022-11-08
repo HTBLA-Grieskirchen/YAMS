@@ -23,6 +23,8 @@ const Home: NextPage = observer(() => {
 
     const store = useStore()
 
+    store.addressStore.countries
+
     return (
         <main className="">
             <div>

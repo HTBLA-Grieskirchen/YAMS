@@ -1,19 +1,14 @@
 import {observer} from "mobx-react";
 import Head from "next/head";
-import {useLive} from "../../../libs/database";
-import Country from "../../../model/country";
 import {CountryCreation, CountryListItem} from "../../../components/CountryItem";
 import {useState} from "react";
 import {NextLayoutPage} from "../../../types/layout";
 import AddressLayout from "../_layout";
+import {useStore} from "../../../stores";
 
 const CountryOverview: NextLayoutPage = observer(() => {
-    const [countriesRaw, refreshCountries] = useLive("SELECT * FROM country ORDER BY name")
-    const countries: Country[] = countriesRaw.response && countriesRaw.response[0].result ? countriesRaw.response[0].result.map((landRaw: any) => {
-        if (landRaw.id !== undefined && landRaw.name !== undefined && landRaw.short !== undefined) {
-            return new Country(landRaw.id, landRaw.name, landRaw.short)
-        }
-    }).filter((it: any) => it !== undefined) : []
+    const store = useStore()
+    const countries = store.addressStore.countries
 
     const [addingCountry, setAddingCountry] = useState(false)
 
@@ -26,9 +21,9 @@ const CountryOverview: NextLayoutPage = observer(() => {
             <div className="flex">
                 {addingCountry ?
                     <div>
-                        <CountryCreation countries={countries} onFinish={(successful) => {
+                        <CountryCreation countries={store.addressStore.countries} onFinish={(successful) => {
                             if (successful?.result) {
-                                refreshCountries()
+                                store.addressStore.refresh()
                             }
                             setAddingCountry(false)
                         }}/>
@@ -45,8 +40,8 @@ const CountryOverview: NextLayoutPage = observer(() => {
             <div className="flex flex-col pt-3">
                 {countries.length > 0 ?
                     <div className="divide-gray-400 divide-y">
-                        {countries.map((land) => <div key={land.record()} className="p-2">
-                            <CountryListItem country={land} countries={countries} refresh={refreshCountries}/>
+                        {countries.map((land) => <div key={land.record.join()} className="p-2">
+                            <CountryListItem country={land} countries={countries} refresh={store.addressStore.refresh}/>
                         </div>)}
                     </div> :
                     <p className="p-2 text-gray-600">No land available!</p>}

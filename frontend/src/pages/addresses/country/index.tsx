@@ -1,14 +1,14 @@
 import {observer} from "mobx-react";
 import Head from "next/head";
-import {useQuery} from "../../../libs/dbConnection";
+import {useLive} from "../../../libs/database";
 import Country from "../../../model/country";
 import {CountryCreation, CountryListItem} from "../../../components/CountryItem";
 import {useState} from "react";
 import {NextPage} from "next";
 
 const CountryOverview: NextPage = observer(() => {
-    const [countriesRaw, refreshCountries] = useLive("SELECT * FROM country ORDER BY name", undefined, 1000)
-    const countries: Country[] = countriesRaw.length > 0 && countriesRaw[0].result ? countriesRaw[0].result.map((landRaw: any) => {
+    const [countriesRaw, refreshCountries] = useLive("SELECT * FROM country ORDER BY name")
+    const countries: Country[] = countriesRaw.response && countriesRaw.response[0].result ? countriesRaw.response[0].result.map((landRaw: any) => {
         if (landRaw.id !== undefined && landRaw.name !== undefined && landRaw.short !== undefined) {
             return new Country(landRaw.id, landRaw.name, landRaw.short)
         }

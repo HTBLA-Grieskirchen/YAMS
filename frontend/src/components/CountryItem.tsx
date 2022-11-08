@@ -1,7 +1,7 @@
 import {observer} from "mobx-react";
 import Country from "../model/country";
 import {Result} from "surrealdb.js";
-import {query} from "../libs/dbConnection";
+import {query} from "../libs/database";
 import {useState} from "react";
 
 const CountryListItem = observer(({

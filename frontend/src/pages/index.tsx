@@ -1,7 +1,7 @@
 import type {NextPage} from 'next'
 import {observer} from "mobx-react";
 import {useState} from "react";
-import {query, useQuery} from "../libs/dbConnection";
+import {query, useLive} from "../libs/database";
 import Link from "next/link";
 import notification from "../libs/notification";
 import {useStore} from "../stores";
@@ -9,8 +9,8 @@ import dialog from "../libs/dialog";
 
 const Home: NextPage = observer(() => {
     const [entryText, setEntryText] = useState("")
-    const [entries, refreshEntries] = useLive("SELECT content FROM entry ORDER BY content", undefined, 1000)
-    const entriesExtracted = entries.length > 0 ? entries[0].result : []
+    const [entries, refreshEntries] = useLive("SELECT content FROM entry ORDER BY content")
+    const entriesExtracted = entries.response?.length ?? -1 > 0 ? entries.response![0].result : []
 
     async function addEntry(text: string) {
         console.log("Adding entry")

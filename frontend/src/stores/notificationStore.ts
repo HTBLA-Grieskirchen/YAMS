@@ -16,35 +16,46 @@ export default class NotificationStore {
     }
 
     addNotification(notification: NotificationInfo) {
-        const interval = setInterval(() => {
-            notification.tick(25)
-        }, 25)
+        let interval: NodeJS.Timer | undefined = undefined
+        let disposeCheck: (() => void) | undefined = undefined
+        if (notification.duration !== undefined) {
+            interval = setInterval(() => {
+                notification.tick(25)
+            }, 25)
+
+            disposeCheck = autorun(() => {
+                if (notification.passed >= notification.duration!!) {
+                    this.removeNotification(notification)
+                }
+            })
+        }
 
         this.notifications.push({
             info: notification,
-            interval: interval
-        })
-
-        autorun(() => {
-            if (notification.remaining < 0) {
-                this.removeNotification(notification)
-            }
+            clean: disposeCheck,
+            interval
         })
     }
 
     removeNotification(notification: NotificationInfo) {
         this.notifications.splice(
             this.notifications.findIndex(
-                (entry) => entry.info === notification),
-            1).forEach((entry) => clearInterval(entry.interval))
+                (entry) => entry.info.uuid === notification.uuid),
+            1).forEach((entry) => {
+            if (entry.clean) {
+                entry.clean()
+            }
+            clearInterval(entry.interval)
+        })
     }
 
-    currentNavigations(): NotificationInfo[] {
+    currentNotifications(): NotificationInfo[] {
         return this.notifications.map((entry) => entry.info)
     }
 }
 
 type NotificationEntry = {
     info: NotificationInfo,
-    interval: NodeJS.Timer
+    clean: (() => void) | undefined,
+    interval: NodeJS.Timer | undefined
 }

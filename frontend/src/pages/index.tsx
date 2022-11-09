@@ -4,6 +4,8 @@ import {useState} from "react";
 import {query, useQuery} from "../libs/dbConnection";
 import Link from "next/link";
 import notification from "../libs/notification";
+import {useStore} from "../stores";
+import dialog from "../libs/dialog";
 
 const Home: NextPage = observer(() => {
     const [entryText, setEntryText] = useState("")
@@ -19,19 +21,54 @@ const Home: NextPage = observer(() => {
         refreshEntries()
     }
 
+    const store = useStore()
+
     return (
         <main className="">
             <div>
                 <div className="flex flex-row space-x-4">
-                    <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 20, {
-                        "Remove": () => true,
-                        "Alert": () => {
-                            alert("This is an alert")
-                            return false
-                        }
-                    })}
-                            className="text-lg">Notify!
-                    </button>
+                    <div className="flex flex-col space-y-4">
+                        <button onClick={e => notification.info({message: "Has been clicked", title: "routi"}, 10, {
+                            "Remove": {
+                                action: () => true,
+                                disabled: () => store.dialogStore.dialogsShown()
+                            },
+                            "Remove Wait": {
+                                action: async () => {
+                                    function sleep(ms: number) {
+                                        return new Promise(resolve => {
+                                            setTimeout(resolve, ms)
+                                        });
+                                    }
+
+                                    await sleep(2500)
+                                    return true
+                                }
+                            },
+                            "Alert": {
+                                action: () => {
+                                    alert("This is an alert")
+                                    return false
+                                }
+                            }
+                        })} className="text-lg">
+                            Notify!
+                        </button>
+                        <button
+                            onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
+                                {store.notificationStore.currentNotifications().length}
+                                <button onClick={e => dialog((close) => <div className="flex flex-row space-x-2">
+                                    {store.notificationStore.currentNotifications().length}
+                                    <button onClick={e => close()}>Click to close all</button>
+                                    <button onClick={e => close(false)}>Click to close this</button>
+                                </div>)}>New Dialog
+                                </button>
+                                <button onClick={e => close()}>Click to close</button>
+                            </div>)}
+                            className="text-lg">
+                            Dialog!
+                        </button>
+                    </div>
                     <Link href="/addresses/land">To Lands</Link>
                     <div className="flex flex-col space-y-2">
                         <input onChange={(e) => setEntryText(e.target.value)}/>

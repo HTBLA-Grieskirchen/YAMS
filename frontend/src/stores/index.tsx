@@ -1,14 +1,17 @@
 import {createContext, ReactNode, useContext} from "react";
 import ConfigStore from "./configStore";
 import NotificationStore from "./notificationStore";
+import DialogStore from "./dialogStore";
 
 class Store {
     configStore: ConfigStore
     notificationStore: NotificationStore
+    dialogStore: DialogStore
 
     constructor() {
         this.configStore = new ConfigStore(this)
         this.notificationStore = new NotificationStore(this)
+        this.dialogStore = new DialogStore(this)
     }
 
     async setup() {

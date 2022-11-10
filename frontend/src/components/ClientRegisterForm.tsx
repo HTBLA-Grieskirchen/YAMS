@@ -1,7 +1,7 @@
 import React, {useState} from "react"
 import Select from 'react-select'
-import {query} from "../../libs/dbConnection";
-import Address from "../../model/address";
+import {query} from "../libs/dbConnection";
+import Address from "../model/address";
 
 const AddClientForm: any = () => {
     const [firstname, setFirstname] = useState('')

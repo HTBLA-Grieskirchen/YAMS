@@ -36,7 +36,7 @@ export default function createSubmenuLayout(entries: { [name: string]: SubmenuEn
                     <SubmenuLayoutLink key={name} shown={shown} icon={icon} href={href}>{name}</SubmenuLayoutLink>
                 )}
             </div>
-            <div className="w-full">
+            <div className="w-full p-4">
                 {children}
             </div>
         </div>

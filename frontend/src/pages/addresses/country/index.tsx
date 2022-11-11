@@ -17,7 +17,7 @@ const CountryOverview: NextLayoutPage = observer(() => {
             <title>YAMS - Country</title>
         </Head>
 
-        <main className="flex flex-col w-fill m-5 p-3 rounded-lg bg-gray-200 shadow">
+        <main className="flex flex-col w-fill p-3 rounded-lg bg-gray-200 shadow">
             <div className="flex">
                 {addingCountry ?
                     <div>

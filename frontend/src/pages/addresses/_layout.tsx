@@ -7,6 +7,10 @@ const AddressLayout: Layout = createSubmenuLayout({
         href: paths.addresses,
         icon: "fa-address-book"
     },
+    "Cities": {
+        href: paths.cities,
+        icon: "fa-city"
+    },
     "Countries": {
         href: paths.countries,
         icon: "fa-earth-europe"

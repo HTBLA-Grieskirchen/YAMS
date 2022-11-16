@@ -2,8 +2,8 @@ import Surreal, {Result} from "surrealdb.js";
 import {observable, runInAction} from "mobx";
 import {useEffect, useState} from "react";
 import Live from "surrealdb.js/types/classes/live";
-import {ano, no} from "../util/consts";
-import getConfig, {tauri, TauriType} from "../config";
+import {ano, no} from "../../util/consts";
+import getConfig, {tauri, TauriType} from "../../config";
 
 class DatabaseConnection {
     private db: Surreal | undefined

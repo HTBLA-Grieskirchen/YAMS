@@ -1,7 +1,7 @@
 import {makeAutoObservable} from "mobx";
 
-export default class Land {
-    static TABLE_NAME: string = "land"
+export default class Country {
+    static TABLE_NAME: string = "country"
     readonly id: string
     name: string
     short: string
@@ -15,6 +15,6 @@ export default class Land {
     }
 
     record(): string {
-        return Land.TABLE_NAME + ":" + this.id
+        return Country.TABLE_NAME + ":" + this.id
     }
 }

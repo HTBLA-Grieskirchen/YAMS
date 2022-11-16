@@ -38,7 +38,7 @@ DEFINE FIELD description ON animal_type TYPE string ASSERT $after != NULL;
 
 DEFINE TABLE city SCHEMAFULL;
 
-DEFINE FIELD land ON city TYPE record(land) ASSERT $after != NULL;
+DEFINE FIELD country ON city TYPE record(country) ASSERT $after != NULL;
 DEFINE FIELD name ON city TYPE string ASSERT $after != NULL;
 DEFINE FIELD plz ON city TYPE string ASSERT $after != NULL;
 
@@ -65,6 +65,15 @@ DEFINE FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NU
 DEFINE FIELD extra ON client_file TYPE string;
 DEFINE FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
 DEFINE FIELD treatment ON client_file VALUE [];
+
+-- ------------------------------
+-- TABLE: country
+-- ------------------------------
+
+DEFINE TABLE country SCHEMAFULL;
+
+DEFINE FIELD name ON country TYPE string ASSERT $after != NULL;
+DEFINE FIELD short ON country TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: event
@@ -108,15 +117,6 @@ DEFINE FIELD issue_date ON invoice TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD number ON invoice TYPE int ASSERT $after != NULL;
 DEFINE FIELD receipt ON invoice TYPE record(pdf);
 DEFINE FIELD transaction_type ON invoice TYPE record(transaction_type) ASSERT $after != NULL;
-
--- ------------------------------
--- TABLE: land
--- ------------------------------
-
-DEFINE TABLE land SCHEMAFULL;
-
-DEFINE FIELD name ON land TYPE string ASSERT $after != NULL;
-DEFINE FIELD short ON land TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: paid
@@ -278,7 +278,7 @@ BEGIN TRANSACTION;
 
 
 -- ------------------------------
--- TABLE DATA: land
+-- TABLE DATA: country
 -- ------------------------------
 
 

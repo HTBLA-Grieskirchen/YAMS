@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 import Select from 'react-select'
-import {query} from "../libs/dbConnection";
+import {query} from "../libs/database";
 import Address from "../model/address";
 
 const AddClientForm: any = () => {

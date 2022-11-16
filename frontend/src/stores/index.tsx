@@ -14,14 +14,14 @@ class Store {
         this.dialogStore = new DialogStore(this)
     }
 
-    async setup() {
-        await this.configStore.setup()
+    async init() {
+        await this.configStore.init()
     }
 }
 
 // Create and setup static store
 const store = new Store()
-export const setupStore = store.setup()
+export const initStore = store.init()
 
 // Provide react integration for accessing
 const StoreContext = createContext(store)

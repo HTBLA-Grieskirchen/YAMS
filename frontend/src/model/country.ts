@@ -2,7 +2,8 @@ import {makeAutoObservable} from "mobx";
 import {makeRecordForTable, Record, SurrealObject} from "./surreal";
 
 export default class Country implements SurrealObject {
-    readonly table: string = "country"
+    static readonly TABLE: string = "country"
+    readonly table: string = Country.TABLE
     readonly record: Record
     name: string
     short: string

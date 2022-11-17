@@ -35,7 +35,7 @@ export default class AddressStore {
     }
 
     async setup() {
-        this.dataLive = await live("SELECT * FROM address, city, country")
+        this.dataLive = await live("SELECT * FROM address, city, country ORDER BY id")
 
         this.registerSyncData()
     }

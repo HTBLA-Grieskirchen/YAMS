@@ -31,6 +31,60 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
                             {client.lastName}
                         </p>
                     </div>
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            First Name
+                        </label>
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            {client.firstName}
+                        </p>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            Birth Date
+                        </label>
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            {client.birthdate.toDateString()}
+                        </p>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            E-Mail
+                        </label>
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            {client.email}
+                        </p>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            E-Mail
+                        </label>
+                        {client.consent ?
+                            <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                                Present
+                            </p>
+                            :
+                            <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                                Not Present
+                            </p>
+                        }
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            Mobile Number
+                        </label>
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            {client.mobileNumber}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-row h-full items-center space-x-1">
+                    <button type="button" onClick={e => {
+                        deleteSubmit()
+                    }} disabled={deleteSubmitted}
+                            className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
+                        <i className="fa-solid fa-remove"/>
+                    </button>
                 </div>
             </div>
         </div>

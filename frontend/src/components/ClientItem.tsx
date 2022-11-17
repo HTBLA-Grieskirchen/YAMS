@@ -20,8 +20,19 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
     }
 
     return (
-        <div>
-
+        <div className="flex flex-col">
+            <div className="flex flex-row space-x-6 items-center">
+                <div className="flex flex-row space-x-4">
+                    <div className="flex flex-col">
+                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
+                            Last Name
+                        </label>
+                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            {client.lastName}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 })

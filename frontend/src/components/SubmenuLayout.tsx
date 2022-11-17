@@ -14,8 +14,8 @@ export default function createSubmenuLayout(entries: { [name: string]: SubmenuEn
     return observer(({children}) => {
         const [shown, setShown] = useState(false)
 
-        return <div className="flex flex-row transition-transform">
-            <div className="sticky left-0 flex flex-col bg-gray-600 h-screen text-white">
+        return <div className="flex flex-row transition-transform overflow-clip">
+            <div className="sticky left-0 top-0 z-50 flex flex-col bg-gray-600 h-screen text-white shadow-2xl">
                 <Link href={paths.home}>
                     <a className="flex p-1 m-3 mb-10 w-10 h-10 rounded-md shadow-md bg-gray-700/50
                         hover:bg-gray-500/50 hover:text-gray-200 hover:shadow-lg
@@ -36,7 +36,7 @@ export default function createSubmenuLayout(entries: { [name: string]: SubmenuEn
                     <SubmenuLayoutLink key={name} shown={shown} icon={icon} href={href}>{name}</SubmenuLayoutLink>
                 )}
             </div>
-            <div className="w-full p-4">
+            <div className="sticky right-0 w-full p-2">
                 {children}
             </div>
         </div>

@@ -1,16 +1,16 @@
-import { makeAutoObservable } from "mobx"
+import {makeAutoObservable} from "mobx"
 
-class Client {
+export default class Client {
 
-    lastName:string
-    firstName:string
+    lastName: string
+    firstName: string
     birthdate: Date
-    email:string
-    mobileNumber:string
+    email: string
+    mobileNumber: string
     consent: number
     id: string
 
-    constructor(lastName: string, firstName: string, birthdate: Date, email: string, mobileNumber: string, consent: number, id: string){
+    constructor(lastName: string, firstName: string, birthdate: Date, email: string, mobileNumber: string, consent: number, id: string) {
 
         makeAutoObservable(this)
 

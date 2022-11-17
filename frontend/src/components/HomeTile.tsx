@@ -14,7 +14,7 @@ const HomeTile = observer((
         <div className="mx-4">
             <p className="text-2xl font-semibold tracking-tight text-blue-600 group-hover:text-white">{title}</p>
         </div>
-        <div className="pb-4 px-2 text-center group-hover:text-gray-200 break-words leading-snug">
+        <div className="pb-4 px-4 text-left group-hover:text-gray-200 break-words leading-snug">
             {children}
         </div>
     </div>

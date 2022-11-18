@@ -27,7 +27,12 @@ const ClientOverview = observer(() => {
                 <div className="flex">
                     {addEntry ?
                         <div>
-                            <ClientRegisterForm/>
+                            <ClientRegisterForm onFinish={(successful) => {
+                                if (successful?.result) {
+                                    refreshClients()
+                                }
+                                setAddEntry(false)
+                            }}/>
                         </div>
                         :
                         <div>

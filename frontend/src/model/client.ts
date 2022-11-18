@@ -27,4 +27,8 @@ export default class Client {
     record(): string {
         return Client.TABLE_NAME + ":" + this.id
     }
+
+    record(): string {
+        return Client.TABLE_NAME + ":" + this.id
+    }
 }

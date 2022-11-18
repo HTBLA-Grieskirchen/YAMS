@@ -18,32 +18,6 @@ const AddClientForm: any = () => {
     const [checked, setChecked] = useState(true)
     const [consent, setConsent] = useState(false)
 
-    //const [file, setFile] = useState(null)
-    //const [fileName, setFileName] = useState(null)
-
-    /*const fileToBase64 = (file: any, cb: any) => {
-        const reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = function () {
-            cb(null, reader.result)
-        }
-        reader.onerror = function (error) {
-            cb(error, null)
-        }
-    }*/
-
-    /*const onUploadFileChange = ({ target }: { target: any }) => {
-        if (target.files < 1 || !target.validity.valid) {
-            return
-        }
-        fileToBase64(target.files[0], (err: any, result: any) => {
-            if (result) {
-                setFile(result)
-                setFileName(target.files[0])
-            }
-        })
-    }*/
-
     const handleButtonAddClient = async () => {
         if (address != null && !(firstname === '') && !(lastname === '') && !(email === '') && !(number === '')) {
             let result = await query('CREATE client SET first_name = $firstname, address = type::thing($addressTable, $addressID), ' +

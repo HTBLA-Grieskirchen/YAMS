@@ -9,7 +9,7 @@ export default class Client {
     consent: boolean
     id: string
 
-    constructor(last_name: string, first_name: string, birthdate: Date, email: string, mobile_number: string, consent: boolean, id: string) {
+    constructor(id: string, last_name: string, first_name: string, birthdate: Date, email: string, mobile_number: string, consent: boolean) {
         makeAutoObservable(this)
 
         this.last_name = last_name

@@ -20,7 +20,7 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
                             Last Name
                         </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.lastName}
+                            {client.last_name}
                         </p>
                     </div>
                     <div className="flex flex-col">
@@ -28,7 +28,7 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
                             First Name
                         </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.firstName}
+                            {client.first_name}
                         </p>
                     </div>
                     <div className="flex flex-col">
@@ -66,7 +66,7 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
                             Mobile Number
                         </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.mobileNumber}
+                            {client.mobile_number}
                         </p>
                     </div>
                 </div>

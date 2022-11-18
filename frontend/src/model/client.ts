@@ -1,22 +1,22 @@
 import {makeAutoObservable} from "mobx"
 
 export default class Client {
-    lastName: string
-    firstName: string
+    last_name: string
+    first_name: string
     birthdate: Date
     email: string
-    mobileNumber: string
+    mobile_number: string
     consent: boolean
     id: string
 
-    constructor(lastName: string, firstName: string, birthdate: Date, email: string, mobileNumber: string, consent: boolean, id: string) {
+    constructor(last_name: string, first_name: string, birthdate: Date, email: string, mobile_number: string, consent: boolean, id: string) {
         makeAutoObservable(this)
 
-        this.lastName = lastName
-        this.firstName = firstName
+        this.last_name = last_name
+        this.first_name = first_name
         this.birthdate = birthdate
         this.email = email
-        this.mobileNumber = mobileNumber
+        this.mobile_number = mobile_number
         this.consent = consent
         this.id = id
     }

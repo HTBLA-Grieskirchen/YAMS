@@ -82,3 +82,5 @@ const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveR
         </div>
     )
 })
+
+export default ClientItem

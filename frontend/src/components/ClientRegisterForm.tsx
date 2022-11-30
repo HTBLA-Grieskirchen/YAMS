@@ -55,7 +55,7 @@ const AddClientForm: any = () => {
                 email: email,
                 number: number,
                 birthdate: new Date(date),
-                addressID: address.id
+                addressID: address.record.id
             })
 
             setFirstname('')
@@ -73,10 +73,7 @@ const AddClientForm: any = () => {
         }
     }
 
-    const options = [
-        new Address('address:6thd5c3wb2dnckpz65yk', 'test', 'Test'),
-        new Address('address:6thd5c3wb2dnckpz65yk', 'test2', 'Test2')
-    ]
+    const options: any[] = []
 
     return (
         <div className="relative flex flex-col justify-center min-h-screen overflow-hidden">
@@ -169,7 +166,7 @@ const AddClientForm: any = () => {
                                 name="addresses"
                                 options={options}
                                 value={address}
-                                onChange={e => setAddress(e)}
+                                onChange={(e: any) => setAddress(e)}
                             />
                             :
                             <div className="mb-2">

@@ -1,14 +1,13 @@
-import store, {initStore} from "../stores";
-import {tauri} from "@tauri-apps/api";
 import Surreal, {Result} from "surrealdb.js";
 import {observable, runInAction} from "mobx";
 import {useEffect, useState} from "react";
 import Live from "surrealdb.js/types/classes/live";
-import {ano, no} from "../util/consts";
+import {ano, no} from "../../util/consts";
+import getConfig, {tauri, TauriType} from "../../config";
 
 class DatabaseConnection {
     private db: Surreal | undefined
-    private tauri: typeof tauri | undefined
+    private tauri: TauriType | undefined
     private setupPromise: Promise<void> | undefined
 
 
@@ -17,12 +16,12 @@ class DatabaseConnection {
     }
 
     async setup() {
-        await initStore
-        if (store.configStore.config.remoteDatabaseLocation !== null) {
-            await this.connectToDB(store.configStore.config.remoteDatabaseLocation)
-        } else if (store.configStore.isTauri()) {
-            this.tauri = store.configStore.tauri ?? undefined
-            await store.configStore.tauri?.invoke("setup_database")
+        const config = await getConfig()
+        if (config.remoteDatabaseLocation !== null) {
+            await this.connectToDB(config.remoteDatabaseLocation)
+        } else if (tauri) {
+            this.tauri = tauri
+            await tauri?.invoke("setup_database")
         }
     }
 

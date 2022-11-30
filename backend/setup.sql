@@ -72,8 +72,8 @@ DEFINE FIELD treatment ON client_file VALUE [];
 
 DEFINE TABLE country SCHEMAFULL;
 
-DEFINE FIELD name ON country TYPE string ASSERT $after != NULL;
-DEFINE FIELD short ON country TYPE string ASSERT $after != NULL;
+DEFINE FIELD name ON country TYPE string ASSERT $after != NULL AND string::trim($after) != "";
+DEFINE FIELD short ON country TYPE string ASSERT $after != NULL AND string::trim($after) != "" AND (count((SELECT id FROM country WHERE short = $after)) < 1 OR $after == $before);
 
 -- ------------------------------
 -- TABLE: event

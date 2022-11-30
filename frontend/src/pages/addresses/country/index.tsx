@@ -21,8 +21,17 @@ const CountryOverview: NextLayoutPage = observer(() => {
                 <CountryTableHeader/>
                 <div className="table-row-group w-full bg-white divide-y-2 ">
                     {<CountryAddItem/>}
-                    {countries.map((country) =>
-                        <CountryListEntry key={country.record.join()} country={country}/>)}
+                    {countries.length > 0 ?
+                        countries.map((country) =>
+                            <CountryListEntry key={country.record.join()} country={country}/>) :
+                        <tr>
+                            <td colSpan={10} className="py-1">
+                                <div className="w-full flex">
+                                    <p className="mx-auto text-gray-600 whitespace-nowrap font-normal">Start to add
+                                        countries</p>
+                                </div>
+                            </td>
+                        </tr>}
                 </div>
             </div>
         </main>

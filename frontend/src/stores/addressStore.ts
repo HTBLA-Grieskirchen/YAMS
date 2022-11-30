@@ -86,9 +86,8 @@ export default class AddressStore {
             const addresses: Address[] = result[0].result.map((item: any) => {
                 if (item.id !== undefined &&
                     item.city !== undefined &&
-                    item.extra !== undefined &&
                     item.street !== undefined) {
-                    return new Address(item.id, cityMap[item.city], item.street, item.extra)
+                    return new Address(item.id, cityMap[item.city], item.street, item.extra ?? "")
                 }
             }).filter((it: any) => it !== undefined)
             this.addresses.length = 0

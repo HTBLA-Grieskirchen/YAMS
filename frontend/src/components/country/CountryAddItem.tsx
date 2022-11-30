@@ -16,11 +16,11 @@ const CountryAddItem = observer(() => {
                 }
             }}/> :
             <div className="table-row">
-                <div className="table-cell py-1.5 px-4">
+                <div className="table-cell py-2 px-4">
                     <button
-                        className="w-6 h-6 bg-gray-300 shadow rounded hover:bg-gray-400/75 hover:shadow-lg transition"
+                        className="flex w-6 h-6 bg-gray-300 shadow rounded hover:bg-gray-400/75 hover:shadow-lg transition"
                         onClick={e => setAdding(true)}>
-                        <i className="fa-solid fa-add"/>
+                        <i className="fa-solid fa-add m-auto"/>
                     </button>
                 </div>
             </div>

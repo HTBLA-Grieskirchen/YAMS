@@ -6,8 +6,8 @@ import notification from "../../libs/notification";
 import {useStore} from "../../stores";
 
 const CountryEditItem = observer((
-    {country, onConfirm, onCancel}:
-        { country: Country, onConfirm?: (success: boolean) => void, onCancel?: () => void }
+    {country, onConfirm, onCancel, noBottomPadding}:
+        { country: Country, onConfirm?: (success: boolean) => void, onCancel?: () => void, noBottomPadding?: boolean }
 ) => {
     const store = useStore()
     const [code, setCode] = useState(country.short)
@@ -83,9 +83,9 @@ const CountryEditItem = observer((
         }
     }}>
         <div
-            className="table-cell py-2 px-4 text-sm font-medium text-gray-900 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0">
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-md font-medium text-gray-900 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
             <input type="text" placeholder="Country Code"
-                   className="w-full px-1 shadow-sm rounded border border-gray-200"
+                   className="w-16 px-1 shadow-sm rounded border border-gray-200"
                    onChange={e => {
                        setCode(e.target.value)
                        const [localCodeErrors, localNameErrors] = check(e.target.value, name)
@@ -94,7 +94,7 @@ const CountryEditItem = observer((
                    }} value={code}/>
         </div>
         <div
-            className="table-cell py-2 px-4 text-sm font-medium text-gray-900 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0">
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-md font-medium text-gray-600 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
             <input type="text" placeholder="Country Name" className="px-1 shadow-sm rounded border border-gray-200"
                    onChange={e => {
                        setName(e.target.value)
@@ -104,7 +104,7 @@ const CountryEditItem = observer((
                    }} value={name}/>
         </div>
         <div
-            className="table-cell py-2 px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0">
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
             <div className="flex flex-col text-left">
                 {codeErrors.map((error, index) =>
                     <p key={index} className="text-red-600"><i className="fa-solid fa-circle-exclamation"/> {error}
@@ -115,18 +115,22 @@ const CountryEditItem = observer((
             </div>
         </div>
         <div
-            className="table-cell py-2 px-4 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0">
-            <button className="text-green-600 hover:underline disabled:opacity-50 disabled:hover:no-underline"
-                    type="submit"
-                    disabled={submitted || !!check(code, name).reduce((prev, current) => prev + current.length, 0)}>
-                Confirm
-            </button>
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-2 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
+            <div className="w-16">
+                <button className="text-green-600 hover:underline disabled:opacity-50 disabled:hover:no-underline"
+                        type="submit"
+                        disabled={submitted || !!check(code, name).reduce((prev, current) => prev + current.length, 0)}>
+                    Confirm
+                </button>
+            </div>
         </div>
         <div
-            className="table-cell py-2 px-4 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0">
-            <button className="text-red-600 hover:underline" onClick={e => onCancel && onCancel()}>
-                Cancel
-            </button>
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-2 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
+            <div className="w-16">
+                <button className="text-red-600 hover:underline" onClick={e => onCancel && onCancel()}>
+                    Cancel
+                </button>
+            </div>
         </div>
     </form>
 })

@@ -23,7 +23,7 @@ const ClientOverview = observer(() => {
                 <title>YAMS - Clients</title>
             </Head>
 
-            <main className="flex flex-col w-fill m-5 p-3 rounded-lg bg-gray-200 shadow">
+            <main className="flex flex-col w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">
                 <div className="flex">
                     {addEntry ?
                         <div>

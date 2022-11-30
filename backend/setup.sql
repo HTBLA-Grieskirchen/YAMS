@@ -55,6 +55,7 @@ DEFINE FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($af
 DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD animals ON client VALUE [];
 
 -- ------------------------------
 -- TABLE: client_file

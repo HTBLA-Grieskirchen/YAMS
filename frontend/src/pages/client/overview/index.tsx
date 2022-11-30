@@ -7,11 +7,11 @@ import {useState} from "react";
 import ClientRegisterForm from "../../../components/ClientRegisterForm";
 
 const ClientOverview = observer(() => {
-    const [clientsRaw, refreshClients] = useLive("SELECT * FROM CLIENTS ORDER BY last_name")
+    const [clientsRaw, refreshClients] = useLive("SELECT * FROM client ORDER BY last_name")
     const clients: Client[] = clientsRaw.response && clientsRaw.response.length > 0 && clientsRaw.response[0].result ? clientsRaw.response[0].result.map((client: any) => {
         if (client.id !== undefined && client.last_name !== undefined && client.first_name !== undefined && client.birthdate !== undefined
             && client.email !== undefined && client.mobile_number !== undefined && client.consent !== undefined) {
-            return new Client(client.id, client.last_name, client.first_name, client.birthdate, client.email, client.mobile_number, client.consent)
+            return new Client(client.id, client.last_name, client.first_name, new Date(client.birthdate.split('T')[0]), client.email, client.mobile_number, client.consent)
         }
     }).filter((it: any) => it !== undefined) : []
 

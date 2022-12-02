@@ -9,7 +9,7 @@ const Home: NextPage = observer(() => {
         <p className="text-4xl mb-6">Yet Another Management Software</p>
         <div className="flex p-4 w-full rounded-lg bg-gray-200/50 place-content-center">
             <div className="grid grid-cols-3 w-fit">
-                <Link href={paths.home}>
+                <Link href={paths.clients}>
                     <a>
                         <HomeTile icon="fa-users" title="Customers">
                             Have a look at all the patients and customers registered in the system.

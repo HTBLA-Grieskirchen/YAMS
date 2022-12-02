@@ -2,16 +2,16 @@ import {observer} from "mobx-react";
 import Head from "next/head";
 import {useLive} from "../../../libs/database";
 import Client from "../../../model/client";
-import ClientItem from "../../../components/ClientItem";
+import ClientItem from "../../../components/client/ClientItem";
 import {useState} from "react";
-import ClientRegisterForm from "../../../components/ClientRegisterForm";
+import ClientRegisterForm from "../../../components/client/ClientRegisterForm";
 
 const ClientOverview = observer(() => {
     const [clientsRaw, refreshClients] = useLive("SELECT * FROM client ORDER BY last_name")
     const clients: Client[] = clientsRaw.response && clientsRaw.response.length > 0 && clientsRaw.response[0].result ? clientsRaw.response[0].result.map((client: any) => {
         if (client.id !== undefined && client.last_name !== undefined && client.first_name !== undefined && client.birthdate !== undefined
             && client.email !== undefined && client.mobile_number !== undefined && client.consent !== undefined) {
-            return new Client(client.id, client.last_name, client.first_name, new Date(client.birthdate.split('T')[0]), client.email, client.mobile_number, client.consent)
+            return new Client(client.id, client.last_name, client.first_name, new Date(client.birthdate.split('T')[0]), client.email, client.mobile_number, client.consent, client.a)
         }
     }).filter((it: any) => it !== undefined) : []
 

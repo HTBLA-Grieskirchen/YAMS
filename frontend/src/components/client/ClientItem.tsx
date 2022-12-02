@@ -1,6 +1,6 @@
 import {observer} from "mobx-react";
-import Client from "../model/client"
-import {LiveRefresher} from "../libs/database";
+import Client from "../../model/client"
+import {LiveRefresher} from "../../libs/database";
 import {useState} from "react";
 
 const ClientItem = observer(({client, refresh}: { client: Client, refresh: LiveRefresher }) => {

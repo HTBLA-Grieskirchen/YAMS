@@ -1,6 +1,6 @@
 import type {NextPage} from 'next'
 import Head from 'next/head'
-import ClientRegisterForm from "../../../components/ClientRegisterForm";
+import ClientRegisterForm from "../../../components/client/ClientRegisterForm";
 
 const Home: NextPage = () => {
     return (
@@ -10,7 +10,8 @@ const Home: NextPage = () => {
             </Head>
 
             <main className="">
-                <ClientRegisterForm/>
+                <ClientRegisterForm onFinish={(e: any) => {
+                }}/>
             </main>
         </div>
     )

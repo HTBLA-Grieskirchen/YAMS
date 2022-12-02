@@ -1,8 +1,9 @@
-import type {NextPage} from 'next'
 import Head from 'next/head'
 import ClientRegisterForm from "../../../components/client/ClientRegisterForm";
+import {NextLayoutPage} from "../../../types/layout";
+import ClientLayout from "../_layout";
 
-const Home: NextPage = () => {
+const RegisterClient: NextLayoutPage = () => {
     return (
         <div className="">
             <Head>
@@ -17,4 +18,5 @@ const Home: NextPage = () => {
     )
 }
 
-export default Home
+RegisterClient.Layout = ClientLayout
+export default RegisterClient

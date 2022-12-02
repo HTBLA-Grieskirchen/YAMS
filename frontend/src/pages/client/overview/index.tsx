@@ -4,9 +4,10 @@ import {useLive} from "../../../libs/database";
 import Client from "../../../model/client";
 import ClientItem from "../../../components/client/ClientItem";
 import {useState} from "react";
-import ClientRegisterForm from "../../../components/client/ClientRegisterForm";
+import {NextLayoutPage} from "../../../types/layout";
+import ClientLayout from "../_layout";
 
-const ClientOverview = observer(() => {
+const ClientOverview: NextLayoutPage = observer(() => {
     const [clientsRaw, refreshClients] = useLive("SELECT * FROM client ORDER BY last_name")
     const clients: Client[] = clientsRaw.response && clientsRaw.response.length > 0 && clientsRaw.response[0].result ? clientsRaw.response[0].result.map((client: any) => {
         if (client.id !== undefined && client.last_name !== undefined && client.first_name !== undefined && client.birthdate !== undefined
@@ -23,26 +24,26 @@ const ClientOverview = observer(() => {
                 <title>YAMS - Clients</title>
             </Head>
 
-            <main className="flex flex-col w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">
-                <div className="flex">
-                    {addEntry ?
-                        <div>
-                            <ClientRegisterForm onFinish={(successful) => {
-                                if (successful?.result) {
-                                    refreshClients()
-                                }
-                                setAddEntry(false)
-                            }}/>
-                        </div>
-                        :
-                        <div>
-                            <button onClick={e => setAddEntry(true)}
-                                    className="m-1 w-24 h-10 hover:text-lg border border-black rounded shadow bg-blue-100 hover:bg-blue-300 transition-all">
-                                New Client
-                            </button>
-                        </div>
-                    }
-                </div>
+            <main className="flex flex-col w-full m-5 p-3 rounded-lg bg-gray-200 shadow">
+                {/*<div className="flex">*/}
+                {/*    {addEntry ?*/}
+                {/*        <div>*/}
+                {/*            <ClientRegisterForm onFinish={(successful) => {*/}
+                {/*                if (successful?.result) {*/}
+                {/*                    refreshClients()*/}
+                {/*                }*/}
+                {/*                setAddEntry(false)*/}
+                {/*            }}/>*/}
+                {/*        </div>*/}
+                {/*        :*/}
+                {/*        <div>*/}
+                {/*            <button onClick={e => setAddEntry(true)}*/}
+                {/*                    className="m-1 w-24 h-10 hover:text-lg border border-black rounded shadow bg-blue-100 hover:bg-blue-300 transition-all">*/}
+                {/*                New Client*/}
+                {/*            </button>*/}
+                {/*        </div>*/}
+                {/*    }*/}
+                {/*</div>*/}
                 <div className="flex flex-col pt-3">
                     {clients.length > 0 ?
                         <div className="divide-gray-400 divide-y">
@@ -61,5 +62,7 @@ const ClientOverview = observer(() => {
         </>
     )
 })
+
+ClientOverview.Layout = ClientLayout
 
 export default ClientOverview

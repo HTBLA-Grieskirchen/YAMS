@@ -9,8 +9,9 @@ export default class Client {
     mobile_number: string
     consent: boolean
     id: string
+    animals: []
 
-    constructor(id: string, last_name: string, first_name: string, birthdate: Date, email: string, mobile_number: string, consent: boolean) {
+    constructor(id: string, last_name: string, first_name: string, birthdate: Date, email: string, mobile_number: string, consent: boolean, animals: []) {
         makeAutoObservable(this)
 
         this.last_name = last_name
@@ -20,6 +21,7 @@ export default class Client {
         this.mobile_number = mobile_number
         this.consent = consent
         this.id = id
+        this.animals = animals
     }
 
     record(): string {

@@ -1,39 +1,20 @@
-class Address {
-    public constructor(id: string, value: string, label: string) {
-        this._id = id
-        this._value = value
-        this._label = label
-    }
+import {makeRecordForTable, Record, SurrealObject} from "./surreal";
+import City from "./city";
+import {makeAutoObservable} from "mobx";
 
-    private _id: string
+export default class Address implements SurrealObject {
+    readonly table: string = "address"
+    readonly record: Record
+    city: City
+    street: string
+    extra: string
 
-    get id(): string {
-        return this._id;
-    }
+    constructor(id: string, city: City, street: string, extra: string) {
+        this.record = makeRecordForTable(id, this.table)
+        this.city = city
+        this.street = street
+        this.extra = extra
 
-    set id(value: string) {
-        this._id = value;
-    }
-
-    private _value: string
-
-    get value(): string {
-        return this._value;
-    }
-
-    set value(value: string) {
-        this._value = value;
-    }
-
-    private _label: string
-
-    get label(): string {
-        return this._label;
-    }
-
-    set label(value: string) {
-        this._label = value;
+        makeAutoObservable(this)
     }
 }
-
-export default Address

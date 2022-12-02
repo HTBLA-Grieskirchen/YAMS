@@ -1,9 +1,9 @@
 import React, {useState} from "react"
 import {query} from "../../libs/database";
-import Address from "../../model/Address";
 import Select from "react-select";
 import {observer} from "mobx-react";
 import {Result} from "surrealdb.js";
+import Address from "../../model/address";
 
 const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | null) => void }) => {
     const [firstname, setFirstname] = useState('')
@@ -32,7 +32,7 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
                 email: email,
                 number: number,
                 birthdate: new Date(date),
-                addressID: address.id
+                addressID: address.record.id
             })
 
             setFirstname('')
@@ -54,6 +54,10 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
         } else {
             onFinish(result)
         }
+    }
+
+    const handleCancel = () => {
+        onFinish(null)
     }
 
     const options: any[] = []

@@ -74,7 +74,7 @@ export default class AddressStore {
                     item.country !== undefined &&
                     item.name !== undefined &&
                     item.plz !== undefined) {
-                    return new City(item.id, countryMap[item.country], item.name, item.short)
+                    return new City(item.id, countryMap[item.country], item.name, item.plz)
                 }
             }).filter((it: any) => it !== undefined)
             let cityMap: { [key: string]: City } = {}

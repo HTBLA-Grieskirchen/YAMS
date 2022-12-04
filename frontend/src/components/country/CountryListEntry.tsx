@@ -16,7 +16,7 @@ const CountryListEntry = observer((
             <CountryEditItem country={country} onCancel={() => setEditing(false)} onConfirm={(s) => {
                 if (s) setEditing(false)
             }} noBottomPadding={true}/> :
-            <CountryDetailItem country={country} onEdit={() => setEditing(true)} nopb={true}/>
+            <CountryDetailItem country={country} onEdit={() => setEditing(true)} noBottomPadding={true}/>
         }
         <div className="table-row">
             <td colSpan={10} className="px-4 pt-1 pb-2">

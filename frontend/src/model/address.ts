@@ -3,7 +3,8 @@ import City from "./city";
 import {makeAutoObservable} from "mobx";
 
 export default class Address implements SurrealObject {
-    readonly table: string = "address"
+    static readonly TABLE: string = "address"
+    readonly table: string = Address.TABLE
     readonly record: Record
     city: City
     street: string

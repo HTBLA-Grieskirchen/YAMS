@@ -1,27 +1,27 @@
 import {observer} from "mobx-react";
-import Country from "../../model/country";
-import {deleteCountry} from "../../libs/database/country";
 import {useState} from "react";
 import {useStore} from "../../stores";
 import notification from "../../libs/notification";
 import {Tooltip} from "@material-tailwind/react";
+import City from "../../model/city";
+import {deleteCity} from "../../libs/database/city";
 
-const CountryDetailItem = observer((
-    {country, onEdit, noBottomPadding}:
-        { country: Country, onEdit?: () => void, noBottomPadding?: boolean }
+const CityDetailItem = observer((
+    {city, onEdit, noBottomPadding}:
+        { city: City, onEdit?: () => void, noBottomPadding?: boolean }
 ) => {
     const store = useStore()
     const [deleting, setDeleting] = useState(false)
-    const hasDependants = store.addressStore.cities.filter((city) => city.country == country).length > 0
+    const hasDependants = store.addressStore.addresses.filter((address) => address.city == city).length > 0
 
     async function remove() {
         setDeleting(true)
 
-        const result = await deleteCountry(country)
+        const result = await deleteCity(city)
         if (result.error) {
             notification.error({
-                title: "Delete Country",
-                message: `${country.name} can not be deleted. ${result.error.message}`
+                title: "Delete City",
+                message: `${city.name} can not be deleted. ${result.error.message}`
             }, 10, {
                 "Retry": {
                     action: async () => {
@@ -41,11 +41,18 @@ const CountryDetailItem = observer((
     return <div className="table-row">
         <div
             className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-md font-medium text-gray-900 whitespace-nowrap border-t-2 border-t-gray-200`}>
-            <p className="w-16 shrink truncate text-ellipsis">{country.short}</p>
+            <p className="w-16 shrink truncate text-ellipsis">{city.plz}</p>
         </div>
         <div
-            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-md font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200`}>
-            <p className="max-w-prose truncate text-ellipsis">{country.name}</p>
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-md font-medium text-gray-700 whitespace-nowrap border-t-2 border-t-gray-200`}>
+            <p className="w-64 min-w-fit shrink truncate text-ellipsis">{city.name}</p>
+        </div>
+        <div
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-sm font-medium whitespace-nowrap border-t-2 border-t-gray-200`}>
+            <div className="flex flex-col">
+                <p className="max-w-prose truncate text-ellipsis text-gray-800">{city.country.short}</p>
+                <p className="max-w-prose truncate text-ellipsis text-gray-500">{city.country.name}</p>
+            </div>
         </div>
         <div
             className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200`}>
@@ -82,4 +89,4 @@ const CountryDetailItem = observer((
     </div>
 })
 
-export default CountryDetailItem
+export default CityDetailItem

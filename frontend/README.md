@@ -65,7 +65,10 @@ To start the app in development mode with hot reloading run:
 
 `cargo tauri dev`
 
-This will start the web application in dev mode and opens a Tauri window to display it.
+This will start the web application and opens a Tauri window to display it.
+
+It is recommended to export a `YAMS_DEV=1` environment variable in order to start the app in development mode.
+This makes the app use paths optimized for the development process.
 
 ### Building
 
@@ -77,6 +80,16 @@ This bundles everything into a single distributable binary for your host system.
 [`src-tauri/target/release/bundle/`](src-tauri/target/release/bundle/).
 
 ### Usage
+
+The configuration file can be found under the current OS's standard config path and is named `yamsconfig.json`. It can
+be used to specify a remote database connection to use, even in the local desktop app. It may for example look like
+this:
+
+```json
+{
+  "remoteDatabaseLocation": "http://127.0.0.1:8004/rpc"
+}
+```
 
 If configured to use a centralized data storage, also make sure that this storage is set up as described in the
 [backend README](../backend/README.md).

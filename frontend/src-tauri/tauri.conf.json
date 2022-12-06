@@ -7,12 +7,14 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "yams",
-    "version": "0.1.0"
+    "productName": "Yet Another Management Software",
+    "version": "../package.json"
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "fs": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,
@@ -20,13 +22,13 @@
       "longDescription": "Yet Another Management Software is a management system for patients, customers and their pets.\nIt uses an embedded or centralized data storage system to allow seamless utilization of different client platforms.",
       "shortDescription": "A management software for patients and animals",
       "category": "Utility",
-      "copyright": "",
+      "copyright": "Copyright © 2022 HTBLA Grieskirchen",
       "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
+        "../../resources/logos/yams64x64.png",
+        "../../resources/logos/yams128x128.png",
+        "../../resources/logos/yams128x128@2.png",
+        "../../resources/logos/yams.icns",
+        "../../resources/logos/yams.ico"
       ],
       "identifier": "at.htlgrieskirchen.yams",
       "resources": [],
@@ -44,11 +46,16 @@
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "license": "../../LICENSE",
+          "bannerPath": "../../resources/logos/banner_wix.png",
+          "dialogImagePath": "../../resources/logos/yams_wix.png"
+        }
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self';"
     },
     "updater": {
       "active": false
@@ -56,8 +63,8 @@
     "windows": [
       {
         "title": "Yet Another Management Software",
-        "width": 800,
-        "height": 600,
+        "width": 1280,
+        "height": 720,
         "resizable": true,
         "fullscreen": false
       }

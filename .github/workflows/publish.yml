@@ -7,7 +7,7 @@ on:
 
 jobs:
   smoke-test:
-    name: "Integration tests on all platforms"
+    name: "Integration test"
     uses: HTBLA-Grieskirchen/YAMS/.github/workflows/smoke_tests.yml@dev
 
   unit-test:
@@ -22,6 +22,8 @@ jobs:
         platform: [ ubuntu-20.04, windows-latest ]
 
     runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -54,7 +56,7 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build the app
+      - name: Release Tauri application
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,3 +66,5 @@ jobs:
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
+
+          iconPath: resources/logos/yams.png

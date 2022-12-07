@@ -3,6 +3,7 @@ import Client from "../../model/client";
 import {useLive} from "../../libs/database";
 import Animal from "../../model/animal";
 import AnimalItem from "./AnimalItem";
+import AnimalTableHeader from "./AnimalTableHeader";
 
 const AnimalList = observer(({client}: { client: Client }) => {
     const [animalsRaw, refreshAnimals] = useLive("SELECT animals.*.* FROM type::thing($table, $id)", {
@@ -17,16 +18,17 @@ const AnimalList = observer(({client}: { client: Client }) => {
     }).filter((it: any) => it !== undefined) : []
 
     return (
-        <main className="flex flex-col w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">
-            <div className="flex flex-col pt-3">
+        <main className="flex flex-col w-full rounded-lg bg-white shadow-md">
+            <div className="table table-auto w-full">
                 {animals.length > 0 ?
-                    <div className="divide-gray-400 divide-y">
-                        {animals.map((animal) =>
-                            <div key={animal.record()} className="p-2">
+                    <>
+                        <AnimalTableHeader/>
+                        <div className="table-row-group w-full bg-white divide-y-2">
+                            {animals.map((animal) =>
                                 <AnimalItem animal={animal}/>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    </>
                     :
                     <p className="p-2 text-gray-600">
                         No animals available!

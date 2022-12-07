@@ -2,8 +2,8 @@ import {observer} from "mobx-react";
 import Client from "../../model/client"
 import {LiveRefresher, query} from "../../libs/database";
 import React, {useState} from "react";
-import AnimalList from "../animal/AnimalList";
 import {Result} from "surrealdb.js";
+import AnimalList from "../animal/AnimalList";
 
 const ClientItem = observer(({client, refresher}: { client: Client, refresher: LiveRefresher }) => {
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
@@ -71,31 +71,22 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
             {showDetail ?
                 <div className="bg-white rounded-xl p-2 w-fit mt-2">
                     <div className="flex flex-col">
-                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
-                            E-Mail
-                        </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
                             {client.email}
                         </p>
                     </div>
                     <div className="flex flex-col">
-                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
-                            Consent
-                        </label>
                         {client.consent ?
                             <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                                Present
+                                Consent given
                             </p>
                             :
                             <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                                Not Present
+                                Consent not given
                             </p>
                         }
                     </div>
                     <div className="flex flex-col">
-                        <label className="text-gray-700 text-sm sm:w-48 w-fit">
-                            Mobile Number
-                        </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
                             {client.mobile_number}
                         </p>

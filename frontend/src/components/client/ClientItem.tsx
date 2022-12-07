@@ -11,7 +11,11 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
 
     const deleteSubmit = async () => {
         setDeleteSubmitted(true)
-        //TODO: finish implementing
+
+        const result = await deleteClient(client)
+
+        await refresher()
+        setDeleteSubmitted(false)
     }
 
     return (
@@ -45,6 +49,17 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
 
                 </div>
                 <div className="flex flex-row h-full items-center space-x-1">
+                    <button
+                        type="button"
+                        onClick={() => setShowDetail(!showDetail)}
+                        className="align-text-bottom text-2xl hover:text-3xl hover:text-gray-600 text-gray-400 w-8 h-8 transition-all">
+                        {showDetail ?
+                            <i className="fa-solid fa-caret-up"/>
+                            :
+                            <i className="fa-solid fa-caret-down"/>
+                        }
+
+                    </button>
                     <button type="button" onClick={e => {
                         deleteSubmit()
                     }} disabled={deleteSubmitted}
@@ -97,5 +112,16 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
         </div>
     )
 })
+
+export async function deleteClient(client: Client): Promise<Result<any>> {
+    const response = await query("DELETE type::thing($landTable, $landID)", {
+        landTable: Client.TABLE_NAME,
+        landID: client.id
+    })
+
+    return response[0] ?? {
+        error: new Error("No response at all")
+    }
+}
 
 export default ClientItem

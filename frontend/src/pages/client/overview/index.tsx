@@ -24,32 +24,13 @@ const ClientOverview: NextLayoutPage = observer(() => {
                 <title>YAMS - Clients</title>
             </Head>
 
-            <main className="flex flex-col w-full m-5 p-3 rounded-lg bg-gray-200 shadow">
-                {/*<div className="flex">*/}
-                {/*    {addEntry ?*/}
-                {/*        <div>*/}
-                {/*            <ClientRegisterForm onFinish={(successful) => {*/}
-                {/*                if (successful?.result) {*/}
-                {/*                    refreshClients()*/}
-                {/*                }*/}
-                {/*                setAddEntry(false)*/}
-                {/*            }}/>*/}
-                {/*        </div>*/}
-                {/*        :*/}
-                {/*        <div>*/}
-                {/*            <button onClick={e => setAddEntry(true)}*/}
-                {/*                    className="m-1 w-24 h-10 hover:text-lg border border-black rounded shadow bg-blue-100 hover:bg-blue-300 transition-all">*/}
-                {/*                New Client*/}
-                {/*            </button>*/}
-                {/*        </div>*/}
-                {/*    }*/}
-                {/*</div>*/}
+            <main className="flex flex-col w-11/12 m-5 p-3 rounded-lg bg-gray-200 shadow">
                 <div className="flex flex-col pt-3">
                     {clients.length > 0 ?
                         <div className="divide-gray-400 divide-y">
                             {clients.map((client) =>
                                 <div key={client.record()} className="p-2">
-                                    <ClientItem client={client} refresh={refreshClients}/>
+                                    <ClientItem client={client} refresher={refreshClients}/>
                                 </div>
                             )}
                         </div>

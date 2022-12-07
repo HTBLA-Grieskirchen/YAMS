@@ -12,11 +12,9 @@ const Home: NextPage = observer(() => {
                 <Link href={paths.clients}>
                     <a>
                         <HomeTile icon="fa-users" title="Customers">
-                            Have a look at all the patients and customers registered in the system.
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                            labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                            laboris nisi ut aliquip ex ea commodo consequat.
-                            {/*TODO: Provide descriptive text @domiiii1320 */}
+                            <p>Have a look at all the clients registered in the system or deposit new ones.</p>
+                            <p>With a click on a client, you can inspect his/her registered animals and have a look at
+                                further information about them</p>
                         </HomeTile>
                     </a>
                 </Link>

@@ -9,7 +9,7 @@ const ClientLayout: Layout = createSubmenuLayout({
     },
     "New Client": {
         href: paths.new_client,
-        icon: "fa-city"
+        icon: "fa-plus-square"
     }
 })
 

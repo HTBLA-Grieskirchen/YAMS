@@ -4,8 +4,14 @@ import Select from "react-select";
 import {observer} from "mobx-react";
 import {Result} from "surrealdb.js";
 import Address from "../../model/address";
+import {useRouter} from "next/router";
+import paths from "../../util/paths";
+import City from "../../model/city";
+import Country from "../../model/country";
 
 const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | null) => void }) => {
+    const router = useRouter()
+
     const [firstname, setFirstname] = useState('')
     const [lastname, setLastname] = useState('')
     const [address, setAddress] = useState<Address | null>(null)
@@ -58,9 +64,12 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
 
     const handleCancel = () => {
         onFinish(null)
+        router.push(paths.clients)
     }
 
-    const options: any[] = []
+    const options: any[] = [new Address('address:test',
+        new City('city:test',
+            new Country('country:test', 'Austria', 'AT'), 'Musterstadt', '4600'), 'Musterstraße', '3')]
 
     //TODO: improve validation | onSubmit deletes all inputs
     return (

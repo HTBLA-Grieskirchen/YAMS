@@ -1,4 +1,4 @@
-import {makeAutoObservable} from "mobx"
+import {makeAutoObservable, runInAction} from "mobx"
 import {makeRecordForTable, Record, SurrealResponse} from "./surreal";
 import Address from "./address";
 import store from "../stores";
@@ -41,7 +41,7 @@ export default class Client {
 }
 
 export class ClientResponse implements SurrealResponse<Client> {
-    public data: {
+    readonly data: {
         id: string,
         first_name: string,
         last_name: string,
@@ -69,21 +69,25 @@ export class ClientResponse implements SurrealResponse<Client> {
 
     applyOn(object: Client): void {
         // Check if data is meant for object
-        if (object.record.join() == this.data.id) return
+        if (object.record.join() != this.data.id) return
 
-        if (this.data.address != object.address.record.join()) {
-            const address = store.addressStore.indexedAddresses.get(this.data.address)
-            if (address) object.address = address
-        }
+        // Client properties are mutated, and we want to let MobX know about it,
+        // so it can react on changes -> runInAction()
+        runInAction(() => {
+            if (this.data.address != object.address.record.join()) {
+                const address = store.addressStore.indexedAddresses.get(this.data.address)
+                if (address) object.address = address
+            }
 
-        if (this.data.first_name != object.firstName) object.firstName = this.data.first_name
-        if (this.data.last_name != object.lastName) object.lastName = this.data.last_name
-        if (this.data.email != object.email) object.email = this.data.email
-        if (this.data.mobile_number != object.mobileNumber) object.mobileNumber = this.data.mobile_number
-        if (this.data.consent != object.consent) object.consent = this.data.consent
+            if (this.data.first_name != object.firstName) object.firstName = this.data.first_name
+            if (this.data.last_name != object.lastName) object.lastName = this.data.last_name
+            if (this.data.email != object.email) object.email = this.data.email
+            if (this.data.mobile_number != object.mobileNumber) object.mobileNumber = this.data.mobile_number
+            if (this.data.consent != object.consent) object.consent = this.data.consent
 
-        const birthdate = new Date(this.data.birthdate)
-        if (birthdate != object.birthdate) object.birthdate = birthdate
+            const birthdate = new Date(this.data.birthdate)
+            if (birthdate != object.birthdate) object.birthdate = birthdate
+        })
     }
 
     intoObject(): Client | undefined {

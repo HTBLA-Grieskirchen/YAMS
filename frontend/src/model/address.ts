@@ -1,6 +1,6 @@
 import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal";
 import City from "./city";
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 import store from "../stores";
 
 export default class Address implements SurrealObject {
@@ -22,7 +22,7 @@ export default class Address implements SurrealObject {
 }
 
 export class AddressResponse implements SurrealResponse<Address> {
-    public data: {
+    readonly data: {
         id: string,
         city: string,
         street: string,
@@ -44,17 +44,21 @@ export class AddressResponse implements SurrealResponse<Address> {
 
     applyOn(object: Address): void {
         // Check if data is meant for object
-        if (object.record.join() == this.data.id) return
+        if (object.record.join() != this.data.id) return
 
-        if (this.data.city != object.city.record.join()) {
-            let city = store.addressStore.indexedCities.get(this.data.city)
-            if (city) object.city = city
-        }
+        // Address properties are mutated, and we want to let MobX know about it,
+        // so it can react on changes -> runInAction()
+        runInAction(() => {
+            if (this.data.city != object.city.record.join()) {
+                let city = store.addressStore.indexedCities.get(this.data.city)
+                if (city) object.city = city
+            }
 
-        if (this.data.street != object.street) object.street = this.data.street
+            if (this.data.street != object.street) object.street = this.data.street
 
-        const extra = this.data.extra ?? ""
-        if (extra != object.extra) object.extra = extra
+            const extra = this.data.extra ?? ""
+            if (extra != object.extra) object.extra = extra
+        })
     }
 
     intoObject(): Address | undefined {

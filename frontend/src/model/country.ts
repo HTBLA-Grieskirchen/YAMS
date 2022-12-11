@@ -1,4 +1,4 @@
-import {makeAutoObservable} from "mobx";
+import {makeAutoObservable, runInAction} from "mobx";
 import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal";
 
 export default class Country implements SurrealObject {
@@ -27,7 +27,7 @@ export default class Country implements SurrealObject {
 }
 
 export class CountryResponse implements SurrealResponse<Country> {
-    public data: {
+    readonly data: {
         id: string,
         name: string,
         short: string
@@ -48,10 +48,14 @@ export class CountryResponse implements SurrealResponse<Country> {
 
     applyOn(object: Country): void {
         // Check if data is meant for object
-        if (object.record.join() == this.data.id) return
+        if (object.record.join() != this.data.id) return
 
-        if (this.data.name != object.name) object.name = this.data.name
-        if (this.data.short != object.short) object.short = this.data.short
+        // Country properties are mutated, and we want to let MobX know about it,
+        // so it can react on changes -> runInAction()
+        runInAction(() => {
+            if (this.data.name != object.name) object.name = this.data.name
+            if (this.data.short != object.short) object.short = this.data.short
+        })
     }
 
     intoObject(): Country | undefined {

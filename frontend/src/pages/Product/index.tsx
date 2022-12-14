@@ -4,13 +4,24 @@ import {useQuery} from "../../libs/dbConnection";
 import {useState} from "react";
 import Product from "../../model/Product";
 import ProductType from "../../model/ProductType";
+import ProductTableHeader from "../../components/address/AddressTableHeader";
+import ProductAddItem from "../../components/address/AddressAddItem";
+import ProductListEntry from "../../components/address/AddressListEntry";
 import {ProductCreation, ProductListItem} from "../../components/ProductItem";
 
 const ProductOverview = observer(() => {
-    const [productsRaw, refreshProducts] = useQuery("SELECT * FROM product ORDER BY discription", undefined, 1000)
+    const [productsRaw, refreshProducts] = useQuery("SELECT * FROM product ORDER BY description", undefined, 1000)
+    const [typesRaw, refreshTypes] = useQuery("SELECT * FROM product_type") //unten dann alle productsRaw types suchen und mid den typesraw vergleichen, dann filtern auf das eine --> das returnen
+    const types: ProductType[] = typesRaw.length > 0 && typesRaw[0].result ? typesRaw[0].result.map((typeRaw: any) => {
+        return new ProductType(typeRaw.id, typeRaw.description)
+    }).filter((it: any) => it !== undefined) : []
+
     const products: Product[] = productsRaw.length > 0 && productsRaw[0].result ? productsRaw[0].result.map((productRaw: any) => {
-        if (productRaw.id !== undefined && productRaw.bezeichnung !== undefined && productRaw.price !== undefined && productRaw.productType !== undefined) {
-            return new Product(productRaw.id, productRaw.bezeichnung, productRaw.productType,productRaw.price )
+        if (productRaw.id !== undefined && productRaw.description !== undefined && productRaw.price !== undefined && productRaw.type !== undefined) {
+            console.log("Produkt wies aus da DB kumt: "+productRaw.type)
+            productRaw.type = new ProductType(productRaw.type, "Typ2")
+            console.log("Produkt wies bearbeitet wird: "+productRaw.type)
+            return new Product(productRaw.id, productRaw.description, productRaw.type ,productRaw.price )
         }
     }).filter((it: any) => it !== undefined) : []
 
@@ -30,7 +41,7 @@ const ProductOverview = observer(() => {
                                 refreshProducts()
                             }
                             setAddingProduct(false)
-                        }}/>
+                        }} types={types}/>
                     </div> :
                     <button onClick={e => setAddingProduct(true)} className="m-1 w-24 h-10 hover:text-lg
                      border border-black

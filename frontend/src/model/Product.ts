@@ -5,14 +5,14 @@ import ProductType from "./ProductType";
 export default class Product {
     static TABLE_NAME: string = "product"
     readonly id: string
-    bezeichnung: string
+    name: string
     productType: ProductType
     price:number
 
 
-    constructor(id: string, bezeichnung: string, productType:ProductType, price:number) {
+    constructor(id: string, name: string, productType: ProductType, price:number) {
         this.id = id
-        this.bezeichnung = bezeichnung
+        this.name = name
         this.productType=productType
         this.price=price;
 

@@ -1,19 +1,19 @@
 import {observer} from "mobx-react";
-import Country from "../../model/country";
 import {useStore} from "../../stores";
 import {ReactNode, useState} from "react";
 import {Tab, TabPanel, Tabs, TabsBody, TabsHeader} from "@material-tailwind/react";
+import City from "../../model/city";
 
-const CountryUsageTabs = observer((
-    {country}:
-        { country: Country }
+const CityUsageTabs = observer((
+    {city}:
+        { city: City }
 ) => {
     const store = useStore()
 
     const [expanded, setExpanded] = useState(false)
 
     // Replace with actual indirect usages once client and events have been added to store
-    const indirectUsages = store.addressStore.addresses.filter((address) => address.city.country == country).length
+    const indirectUsages = store.addressStore.addresses.filter((address) => address.city == city).length
 
     return <div className="flex flex-col">
         <div className="flex flex-row space-x-2">
@@ -30,7 +30,7 @@ const CountryUsageTabs = observer((
             </button>}
         </div>
         <div className={`transition-all ${expanded ? "h-fit" : "h-0"} overflow-clip`}>
-            <Tabs value={"client"} id={`${country.short}_usages`} className="mt-2">
+            <Tabs value={"client"} id={`${city.record.join()}_usages`} className="mt-2">
                 <TabsHeader className="w-fit">
                     <Tab value={"client"} className="px-8 w-fit">
                         {/*TODO: Add individual counts to client and events once available*/}
@@ -42,10 +42,10 @@ const CountryUsageTabs = observer((
                 </TabsHeader>
                 <TabsBody>
                     <TabPanel value={"client"}>
-                        <ClientContent country={country}/>
+                        <ClientContent city={city}/>
                     </TabPanel>
                     <TabPanel value={"event"}>
-                        <EventContent country={country}/>
+                        <EventContent city={city}/>
                     </TabPanel>
                 </TabsBody>
             </Tabs>
@@ -63,8 +63,8 @@ const TabLayout = observer((
 })
 
 const ClientContent = observer((
-    {country}:
-        { country: Country }
+    {city}:
+        { city: City }
 ) => {
     // TODO: Provide implementation once client management is completed
     return <TabLayout>
@@ -81,8 +81,8 @@ const ClientContent = observer((
 })
 
 const EventContent = observer((
-    {country}:
-        { country: Country }
+    {city}:
+        { city: City }
 ) => {
     // TODO: Provide implementation once event management is completed
     return <TabLayout>
@@ -98,4 +98,4 @@ const EventContent = observer((
     </TabLayout>
 })
 
-export default CountryUsageTabs
+export default CityUsageTabs

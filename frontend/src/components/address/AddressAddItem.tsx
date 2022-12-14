@@ -1,16 +1,26 @@
 import {observer} from "mobx-react";
 import {useState} from "react";
-import CountryEditItem from "./CountryEditItem";
+import AddressEditItem from "./AddressEditItem";
 import Country from "../../model/country";
 import {Record} from "../../model/surreal";
+import City from "../../model/city";
+import Address from "../../model/address";
 
-const CountryAddItem = observer(() => {
+const AddressAddItem = observer(() => {
     const [adding, setAdding] = useState(false)
 
     return <>
         {adding ?
-            <CountryEditItem country={new Country(new Record(Country.TABLE, "").join(), "", "")}
-                             onCancel={() => setAdding(false)} onConfirm={(s) => {
+            <AddressEditItem address={
+                new Address(new Record(Address.TABLE, "").join(),
+                    new City(
+                        new Record(City.TABLE, "").join(),
+                        new Country(new Record(Country.TABLE, "").join(), "", ""),
+                        "", ""),
+                    "",
+                    ""
+                )
+            } onCancel={() => setAdding(false)} onConfirm={(s) => {
                 if (s) {
                     setAdding(false)
                 }
@@ -28,4 +38,4 @@ const CountryAddItem = observer(() => {
     </>
 })
 
-export default CountryAddItem
+export default AddressAddItem

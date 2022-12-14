@@ -74,7 +74,7 @@ export default class AddressStore {
                     item.country !== undefined &&
                     item.name !== undefined &&
                     item.plz !== undefined) {
-                    return new City(item.id, countryMap[item.country], item.name, item.short)
+                    return new City(item.id, countryMap[item.country], item.name, item.plz)
                 }
             }).filter((it: any) => it !== undefined)
             let cityMap: { [key: string]: City } = {}
@@ -86,9 +86,8 @@ export default class AddressStore {
             const addresses: Address[] = result[0].result.map((item: any) => {
                 if (item.id !== undefined &&
                     item.city !== undefined &&
-                    item.extra !== undefined &&
                     item.street !== undefined) {
-                    return new Address(item.id, cityMap[item.city], item.street, item.extra)
+                    return new Address(item.id, cityMap[item.city], item.street, item.extra ?? "")
                 }
             }).filter((it: any) => it !== undefined)
             this.addresses.length = 0

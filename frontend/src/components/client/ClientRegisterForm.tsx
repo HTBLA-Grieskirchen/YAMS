@@ -122,7 +122,7 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
                                 <span className="">Telefonnummer</span>
                             </label>
                             <input
-                                type="tel"
+                                type="text"
                                 className="w-64 text-lg form-control block p-1 font-normal rounded-lg border-2 border-transparent outline-none transition focus:border-blue-600"
                                 placeholder="+43 123 4567890"
                                 value={number}

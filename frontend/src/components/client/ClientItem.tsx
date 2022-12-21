@@ -22,12 +22,18 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
         <div className="flex flex-col w-fit">
             <div className="flex flex-row space-x-4 items-center">
                 <div className="flex flex-row space-x-2">
+                    <div className="flex flex-col place-content-center mr-2">
+                        {client.consent ?
+                            <i className="fa-solid fa-circle-check text-green-600"/>
+                            :
+                            <i className="fa-solid fa-circle-exclamation text-red-600"/>}
+                    </div>
                     <div className="flex flex-col">
                         <label className="text-gray-700 text-sm sm:w-48 w-fit">
                             Last Name
                         </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.last_name}
+                            {client.lastName}
                         </p>
                     </div>
                     <div className="flex flex-col">
@@ -35,7 +41,7 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                             First Name
                         </label>
                         <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.first_name}
+                            {client.firstName}
                         </p>
                     </div>
                     <div className="flex flex-col">
@@ -69,28 +75,46 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                 </div>
             </div>
             {showDetail ?
-                <div className="bg-white rounded-xl p-2 w-fit mt-2">
-                    <div className="flex flex-col">
-                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                <div className="bg-white rounded-xl p-2 w-[42rem] mt-2">
+                    <p className="text-xs text-gray-400">
+                        FURTHER INFORMATION:
+                    </p>
+                    <div className="flex flex-col mb-1 w-fit">
+                        <a className="font-medium text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate underline decoration-blue-700 text-blue-700 hover:no-underline hover:text-blue-600"
+                           href={"mailto:" + client.email}>
                             {client.email}
+                        </a>
+                    </div>
+                    <div className="flex flex-col mb-1">
+                        <p className="text-base text-gray-600 min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            <i className="fa-solid fa-phone mr-1 text-[0.9rem]"/>
+                            {client.mobileNumber.at(0) == '+' ?
+                                <>
+                                    {client.mobileNumber.substring(0, 3) + " " + client.mobileNumber.substring(3, 6) + " " + client.mobileNumber.substring(6, 13)}
+                                </>
+                                :
+                                <>
+                                    {client.mobileNumber.substring(0, 4) + " " + client.mobileNumber.substring(4, client.mobileNumber.length)}
+                                </>
+                            }
                         </p>
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col w-fit mb-4">
                         {client.consent ?
-                            <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            <p className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200 uppercase last:mr-0 mr-1">
+                                <i className="fa-regular fa-circle-check mr-2"/>
                                 Consent given
                             </p>
                             :
-                            <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                            <p className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-red-600 bg-red-200 uppercase last:mr-0 mr-1">
+                                <i className="fa-regular fa-circle-xmark mr-2"/>
                                 Consent not given
                             </p>
                         }
                     </div>
-                    <div className="flex flex-col">
-                        <p className="text-lg min-w-full xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                            {client.mobile_number}
-                        </p>
-                    </div>
+                    <p className="text-xs text-gray-400 mb-1">
+                        REGISTERED ANIMALS:
+                    </p>
                     {deleteSubmitted ?
                         <></>
                         :
@@ -105,9 +129,9 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
 })
 
 export async function deleteClient(client: Client): Promise<Result<any>> {
-    const response = await query("DELETE type::thing($landTable, $landID)", {
-        landTable: Client.TABLE_NAME,
-        landID: client.id
+    const response = await query("DELETE type::thing($clientTable, $clientID)", {
+        clientTable: Client.TABLE,
+        clientID: client.record.id
     })
 
     return response[0] ?? {

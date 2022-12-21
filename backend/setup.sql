@@ -51,22 +51,14 @@ DEFINE FIELD plz ON city TYPE string ASSERT $after != NULL;
 DEFINE
 TABLE client SCHEMAFULL;
 
-DEFINE
-FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
-DEFINE
-FIELD consent ON client TYPE record(pdf) ASSERT $after != NULL;
-DEFINE
-FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
-DEFINE
-FIELD first_name ON client TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD last_name ON client TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
-DEFINE
-FIELD address ON client TYPE record(address) ASSERT $after != NULL;
-DEFINE 
-FIELD animals ON client VALUE [];
+DEFINE FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
+DEFINE FIELD consent ON client TYPE record(pdf) ASSERT $after != NULL;
+DEFINE FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
+DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
+DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
+DEFINE FIELD animals ON client VALUE [];
 
 -- ------------------------------
 -- TABLE: client_file

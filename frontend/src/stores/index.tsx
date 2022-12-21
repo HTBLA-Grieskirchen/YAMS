@@ -21,6 +21,7 @@ class Store {
 
     async setup() {
         await this.addressStore.setup()
+        await this.clientStore.setup()
     }
 }
 

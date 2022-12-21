@@ -6,11 +6,11 @@ import {Result} from "surrealdb.js";
 import Address from "../../model/address";
 import {useRouter} from "next/router";
 import paths from "../../util/paths";
-import City from "../../model/city";
-import Country from "../../model/country";
+import {useStore} from "../../stores";
 
 const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | null) => void }) => {
     const router = useRouter()
+    const store = useStore()
 
     const [firstname, setFirstname] = useState('')
     const [lastname, setLastname] = useState('')
@@ -67,9 +67,7 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
         router.push(paths.clients)
     }
 
-    const options: any[] = [new Address('address:test',
-        new City('city:test',
-            new Country('country:test', 'Austria', 'AT'), 'Musterstadt', '4600'), 'Musterstraße', '3')]
+    const options = store.addressStore.addresses
 
     //TODO: improve validation | onSubmit deletes all inputs
     return (

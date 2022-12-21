@@ -52,7 +52,8 @@ export class ClientResponse implements SurrealResponse<Client> {
         mobile_number: string,
         birthdate: string,
         address: string,
-        consent: boolean
+        consent: boolean,
+        animals?: []
     }
 
     private constructor(data: ClientResponse["data"]) {
@@ -88,6 +89,9 @@ export class ClientResponse implements SurrealResponse<Client> {
             if (this.data.mobile_number != object.mobileNumber) object.mobileNumber = this.data.mobile_number
             if (this.data.consent != object.consent) object.consent = this.data.consent
 
+            const animals = this.data.animals ?? []
+            if (animals != object.animals) object.animals = animals
+
             const birthdate = new Date(this.data.birthdate)
             if (birthdate != object.birthdate) object.birthdate = birthdate
         })
@@ -104,6 +108,7 @@ export class ClientResponse implements SurrealResponse<Client> {
             this.data.email,
             this.data.mobile_number,
             address,
-            this.data.consent)
+            this.data.consent,
+            this.data.animals ?? [])
     }
 }

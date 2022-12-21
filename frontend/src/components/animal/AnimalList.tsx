@@ -7,8 +7,8 @@ import AnimalTableHeader from "./AnimalTableHeader";
 
 const AnimalList = observer(({client}: { client: Client }) => {
     const [animalsRaw, refreshAnimals] = useLive("SELECT animals.*.* FROM type::thing($table, $id)", {
-        table: Client.TABLE_NAME,
-        id: client.id
+        table: Client.TABLE,
+        id: client.record.id
     })
     console.log()
     const animals: Animal[] = animalsRaw.response && animalsRaw.response.length > 0 && animalsRaw.response[0].result && animalsRaw.response[0].result[0].animals ? animalsRaw.response[0].result[0].animals.map((animal: any) => {
@@ -25,7 +25,7 @@ const AnimalList = observer(({client}: { client: Client }) => {
                         <AnimalTableHeader/>
                         <div className="table-row-group w-full bg-white divide-y-2">
                             {animals.map((animal) =>
-                                <AnimalItem animal={animal}/>
+                                <AnimalItem key={animal.record.join()} animal={animal}/>
                             )}
                         </div>
                     </>

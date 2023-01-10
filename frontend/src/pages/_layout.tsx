@@ -26,8 +26,9 @@ const Layout = observer(({children}: { children: ReactElement }) => {
 
 const MainMenu = createLeftMenuLayout({
     "Client": {
-        href: paths.home, // TODO: Replace with client once available
-        icon: "fa-person"
+        href: paths.clients,
+        icon: "fa-person",
+        recursive: true
     },
     "Locations": {
         href: paths.addresses,

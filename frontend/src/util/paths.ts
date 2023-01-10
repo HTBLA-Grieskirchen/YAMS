@@ -3,7 +3,7 @@ const paths = {
     addresses: "/addresses",
     cities: "/addresses/city",
     countries: "/addresses/country",
-    clients: "/client/overview",
+    clients: "/client",
     new_client: "/client/add"
 }
 

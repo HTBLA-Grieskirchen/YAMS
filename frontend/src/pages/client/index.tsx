@@ -1,9 +1,9 @@
 import {observer} from "mobx-react";
 import Head from "next/head";
-import ClientItem from "../../../components/client/ClientItem";
-import {NextLayoutPage} from "../../../types/layout";
-import ClientLayout from "../_layout";
-import {useStore} from "../../../stores";
+import ClientItem from "../../components/client/ClientItem";
+import {NextLayoutPage} from "../../types/layout";
+import ClientLayout from "./_layout";
+import {useStore} from "../../stores";
 
 const ClientOverview: NextLayoutPage = observer(() => {
     const store = useStore()

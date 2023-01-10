@@ -15,6 +15,7 @@
     "@material-tailwind/react": "^1.2.4",
     "@headlessui/react": "^1.7.7",
     "@mui/material": "^5.10.10",
+    "@headlessui/react": "^1.7.7",
     "@tailwindcss/line-clamp": "^0.4.2",
     "@tauri-apps/api": "^1.1.0",
     "daisyui": "^2.46.1",

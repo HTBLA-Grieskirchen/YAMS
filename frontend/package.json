@@ -11,9 +11,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mui/material": "^5.10.10",
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@material-tailwind/react": "^1.2.4",
+    "@headlessui/react": "^1.7.7",
+    "@mui/material": "^5.10.10",
     "@tailwindcss/line-clamp": "^0.4.2",
     "@tauri-apps/api": "^1.1.0",
     "autoprefixer": "^10.4.12",

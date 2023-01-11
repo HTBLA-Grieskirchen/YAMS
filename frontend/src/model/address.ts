@@ -19,6 +19,10 @@ export default class Address implements SurrealObject {
 
         makeAutoObservable(this)
     }
+
+    get label() {
+        return this.street + " " + this.extra + ", " + this.city.plz + " " + this.city.name
+    }
 }
 
 export class AddressResponse implements SurrealResponse<Address> {

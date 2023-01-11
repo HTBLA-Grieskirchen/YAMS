@@ -171,7 +171,7 @@ DEFINE FIELD amount ON purchased TYPE int ASSERT $after != NULL;
 DEFINE TABLE race SCHEMAFULL;
 
 DEFINE FIELD description ON race TYPE string ASSERT $after != NULL;
-DEFINE FIELD type ON race TYPE record(animal_type) ASSERT $after != NULL;
+DEFINE FIELD animal_species ON race TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: seminar

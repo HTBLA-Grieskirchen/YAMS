@@ -1,8 +1,8 @@
 import {Layout} from "../../types/layout";
 import paths from "../../util/paths";
-import createSubmenuLayout from "../../components/SubmenuLayout";
+import createTabMenuLayout from "../../components/layout/TabMenuLayout";
 
-const AddressLayout: Layout = createSubmenuLayout({
+const AddressLayout: Layout = createTabMenuLayout({
     "Addresses": {
         href: paths.addresses,
         icon: "fa-address-book"

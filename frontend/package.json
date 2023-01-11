@@ -11,11 +11,14 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@mui/material": "^5.10.10",
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@material-tailwind/react": "^1.2.4",
+    "@headlessui/react": "^1.7.7",
+    "@mui/material": "^5.10.10",
     "@tailwindcss/line-clamp": "^0.4.2",
     "@tauri-apps/api": "^1.1.0",
+    "daisyui": "^2.46.1",
+    "tailwindcss": "^3.1.8",
     "autoprefixer": "^10.4.12",
     "mobx": "^6.6.2",
     "mobx-react": "^7.5.3",
@@ -27,7 +30,6 @@
     "react-select": "^5.5.2",
     "react-widgets": "^5.8.4",
     "surrealdb.js": "^0.5.0",
-    "tailwindcss": "^3.1.8",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

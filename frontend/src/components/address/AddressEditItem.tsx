@@ -138,7 +138,7 @@ const AddressEditItem = observer((
                             </option>
                         )}
                     </select> :
-                    <Link href={paths.countries}><a className="
+                    <Link href={paths.cities}><a className="
                         w-fit px-2
                         font-bold text-gray-800 hover:text-gray-900
                         rounded

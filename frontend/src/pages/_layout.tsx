@@ -3,6 +3,8 @@ import Head from "next/head";
 import {observer} from "mobx-react";
 import Notifications from "../components/Notifications";
 import DialogOverlay from "../components/DialogOverlay";
+import createLeftMenuLayout from "../components/layout/LeftMenuLayout";
+import paths from "../util/paths";
 
 const Layout = observer(({children}: { children: ReactElement }) => {
     return <>
@@ -14,10 +16,25 @@ const Layout = observer(({children}: { children: ReactElement }) => {
             <link rel="shortcut icon" href="/favicon.ico"/>
             <link rel="icon" href="/favicon.ico"/>
         </Head>
-        {children}
+        <MainMenu>
+            {children}
+        </MainMenu>
         <DialogOverlay/>
         <Notifications/>
     </>
+})
+
+const MainMenu = createLeftMenuLayout({
+    "Client": {
+        href: paths.clients,
+        icon: "fa-person",
+        recursive: true
+    },
+    "Locations": {
+        href: paths.addresses,
+        icon: "fa-map-location-dot",
+        recursive: true
+    }
 })
 
 export default Layout

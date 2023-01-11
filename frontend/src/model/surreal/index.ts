@@ -3,6 +3,12 @@ export interface SurrealObject {
     readonly record: Record
 }
 
+export interface SurrealResponse<T extends SurrealObject> {
+    applyOn(object: T): void
+
+    intoObject(): T | undefined
+}
+
 export class RecordError extends Error {
     name = "RecordError"
 }
@@ -48,7 +54,7 @@ export function makeRecordForTable(id: string, table: string): Record {
         throw new RecordError("Given id is not a record: " + id)
     }
     if (record.table !== table) {
-        throw new RecordError(`Given id is not part of table ${table}: ${id}`)
+        throw new RecordError(`Given id is not part of table "${table}": ${id}`)
     }
 
     return record

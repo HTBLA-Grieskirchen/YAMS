@@ -26,11 +26,12 @@ class DatabaseConnection {
     }
 
     async setupCompleted() {
-        // TODO: Move store config to own independent file
         if (this.setupPromise) {
             await this.setupPromise
         } else {
-            this.setupPromise = this.setup()
+            this.setupPromise = this.setup().then(() => {
+                console.log("Database connection established")
+            })
         }
     }
 

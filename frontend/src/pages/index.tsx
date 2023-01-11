@@ -1,32 +1,35 @@
 import type {NextPage} from 'next'
 import {observer} from "mobx-react";
-import Link from "next/link";
-import HomeTile from "../components/HomeTile";
 import paths from "../util/paths";
+import {useRouter} from "next/router";
+import {useEffect, useState} from "react";
+import {setupStore} from "../stores";
 
 const Home: NextPage = observer(() => {
+    const router = useRouter()
+
+    const [dotcount, setDotcount] = useState(1)
+
+    useEffect(() => {
+        setupStore.then(() => {
+            router.push(paths.clients)
+        })
+
+        let count = 1
+        const dotcounter = setInterval(() => {
+            count = count % 3 + 1
+            setDotcount(count)
+        }, 750)
+
+        return () => clearInterval(dotcounter)
+    }, [])
+
     return <main className="flex flex-col p-4 place-items-center">
-        <p className="text-4xl mb-6">Yet Another Management Software</p>
-        <div className="flex p-4 w-full rounded-lg bg-gray-200/50 place-content-center">
-            <div className="grid grid-cols-3 w-fit">
-                <Link href={paths.clients}>
-                    <a>
-                        <HomeTile icon="fa-users" title="Customers">
-                            <p>Have a look at all the clients registered in the system or deposit new ones.</p>
-                            <p>With a click on a client, you can inspect his/her registered animals and have a look at
-                                further information about them</p>
-                        </HomeTile>
-                    </a>
-                </Link>
-                <Link href={paths.addresses}>
-                    <a>
-                        <HomeTile icon="fa-map-location-dot" title="Locations">
-                            <p className="mb-2">Manage locations, country names, city names and zip code.</p>
-                            <p>You can also inspect currently used locations, what and who they are used for.</p>
-                        </HomeTile>
-                    </a>
-                </Link>
-            </div>
+        <p className="text-4xl mb-6 font-medium">Yet Another Management Software</p>
+        <div className="flex p-4 w-full place-content-center">
+            <p className="text-gray-800 text-4xl font-normal leading-tight w-64">
+                <i className="text-4xl text-blue-500 fa-solid fa-spinner animate-spin mr-2"/>
+                Loading{".".repeat(dotcount)}</p>
         </div>
     </main>
 })

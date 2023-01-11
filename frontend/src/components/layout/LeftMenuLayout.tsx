@@ -1,18 +1,21 @@
 import {observer} from "mobx-react";
-import paths from "../util/paths";
-import {ReactNode, useState} from "react";
+import paths from "../../util/paths";
+import {ReactNode, useEffect, useState} from "react";
 import {useRouter} from "next/router";
 import Link from "next/link";
-import {Layout} from "../types/layout";
+import {Layout} from "../../types/layout";
+import {setupStore} from "../../stores";
+import {MenuEntryData} from "./index";
 
-type SubmenuEntryData = {
-    href: string,
-    icon: string
-}
 
-export default function createSubmenuLayout(entries: { [name: string]: SubmenuEntryData }): Layout {
+export default function createLeftMenuLayout(entries: { [name: string]: MenuEntryData }): Layout {
     return observer(({children}) => {
         const [shown, setShown] = useState(false)
+        const [disabled, setDisabled] = useState(true)
+
+        useEffect(() => {
+            setupStore.then(() => setDisabled(false))
+        }, [])
 
         return <div className="flex flex-row transition-transform overflow-clip">
             <div className="sticky left-0 top-0 z-50 flex flex-col bg-gray-600 h-screen text-white shadow-2xl">
@@ -32,11 +35,14 @@ export default function createSubmenuLayout(entries: { [name: string]: SubmenuEn
                     </button>
                 </div>
 
-                {Object.entries(entries).map(([name, {href, icon}]) =>
-                    <SubmenuLayoutLink key={name} shown={shown} icon={icon} href={href}>{name}</SubmenuLayoutLink>
+                {Object.entries(entries).map(([name, {href, icon, recursive}]) =>
+                    <SubmenuLayoutLink key={name} shown={shown} icon={icon} href={href} disabled={disabled}
+                                       recursive={recursive}>
+                        {name}
+                    </SubmenuLayoutLink>
                 )}
             </div>
-            <div className="sticky right-0 w-full p-2">
+            <div className="sticky right-0 w-full">
                 {children}
             </div>
         </div>
@@ -44,20 +50,21 @@ export default function createSubmenuLayout(entries: { [name: string]: SubmenuEn
 }
 
 const SubmenuLayoutLink = (
-    {href, icon, shown, children}:
-        { href: string, icon: string, shown: boolean, children: ReactNode }
+    {href, icon, shown, children, disabled, recursive}:
+        { href: string, icon: string, shown: boolean, disabled?: boolean, recursive?: boolean, children: ReactNode }
 ) => {
     const router = useRouter()
 
-    const isActive = !(router.pathname == href)
+    const isActive = !(recursive ? router.pathname.startsWith(href) : router.pathname == href)
+    const isClickable = isActive && !disabled
 
     const LinkContent = () => {
         return <div
             className={`group flex flex-row w-full h-fit py-2 pl-4 ${shown ? "pr-12" : ""} transition-all text-white text-lg `
-                + (isActive ? "hover:shadow-sm hover:text-gray-200 hover:bg-gray-500 hover:cursor-pointer" : "text-gray-300")}
+                + (isClickable ? "hover:shadow-sm hover:text-gray-200 hover:bg-gray-500 hover:cursor-pointer" : "text-gray-300")}
         >
             <span className={"flex my-auto mr-4 w-8 h-8 rounded-md shadow-sm bg-gray-700/50 inline " +
-                (isActive ? "group-hover:bg-gray-600/50" : "")}>
+                (isClickable ? "group-hover:bg-gray-600/50" : "")}>
                 <i className={"m-auto fa-solid " + icon}/>
             </span>
             <span className={`${shown ? "" : "w-0 invisible"} transition-transform`}>{children}</span>
@@ -66,7 +73,7 @@ const SubmenuLayoutLink = (
 
     return <div className="relative flex w-full">
         <div className={"absolute left-0 h-full bg-blue-400 transition-all " + (isActive ? "w-0" : "w-1")}/>
-        {isActive ?
+        {isClickable ?
             <Link href={href}>
                 {LinkContent()}
             </Link> :

@@ -31,19 +31,19 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                 email: email,
                 number: number,
                 birthdate: new Date(date),
-                /*addressID: address.id*/
+                //addressID: address.id
             })
 
-            setFirstname('')
-            setLastname('')
-            setConsent(false)
-            setEmail('')
-            setNumber('')
-            setDate('2000-01-01')
-            setCity('')
-            setStreet('')
-            setPostalCode('')
-            setStreetNumber('')
+            // setFirstname('')
+            // setLastname('')
+            // setConsent(false)
+            // setEmail('')
+            // setNumber('')
+            // setDate('2000-01-01')
+            // setCity('')
+            // setStreet('')
+            // setPostalCode('')
+            // setStreetNumber('')
         } else {
             alert('Felder dürfen nicht leer sein')
         }

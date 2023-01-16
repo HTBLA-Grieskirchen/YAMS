@@ -16,22 +16,24 @@ const Addresses: NextLayoutPage = observer(() => {
             <title>YAMS - Address</title>
         </Head>
 
-        <main className="flex flex-col w-full rounded-lg bg-white shadow-md">
-            <div className="table table-auto w-full">
-                <AddressTableHeader/>
-                <div className="table-row-group w-full bg-white divide-y-2 ">
-                    {<AddressAddItem/>}
-                    {addresses.length > 0 ?
-                        addresses.map((address) =>
-                            <AddressListEntry key={address.record.join()} address={address}/>) :
-                        <tr>
-                            <td colSpan={10} className="py-1">
-                                <div className="w-full flex">
-                                    <p className="mx-auto text-gray-600 whitespace-nowrap font-normal">Start to add
-                                        addresses</p>
-                                </div>
-                            </td>
-                        </tr>}
+        <main className="w-full p-2 bg-white">
+            <div className="flex flex-col w-full shadow-md">
+                <div className="table table-auto w-full">
+                    <AddressTableHeader/>
+                    <div className="table-row-group w-full bg-white divide-y-2 ">
+                        {<AddressAddItem/>}
+                        {addresses.length > 0 ?
+                            addresses.map((address) =>
+                                <AddressListEntry key={address.record.join()} address={address}/>) :
+                            <tr>
+                                <td colSpan={10} className="py-1">
+                                    <div className="w-full flex">
+                                        <p className="mx-auto text-gray-600 whitespace-nowrap font-normal">Start to add
+                                            addresses</p>
+                                    </div>
+                                </td>
+                            </tr>}
+                    </div>
                 </div>
             </div>
         </main>

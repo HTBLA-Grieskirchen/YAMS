@@ -28,6 +28,14 @@ const Home: NextPage = observer(() => {
                         </HomeTile>
                     </a>
                 </Link>
+                <Link href={paths.purchases}>
+                    <a>
+                        <HomeTile icon="fa-map-location-dot" title="Purchases">
+                            <p className="mb-2">Manage purchases, products and product-types.</p>
+                            <p>Products Test</p>
+                        </HomeTile>
+                    </a>
+                </Link>
             </div>
         </div>
     </main>

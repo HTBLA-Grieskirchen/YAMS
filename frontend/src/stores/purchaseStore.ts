@@ -1,47 +1,47 @@
 import store from "./index";
 import {action, autorun, computed, makeAutoObservable, observable, runInAction} from "mobx";
 import {live} from "../libs/database";
-import Address, {AddressResponse} from "../model/address";
-import City, {CityResponse} from "../model/city";
-import Country, {CountryResponse} from "../model/country";
+import Purchase, {PurchaseResponse} from "../model/purchase";
+import Product, {ProductResponse} from "../model/product";
+import ProductType, {ProductTypeResponse} from "../model/productType";
 import {ano, no} from "../util/consts";
 
-export default class AddressStore {
+export default class PurchaseStore {
     private root: typeof store
     private dataLive: Awaited<ReturnType<typeof live>>
 
-    indexedAddresses: Map<string, Address>
-    indexedCities: Map<string, City>
-    indexedCountries: Map<string, Country>
+    indexedPurchases: Map<string, Purchase>
+    indexedProducts: Map<string, Product>
+    indexedProductTypes: Map<string, ProductType>
 
     constructor(root: typeof store) {
         this.root = root
         this.dataLive = [[], ano, no]
 
-        this.indexedAddresses = observable.map()
-        this.indexedCities = observable.map()
-        this.indexedCountries = observable.map()
+        this.indexedPurchases = observable.map()
+        this.indexedProducts = observable.map()
+        this.indexedProductTypes = observable.map()
 
         makeAutoObservable(this, {
             refresh: action.bound,
             close: action.bound,
 
-            addresses: computed.struct,
-            countries: computed.struct,
-            cities: computed.struct,
+            purchases: computed.struct,
+            products: computed.struct,
+            productTypes: computed.struct,
         })
     }
 
-    get addresses(): Address[] {
-        return Array.from(this.indexedAddresses.values())
+    get purchases(): Purchase[] {
+        return Array.from(this.indexedPurchases.values())
     }
 
-    get countries(): Country[] {
-        return Array.from(this.indexedCountries.values())
+    get products(): Product[] {
+        return Array.from(this.indexedProducts.values())
     }
 
-    get cities(): City[] {
-        return Array.from(this.indexedCities.values())
+    get productTypes(): ProductType[] {
+        return Array.from(this.indexedProductTypes.values())
     }
 
     async refresh() {
@@ -51,7 +51,7 @@ export default class AddressStore {
     }
 
     async setup() {
-        this.dataLive = await live("SELECT * FROM address, product, productType ORDER BY id")
+        this.dataLive = await live("SELECT * FROM purchased, product, product_type ORDER BY id")
 
         this.registerSyncData()
     }
@@ -76,59 +76,59 @@ export default class AddressStore {
             // Update countries
             const countryIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
-                    const response = CountryResponse.from(item)
+                    const response = ProductTypeResponse.from(item)
                     if (!response) return
 
-                    let country = this.indexedCountries.get(response.data.id)
+                    let country = this.indexedProductTypes.get(response.data.id)
                     if (country !== undefined) {
                         response.applyOn(country)
                     } else {
                         country = response.intoObject()
                         if (!country) return
 
-                        this.indexedCountries.set(response.data.id, country)
+                        this.indexedProductTypes.set(response.data.id, country)
                     }
                     return response.data.id
                 }).filter((it: any) => it !== undefined))
-            Array.from(this.indexedCountries.keys()).filter((id) => !countryIDs.has(id)).forEach((id) => this.indexedCountries.delete(id))
+            Array.from(this.indexedProductTypes.keys()).filter((id) => !countryIDs.has(id)).forEach((id) => this.indexedProductTypes.delete(id))
 
             // Update cities
             const cityIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
-                    const response = CityResponse.from(item)
+                    const response = ProductResponse.from(item)
                     if (!response) return
 
-                    let city = this.indexedCities.get(response.data.id)
+                    let city = this.indexedProducts.get(response.data.id)
                     if (city !== undefined) {
                         response.applyOn(city)
                     } else {
                         city = response.intoObject()
                         if (!city) return
 
-                        this.indexedCities.set(response.data.id, city)
+                        this.indexedProducts.set(response.data.id, city)
                     }
                     return response.data.id
                 }).filter((it: any) => it !== undefined))
-            Array.from(this.indexedCities.keys()).filter((id) => !cityIDs.has(id)).forEach((id) => this.indexedCities.delete(id))
+            Array.from(this.indexedProducts.keys()).filter((id) => !cityIDs.has(id)).forEach((id) => this.indexedProducts.delete(id))
 
             // Update addresses
             const addressIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
-                    const response = AddressResponse.from(item)
+                    const response = PurchaseResponse.from(item)
                     if (!response) return
 
-                    let address = this.indexedAddresses.get(response.data.id)
+                    let address = this.indexedPurchases.get(response.data.id)
                     if (address !== undefined) {
                         response.applyOn(address)
                     } else {
                         address = response.intoObject()
                         if (!address) return
 
-                        this.indexedAddresses.set(response.data.id, address)
+                        this.indexedPurchases.set(response.data.id, address)
                     }
                     return response.data.id
                 }).filter((it: any) => it !== undefined))
-            Array.from(this.indexedAddresses.keys()).filter((id) => !addressIDs.has(id)).forEach((id) => this.indexedAddresses.delete(id))
+            Array.from(this.indexedPurchases.keys()).filter((id) => !addressIDs.has(id)).forEach((id) => this.indexedPurchases.delete(id))
         })
     }
 }

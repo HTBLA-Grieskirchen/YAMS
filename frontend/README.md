@@ -4,7 +4,7 @@ The UI Frontend of YAMS is implemented as a TypeScript React App shipped with [N
 It may be started as a web application, but may also be shipped as standalone desktop application with
 [Tauri](https://tauri.app).
 
-## Web Application
+## Web Application hallo
 
 The web application uses a centralized remote data storage. It runs in the browser
 and can be accessed from any device with a web browser.

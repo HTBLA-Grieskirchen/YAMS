@@ -79,7 +79,7 @@ We decided to use the following technologies:
     - Language - [TypeScript](https://www.typescriptlang.org/)
     - Framework - [Next.js](https://nextjs.org/)
     - State Management - [MobX](https://mobx.js.org/)
-    - Design - [TailwindCSS](https://mobx.js.org/)
+    - Design - [TailwindCSS](https://tailwindcss.com/), [daisyUI](https://daisyui.com/)
   - [Desktop App](frontend/src-tauri)
     - Language - [Rust](https://rust-lang.org)
     - Framework - [Tauri](https://tauri.app)

@@ -148,7 +148,6 @@ export async function live(
         const observableResult = await getObservableResult()
 
         runInAction(() => {
-            // TODO: Maybe support diff changes via id as key (benefit is questionable?)
             result.length = 0
             result.push(...observableResult)
         })

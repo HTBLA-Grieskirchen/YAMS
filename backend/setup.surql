@@ -13,7 +13,7 @@ DEFINE TABLE address SCHEMAFULL;
 DEFINE FIELD country on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
 DEFINE FIELD postal_code on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
 DEFINE FIELD city ON address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
-DEFINE FIELD extra ON address TYPE string VALUE IF $after THEN string::trim($after) ELSE NULL END;
+DEFINE FIELD extra ON address TYPE string VALUE IF $after THEN string::trim($after) ELSE "" END;
 DEFINE FIELD street_number on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
 DEFINE FIELD street ON address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
 
@@ -49,6 +49,7 @@ DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD animals ON client VALUE [];
+DEFINE EVENT delete_unused_address ON client WHEN ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
 
 -- ------------------------------
 -- TABLE: client_file
@@ -68,10 +69,12 @@ DEFINE FIELD treatment ON client_file VALUE [];
 DEFINE TABLE event SCHEMAFULL;
 
 DEFINE FIELD date ON event TYPE datetime ASSERT $after != NULL;
-DEFINE FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
+DEFINE FIELD location ON event TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD location_name ON event TYPE string;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
+DEFINE EVENT delete_unused_address ON event WHEN ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
+
 
 -- ------------------------------
 -- TABLE: image

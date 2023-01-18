@@ -1,31 +1,47 @@
 import store from "./index";
-import {action, autorun, makeAutoObservable, observable, runInAction} from "mobx";
+import {action, autorun, computed, makeAutoObservable, observable, runInAction} from "mobx";
 import {live} from "../libs/database";
-import Address from "../model/address";
-import City from "../model/city";
-import Country from "../model/country";
+import Address, {AddressResponse} from "../model/address";
+import City, {CityResponse} from "../model/city";
+import Country, {CountryResponse} from "../model/country";
 import {ano, no} from "../util/consts";
 
 export default class AddressStore {
     private root: typeof store
     private dataLive: Awaited<ReturnType<typeof live>>
 
-    addresses: Address[]
-    cities: City[]
-    countries: Country[]
+    indexedAddresses: Map<string, Address>
+    indexedCities: Map<string, City>
+    indexedCountries: Map<string, Country>
 
     constructor(root: typeof store) {
         this.root = root
         this.dataLive = [[], ano, no]
 
-        this.addresses = observable([])
-        this.cities = observable([])
-        this.countries = observable([])
+        this.indexedAddresses = observable.map()
+        this.indexedCities = observable.map()
+        this.indexedCountries = observable.map()
 
         makeAutoObservable(this, {
             refresh: action.bound,
-            close: action.bound
+            close: action.bound,
+
+            addresses: computed.struct,
+            countries: computed.struct,
+            cities: computed.struct,
         })
+    }
+
+    get addresses(): Address[] {
+        return Array.from(this.indexedAddresses.values())
+    }
+
+    get countries(): Country[] {
+        return Array.from(this.indexedCountries.values())
+    }
+
+    get cities(): City[] {
+        return Array.from(this.indexedCities.values())
     }
 
     async refresh() {
@@ -58,40 +74,61 @@ export default class AddressStore {
 
         runInAction(() => {
             // Update countries
-            const countries: Country[] = result[0].result.map((item: any) => {
-                if (item.id !== undefined && item.name !== undefined && item.short !== undefined) {
-                    return new Country(item.id, item.name, item.short)
-                }
-            }).filter((it: any) => it !== undefined)
-            let countryMap: { [key: string]: Country } = {}
-            countries.forEach((country) => countryMap[country.record.join()] = country)
-            this.countries.length = 0
-            this.countries.push(...countries)
+            const countryIDs: Set<string> = new Set(
+                result[0].result.map((item: any) => {
+                    const response = CountryResponse.from(item)
+                    if (!response) return
+
+                    let country = this.indexedCountries.get(response.data.id)
+                    if (country !== undefined) {
+                        response.applyOn(country)
+                    } else {
+                        country = response.intoObject()
+                        if (!country) return
+
+                        this.indexedCountries.set(response.data.id, country)
+                    }
+                    return response.data.id
+                }).filter((it: any) => it !== undefined))
+            Array.from(this.indexedCountries.keys()).filter((id) => !countryIDs.has(id)).forEach((id) => this.indexedCountries.delete(id))
 
             // Update cities
-            const cities: City[] = result[0].result.map((item: any) => {
-                if (item.id !== undefined &&
-                    item.country !== undefined &&
-                    item.name !== undefined &&
-                    item.plz !== undefined) {
-                    return new City(item.id, countryMap[item.country], item.name, item.plz)
-                }
-            }).filter((it: any) => it !== undefined)
-            let cityMap: { [key: string]: City } = {}
-            cities.forEach((city) => cityMap[city.record.join()] = city)
-            this.cities.length = 0
-            this.cities.push(...cities)
+            const cityIDs: Set<string> = new Set(
+                result[0].result.map((item: any) => {
+                    const response = CityResponse.from(item)
+                    if (!response) return
+
+                    let city = this.indexedCities.get(response.data.id)
+                    if (city !== undefined) {
+                        response.applyOn(city)
+                    } else {
+                        city = response.intoObject()
+                        if (!city) return
+
+                        this.indexedCities.set(response.data.id, city)
+                    }
+                    return response.data.id
+                }).filter((it: any) => it !== undefined))
+            Array.from(this.indexedCities.keys()).filter((id) => !cityIDs.has(id)).forEach((id) => this.indexedCities.delete(id))
 
             // Update addresses
-            const addresses: Address[] = result[0].result.map((item: any) => {
-                if (item.id !== undefined &&
-                    item.city !== undefined &&
-                    item.street !== undefined) {
-                    return new Address(item.id, cityMap[item.city], item.street, item.extra ?? "")
-                }
-            }).filter((it: any) => it !== undefined)
-            this.addresses.length = 0
-            this.addresses.push(...addresses)
+            const addressIDs: Set<string> = new Set(
+                result[0].result.map((item: any) => {
+                    const response = AddressResponse.from(item)
+                    if (!response) return
+
+                    let address = this.indexedAddresses.get(response.data.id)
+                    if (address !== undefined) {
+                        response.applyOn(address)
+                    } else {
+                        address = response.intoObject()
+                        if (!address) return
+
+                        this.indexedAddresses.set(response.data.id, address)
+                    }
+                    return response.data.id
+                }).filter((it: any) => it !== undefined))
+            Array.from(this.indexedAddresses.keys()).filter((id) => !addressIDs.has(id)).forEach((id) => this.indexedAddresses.delete(id))
         })
     }
 }

@@ -121,6 +121,11 @@ const AddressEditTableRowContent = observer((
     })
 
     function askSubmit() {
+        if (JSON.stringify(facingValues) === JSON.stringify(editValue)) {
+            editState.editing = false
+            return
+        }
+
         if (usageAmount > 1) {
             dialog((close) => <div className="modal-box">
                 <h3 className="font-bold text-lg">

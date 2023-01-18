@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.table {
+    @apply shadow-md
+}
+
 .table th:first-child {
     @apply static
 }

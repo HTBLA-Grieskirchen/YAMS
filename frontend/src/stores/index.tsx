@@ -24,12 +24,15 @@ class Store {
 
     async setup() {
         await this.addressStore.setup()
+        await this.clientStore.setup()
     }
 }
 
 // Create and setup static store
 const store = new Store()
-export const setupStore = store.setup()
+export const setupStore = store.setup().then(() => {
+    console.log("Store setup finished")
+})
 
 // Provide react integration for accessing
 const StoreContext = createContext(store)

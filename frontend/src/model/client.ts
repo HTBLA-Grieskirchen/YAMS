@@ -16,6 +16,7 @@ export default class Client {
 
     address: Address
     consent: boolean
+    animals: []
 
     constructor(
         id: string,
@@ -25,7 +26,8 @@ export default class Client {
         email: string,
         mobileNumber: string,
         address: Address,
-        consent: boolean
+        consent: boolean,
+        animals: []
     ) {
         this.record = makeRecordForTable(id, this.table)
         this.lastName = lastName
@@ -35,6 +37,7 @@ export default class Client {
         this.mobileNumber = mobileNumber
         this.address = address
         this.consent = consent
+        this.animals = animals
 
         makeAutoObservable(this)
     }
@@ -49,7 +52,8 @@ export class ClientResponse implements SurrealResponse<Client> {
         mobile_number: string,
         birthdate: string,
         address: string,
-        consent: boolean
+        consent: boolean,
+        animals?: []
     }
 
     private constructor(data: ClientResponse["data"]) {
@@ -85,6 +89,9 @@ export class ClientResponse implements SurrealResponse<Client> {
             if (this.data.mobile_number != object.mobileNumber) object.mobileNumber = this.data.mobile_number
             if (this.data.consent != object.consent) object.consent = this.data.consent
 
+            const animals = this.data.animals ?? []
+            if (animals != object.animals) object.animals = animals
+
             const birthdate = new Date(this.data.birthdate)
             if (birthdate != object.birthdate) object.birthdate = birthdate
         })
@@ -101,6 +108,7 @@ export class ClientResponse implements SurrealResponse<Client> {
             this.data.email,
             this.data.mobile_number,
             address,
-            this.data.consent)
+            this.data.consent,
+            this.data.animals ?? [])
     }
 }

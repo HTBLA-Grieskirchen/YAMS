@@ -16,9 +16,11 @@ const Layout = observer(({children}: { children: ReactElement }) => {
             <link rel="shortcut icon" href="/favicon.ico"/>
             <link rel="icon" href="/favicon.ico"/>
         </Head>
+
         <MainMenu>
             {children}
         </MainMenu>
+
         <Modals/>
         <Notifications/>
     </>

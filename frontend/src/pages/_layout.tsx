@@ -2,7 +2,7 @@ import {ReactElement} from "react";
 import Head from "next/head";
 import {observer} from "mobx-react";
 import Notifications from "../components/Notifications";
-import DialogOverlay from "../components/DialogOverlay";
+import Modals from "../components/Modals";
 import createLeftMenuLayout from "../components/layout/LeftMenuLayout";
 import paths from "../util/paths";
 
@@ -19,7 +19,7 @@ const Layout = observer(({children}: { children: ReactElement }) => {
         <MainMenu>
             {children}
         </MainMenu>
-        <DialogOverlay/>
+        <Modals/>
         <Notifications/>
     </>
 })

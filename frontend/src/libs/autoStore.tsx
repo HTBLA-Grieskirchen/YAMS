@@ -1,17 +1,20 @@
-import {autorun, set, toJS} from 'mobx'
+import {autorun, runInAction, set, toJS} from 'mobx'
 
 export default function (_this: any, storeName = 'store') {
     let firstRun = true
 
     // will run on change
     autorun(() => {
+        if (typeof window === "undefined") return
+
         // on load check if there's an existing store on
         // localStorage and extend the store
         if (firstRun) {
+            firstRun = false
             const existingStore = window.localStorage.getItem(storeName)
 
             if (existingStore) {
-                set(_this, JSON.parse(existingStore))
+                runInAction(() => set(_this, JSON.parse(existingStore)))
             }
         }
 
@@ -22,6 +25,4 @@ export default function (_this: any, storeName = 'store') {
             JSON.stringify(serializedThis)
         )
     })
-
-    firstRun = false
 }

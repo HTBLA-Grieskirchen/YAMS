@@ -1,10 +1,9 @@
-import {ReactElement} from "react";
+import React, {ReactElement} from "react";
 import Head from "next/head";
 import {observer} from "mobx-react";
 import Notifications from "../components/Notifications";
 import Modals from "../components/Modals";
-import createLeftMenuLayout from "../components/layout/LeftMenuLayout";
-import paths from "../util/paths";
+import MainMenu from "../components/layout/MainMenu";
 
 const Layout = observer(({children}: { children: ReactElement }) => {
     return <>
@@ -24,19 +23,6 @@ const Layout = observer(({children}: { children: ReactElement }) => {
         <Modals/>
         <Notifications/>
     </>
-})
-
-const MainMenu = createLeftMenuLayout({
-    "Client": {
-        href: paths.clients,
-        icon: "fa-person",
-        recursive: true
-    },
-    "Locations": {
-        href: paths.addresses,
-        icon: "fa-map-location-dot",
-        recursive: true
-    }
 })
 
 export default Layout

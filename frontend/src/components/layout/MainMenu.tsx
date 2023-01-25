@@ -4,34 +4,17 @@ import {useStore} from "../../stores";
 import Link from "next/link";
 import paths from "../../util/paths";
 import {autorun} from "mobx";
+import {useRouter} from "next/router";
 
 const MainMenu = observer((
-    {children}:
-        { children: ReactNode }
+    {children, entries}:
+        { children: ReactNode, entries?: MainMenuEntries }
 ) => {
+    const router = useRouter()
+
     return <div className="drawer drawer-mobile">
         <input id="main-drawer" type="checkbox" className="drawer-toggle"/>
         <div className="drawer-content flex flex-none flex-col">
-            <div className="w-full navbar bg-base-300">
-                <div className="flex-none [@media(min-width:1024px)]:hidden">
-                    <label htmlFor="main-drawer" className="btn btn-square btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             className="inline-block w-6 h-6 stroke-current">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                  d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </label>
-                </div>
-                <div className="flex-1 px-2 mx-2">Navbar Title</div>
-                <div className="flex-none hidden lg:block">
-                    <ul className="menu menu-horizontal">
-
-                        <li><a>Navbar Item 1</a></li>
-                        <li><a>Navbar Item 2</a></li>
-                    </ul>
-                </div>
-            </div>
-
             {children}
         </div>
         <div className="drawer-side">
@@ -40,17 +23,16 @@ const MainMenu = observer((
                 <ul className="sticky top-0 bg-base-200 menu menu-compact w-full p-4 pb-0 z-20">
                     <li>
                         <Link href={paths.home}>
-                            <a>
+                            <a className={`${router.pathname === "/" ? "active cursor-pointer" : ""}`}>
                                 <i className="fa-regular fa-house"/>
                                 Home
                             </a>
                         </Link>
                     </li>
-                    <li></li>
                 </ul>
 
                 <ul className="menu menu-compact pb-0 p-0 px-4 w-full">
-                    <MainMenuItems/>
+                    {entries && <MainMenuItems entries={entries}/>}
                 </ul>
 
                 <div className="grid gap-4 sticky bottom-0 pb-4 bg-base-200">
@@ -79,31 +61,52 @@ const MainMenu = observer((
 })
 export default MainMenu
 
-const MainMenuItems = observer(() => {
+export type MainMenuEntries = {
+    [category: string]: {
+        [name: string]: MainMenuItemData
+    }
+}
+
+export type MainMenuItemData = {
+    href: string,
+    recursive?: boolean
+}
+
+const MainMenuItems = observer((
+    {entries}:
+        { entries: MainMenuEntries }
+) => {
     return <>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
-        <li><a>Sidebar Item 1</a></li>
-        <li><a>Sidebar Item 2</a></li>
+        {Object.entries(entries).map(([category, items], index) => {
+            return <>
+                <li></li>
+                <li className="menu-title">
+                    <span>{category}</span>
+                </li>
+                {Object.entries(items).map(([name, data], index) => {
+                    return <MainMenuItem item={data} display={name} key={index}/>
+                })}
+            </>
+        })}
     </>
+})
+
+const MainMenuItem = observer((
+    {item, display}:
+        { item: MainMenuItemData, display: string }
+) => {
+    const router = useRouter()
+
+    const pathname = item.href
+    const active = (item.recursive ?? true) ? router.pathname.startsWith(pathname) : router.pathname === pathname
+
+    return <li>
+        <Link href={item.href}>
+            <a className={`${active ? "active cursor-default" : ""}`}>
+                {display}
+            </a>
+        </Link>
+    </li>
 })
 
 const MainMenuLogo = observer(() => {

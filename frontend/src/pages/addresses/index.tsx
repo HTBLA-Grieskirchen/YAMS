@@ -1,8 +1,11 @@
 import Head from "next/head";
-import {NextLayoutPage} from "../../types/layout";
+import {NavigationPage} from "../../types/layout";
 import {useStore} from "../../stores";
 import {observer, useLocalObservable} from "mobx-react";
 import React from "react";
+import paths from "../../util/paths";
+import {useRouter} from "next/router";
+import Link from "next/link";
 import {runInAction} from "mobx";
 import Address from "../../model/address";
 import {AddressTableHeader, AddressTableRow} from "../../components/address/AddressTable";
@@ -51,7 +54,8 @@ export const categories: {
 }
 type AddressGroup = { facing: { [key: string]: string }, addresses: Address[] }
 
-const Addresses: NextLayoutPage = observer(() => {
+
+const Addresses: NavigationPage = observer(() => {
     const store = useStore()
     const addresses = store.addressStore.addresses
 
@@ -151,6 +155,25 @@ const Addresses: NextLayoutPage = observer(() => {
                 }
             </div>
         </main>
+    </>
+})
+
+Addresses.NavPath = observer(() => {
+    const path = paths.addresses
+
+    const router = useRouter()
+    const disabled = router.pathname == path
+
+    return <>
+        <li>
+            <Link href={path}>
+                <button
+                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
+                    <i className="fa-solid fa-map-location-dot mr-2"/>
+                    Address
+                </button>
+            </Link>
+        </li>
     </>
 })
 

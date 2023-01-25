@@ -1,11 +1,14 @@
 import {observer} from "mobx-react";
 import Head from "next/head";
 import ClientItem from "../../components/client/ClientItem";
-import {NextLayoutPage} from "../../types/layout";
-import ClientLayout from "./_layout";
+import {NavigationPage} from "../../types/layout";
 import {useStore} from "../../stores";
+import paths from "../../util/paths";
+import Link from "next/link";
+import React from "react";
+import {useRouter} from "next/router";
 
-const ClientOverview: NextLayoutPage = observer(() => {
+const ClientOverview: NavigationPage = observer(() => {
     const store = useStore()
     const clients = store.clientStore.clients
 
@@ -35,6 +38,33 @@ const ClientOverview: NextLayoutPage = observer(() => {
     )
 })
 
-ClientOverview.Layout = ClientLayout
+ClientOverview.NavMenu = observer(() => {
+    return <>
+        <li>
+            <Link href={paths.new_client}>
+                <a><i className="fa-solid fa-plus"/>Add</a>
+            </Link>
+        </li>
+    </>
+})
+
+ClientOverview.NavPath = observer(() => {
+    const path = paths.clients
+
+    const router = useRouter()
+    const disabled = router.pathname == path
+
+    return <>
+        <li>
+            <Link href={path}>
+                <button
+                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
+                    <i className="fa-solid fa-person mr-2"/>
+                    Client
+                </button>
+            </Link>
+        </li>
+    </>
+})
 
 export default ClientOverview

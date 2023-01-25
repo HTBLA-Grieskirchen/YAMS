@@ -12,7 +12,7 @@ const Home: NextPage = () => {
             </Head>
 
             <main className="">
-                <ClientRegisterEditingForm client={new Client("Huber", "Fritz", new Date("01.11.2000"), "huber@gmail.com", "0660/123456", false, "01", new Address("Musterstrasse", "13", "4000", "Alkoven")  )}/>
+                {/*<ClientRegisterEditingForm client={}/>*/}
             </main>
         </div>
     )

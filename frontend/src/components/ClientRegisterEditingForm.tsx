@@ -12,8 +12,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
     const [email, setEmail] = useState(client.email)
     const [number, setNumber] = useState(client.mobileNumber)
     const [street, setStreet] = useState(client.address.street)
-    const [street_number, setStreetNumber] = useState(client.address.street_number)
-    const [postal_code, setPostalCode] = useState(client.address.postal_code)
+    //const [street_number, setStreetNumber] = useState(client.address.street_number)
+    //const [postal_code, setPostalCode] = useState(client.address.postal_code)
     const [city, setCity] = useState(client.address.city)
     const [date, setDate] = useState('2000-01-01')
 
@@ -142,8 +142,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="1"
-                                    value={street_number}
-                                    onChange={e => setStreetNumber(e.target.value)}
+                                    //value={street_number}
+                                    //onChange={e => setStreetNumber(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -156,8 +156,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="1234"
-                                    value={postal_code}
-                                    onChange={e => setPostalCode(e.target.value)}
+                                    //value={postal_code}
+                                    //onChange={e => setPostalCode(e.target.value)}
                                 />
                             </div>
                             <div className="w-3/4 float-left">
@@ -168,8 +168,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="Musterstadt"
-                                    value={city}
-                                    onChange={e => setCity(e.target.value)}
+                                    //value={city}
+                                    //onChange={e => setCity(e.target.value)}
                                 />
                             </div>
                         </div>

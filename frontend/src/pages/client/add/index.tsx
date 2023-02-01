@@ -1,25 +1,26 @@
 import Head from 'next/head'
-import ClientRegisterForm from "../../../components/client/ClientRegisterForm";
-import {NavigationPage} from "../../../types/layout";
-import {observer} from "mobx-react";
+import ClientRegisterForm from "../../../components/client/register/ClientRegisterForm";
+import { NavigationPage } from "../../../types/layout";
+import { observer } from "mobx-react";
 import ClientOverview from "../index";
 import Link from "next/link";
 import paths from "../../../util/paths";
 import React from "react";
-import {useRouter} from "next/router";
+import { useRouter } from "next/router";
 
 const RegisterClient: NavigationPage = () => {
     return (
-        <div className="flex flex-col w-11/12 m-5 p-3 rounded-lg bg-gray-200 shadow">
+        <main className="card shadow-xl m-2">
             <Head>
                 <title>YAMS - New Client</title>
             </Head>
 
-            <main className="">
-                <ClientRegisterForm onFinish={(e: any) => {
-                }}/>
-            </main>
-        </div>
+            <div className="card-body overflow-visible">
+                <h2 className="card-title">Client Registration</h2>
+
+                <ClientRegisterForm/>
+            </div>
+        </main>
     )
 }
 

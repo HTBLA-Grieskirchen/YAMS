@@ -1,6 +1,6 @@
-import {Result} from "surrealdb.js";
-import {query} from "./index";
-import Address from "../../model/address";
+import { Result } from "surrealdb.js";
+import { query } from "./index";
+import Address, { AddressResponse } from "../../model/address";
 
 export async function deleteAddress(address: Address): Promise<Result<any>> {
     // TODO: Add event check once implemented
@@ -24,18 +24,31 @@ export async function deleteAddress(address: Address): Promise<Result<any>> {
     }
 }
 
-export async function patchAddress(address: Address, newStreet: string, newExtra: string): Promise<Result<any>> {
+export async function createAddress(
+    street: AddressResponse["data"]["street"],
+    streetNumber: AddressResponse["data"]["street_number"],
+    extra: AddressResponse["data"]["extra"],
+    postalCode: AddressResponse["data"]["postal_code"],
+    city: AddressResponse["data"]["city"],
+    country: AddressResponse["data"]["country"]
+): Promise<Result<any>> {
+    const actualStreet = street.trim()
+    const actualStreetNumber = streetNumber.trim()
+    const actualExtra = !!extra?.trim().length ? extra?.trim() : null
+    const actualPostalCode = postalCode.trim()
+    const actualCity = city.trim()
+    const actualCountry = country.trim()
+
     const response = await query(`
-IF ( SELECT true FROM type::thing($addressTable, $addressID) ) THEN
-    ( UPDATE type::thing($addressTable, $addressID) SET street = $street, extra = $extra, city = type::thing($cityTable, $cityID) )
-ELSE 
-    ( CREATE type::table($addressTable) SET street = $street, extra = $extra, city = type::thing($cityTable, $cityID) )
-END
+    CREATE type::table($addressTable) SET country = $country, postal_code = $postalCode, city = $city, street_number = $streetNumber, street = $street, extra = $extra;
 `, {
-        addressTable: address.record.table,
-        addressID: address.record.id,
-        street: newStreet,
-        extra: newExtra,
+        addressTable: Address.TABLE,
+        country: actualCountry,
+        postalCode: actualPostalCode,
+        city: actualCity,
+        streetNumber: actualStreetNumber,
+        street: actualStreet,
+        extra: actualExtra
     })
 
     if (!response[0]) {
@@ -57,7 +70,7 @@ export async function patchAddressesDynamic(
     const nextValues = Object.keys(next).map((field, index) => `${field} = $${prefixedNext[index][0]}`).join(", ")
 
     const response = await query(`
-        UPDATE type:: table ($addressTable)
+        UPDATE type::table($addressTable)
         SET ${nextValues}
         WHERE ${prevRequirements}
     `, {...Object.fromEntries(prefixedPrev), ...Object.fromEntries(prefixedNext), addressTable: Address.TABLE})

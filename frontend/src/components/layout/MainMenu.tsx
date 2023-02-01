@@ -78,15 +78,22 @@ const MainMenuItems = observer((
 ) => {
     return <>
         {Object.entries(entries).map(([category, items], index) => {
-            return <>
-                <li></li>
-                <li className="menu-title">
-                    <span>{category}</span>
-                </li>
-                {Object.entries(items).map(([name, data], index) => {
-                    return <MainMenuItem item={data} display={name} key={index}/>
-                })}
-            </>
+            return <MainMenuCategory key={index} category={category} items={items}/>
+        })}
+    </>
+})
+
+const MainMenuCategory = observer((
+    {category, items}:
+        { category: string, items: MainMenuEntries["items"] }
+) => {
+    return <>
+        <li></li>
+        <li className="menu-title">
+            <span>{category}</span>
+        </li>
+        {Object.entries(items).map(([name, data], index) => {
+            return <MainMenuItem item={data} display={name} key={index}/>
         })}
     </>
 })

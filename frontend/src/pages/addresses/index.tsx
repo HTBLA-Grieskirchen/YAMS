@@ -113,7 +113,7 @@ const Addresses: NavigationPage = observer(() => {
         </Head>
 
         <main>
-            <div className="card card-compact bg-neutral m-2">
+            <div className="card card-compact bg-base-300/75 m-2">
                 <div className="card-body">
                     <div className="tooltip tooltip-accent tooltip-right w-fit cursor-help"
                          data-tip="Group addresses by all the selected categories">

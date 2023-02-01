@@ -10,9 +10,12 @@ OPTION IMPORT;
 
 DEFINE TABLE address SCHEMAFULL;
 
-DEFINE FIELD city ON address TYPE record(city) ASSERT $after != NULL;
-DEFINE FIELD extra ON address TYPE string ASSERT $after != NULL;
-DEFINE FIELD street ON address TYPE string ASSERT $after != NULL;
+DEFINE FIELD country on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
+DEFINE FIELD postal_code on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
+DEFINE FIELD city ON address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
+DEFINE FIELD extra ON address TYPE string VALUE IF $after THEN string::trim($after) ELSE "" END;
+DEFINE FIELD street_number on address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
+DEFINE FIELD street ON address TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
 
 -- ------------------------------
 -- TABLE: animal
@@ -33,23 +36,10 @@ DEFINE TABLE animal_type SCHEMAFULL;
 DEFINE FIELD description ON animal_type TYPE string ASSERT $after != NULL;
 
 -- ------------------------------
--- TABLE: city
--- ------------------------------
-
-DEFINE TABLE city SCHEMAFULL;
-
-DEFINE FIELD country ON city TYPE record(country) ASSERT $after != NULL;
-DEFINE FIELD name ON city TYPE string ASSERT $after != NULL;
-DEFINE FIELD plz ON city TYPE string ASSERT $after != NULL;
-
--- ------------------------------
 -- TABLE: client
 -- ------------------------------
 
-
-
-DEFINE
-TABLE client SCHEMAFULL;
+DEFINE TABLE client SCHEMAFULL;
 
 DEFINE FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD consent ON client TYPE record(pdf) ASSERT $after != NULL;
@@ -59,30 +49,18 @@ DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD animals ON client VALUE [];
+DEFINE EVENT delete_unused_address ON client WHEN ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
 
 -- ------------------------------
 -- TABLE: client_file
 -- ------------------------------
 
-DEFINE
-TABLE client_file SCHEMAFULL;
+DEFINE TABLE client_file SCHEMAFULL;
 
-DEFINE
-FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NULL;
-DEFINE
-FIELD extra ON client_file TYPE string;
-DEFINE
-FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
+DEFINE FIELD first_consultation ON client_file TYPE datetime ASSERT $after != NULL;
+DEFINE FIELD extra ON client_file TYPE string;
+DEFINE FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
 DEFINE FIELD treatment ON client_file VALUE [];
-
--- ------------------------------
--- TABLE: country
--- ------------------------------
-
-DEFINE TABLE country SCHEMAFULL;
-
-DEFINE FIELD name ON country TYPE string ASSERT $after != NULL AND string::trim($after) != "";
-DEFINE FIELD short ON country TYPE string ASSERT $after != NULL AND string::trim($after) != "" AND (count((SELECT id FROM country WHERE short = $after)) < 1 OR $after == $before);
 
 -- ------------------------------
 -- TABLE: event
@@ -91,10 +69,12 @@ DEFINE FIELD short ON country TYPE string ASSERT $after != NULL AND string::trim
 DEFINE TABLE event SCHEMAFULL;
 
 DEFINE FIELD date ON event TYPE datetime ASSERT $after != NULL;
-DEFINE FIELD location ON event TYPE record(addresse) ASSERT $after != NULL;
+DEFINE FIELD location ON event TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD location_name ON event TYPE string;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
+DEFINE EVENT delete_unused_address ON event WHEN ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
+
 
 -- ------------------------------
 -- TABLE: image

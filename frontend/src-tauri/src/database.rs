@@ -81,6 +81,6 @@ impl Database {
     }
 
     pub fn setup_script() -> String {
-        include_str!("../../../backend/setup.sql").to_string()
+        include_str!("../../../backend/setup.surql").to_string()
     }
 }

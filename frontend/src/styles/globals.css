@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.table {
+    @apply shadow-md
+}
+
+.table th:first-child {
+    @apply static
+}
+
+.btn-disabled .btn[disabled] {
+    pointer-events: auto;
+}
+
+.tab-active {
+    @apply [--tab-bg:hsl(var(--n))] [--tab-color:hsl(var(--nc))]
+}
+
+.tab-lifted {
+    @apply [--tab-border-color:transparent]
+}

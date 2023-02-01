@@ -1,36 +1,48 @@
-import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal";
-import City from "./city";
-import {makeAutoObservable, runInAction} from "mobx";
-import store from "../stores";
+import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal"
+import {makeAutoObservable, runInAction} from "mobx"
 
 export default class Address implements SurrealObject {
     static readonly TABLE: string = "address"
     readonly table: string = Address.TABLE
     readonly record: Record
-    city: City
-    street: string
-    extra: string
 
-    constructor(id: string, city: City, street: string, extra: string) {
+    country: string
+    postalCode: string
+    city: string
+    street: string
+    streetNumber: string
+    extra: string | null
+
+    constructor(
+        id: string,
+        country: string,
+        postalCode: string,
+        city: string,
+        street: string,
+        streetNumber: string,
+        extra?: string | null
+    ) {
         this.record = makeRecordForTable(id, this.table)
+        this.country = country
+        this.postalCode = postalCode
         this.city = city
         this.street = street
-        this.extra = extra
+        this.streetNumber = streetNumber
+        this.extra = extra ?? null
 
         makeAutoObservable(this)
-    }
-
-    get label() {
-        return this.street + " " + this.extra + ", " + this.city.plz + " " + this.city.name
     }
 }
 
 export class AddressResponse implements SurrealResponse<Address> {
     readonly data: {
         id: string,
+        country: string,
         city: string,
+        postal_code: string,
         street: string,
-        extra?: string
+        street_number: string,
+        extra: string | null
     }
 
     private constructor(data: AddressResponse["data"]) {
@@ -40,7 +52,9 @@ export class AddressResponse implements SurrealResponse<Address> {
     static from(item: any): AddressResponse | undefined {
         if (
             item.id === undefined ||
-            item.city === undefined || item.street === undefined
+            item.country === undefined ||
+            item.postal_code === undefined || item.city === undefined ||
+            item.street === undefined || item.street_number == undefined
         ) return
 
         return new AddressResponse(item)
@@ -53,22 +67,27 @@ export class AddressResponse implements SurrealResponse<Address> {
         // Address properties are mutated, and we want to let MobX know about it,
         // so it can react on changes -> runInAction()
         runInAction(() => {
-            if (this.data.city != object.city.record.join()) {
-                let city = store.addressStore.indexedCities.get(this.data.city)
-                if (city) object.city = city
-            }
-
+            if (this.data.country != object.country) object.country = this.data.country
+            if (this.data.postal_code != object.postalCode) object.postalCode = this.data.postal_code
+            if (this.data.city != object.city) object.city = this.data.city
+            if (this.data.street != object.street) object.street = this.data.street
+            if (this.data.street_number != object.streetNumber) object.streetNumber = this.data.street_number
             if (this.data.street != object.street) object.street = this.data.street
 
-            const extra = this.data.extra ?? ""
+            const extra = this.data.extra ?? null
             if (extra != object.extra) object.extra = extra
         })
     }
 
     intoObject(): Address | undefined {
-        let city = store.addressStore.indexedCities.get(this.data.city)
-        if (!city) return
-
-        return new Address(this.data.id, city, this.data.street, this.data.extra ?? "")
+        return new Address(
+            this.data.id,
+            this.data.country,
+            this.data.postal_code,
+            this.data.city,
+            this.data.street,
+            this.data.street_number,
+            this.data.extra ?? null
+        )
     }
 }

@@ -1,9 +1,9 @@
 import React, {useState} from "react";
-import Address from "../model/address";
-import {query} from "../libs/database";
+import Address from "../../model/address";
+import {query} from "../../libs/database";
 import Select from "react-select";
 import {observer} from "mobx-react";
-import Client from "../model/client";
+import Client from "../../model/client";
 
 const EditClientForm = observer(({client}: {client: Client}) => {
     const [firstname, setFirstname] = useState(client.firstName)
@@ -24,13 +24,13 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         if (address != null && !(firstname === '') && !(lastname === '') && !(email === '') && !(number === '')) {
             let result = await query('UPDATE client SET first_name = $firstname, address = type::thing($street, $street_number, $postal_code, $city), ' +
                 'consent= $consent, last_name = $lastname, email = $email, mobile_number = $number, birthdate = $birthdate', {
-                firstname: firstname,
-                lastname: lastname,
-                consent: consent,
-                addressTable: "address",
-                email: email,
-                number: number,
-                birthdate: new Date(date),
+                //firstname: firstname,
+                //lastname: lastname,
+                //consent: consent,
+                //addressTable: "address",
+                //email: email,
+                //number: number,
+                //birthdate: new Date(date),
                 //addressID: address.id
             })
 

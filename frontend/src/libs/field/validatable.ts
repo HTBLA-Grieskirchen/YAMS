@@ -1,4 +1,4 @@
-import {makeAutoObservable} from "mobx";
+import { action, makeAutoObservable } from "mobx";
 
 export class ValidatableFieldData<T> {
     value: T
@@ -19,7 +19,9 @@ export class ValidatableFieldData<T> {
         this.validate = validate
         this.checkChanged = changed
 
-        makeAutoObservable(this)
+        makeAutoObservable(this, {
+            setValue: action.bound
+        })
     }
 
     get valid() {

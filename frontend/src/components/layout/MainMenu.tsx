@@ -1,10 +1,10 @@
-import {observer} from "mobx-react";
-import {ReactNode, useEffect, useState} from "react";
-import {useStore} from "../../stores";
+import { observer } from "mobx-react";
+import { ReactNode, useEffect, useState } from "react";
+import { useStore } from "../../stores";
 import Link from "next/link";
 import paths from "../../util/paths";
-import {autorun} from "mobx";
-import {useRouter} from "next/router";
+import { autorun } from "mobx";
+import { useRouter } from "next/router";
 
 const MainMenu = observer((
     {children, entries}:
@@ -24,7 +24,7 @@ const MainMenu = observer((
                     <li>
                         <Link href={paths.home}>
                             <a className={`${router.pathname === "/" ? "active cursor-pointer" : ""}`}>
-                                <i className="fa-regular fa-house"/>
+                                <i className="fa-solid fa-house"/>
                                 Home
                             </a>
                         </Link>

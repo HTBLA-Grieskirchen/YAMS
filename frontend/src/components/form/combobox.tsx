@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { Combobox } from "@headlessui/react";
-import React from "react";
+import React, { useEffect } from "react";
 import { ValidatableFieldData } from "../../libs/field/validatable";
 
 export const ValidatableComboBox = observer(<T extends unknown, N extends unknown>(
@@ -13,6 +13,12 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
 ) => {
     const isNotNewState = newValue !== undefined && data.value != newValue.data
     const hasOptions = isNotNewState || children !== undefined && !!children.length
+
+    useEffect(() => {
+        if (!isNotNewState) {
+            setQuery("")
+        }
+    }, [setQuery, isNotNewState])
 
     return <div className={`dropdown w-full ${!!className ? className : ""}`}>
         <Combobox value={data.value} onChange={data.setValue}>
@@ -29,8 +35,7 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
                     <label className={`w-full ${hasOptions ? "input-group" : ""}`}>
                         <Combobox.Input className="input input-bordered w-full"
                                         onChange={e => setQuery(e.target.value)}
-                                        value={hasOptions ? undefined : ""}
-                                        displayValue={mapDisplayValue} required={required}
+                                        displayValue={mapDisplayValue}
                                         placeholder={isNotNewState ? placeholder : "Creating new..."}/>
                         {hasOptions &&
                             <Combobox.Button className="btn btn-square">

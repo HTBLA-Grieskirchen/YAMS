@@ -1,6 +1,6 @@
-import {observer} from "mobx-react";
+import { observer } from "mobx-react";
 import React from "react";
-import {ValidatableFieldData} from "../../libs/field/validatable";
+import { ValidatableFieldData } from "../../libs/field/validatable";
 
 export const ValidatableInputField = observer(<T extends unknown>(
     {data, label, placeholder, type, required, mapSetValue, mapDisplayValue, className}:
@@ -22,7 +22,7 @@ export const ValidatableInputField = observer(<T extends unknown>(
                 <span className="indicator-item badge badge-secondary px-1.5">
                     <i className="fa-solid fa-asterisk text-xs"/>
                 </span>}
-            <input type={actualType} placeholder={placeholder}
+            <input type={actualType} placeholder={placeholder} required={required}
                    className={`input input-bordered w-full ${data.displayError != null ? "input-error" : ""}`}
                    value={actualDisplayValue(data.value)}
                    onChange={e => data.setValue(actualSetValue(e.target.value))}/>

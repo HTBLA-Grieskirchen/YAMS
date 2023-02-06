@@ -24,7 +24,7 @@ export async function deleteAnimal(animal: Animal): Promise<Result<any>> {
     }
 }
 
-export async function patchAnimal(animal: Animal | null, newBirthdate: Date, newName: string, race: Race): Promise<Result<any>> {
+export async function patchAnimal(animal: Animal | null, newBirthdate: Date, newName: string, raceID: string): Promise<Result<any>> {
     let response;
     if (animal != null) {
         response = await query(`
@@ -34,8 +34,8 @@ export async function patchAnimal(animal: Animal | null, newBirthdate: Date, new
             ( CREATE type::table($animalTable) SET birthdate = $newBirthdate, name = $newName, race = type::thing($raceTable, $raceID) )
         END
 `, {
-            raceTable: race.record.table,
-            raceID: race.record.id,
+            raceTable: Race.TABLE,
+            raceID: raceID,
             animalTable: animal.record.table,
             animalID: animal.record.id,
             newBirthdate: newBirthdate,
@@ -45,8 +45,8 @@ export async function patchAnimal(animal: Animal | null, newBirthdate: Date, new
         response = await query(`
         CREATE type::table($animalTable) SET birthdate = $newBirthdate, name = $newName, race = type::thing($raceTable, $raceID)
         `, {
-            raceTable: race.record.table,
-            raceID: race.record.id,
+            raceTable: Race.TABLE,
+            raceID: raceID,
             animalTable: Animal.TABLE,
             newBirthdate: newBirthdate,
             newName: newName,

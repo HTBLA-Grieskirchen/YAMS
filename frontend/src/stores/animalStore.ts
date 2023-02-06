@@ -41,7 +41,7 @@ export default class AnimalStore {
     }
 
     async setup() {
-        this.dataLive = await live("SELECT * FROM animal ORDER BY id")
+        this.dataLive = await live("SELECT * FROM animal, race ORDER BY id")
 
         this.registerSyncData()
     }

@@ -33,6 +33,7 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
         await query("BEGIN TRANSACTION;")
 
         let gotError: boolean = false
+        console.log(race.value)
         if (race.value != null) {
             const resultRace = await patchRace(race.value, race.value?.description, race.value?.animal_species)
 
@@ -55,12 +56,10 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
                 await store.animalStore.refresh()
             }
 
-            const raceObj = store.animalStore.indexedRaces.get(resultRace.result?.id)
+            console.log(resultRace.result)
 
-            console.log(raceObj)
-
-            if (raceObj !== undefined || raceObj != null) {
-                const resultAnimal = await patchAnimal(null, new Date(birthdate), name, raceObj)
+            if (resultRace.result != null || resultRace.result !== undefined) {
+                const resultAnimal = await patchAnimal(null, new Date(birthdate), name, resultRace.result?.id)
 
                 if (resultAnimal.error) {
                     gotError = true
@@ -80,9 +79,7 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
                     await store.animalStore.refresh()
                 }
 
-                console.log(resultAnimal.error)
-                console.log(resultAnimal.result)
-                console.log(resultAnimal.result.name)
+                console.log(gotError)
 
                 if (gotError) {
                     await query("CANCEL TRANSACTION;")
@@ -114,7 +111,7 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
 
     return (
         <div className="m-2">
-            {adding ?
+            {!adding ?
                 <button
                     className="btn btn-primary btn-sm btn-square"
                     onClick={() => setAdding(!adding)}>
@@ -159,7 +156,7 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
                                 onClick={event => {
                                     handleSubmit()
                                 }}
-                                className="btn btn-success btn-sm btn-square my-auto">
+                                className="btn btn-success btn-sm btn-square m-2">
                                 <i className="fa-solid fa-check"/>
                             </button>
                             <button
@@ -167,7 +164,7 @@ const AnimalTableHeader = observer(({client}: { client: Client }) => {
                                 onClick={event => {
                                     handleCancel()
                                 }}
-                                className="btn btn-error btn-sm btn-square">
+                                className="btn btn-error btn-sm btn-square m-2">
                                 <i className="fa-solid fa-cancel"/>
                             </button>
                         </div>

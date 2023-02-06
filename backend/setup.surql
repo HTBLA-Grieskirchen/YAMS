@@ -28,28 +28,21 @@ DEFINE FIELD name ON animal TYPE string ASSERT $after != NULL;
 DEFINE FIELD race ON animal TYPE record(race) ASSERT $after != NULL;
 
 -- ------------------------------
--- TABLE: animal_type
--- ------------------------------
-
-DEFINE TABLE animal_type SCHEMAFULL;
-
-DEFINE FIELD description ON animal_type TYPE string ASSERT $after != NULL;
-
--- ------------------------------
 -- TABLE: client
 -- ------------------------------
 
 DEFINE TABLE client SCHEMAFULL;
 
 DEFINE FIELD birthdate ON client TYPE datetime ASSERT $after != NULL;
-DEFINE FIELD consent ON client TYPE record(pdf) ASSERT $after != NULL;
+DEFINE FIELD consent ON client TYPE bool ASSERT $after != NULL;
 DEFINE FIELD email ON client TYPE string ASSERT $after != NULL AND is::email($after);
 DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
-DEFINE FIELD animals ON client VALUE [];
-DEFINE EVENT delete_unused_address ON client WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
+DEFINE FIELD animals ON client TYPE array;
+DEFINE FIELD animals.* ON client TYPE record(animal);
+DEFINE EVENT delete_unused_address ON client WHEN ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
 
 -- ------------------------------
 -- TABLE: client_file

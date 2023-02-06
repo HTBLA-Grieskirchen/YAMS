@@ -15,7 +15,7 @@
 }
 
 .tab-active {
-    @apply [--tab-bg:hsl(var(--n))] [--tab-color:hsl(var(--nc))]
+    @apply [--tab-bg:hsl(var(--b3))] [--tab-color:hsl(var(--bc))]
 }
 
 .tab-lifted {

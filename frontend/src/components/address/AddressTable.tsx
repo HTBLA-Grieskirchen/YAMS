@@ -1,14 +1,14 @@
-import {observer, useLocalObservable} from "mobx-react";
-import {categories} from "../../pages/addresses";
+import { observer, useLocalObservable } from "mobx-react";
+import { categories } from "../../pages/addresses";
 import Address from "../../model/address";
-import {ReactNode, useState} from "react";
-import {useStore} from "../../stores";
+import { ReactNode, useState } from "react";
+import { useStore } from "../../stores";
 import Client from "../../model/client";
-import {MD5} from "object-hash";
+import { MD5 } from "object-hash";
 import dialog from "../../libs/dialog";
 import notification from "../../libs/notification";
-import {patchAddressesDynamic} from "../../libs/database/address";
-import {runInAction} from "mobx";
+import { patchAddressesDynamic } from "../../libs/database/address";
+import { runInAction } from "mobx";
 import Link from "next/link";
 import paths from "../../util/paths";
 
@@ -268,7 +268,7 @@ const AddressUsageInfo = observer((
             </div>
         </div>
         <div className="w-full max-h-72 relative overflow-auto">
-            <div className="bg-neutral rounded-b-box rounded-tr-box px-4 py-2">
+            <div className="bg-base-200 rounded-b-box rounded-tr-box px-4 py-2 shadow-lg">
                 {
                     selectedTab == "clients" ? <ClientUsages clients={clients}/> :
                         selectedTab == "events" ? <EventsUsages events={events}/> :

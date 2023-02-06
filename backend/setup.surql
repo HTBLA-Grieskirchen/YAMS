@@ -63,6 +63,16 @@ DEFINE FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
 DEFINE FIELD treatment ON client_file VALUE [];
 
 -- ------------------------------
+-- TABLE: client_relation
+-- ------------------------------
+
+DEFINE TABLE client_relation SCHEMAFULL;
+
+DEFINE FIELD `in` ON client_relation TYPE record(client);
+DEFINE FIELD `out` ON client_relation TYPE record(client);
+DEFINE FIELD relation_type ON client_relation TYPE string ASSERT $value != NONE AND $value != NULL AND $value != "" VALUE string::trim($after);
+
+-- ------------------------------
 -- TABLE: event
 -- ------------------------------
 

@@ -9,7 +9,11 @@ const AnimalTableHeader = observer(() => {
             </div>
             <div
                 className="table-cell w-32 py-2 px-4 text-sm font-semibold tracking-wider text-gray-600 text-left uppercase border-b-blue-600 border-b-4">
-                Race
+                Race Description
+            </div>
+            <div
+                className="table-cell w-32 py-2 px-4 text-sm font-semibold tracking-wider text-gray-600 text-left uppercase border-b-blue-600 border-b-4">
+                Animal Species
             </div>
             <div
                 className="table-cell w-full py-2 px-4 text-sm font-semibold tracking-wider text-gray-600 text-left uppercase border-b-blue-600 border-b-4">

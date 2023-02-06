@@ -20,7 +20,13 @@ const AnimalItem = observer(({animal}: { animal: Animal }) => {
         <div
             className="table-cell py-2 px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200">
             <p className="text-lg xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
-                {animal.race}
+                {animal.race.description}
+            </p>
+        </div>
+        <div
+            className="table-cell py-2 px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200">
+            <p className="text-lg xl:max-w-4xl sm:max-w-sm max-w-0 truncate">
+                {animal.race.animal_species}
             </p>
         </div>
         <div

@@ -37,7 +37,6 @@ export default class AnimalStore {
     async refresh() {
         const [_r, refresh, _c] = this.dataLive
 
-        await this.root.animalStore.refresh()
         await refresh()
     }
 

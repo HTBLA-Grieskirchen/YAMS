@@ -73,7 +73,7 @@ export default class PurchaseStore {
         if (!(result.length > 0 && result[0].result)) return
 
         runInAction(() => {
-            // Update countries
+            // Update productTypes
             const countryIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
                     const response = ProductTypeResponse.from(item)
@@ -92,7 +92,7 @@ export default class PurchaseStore {
                 }).filter((it: any) => it !== undefined))
             Array.from(this.indexedProductTypes.keys()).filter((id) => !countryIDs.has(id)).forEach((id) => this.indexedProductTypes.delete(id))
 
-            // Update cities
+            // Update products
             const cityIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
                     const response = ProductResponse.from(item)
@@ -111,24 +111,24 @@ export default class PurchaseStore {
                 }).filter((it: any) => it !== undefined))
             Array.from(this.indexedProducts.keys()).filter((id) => !cityIDs.has(id)).forEach((id) => this.indexedProducts.delete(id))
 
-            // Update addresses
-            const addressIDs: Set<string> = new Set(
+            // Update purchases
+            const purchaseIDs: Set<string> = new Set(
                 result[0].result.map((item: any) => {
                     const response = PurchaseResponse.from(item)
                     if (!response) return
 
-                    let address = this.indexedPurchases.get(response.data.id)
-                    if (address !== undefined) {
-                        response.applyOn(address)
+                    let purchase = this.indexedPurchases.get(response.data.id)
+                    if (purchase !== undefined) {
+                        response.applyOn(purchase)
                     } else {
-                        address = response.intoObject()
-                        if (!address) return
+                        purchase = response.intoObject()
+                        if (!purchase) return
 
-                        this.indexedPurchases.set(response.data.id, address)
+                        this.indexedPurchases.set(response.data.id, purchase)
                     }
                     return response.data.id
                 }).filter((it: any) => it !== undefined))
-            Array.from(this.indexedPurchases.keys()).filter((id) => !addressIDs.has(id)).forEach((id) => this.indexedPurchases.delete(id))
+            Array.from(this.indexedPurchases.keys()).filter((id) => !purchaseIDs.has(id)).forEach((id) => this.indexedPurchases.delete(id))
         })
     }
 }

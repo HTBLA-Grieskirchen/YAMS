@@ -13,7 +13,7 @@ const ProductTypeUsageTabs = observer((
     const [expanded, setExpanded] = useState(false)
 
     // Replace with actual indirect usages once client and events have been added to store
-    const indirectUsages = store.purchasedStore.purchases.filter((purchase) => purchase.product.productType == productType).length
+    const indirectUsages = store.purchaseStore.purchases.filter((purchase) => purchase.product.productType == productType).length
 
     return <div className="flex flex-col">
         <div className="flex flex-row space-x-2">

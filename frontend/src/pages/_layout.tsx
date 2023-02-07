@@ -34,6 +34,11 @@ const MainMenu = createLeftMenuLayout({
         href: paths.addresses,
         icon: "fa-map-location-dot",
         recursive: true
+    },
+    "Purchase": {
+        href:paths.purchases,
+        icon: "fa-cart-shopping",
+        recursive: true
     }
 })
 

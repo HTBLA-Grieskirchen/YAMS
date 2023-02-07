@@ -12,7 +12,7 @@ const ProductTypeDetailItem = observer((
 ) => {
     const store = useStore()
     const [deleting, setDeleting] = useState(false)
-    const hasDependants = store.addressStore.products.filter((product) => product.productType == productType).length > 0
+    const hasDependants = store.purchaseStore.products.filter((product) => product.productType == productType).length > 0
 
     async function remove() {
         setDeleting(true)
@@ -32,7 +32,7 @@ const ProductTypeDetailItem = observer((
                 }
             })
         } else {
-            await store.addressStore.refresh()
+            await store.purchaseStore.refresh()
         }
 
         setDeleting(false)
@@ -45,7 +45,7 @@ const ProductTypeDetailItem = observer((
         </div>
         <div
             className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-4 text-sm font-medium text-gray-500 whitespace-nowrap border-t-2 border-t-gray-200`}>
-
+            TestProductType
         </div>
         <div
             className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-2 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200`}>

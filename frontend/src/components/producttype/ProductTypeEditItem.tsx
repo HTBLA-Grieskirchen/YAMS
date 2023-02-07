@@ -15,9 +15,8 @@ const ProductTypeEditItem = observer((
 
     const [nameErrors, setNameErrors] = useState<string[]>([])
 
-    function check(name: string): [string[], string[]] {
+    function check(name: string): [string[]] {
 
-        const localCodeErrors = []
         const localNameErrors = []
 
         if (name.length == 0) {
@@ -25,17 +24,17 @@ const ProductTypeEditItem = observer((
         }
 
         if (store.purchaseStore.productTypes.find((item) => item.name == name && item.record != productType.record)) {
-            localCodeErrors.push("That code already exists")
+            localNameErrors.push("That ProductType already exists")
         }
 
-        return [localCodeErrors, localNameErrors]
+        return [localNameErrors]
     }
 
     function validate(): boolean {
-        const [tempCodeErrors, tempNameErrors] = check(name)
+        const [tempNameErrors] = check(name)
         setNameErrors(tempNameErrors)
 
-        return !tempCodeErrors.length && !tempNameErrors.length
+        return !tempNameErrors.length
     }
 
     async function submit() {
@@ -82,7 +81,7 @@ const ProductTypeEditItem = observer((
                    className="w-16 px-1 shadow-sm rounded border border-gray-200"
                    onChange={e => {
                        setName(e.target.value)
-                       const [localCodeErrors, localNameErrors] = check(e.target.value)
+                       const [localNameErrors] = check(e.target.value)
                        setNameErrors(localNameErrors)
                    }}/>
         </div>
@@ -92,6 +91,16 @@ const ProductTypeEditItem = observer((
                 {nameErrors.map((error, index) =>
                     <p key={index} className="text-red-600"><i className="fa-solid fa-circle-exclamation"/> {error}
                     </p>)}
+            </div>
+        </div>
+        <div
+            className={`table-cell ${noBottomPadding ? "pt-2" : "py-2"} px-2 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200 group-first:border-t-0`}>
+            <div className="w-16">
+                <button className="text-green-600 hover:underline disabled:opacity-50 disabled:hover:no-underline"
+                        type="submit"
+                        disabled={submitted || !!check(name).reduce((prev, current) => prev + current.length, 0)}>
+                    Confirm
+                </button>
             </div>
         </div>
         <div

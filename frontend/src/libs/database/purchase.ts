@@ -48,3 +48,28 @@ END
 
     return response[0]
 }
+
+export async function patchPurchasesDynamic(
+    prev: { [field: string]: string }, next: { [field: string]: string }
+): Promise<Result<any>> {
+    const prefixedPrev = Object.entries(prev).map(([field, value]) => [`prev_${field}`, value])
+    const prefixedNext = Object.entries(next).map(([field, value]) => [`next_${field}`, value])
+
+    const prevRequirements = Object.keys(prev).map((field, index) => `${field} = $${prefixedPrev[index][0]}`).join(" AND ")
+    const nextValues = Object.keys(next).map((field, index) => `${field} = $${prefixedNext[index][0]}`).join(", ")
+
+    const response = await query(`
+        UPDATE type:: table ($purchaseTable)
+        SET ${nextValues}
+        WHERE ${prevRequirements}
+    `, {...Object.fromEntries(prefixedPrev), ...Object.fromEntries(prefixedNext), purchaseTable: Purchase.TABLE})
+
+    if (!response[0]) {
+        return {
+            error: new Error("No Response at all")
+        }
+    }
+
+    return response[0]
+}
+

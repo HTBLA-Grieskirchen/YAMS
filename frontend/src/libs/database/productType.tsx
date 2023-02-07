@@ -26,6 +26,11 @@ export async function deleteProductType(productType: ProductType): Promise<Resul
 export async function patchProductType(productType: ProductType, newName: string): Promise<Result<any>> {
     const shortTakenError = 2
 
+    console.log("Vorm Datenbank Zugriff:")
+    console.log("neuer Name: "+newName)
+    console.log("productType: "+productType)
+    console.log("paar random Sachen aus productType: "+productType.name+" | "+productType.id+" | "+productType.table +" | "+productType.record)
+
     const response = await query(`
 IF ( count(( SELECT id FROM product_type WHERE name = $name AND id != type::thing($productTypeTable, $productTypeID) )) > 0 ) THEN
     $nameError
@@ -39,6 +44,9 @@ END
         productTypeID: productType.record.id,
         name: newName,
     })
+
+    console.log("Nachm Datenbank Zugriff")
+    console.log("einfoch moi des response dingens variable: "+response+" und nuamoi response[0]: "+response[0].result+" und nuamoi mid !:"+!response[0])
 
     if (!response[0]) {
         return {

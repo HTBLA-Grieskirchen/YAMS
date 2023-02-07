@@ -1,8 +1,7 @@
 import {makeAutoObservable, runInAction} from "mobx";
 import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal";
-import Country from "./country";
 
-export default class ProductType {
+export default class ProductType implements SurrealObject {
     static readonly TABLE: string = "product_type"
     readonly table: string = ProductType.TABLE
     readonly record: Record
@@ -55,7 +54,7 @@ export class ProductTypeResponse implements SurrealResponse<ProductType> {
         // Check if data is meant for object
         if (object.record.join() != this.data.id) return
 
-        // Country properties are mutated, and we want to let MobX know about it,
+        // ProductType properties are mutated, and we want to let MobX know about it,
         // so it can react on changes -> runInAction()
         runInAction(() => {
             if (this.data.name != object.name) object.name = this.data.name

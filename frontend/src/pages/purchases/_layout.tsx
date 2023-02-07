@@ -1,8 +1,8 @@
 import {Layout} from "../../types/layout";
 import paths from "../../util/paths";
-import createSubmenuLayout from "../../components/SubmenuLayout";
+import createTabMenuLayout from "../../components/layout/TabMenuLayout";
 
-const PurchaseLayout: Layout = createSubmenuLayout({
+const PurchaseLayout: Layout = createTabMenuLayout({
     "Purchase": {
         href: paths.purchases,
         icon: "fa-cart-shopping"

@@ -9,6 +9,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
     const [firstname, setFirstname] = useState(client.firstName)
     const [lastname, setLastname] = useState(client.lastName)
     const [email, setEmail] = useState(client.email)
+    const [number, setNumber] = useState(client.mobileNumber)
     const [street_number, setStreetNumber] = useState(client.address.streetNumber)
     const [postal_code, setPostalCode] = useState(client.address.postalCode)
     const [city, setCity] = useState(client.address.city)
@@ -23,17 +24,6 @@ const EditClientForm = observer(({client}: {client: Client}) => {
     const handleButtonEditClient = async () => {
 
         let result = await query('UPDATE client SET first_name = $firstname, last_name = $lastname, email = $email, street_number=$streetNumber, postal_code=$postalCode, city = $city, country=$country, extra=$extra, street=$street, date=$birthdate')
-            // let result = await query('UPDATE client SET first_name = $firstname, address = type::thing($street, $street_number, $postal_code, $city), ' +
-            //     'consent= $consent, last_name = $lastname, email = $email, mobile_number = $number, birthdate = $birthdate', {
-            //     //firstname: firstname,
-            //     //lastname: lastname,
-            //     //consent: consent,
-            //     //addressTable: "address",
-            //     //email: email,
-            //     //number: number,
-            //     //birthdate: new Date(date),
-            //     //addressID: address.id
-
 
     }
 
@@ -75,8 +65,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                     <input
                         type="date"
                         className="block w-full px-4 py-2 mt-2 bg-white border rounded-md text-indigo-700  focus:ring-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring focus:ring-opacity-40 placeholder-indigo-700"
-                        //value={date}
-                        //onChange={e => setDate(e.target.value)}
+                        value={date.toISOString().substring(0, 10)}
+                        onChange={e => console.log(e.target.value) === undefined || setDate(new Date(e.target.value))}
                     />
                 </div>
                 <div className="mb-2">
@@ -99,8 +89,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                         type="text"
                         className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                         placeholder="+43 123 4567890"
-                        //value={number}
-                        //onChange={e => setNumber(e.target.value)}
+                        value={number}
+                        onChange={e => setNumber(e.target.value)}
                     />
                 </div>
                 <div className="mb-2">

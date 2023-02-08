@@ -1,10 +1,10 @@
 import Head from 'next/head'
-import ClientRegisterEditingForm from "../../../components/client/ClientRegisterEditingForm";
-import {LayoutPage} from "../../../types/layout";
+import ClientRegisterEditingForm from "../../../../components/client/ClientRegisterEditingForm";
+import {LayoutPage} from "../../../../types/layout";
 import {router} from "next/client";
-import {useStore} from "../../../stores";
-import {Record} from "../../../model/surreal";
-import Client from "../../../model/client";
+import {useStore} from "../../../../stores";
+import {Record} from "../../../../model/surreal";
+import Client from "../../../../model/client";
 
 const EditClient: LayoutPage = () => {
     const store = useStore()

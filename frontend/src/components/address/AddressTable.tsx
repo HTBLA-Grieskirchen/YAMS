@@ -1,14 +1,14 @@
-import { observer, useLocalObservable } from "mobx-react";
-import { categories } from "../../pages/addresses";
+import {observer, useLocalObservable} from "mobx-react";
+import {categories} from "../../pages/addresses";
 import Address from "../../model/address";
-import { ReactNode, useState } from "react";
-import { useStore } from "../../stores";
+import {ReactNode, useState} from "react";
+import {useStore} from "../../stores";
 import Client from "../../model/client";
-import { MD5 } from "object-hash";
+import {MD5} from "object-hash";
 import dialog from "../../libs/dialog";
 import notification from "../../libs/notification";
-import { patchAddressesDynamic } from "../../libs/database/address";
-import { runInAction } from "mobx";
+import {patchAddressesDynamic} from "../../libs/database/address";
+import {runInAction} from "mobx";
 import Link from "next/link";
 import paths from "../../util/paths";
 
@@ -283,8 +283,6 @@ const ClientUsages = observer((
     {clients}:
         { clients: Client[] }
 ) => {
-    // TODO: Link to client detail page once implemented (via path)
-
     return <div className="flex flex-col divide-y divide-base-300 w-full">
         {clients.map((client) => {
             return <div key={client.record.join()} className="w-full flex place-content-between">
@@ -325,7 +323,7 @@ const ClientUsages = observer((
 
                 <div className="tooltip tooltip-accent tooltip-left w-fit cursor-help my-auto"
                      data-tip={`View client ${client.firstName} ${client.lastName} in detail`}>
-                    <Link href={paths.client(client.record.id)}>
+                    <Link href={paths.client(client.record.join())}>
                         <button className="btn btn-md my-2"><i className="fa-solid fa-external-link mr-2"/>Open</button>
                     </Link>
                 </div>

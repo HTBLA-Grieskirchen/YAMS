@@ -1,18 +1,18 @@
-import { observer } from "mobx-react";
-import { Combobox } from "@headlessui/react";
-import React, { useEffect } from "react";
-import { ValidatableFieldData } from "../../libs/field/validatable";
+import {observer} from "mobx-react";
+import {Combobox} from "@headlessui/react";
+import React, {useEffect} from "react";
+import {ValidatableFieldData} from "../../libs/field/validatable";
 
 export const ValidatableComboBox = observer(<T extends unknown, N extends unknown>(
-    {data, label, placeholder, required, newValue, mapDisplayValue, className, setQuery, children}:
+    {data, label, placeholder, required, disabled, newValue, mapDisplayValue, className, setQuery, children}:
         {
             className?: string, children?: React.ReactElement<typeof Combobox.Option>[]
-            data: ValidatableFieldData<T | N>, label?: string, placeholder?: string, required?: boolean,
+            data: ValidatableFieldData<T | N>, label?: string, placeholder?: string, required?: boolean, disabled?: boolean,
             mapDisplayValue: (dataValue: T | N) => string, newValue?: { data: N, prompt: string }, setQuery: (query: string) => void
         }
 ) => {
-    const isNotNewState = newValue !== undefined && data.value != newValue.data
-    const hasOptions = isNotNewState || children !== undefined && !!children.length
+    const isNotNewState = newValue === undefined || data.value != newValue.data
+    const hasOptions = newValue !== undefined && isNotNewState || children !== undefined && !!children.length
 
     useEffect(() => {
         if (!isNotNewState) {
@@ -21,7 +21,7 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
     }, [setQuery, isNotNewState])
 
     return <div className={`dropdown w-full ${!!className ? className : ""}`}>
-        <Combobox value={data.value} onChange={data.setValue}>
+        <Combobox value={data.value} onChange={data.setValue} disabled={disabled}>
             <div className="form-control w-full">
                 <label className="label">
                     <span className="label-text">{label}</span>
@@ -29,7 +29,7 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
 
                 <div className="indicator w-full">
                     {required &&
-                        <span className="indicator-item badge badge-secondary px-1.5">
+                        <span className="indicator-item badge badge-ghost text-error px-1.5">
                             <i className="fa-solid fa-asterisk text-xs"/>
                         </span>}
                     <label className={`w-full ${hasOptions ? "input-group" : ""}`}>
@@ -48,7 +48,7 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
 
             {hasOptions &&
                 <Combobox.Options className="dropdown-content menu shadow bg-base-200 p-2 rounded-btn max-w-md">
-                    {isNotNewState && <>
+                    {newValue !== undefined && isNotNewState && <>
                         <li className="menu-title mt-2">
                             <span>Custom</span>
                         </li>

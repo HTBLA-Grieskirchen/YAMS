@@ -8,45 +8,33 @@ import Client from "../../model/client";
 const EditClientForm = observer(({client}: {client: Client}) => {
     const [firstname, setFirstname] = useState(client.firstName)
     const [lastname, setLastname] = useState(client.lastName)
-    const [address, setAddress] = useState<Address | null>(null)
     const [email, setEmail] = useState(client.email)
-    const [number, setNumber] = useState(client.mobileNumber)
-    const [street, setStreet] = useState(client.address.street)
-    //const [street_number, setStreetNumber] = useState(client.address.street_number)
-    //const [postal_code, setPostalCode] = useState(client.address.postal_code)
+    const [street_number, setStreetNumber] = useState(client.address.streetNumber)
+    const [postal_code, setPostalCode] = useState(client.address.postalCode)
     const [city, setCity] = useState(client.address.city)
-    const [date, setDate] = useState('2000-01-01')
+    const [country, setCountry] = useState(client.address.country)
+    const [extra, setExtra] = useState(client.address.extra)
+    const [street, setStreet] = useState(client.address.street)
+    const [date, setDate] = useState(client.birthdate)
 
     const [checked, setChecked] = useState(true)
     const [consent, setConsent] = useState(false)
 
     const handleButtonEditClient = async () => {
-        if (address != null && !(firstname === '') && !(lastname === '') && !(email === '') && !(number === '')) {
-            let result = await query('UPDATE client SET first_name = $firstname, address = type::thing($street, $street_number, $postal_code, $city), ' +
-                'consent= $consent, last_name = $lastname, email = $email, mobile_number = $number, birthdate = $birthdate', {
-                //firstname: firstname,
-                //lastname: lastname,
-                //consent: consent,
-                //addressTable: "address",
-                //email: email,
-                //number: number,
-                //birthdate: new Date(date),
-                //addressID: address.id
-            })
 
-            // setFirstname('')
-            // setLastname('')
-            // setConsent(false)
-            // setEmail('')
-            // setNumber('')
-            // setDate('2000-01-01')
-            // setCity('')
-            // setStreet('')
-            // setPostalCode('')
-            // setStreetNumber('')
-        } else {
-            alert('Felder dürfen nicht leer sein')
-        }
+        let result = await query('UPDATE client SET first_name = $firstname, last_name = $lastname, email = $email, street_number=$streetNumber, postal_code=$postalCode, city = $city, country=$country, extra=$extra, street=$street, date=$birthdate')
+            // let result = await query('UPDATE client SET first_name = $firstname, address = type::thing($street, $street_number, $postal_code, $city), ' +
+            //     'consent= $consent, last_name = $lastname, email = $email, mobile_number = $number, birthdate = $birthdate', {
+            //     //firstname: firstname,
+            //     //lastname: lastname,
+            //     //consent: consent,
+            //     //addressTable: "address",
+            //     //email: email,
+            //     //number: number,
+            //     //birthdate: new Date(date),
+            //     //addressID: address.id
+
+
     }
 
     return (
@@ -87,8 +75,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                     <input
                         type="date"
                         className="block w-full px-4 py-2 mt-2 bg-white border rounded-md text-indigo-700  focus:ring-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring focus:ring-opacity-40 placeholder-indigo-700"
-                        value={date}
-                        onChange={e => setDate(e.target.value)}
+                        //value={date}
+                        //onChange={e => setDate(e.target.value)}
                     />
                 </div>
                 <div className="mb-2">
@@ -111,8 +99,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                         type="text"
                         className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                         placeholder="+43 123 4567890"
-                        value={number}
-                        onChange={e => setNumber(e.target.value)}
+                        //value={number}
+                        //onChange={e => setNumber(e.target.value)}
                     />
                 </div>
                 <div className="mb-2">
@@ -142,8 +130,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="1"
-                                    //value={street_number}
-                                    //onChange={e => setStreetNumber(e.target.value)}
+                                    value={street_number}
+                                    onChange={e => setStreetNumber(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -156,8 +144,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="1234"
-                                    //value={postal_code}
-                                    //onChange={e => setPostalCode(e.target.value)}
+                                    value={postal_code}
+                                    onChange={e => setPostalCode(e.target.value)}
                                 />
                             </div>
                             <div className="w-3/4 float-left">
@@ -168,8 +156,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                     type="text"
                                     className="block w-full px-4 py-2 mt-2 text-indigo-700 bg-white border rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:outline-none focus:ring focus:ring-opacity-40"
                                     placeholder="Musterstadt"
-                                    //value={city}
-                                    //onChange={e => setCity(e.target.value)}
+                                    value={city}
+                                    onChange={e => setCity(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -194,7 +182,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                 <div className="mt-6">
                     <button
                         onClick={event => {
- //                           handleButtonEditClient()
+                            handleButtonEditClient()
                         }}
                         className="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-indigo-700 rounded-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-600">
                         Bestätigen

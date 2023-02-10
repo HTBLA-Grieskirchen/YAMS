@@ -1,7 +1,7 @@
-import {observer} from "mobx-react";
-import {Combobox} from "@headlessui/react";
-import React, {useEffect} from "react";
-import {ValidatableFieldData} from "../../libs/field/validatable";
+import { observer } from "mobx-react";
+import { Combobox } from "@headlessui/react";
+import React, { useEffect } from "react";
+import { ValidatableFieldData } from "../../libs/field/validatable";
 
 export const ValidatableComboBox = observer(<T extends unknown, N extends unknown>(
     {data, label, placeholder, required, disabled, newValue, mapDisplayValue, className, setQuery, children}:
@@ -47,7 +47,8 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
 
 
             {hasOptions &&
-                <Combobox.Options className="dropdown-content menu shadow bg-base-200 p-2 rounded-btn max-w-md">
+                <Combobox.Options
+                    className="dropdown-content overflow-y-scroll menu shadow bg-base-200 p-2 rounded-btn max-w-md max-h-80 flex-nowrap">
                     {newValue !== undefined && isNotNewState && <>
                         <li className="menu-title mt-2">
                             <span>Custom</span>

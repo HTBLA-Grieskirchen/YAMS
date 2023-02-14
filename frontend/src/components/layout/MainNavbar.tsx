@@ -6,7 +6,7 @@ const MainNavbar = observer((
         { children: ReactNode, NavbarPath: () => ReactElement, NavbarMenu: () => ReactElement }
 ) => {
     return <>
-        <div className="w-full navbar bg-base-300">
+        <div className="w-full navbar bg-base-200 shadow-md sticky top-0 z-40">
             <div className="flex-none [@media(min-width:1024px)]:hidden">
                 <label htmlFor="main-drawer" className="btn btn-square btn-ghost">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

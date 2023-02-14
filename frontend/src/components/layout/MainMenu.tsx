@@ -1,10 +1,10 @@
-import { observer } from "mobx-react";
-import { ReactNode, useEffect, useState } from "react";
-import { useStore } from "../../stores";
+import {observer} from "mobx-react";
+import {ReactNode, useEffect, useState} from "react";
+import {useStore} from "../../stores";
 import Link from "next/link";
 import paths from "../../util/paths";
-import { autorun } from "mobx";
-import { useRouter } from "next/router";
+import {autorun} from "mobx";
+import {useRouter} from "next/router";
 
 const MainMenu = observer((
     {children, entries}:
@@ -14,7 +14,7 @@ const MainMenu = observer((
 
     return <div className="drawer drawer-mobile">
         <input id="main-drawer" type="checkbox" className="drawer-toggle"/>
-        <div className="drawer-content flex flex-none flex-col">
+        <div className="drawer-content bg-base-300 flex flex-none flex-col max-h-screen">
             {children}
         </div>
         <div className="drawer-side">

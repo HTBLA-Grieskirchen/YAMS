@@ -1,12 +1,12 @@
-import { observer } from "mobx-react";
+import {observer} from "mobx-react";
 import Link from "next/link";
 import paths from "../../../util/paths";
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
 import React from "react";
-import { NavigationPage } from "../../../types/layout";
+import {NavigationPage} from "../../../types/layout";
 import ClientOverview from "../index";
 import Client from "../../../model/client";
-import { useStore } from "../../../stores";
+import {useStore} from "../../../stores";
 
 const ClientDetail: NavigationPage = observer(() => {
     return <p>Unknown Client (Not implemented)</p>
@@ -55,8 +55,8 @@ ClientDetail.NavPath = observer(() => {
         <li>
             <Link href={path}>
                 <button
-                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
-                    Client {`"${client.firstName} ${client.lastName}"`}
+                    className={`btn btn-ghost px-2 normal-case text-xl ${disabled ? "pointer-events-none" : ""}`}>
+                    {client.firstName} {client.lastName}
                 </button>
             </Link>
         </li>

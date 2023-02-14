@@ -29,7 +29,7 @@ const ClientRelations: NavigationPage = observer(() => {
 
     const relations = store.clientStore.relationStore.indexedByFrom.get(client.record.join())
 
-    return <main>
+    return <main className="p-6">
         <Head>
             <title>YAMS - Relations Client</title>
         </Head>
@@ -79,7 +79,7 @@ ClientRelations.NavPath = observer(() => {
         <li>
             <Link href={path}>
                 <button
-                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
+                    className={`btn btn-ghost px-2 normal-case text-xl ${disabled ? "pointer-events-none" : ""}`}>
                     Relations
                 </button>
             </Link>

@@ -58,7 +58,7 @@ ClientOverview.NavPath = observer(() => {
         <li>
             <Link href={path}>
                 <button
-                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
+                    className={`btn btn-ghost px-2 normal-case text-xl ${disabled ? "pointer-events-none" : ""}`}>
                     <i className="fa-solid fa-person mr-2"/>
                     Client
                 </button>

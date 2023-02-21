@@ -33,16 +33,24 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
                             <i className="fa-solid fa-asterisk text-xs"/>
                         </span>}
                     <label className={`w-full ${hasOptions ? "input-group" : ""}`}>
-                        <Combobox.Input className="input input-bordered w-full"
-                                        onChange={e => setQuery(e.target.value)}
-                                        displayValue={mapDisplayValue}
-                                        placeholder={isNotNewState ? placeholder : "Creating new..."}/>
+                        <Combobox.Input
+                            className={`input input-bordered w-full ${data.displayError != null ? "input-error" : ""}`}
+                            onChange={e => setQuery(e.target.value)}
+                            displayValue={mapDisplayValue}
+                            placeholder={isNotNewState ? placeholder : "Creating new..."}/>
                         {hasOptions &&
                             <Combobox.Button className="btn btn-square">
                                 <i className="fa-solid fa-angle-down"/>
                             </Combobox.Button>}
                     </label>
                 </div>
+
+                <label className="label">
+                    {data.displayError != null && !!data.displayError.trim().length &&
+                        <span className="label-text text-error">
+                            <i className="fa-solid fa-circle-exclamation"/> {data.displayError}
+                        </span>}
+                </label>
             </div>
 
 

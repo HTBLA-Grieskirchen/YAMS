@@ -1,14 +1,14 @@
-import {observer, useLocalObservable} from "mobx-react";
-import {categories} from "../../pages/addresses";
+import { observer, useLocalObservable } from "mobx-react";
+import { categories } from "../../pages/addresses";
 import Address from "../../model/address";
-import {ReactNode, useState} from "react";
-import {useStore} from "../../stores";
+import { ReactNode, useState } from "react";
+import { useStore } from "../../stores";
 import Client from "../../model/client";
-import {MD5} from "object-hash";
+import { MD5 } from "object-hash";
 import dialog from "../../libs/dialog";
 import notification from "../../libs/notification";
-import {patchAddressesDynamic} from "../../libs/database/address";
-import {runInAction} from "mobx";
+import { patchAddressesDynamic } from "../../libs/database/address";
+import { runInAction } from "mobx";
 import Link from "next/link";
 import paths from "../../util/paths";
 
@@ -135,12 +135,12 @@ const AddressEditTableRowContent = observer((
                 <p className="py-4">Are you sure you want to update this many items? All addresses in this category will
                     be changed.</p>
                 <div className="modal-action">
+                    <button className="btn btn-error" onClick={e => close()}>Cancel</button>
                     <button className="btn btn-success" onClick={e => {
                         close()
                         submit()
                     }}>{"I'm sure!"}
                     </button>
-                    <button className="btn btn-error" onClick={e => close()}>Cancel</button>
                 </div>
             </div>)
         } else {

@@ -19,6 +19,8 @@ const RegisterClient: NavigationPage = () => {
                 <div className="card-body overflow-visible">
                     <h2 className="card-title">Client Registration</h2>
 
+                    <div className="divider my-0"/>
+
                     <ClientRegisterForm/>
                 </div>
             </div>

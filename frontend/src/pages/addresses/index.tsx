@@ -140,7 +140,7 @@ const Addresses: NavigationPage = observer(() => {
                             </div> :
                             <table className="table w-full">
                                 <thead className="sticky top-0 z-30">
-                                <AddressTableHeader selectedCategories={selectedCategories}/>
+                                    <AddressTableHeader selectedCategories={selectedCategories}/>
                                 </thead>
 
                                 <tbody className="overflow-y-auto">

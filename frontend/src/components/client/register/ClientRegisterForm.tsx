@@ -20,6 +20,7 @@ import { query } from "../../../libs/database";
 import { makeRecordForTable, Record } from "../../../model/surreal";
 import { Result } from "surrealdb.js";
 import { createAddress } from "../../../libs/database/address";
+import Client from "../../../model/client";
 
 const AddClientForm = observer(() => {
     const router = useRouter()
@@ -234,9 +235,21 @@ const AddClientForm = observer(() => {
             return
         }
 
+        let clientRecord
+        try {
+            clientRecord = makeRecordForTable(response.result[0].id, Client.TABLE)
+        } catch (error: unknown) {
+            if (typeof error === "string") {
+                await abortWithError(error)
+            } else if (error instanceof Error) {
+                await abortWithError(error.message)
+            }
+            return
+        }
+
         await query("COMMIT TRANSACTION")
         await store.clientStore.refresh()
-        await router.push(paths.clients)
+        await router.push(paths.client(clientRecord.join()))
         form.setSubmitted(false)
     }
 

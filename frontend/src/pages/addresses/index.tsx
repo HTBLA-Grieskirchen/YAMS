@@ -112,47 +112,46 @@ const Addresses: NavigationPage = observer(() => {
             <title>YAMS - Address</title>
         </Head>
 
-        <main>
-            <div className="card card-compact bg-base-300/75 m-2">
-                <div className="card-body">
-                    <div className="tooltip tooltip-accent tooltip-right w-fit cursor-help"
-                         data-tip="Group addresses by all the selected categories">
-                        <h2 className="card-title">Account multiple categories:</h2>
-                    </div>
-                    <div className="grid gap-x-4 gap-y-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-6 justify-items-end">
-                        {Object.entries(categories).map(([field, {humanReadable}]) =>
-                            <CategoryCheckbox key={field} display={humanReadable} field={field}/>)}
-                    </div>
+        <main className="p-6 overflow-y-auto">
+            <div className="card card-compact bg-base-100 shadow p-4 max-h-full">
+                <div className="tooltip tooltip-accent tooltip-right w-fit cursor-help"
+                     data-tip="Group addresses by all the selected categories">
+                    <h2 className="card-title">Account multiple categories:</h2>
                 </div>
-            </div>
+                <div className="grid gap-x-4 gap-y-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-6 justify-items-end">
+                    {Object.entries(categories).map(([field, {humanReadable}]) =>
+                        <CategoryCheckbox key={field} display={humanReadable} field={field}/>)}
+                </div>
 
+                <div className="divider my-2"/>
 
-            <div className="overflow-auto w-full p-2">
-                {!Array.from(selectedCategories.values()).reduce((prev, cur) => prev || cur, false) ?
-                    <div className="alert alert-warning shadow-lg">
-                        <div>
-                            <i className="fa-solid fa-warning flex-shrink-0 text-xl"/> No category selected!
-                        </div>
-                    </div> :
-                    !groups.length ?
-                        <div className="alert alert-info shadow-lg">
+                <div className="overflow-x-auto w-full mt-2">
+                    {!Array.from(selectedCategories.values()).reduce((prev, cur) => prev || cur, false) ?
+                        <div className="alert alert-warning">
                             <div>
-                                <i className="fa-solid fa-info-circle flex-shrink-0 text-xl"/> No addresses known.
+                                <i className="fa-solid fa-warning flex-shrink-0 text-xl"/> No category selected!
                             </div>
                         </div> :
-                        <table className="table w-full">
-                            <thead>
-                            <AddressTableHeader selectedCategories={selectedCategories}/>
-                            </thead>
+                        !groups.length ?
+                            <div className="alert alert-info shadow-lg">
+                                <div>
+                                    <i className="fa-solid fa-info-circle flex-shrink-0 text-xl"/> No addresses known.
+                                </div>
+                            </div> :
+                            <table className="table w-full">
+                                <thead className="sticky top-0 z-30">
+                                    <AddressTableHeader selectedCategories={selectedCategories}/>
+                                </thead>
 
-                            <tbody>
-                            {groups.map(({facing, addresses}) =>
-                                <AddressTableRow key={JSON.stringify(facing)}
-                                                 selectedCategories={selectedCategories} facingValues={facing}
-                                                 backingAddresses={addresses}/>)}
-                            </tbody>
-                        </table>
-                }
+                                <tbody className="overflow-y-auto">
+                                {groups.map(({facing, addresses}) =>
+                                    <AddressTableRow key={JSON.stringify(facing)}
+                                                     selectedCategories={selectedCategories} facingValues={facing}
+                                                     backingAddresses={addresses}/>)}
+                                </tbody>
+                            </table>
+                    }
+                </div>
             </div>
         </main>
     </>
@@ -168,7 +167,7 @@ Addresses.NavPath = observer(() => {
         <li>
             <Link href={path}>
                 <button
-                    className={`btn btn-ghost btn-sm px-2 normal-case font-normal text-lg ${disabled ? "pointer-events-none" : ""}`}>
+                    className={`btn btn-ghost px-2 normal-case text-xl ${disabled ? "pointer-events-none" : ""}`}>
                     <i className="fa-solid fa-map-location-dot mr-2"/>
                     Address
                 </button>

@@ -11,6 +11,7 @@ module.exports = withMT({
     },
 
     plugins: [
+        require("@tailwindcss/typography"),
         require("daisyui"),
         require('@tailwindcss/line-clamp')
     ],

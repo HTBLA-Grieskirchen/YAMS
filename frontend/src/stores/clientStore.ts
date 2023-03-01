@@ -1,19 +1,24 @@
 import store from "./index";
-import {action, autorun, computed, makeAutoObservable, observable, runInAction} from "mobx";
-import {live} from "../libs/database";
-import {ano, no} from "../util/consts";
-import Client, {ClientResponse} from "../model/client";
+import { action, autorun, computed, makeAutoObservable, observable, runInAction } from "mobx";
+import { live } from "../libs/database";
+import { ano, no } from "../util/consts";
+import Client, { ClientResponse } from "../model/client";
+import RelationStore from "./client/relationStore";
 
 export default class ClientStore {
-    indexedClients: Map<string, Client>
     private root: typeof store
     private dataLive: Awaited<ReturnType<typeof live>>
+
+    relationStore: RelationStore
+
+    indexedClients: Map<string, Client>
 
     constructor(root: typeof store) {
         this.root = root
         this.dataLive = [[], ano, no]
 
         this.indexedClients = observable.map()
+        this.relationStore = new RelationStore(root)
 
         makeAutoObservable(this, {
             refresh: action.bound,
@@ -31,12 +36,14 @@ export default class ClientStore {
 
         await this.root.addressStore.refresh()
         await refresh()
+        await this.root.clientStore.relationStore.refresh()
     }
 
     async setup() {
         this.dataLive = await live("SELECT * FROM client ORDER BY id")
-
         this.registerSyncData()
+
+        await this.relationStore.setup()
     }
 
     close() {

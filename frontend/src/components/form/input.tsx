@@ -19,7 +19,7 @@ export const ValidatableInputField = observer(<T extends unknown>(
         </label>
         <div className="indicator w-full">
             {required &&
-                <span className="indicator-item badge badge-secondary px-1.5">
+                <span className="indicator-item badge badge-ghost text-error px-1.5">
                     <i className="fa-solid fa-asterisk text-xs"/>
                 </span>}
             <input type={actualType} placeholder={placeholder} required={required}
@@ -28,7 +28,7 @@ export const ValidatableInputField = observer(<T extends unknown>(
                    onChange={e => data.setValue(actualSetValue(e.target.value))}/>
         </div>
         <label className="label">
-            {data.displayError != null &&
+            {data.displayError != null && !!data.displayError.trim().length &&
                 <span className="label-text text-error">
                     <i className="fa-solid fa-circle-exclamation"/> {data.displayError}
                 </span>}

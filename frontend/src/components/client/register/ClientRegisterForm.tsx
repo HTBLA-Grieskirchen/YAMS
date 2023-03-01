@@ -13,7 +13,7 @@ import { ValidatableInputField } from "../../form/input";
 import { Combobox } from "@headlessui/react";
 import { ValidatableComboBox } from "../../form/combobox";
 import ClientRegisterAddressForm, {
-    clientRegisterAddressFieldData,
+    emptyClientRegisterAddressFieldData,
     NewClientRegisterAddress
 } from "./ClientRegisterAddress";
 import { query } from "../../../libs/database";
@@ -98,7 +98,7 @@ const AddClientForm = observer(() => {
             }
         }))
 
-    const newAddress = useLocalObservable(() => clientRegisterAddressFieldData)
+    const newAddress = useLocalObservable(() => emptyClientRegisterAddressFieldData)
 
     const [addressSearchQuery, setAddressSearchQuery] = useState("")
 

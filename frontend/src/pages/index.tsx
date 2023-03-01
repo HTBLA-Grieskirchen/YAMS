@@ -26,6 +26,16 @@ const Home: NextPage = observer(() => {
                         </HomeTile>
                     </a>
                 </Link>
+                <Link href={paths.treatmentAppointments}>
+                    <a>
+                        <HomeTile icon="fas fa-medkit" title="Treatment">
+                            <p className="mb-2">Manage Treatments.</p>
+                            <p>You can add, update and delete treatments.</p>
+                            tap mit treatments und hinzufügen und löschen und bearbeiten
+                        </HomeTile>
+                    </a>
+
+                </Link>
             </div>
         </div>
     </main>

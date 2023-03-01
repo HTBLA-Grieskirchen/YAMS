@@ -3,6 +3,7 @@ import NotificationStore from "./notificationStore";
 import DialogStore from "./dialogStore";
 import AddressStore from "./addressStore";
 import ClientStore from "./clientStore";
+import TreatmentAppointmentStore from "./treatmentAppointmentStore";
 
 class Store {
     notificationStore: NotificationStore
@@ -10,6 +11,7 @@ class Store {
 
     addressStore: AddressStore
     clientStore: ClientStore
+    treatmentAppointmentStore: TreatmentAppointmentStore;
 
     constructor() {
         this.notificationStore = new NotificationStore(this)
@@ -17,6 +19,7 @@ class Store {
 
         this.addressStore = new AddressStore(this)
         this.clientStore = new ClientStore(this)
+        this.treatmentAppointmentStore = new TreatmentAppointmentStore(this);
     }
 
     async setup() {

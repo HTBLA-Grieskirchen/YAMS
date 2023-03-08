@@ -11,7 +11,7 @@ import {useRouter} from "next/router";
 const RegisterClient: NavigationPage = () => {
     return <>
         <Head>
-            <title>YAMS - New Client</title>
+            <title>New Client</title>
         </Head>
 
         <main className="p-6 overflow-y-auto h-full">

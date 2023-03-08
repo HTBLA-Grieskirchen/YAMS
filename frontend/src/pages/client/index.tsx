@@ -15,7 +15,7 @@ const ClientOverview: NavigationPage = observer(() => {
     return (
         <>
             <Head>
-                <title>YAMS - Clients</title>
+                <title>All Clients</title>
             </Head>
 
             <main className="flex flex-col min-w-fit w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">

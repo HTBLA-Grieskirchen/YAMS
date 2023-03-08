@@ -1,23 +1,23 @@
-import { NavigationPage } from "../../../../types/layout";
-import { observer, useLocalObservable } from "mobx-react";
-import React, { useState } from "react";
-import { useRouter } from "next/router";
-import { useStore } from "../../../../stores";
+import {NavigationPage} from "../../../../types/layout";
+import {observer, useLocalObservable} from "mobx-react";
+import React, {useState} from "react";
+import {useRouter} from "next/router";
+import {useStore} from "../../../../stores";
 import Client from "../../../../model/client";
 import Link from "next/link";
 import paths from "../../../../util/paths";
 import ClientDetail from "../index";
 import dialog from "../../../../libs/dialog";
-import { ValidatableComboBox } from "../../../../components/form/combobox";
-import { ValidatableFieldData } from "../../../../libs/field/validatable";
-import { Combobox } from "@headlessui/react";
+import {ValidatableComboBox} from "../../../../components/form/combobox";
+import {ValidatableFieldData} from "../../../../libs/field/validatable";
+import {Combobox} from "@headlessui/react";
 import notification from "../../../../libs/notification";
-import { deleteClientRelation, relateClients, updateClientRelation } from "../../../../libs/database/clientRelation";
+import {deleteClientRelation, relateClients, updateClientRelation} from "../../../../libs/database/clientRelation";
 import Head from "next/head";
-import { query } from "../../../../libs/database";
+import {query} from "../../../../libs/database";
 import ClientRelation from "../../../../model/relation";
-import { groupBy } from "../../../../util/helpers";
-import { runInAction } from "mobx";
+import {groupBy} from "../../../../util/helpers";
+import {runInAction} from "mobx";
 
 const ClientRelations: NavigationPage = observer(() => {
     const router = useRouter()
@@ -44,7 +44,7 @@ const ClientRelations: NavigationPage = observer(() => {
 
     return <>
         <Head>
-            <title>YAMS - Relations Client</title>
+            <title>Relations | {client.firstName} {client.lastName}</title>
         </Head>
 
         <main className="p-6 overflow-y-auto h-full">

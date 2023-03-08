@@ -107,7 +107,7 @@ const MainMenuItem = observer((
     const pathname = item.href
     const active = (item.recursive ?? true) ? router.pathname.startsWith(pathname) : router.pathname === pathname
 
-    return <li className={`${active ? "bordered" : ""}`}>
+    return <li className={`${active ? "bordered bg-base-300/50" : ""}`}>
         <Link href={item.href}>
             <a className={`${active ? "font-medium cursor-default" : ""}`}>
                 {display}

@@ -43,7 +43,7 @@ export class SeminarResponse implements SurrealResponse<Seminar> {
     static from(item: any): SeminarResponse | undefined {
         if (
             item.id === undefined ||
-            item.duration === undefined || item.price === undefined || item.title === undefined
+            item.price === undefined || item.title === undefined
         ) return
 
         return new SeminarResponse(item)

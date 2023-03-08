@@ -75,7 +75,7 @@ export default class EventStore {
             // Update seminars
             if (!(resultSeminars.length > 0 && resultSeminars[0].result)) return
             const seminarsIDs: Set<string> = new Set(
-                resultEvents[0].result.map((item: any) => {
+                resultSeminars[0].result.map((item: any) => {
                     const response = SeminarResponse.from(item)
                     if (!response) return
 

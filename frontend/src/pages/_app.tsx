@@ -1,10 +1,10 @@
 import '../styles/globals.css'
 import "@fortawesome/fontawesome-free/css/all.css"
-import type { AppProps } from 'next/app'
-import { StoreProvider } from "../stores"
-import { LayoutPage, NavigationPage } from "../types/layout";
-import { observer } from "mobx-react";
-import React, { ReactElement } from "react";
+import type {AppProps} from 'next/app'
+import {StoreProvider} from "../stores"
+import {LayoutPage, NavigationPage} from "../types/layout";
+import {observer} from "mobx-react";
+import React, {ReactElement} from "react";
 import Head from "next/head";
 import MainMenu from "../components/layout/MainMenu";
 import MainNavbar from "../components/layout/MainNavbar";
@@ -63,7 +63,10 @@ const itemsMainMenu = {
         },
         "Address": {
             href: paths.addresses
+        },
+        "Events": {
+            href: paths.events
         }
-    }
+    },
 }
 

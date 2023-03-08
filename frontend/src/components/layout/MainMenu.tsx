@@ -20,7 +20,7 @@ const MainMenu = observer((
         <div className="drawer-side">
             <label htmlFor="main-drawer" className="drawer-overlay"></label>
             <aside className="bg-base-200 text-base-content w-fit h-full">
-                <ul className="sticky top-0 bg-base-200 menu menu-compact w-full p-4 pb-0 z-20">
+                <ul className="sticky top-0 bg-base-200 menu menu-compact w-full pt-2 z-20">
                     <li>
                         <Link href={paths.home}>
                             <a className={`${router.pathname === "/" ? "active cursor-pointer" : ""}`}>
@@ -31,12 +31,12 @@ const MainMenu = observer((
                     </li>
                 </ul>
 
-                <ul className="menu menu-compact pb-0 p-0 px-4 w-full">
+                <ul className="menu menu-compact pb-0 p-0 w-full">
                     {entries && <MainMenuItems entries={entries}/>}
                 </ul>
 
                 <div className="grid gap-4 sticky bottom-0 pb-4 bg-base-200">
-                    <ul className="menu menu-compact p-0 px-4 w-full">
+                    <ul className="menu menu-compact p-0 w-full">
                         <li></li>
                         <li className="menu-title">
                             <span>Customization</span>
@@ -51,7 +51,7 @@ const MainMenu = observer((
                     </ul>
 
 
-                    <div className="footer px-8">
+                    <div className="footer px-4">
                         <MainMenuLogo/>
                     </div>
                 </div>
@@ -107,9 +107,9 @@ const MainMenuItem = observer((
     const pathname = item.href
     const active = (item.recursive ?? true) ? router.pathname.startsWith(pathname) : router.pathname === pathname
 
-    return <li>
+    return <li className={`${active ? "bordered" : ""}`}>
         <Link href={item.href}>
-            <a className={`${active ? "active cursor-default" : ""}`}>
+            <a className={`${active ? "font-medium cursor-default" : ""}`}>
                 {display}
             </a>
         </Link>

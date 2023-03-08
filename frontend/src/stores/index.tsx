@@ -5,6 +5,7 @@ import AddressStore from "./addressStore";
 import ClientStore from "./clientStore";
 import AnimalStore from "./animalStore";
 import SettingsStore from "./settingsStore";
+import EventStore from "./eventStore";
 
 class Store {
     settingsStore: SettingsStore
@@ -15,6 +16,7 @@ class Store {
     addressStore: AddressStore
     clientStore: ClientStore
     animalStore: AnimalStore
+    eventStore: EventStore
 
     constructor() {
         this.settingsStore = new SettingsStore(this)
@@ -25,6 +27,7 @@ class Store {
         this.addressStore = new AddressStore(this)
         this.clientStore = new ClientStore(this)
         this.animalStore = new AnimalStore(this)
+        this.eventStore = new EventStore(this)
     }
 
     async setup() {
@@ -33,6 +36,7 @@ class Store {
         await this.addressStore.setup()
         await this.clientStore.setup()
         await this.animalStore.setup()
+        await this.eventStore.setup()
     }
 }
 

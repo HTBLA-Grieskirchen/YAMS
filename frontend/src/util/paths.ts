@@ -7,7 +7,10 @@ const paths = {
     clientRelations: clientRelations,
     clientEdit: clientEdit,
     clients: "/client",
-    new_client: "/client/add"
+    new_client: "/client/add",
+
+    events: "/events",
+    event_new: "/events/add"
 }
 
 function client(clientID: string): string {

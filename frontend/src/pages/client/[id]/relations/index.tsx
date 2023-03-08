@@ -48,7 +48,7 @@ const ClientRelations: NavigationPage = observer(() => {
         </Head>
 
         <main className="p-6 overflow-y-auto h-full">
-            <div className="card card-compact bg-base-100 shadow max-h-full">
+            <div className="card card-compact bg-base-100 p-2 shadow max-h-full">
                 <div className="card-body overflow-visible overflow-x-auto">
                     <div className="flex flex-col lg:flex-row justify-between space-y-2 lg:space-y-0">
                         <h2 className="card-title">{`${client.firstName} ${client.lastName}'s Relations`}</h2>

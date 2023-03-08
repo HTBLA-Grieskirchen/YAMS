@@ -73,7 +73,7 @@ DEFINE TABLE event SCHEMAFULL;
 
 DEFINE FIELD date ON event TYPE datetime ASSERT $after != NULL;
 DEFINE FIELD location ON event TYPE record(address) ASSERT $after != NULL;
-DEFINE FIELD location_name ON event TYPE string;
+DEFINE FIELD location_name ON event TYPE string VALUE IF $after THEN string::trim($after) ELSE NULL END;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
 DEFINE EVENT delete_unused_address ON event WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );

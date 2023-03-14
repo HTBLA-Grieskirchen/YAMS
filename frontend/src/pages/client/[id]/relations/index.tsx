@@ -18,6 +18,7 @@ import {query} from "../../../../libs/database";
 import ClientRelation from "../../../../model/relation";
 import {groupBy} from "../../../../util/helpers";
 import {runInAction} from "mobx";
+import {SmallSearchField} from "../../../../components/form/search";
 
 const ClientRelations: NavigationPage = observer(() => {
     const router = useRouter()
@@ -52,16 +53,7 @@ const ClientRelations: NavigationPage = observer(() => {
                 <div className="card-body overflow-visible overflow-x-auto">
                     <div className="flex flex-col lg:flex-row justify-between space-y-2 lg:space-y-0">
                         <h2 className="card-title">{`${client.firstName} ${client.lastName}'s Relations`}</h2>
-                        <div className="form-control">
-                            <div className="input-group input-group-sm">
-                                <input type="text" placeholder="Search term..."
-                                       className="input input-bordered input-sm input-primary"
-                                       value={filter.value} onChange={e => filter.setValue(e.target.value)}/>
-                                <span className="px-2">
-                                    <i className="fa-solid fa-magnifying-glass"/>
-                                </span>
-                            </div>
-                        </div>
+                        <SmallSearchField value={filter.value} onChange={(value) => filter.setValue(value)}/>
                     </div>
 
                     <div className="divider my-0"/>

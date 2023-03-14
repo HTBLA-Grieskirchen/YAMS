@@ -202,8 +202,8 @@ type LanguageDefinition = {
     flag: string
 }
 const knownLanguages = [
-    {id: "en_US", name: "English", flag: "🇺🇸"},
-    {id: "de_DE", name: "Deutsch", flag: "🇩🇪"}
+    {id: "en", name: "English", flag: "🇺🇸"},
+    {id: "de", name: "Deutsch", flag: "🇩🇪"}
 ]
 
 const LanguagePicker = observer(() => {

@@ -42,7 +42,7 @@ DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD animals ON client TYPE array VALUE $after OR [];
 DEFINE FIELD animals.* ON client TYPE record(animal);
-DEFINE EVENT delete_unused_address ON client WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
+DEFINE EVENT delete_unused_address ON client WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address OR location = $before.address )) <= 0 THEN ( DELETE $before.address );
 
 -- ------------------------------
 -- TABLE: client_file
@@ -76,7 +76,8 @@ DEFINE FIELD location ON event TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD location_name ON event TYPE string VALUE IF $after THEN string::trim($after) ELSE NULL END;
 DEFINE FIELD max_participants ON event TYPE int;
 DEFINE FIELD seminar ON event TYPE record(seminar) ASSERT $after != NULL;
-DEFINE EVENT delete_unused_address ON event WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address )) <= 0 THEN ( DELETE $before.address );
+DEFINE EVENT delete_unused_address ON event WHEN $before != NONE AND $before != NULL AND ($before.location.id != $after.location.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.location OR location = $before.location )) <= 0 THEN ( DELETE $before.location );
+DEFINE EVENT delete_unused_seminars ON event WHEN $before != NONE AND $before != NULL AND ($before.seminar.id != $after.seminar.id OR $event = "DELETE") AND count(( SELECT id FROM event WHERE seminar = $before.seminar )) <= 0 THEN ( DELETE $before.seminar );
 
 
 -- ------------------------------

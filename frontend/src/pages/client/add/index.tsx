@@ -17,7 +17,7 @@ const RegisterClient: NavigationPage = () => {
         <main className="p-6 overflow-y-auto h-full">
             <div className="card card-compact p-2 shadow bg-base-100">
                 <div className="card-body overflow-visible">
-                    <h2 className="card-title">Client Registration</h2>
+                    <h2 className="card-title">Client registration</h2>
 
                     <div className="divider my-0"/>
 

@@ -33,6 +33,18 @@ export default class Event {
 
         makeAutoObservable(this)
     }
+
+    get when() {
+        const timeRemaining = this.date.valueOf() - Date.now()
+
+        return timeRemaining < -(this.seminar.duration ?? 0) ?
+            0 :
+            timeRemaining < 0 ?
+                1 :
+                timeRemaining < 1000 * 3600 * 24 * 7 ?
+                    2 :
+                    3
+    }
 }
 
 export class EventResponse implements SurrealResponse<Event> {
@@ -52,7 +64,7 @@ export class EventResponse implements SurrealResponse<Event> {
     static from(item: any): EventResponse | undefined {
         if (
             item.id === undefined ||
-            item.date === undefined || item.max_participants === undefined || item.location_name === undefined ||
+            item.date === undefined || item.max_participants === undefined ||
             item.location === undefined || item.seminar === undefined
         ) return
 

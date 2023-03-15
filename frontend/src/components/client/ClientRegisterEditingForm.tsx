@@ -162,7 +162,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         let response: Result<any>
         const abortWithError = async (errorMessage: string) => {
             notification.error({
-                title: "Client cannot be created!",
+                title: "Client cannot be updated+!",
                 message: `"${errorMessage}". Do you want to try again?`
             }, 15, {
                 "Retry": {
@@ -250,6 +250,12 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         'email = $email, street_number=$streetNumber, postal_code=$postalCode, city = $city, street=$street, date=$birthdate, consent=$consent' ,
             {
 
+                clientTable: client.record.table,
+                clientID: client.record.id,
+                firstname: firstname,
+                lastname: lastname,
+                email: email
+
             }
         )
     }
@@ -257,10 +263,10 @@ const EditClientForm = observer(({client}: {client: Client}) => {
     return <>
         <form>
             <div className="flex justify-between space-x-4">
-                <ValidatableInputField data={firstname} label="Firstname" placeholder="John" required/>
-                <ValidatableInputField data={lastname} label="Lastname" placeholder="Doe" required/>
+                <ValidatableInputField data={firstname} label="Firstname" required/>
+                <ValidatableInputField data={lastname} label="Lastname" required/>
 
-                <ValidatableInputField data={birthdate} label="Birthdate" placeholder="2001-01-01"
+                <ValidatableInputField data={birthdate} label="Birthdate"
                                        required className="basis-96 shrink grow-0"
                                        type="date" mapDisplayValue={(value) => value == null ? "" : value.toISOString().split("T")[0]}
                                        mapSetValue={(value) => {
@@ -271,10 +277,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
             </div>
 
             <div className="flex justify-between space-x-4">
-                <ValidatableInputField data={mobilenumber} label="Mobile Number" required type="tel"
-                                       placeholder="+43 699 12345678"/>
-                <ValidatableInputField data={email} label="Email" placeholder="john.doe@example.com"
-                                       required type="email"/>
+                <ValidatableInputField data={mobilenumber} label="Mobile Number" required type="tel"/>
+                <ValidatableInputField data={email} label="Email" required type="email"/>
 
                 <div className="form-control grow my-auto">
                     <label className="label cursor-pointer w-full">
@@ -288,7 +292,6 @@ const EditClientForm = observer(({client}: {client: Client}) => {
 
             <div className="flex justify-between space-x-4">
                 <ValidatableComboBox data={address} label="Address"
-                                     placeholder="Musterstraße 12, 3456 Maxhausen, Austria"
                                      required className="max-w-md"
                                      newValue={{data: newAddress, prompt: "Create new address"}}
                                      mapDisplayValue={(value: typeof address.value) => {
@@ -314,8 +317,9 @@ const EditClientForm = observer(({client}: {client: Client}) => {
             <button className="btn btn-error" type="button" onClick={e => onBack()}>
                 <i className="fa-solid fa-circle-left mr-2"/>Back
             </button>
+
             <button className={`btn btn-success ${form.submitted ? "loading" : ""}`} type="submit"
-                    form="client-register-form" disabled={!allValid()}>
+                    disabled={!allValid()}>
                 {!form.submitted && <i className="fa-solid fa-user-plus mr-2"/>}Update
             </button>
         </div>

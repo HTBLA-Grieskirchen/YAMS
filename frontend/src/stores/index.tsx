@@ -3,6 +3,7 @@ import NotificationStore from "./notificationStore";
 import DialogStore from "./dialogStore";
 import AddressStore from "./addressStore";
 import ClientStore from "./clientStore";
+import AnimalStore from "./animalStore";
 import SettingsStore from "./settingsStore";
 
 class Store {
@@ -13,6 +14,7 @@ class Store {
 
     addressStore: AddressStore
     clientStore: ClientStore
+    animalStore: AnimalStore
 
     constructor() {
         this.settingsStore = new SettingsStore(this)
@@ -22,6 +24,7 @@ class Store {
 
         this.addressStore = new AddressStore(this)
         this.clientStore = new ClientStore(this)
+        this.animalStore = new AnimalStore(this)
     }
 
     async setup() {
@@ -29,6 +32,7 @@ class Store {
 
         await this.addressStore.setup()
         await this.clientStore.setup()
+        await this.animalStore.setup()
     }
 }
 

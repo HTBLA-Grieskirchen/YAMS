@@ -18,7 +18,7 @@ const ClientOverview: NavigationPage = observer(() => {
                 <title>YAMS - Clients</title>
             </Head>
 
-            <main className="flex flex-col min-w-fit w-[52%] m-5 p-3 rounded-lg bg-gray-200 shadow">
+            <main className="flex flex-col min-w-fit w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">
                 <div className="flex flex-col pt-3">
                     {clients.length > 0 ?
                         <div className="divide-gray-400 divide-y">

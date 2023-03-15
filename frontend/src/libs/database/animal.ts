@@ -4,16 +4,10 @@ import {query} from "./index"
 import Race from "../../model/race";
 
 export async function deleteAnimal(animal: Animal): Promise<Result<any>> {
-    const checkResult = await query("SELECT * FROM client WHERE type::thing($animalTable, $animalID) IN animals", {
+    const removeInClientArray = await query("UPDATE type::thing($animalTable, $animalID) SET animals = animals[where id != type::thing($animalTable, $animalID)]", {
         animalTable: animal.record.table,
         animalID: animal.record.id
     })
-    if (checkResult[0] && checkResult[0].result.length > 0) {
-        return {
-            error: new Error("Animal is still used in some places")
-        }
-    }
-
     const response = await query("DELETE type::thing($animalTable, $animalID)", {
         animalTable: animal.record.table,
         animalID: animal.record.id

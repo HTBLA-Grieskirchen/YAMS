@@ -53,7 +53,8 @@ export class AnimalResponse implements SurrealResponse<Animal> {
             }
 
             if (this.data.name != object.name) object.name = this.data.name
-            if (this.data.birthdate != object.birthdate) object.birthdate = this.data.birthdate
+            const birthdate = new Date(this.data.birthdate)
+            if (birthdate != object.birthdate) object.birthdate = birthdate
         })
     }
 
@@ -61,6 +62,6 @@ export class AnimalResponse implements SurrealResponse<Animal> {
         let race = store.animalStore.indexedRaces.get(this.data.race)
         if (!race) return
 
-        return new Animal(this.data.id, this.data.birthdate, this.data.name, race)
+        return new Animal(this.data.id, new Date(this.data.birthdate), this.data.name, race)
     }
 }

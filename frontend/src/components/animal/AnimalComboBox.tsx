@@ -54,7 +54,7 @@ const AnimalComboBox = observer((
                             <input
                                 type="text"
                                 className="input input-bordered w-full max-w-xs"
-                                placeholder="Balu"
+                                placeholder="German Sheppard"
                                 value={raceValue.desc}
                                 onChange={e => raceValue.setDesc(e.target.value)}
                                 required={true}
@@ -67,7 +67,7 @@ const AnimalComboBox = observer((
                             <input
                                 type="text"
                                 className="input input-bordered w-full max-w-xs"
-                                placeholder="Golden Retriever"
+                                placeholder="Dog"
                                 value={raceValue.species}
                                 onChange={e => raceValue.setSpecies(e.target.value)}
                                 required={true}

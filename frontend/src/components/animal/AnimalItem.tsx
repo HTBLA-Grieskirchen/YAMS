@@ -1,13 +1,20 @@
 import {observer} from "mobx-react";
 import Animal from "../../model/animal";
 import {useState} from "react";
+import {useStore} from "../../stores";
+import {deleteAnimal} from "../../libs/database/animal";
 
 const AnimalItem = observer(({animal}: { animal: Animal }) => {
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
+    const store = useStore()
 
     const deleteSubmit = async () => {
         setDeleteSubmitted(true)
-        //TODO: finish implementing
+        const response = await deleteAnimal(animal)
+        if (response.result != null) {
+            await store.animalStore.refresh()
+            await store.clientStore.refresh()
+        }
     }
 
     return <div className="table-row">
@@ -48,14 +55,8 @@ const AnimalItem = observer(({animal}: { animal: Animal }) => {
         <div
             className="table-cell py-2 px-4 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200">
             <button className="text-red-600 hover:underline disabled:text-red-600/50 disabled:hover:no-underline"
-                    disabled={deleteSubmitted}>
+                    disabled={deleteSubmitted} onClick={deleteSubmit}>
                 Delete
-            </button>
-        </div>
-        <div
-            className="table-cell py-2 px-4 text-sm font-medium text-center whitespace-nowrap border-t-2 border-t-gray-200">
-            <button className="text-blue-600 hover:underline">
-                Edit
             </button>
         </div>
     </div>

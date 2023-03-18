@@ -19,6 +19,7 @@ const Notification = observer((
         notification: NotificationInfo
     }
 ) => {
+    const store = useStore()
     const {icon, iconColor, alertColor} = notificationTypeValues(notification)
 
     return <div className={`alert ${alertColor} shadow-lg max-w-prose`}>
@@ -31,6 +32,7 @@ const Notification = observer((
         </div>
         <div className="flex-none flex-col place-content-between place-self-start">
             <button
+                onClick={e => store.notificationStore.removeNotification(notification)}
                 className={`btn btn-circle btn-ghost btn-xs self-end ${notification.duration ? "radial-progress" : ""}`}
                 style={{
                     "--value": 100 - 100 * notification.msPassed / (notification.duration ?? Infinity),

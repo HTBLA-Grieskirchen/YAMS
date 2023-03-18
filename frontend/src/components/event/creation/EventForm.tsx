@@ -20,7 +20,7 @@ import RegisterSeminarForm, {defaultSeminarFormData, NewSeminarFormData} from ".
 import Seminar from "../../../model/seminar";
 import {formatDuration} from "../../../util/helpers";
 import {ensureSeminar} from "../../../libs/database/seminar";
-import {createEvent} from "../../../libs/database/event";
+import {createEvent, updateEvent} from "../../../libs/database/event";
 
 const EventForm = observer((
     {event}:
@@ -48,13 +48,15 @@ const EventForm = observer((
             }
         }))
     const time = useLocalObservable(() =>
-        new ValidatableFieldData(event?.date.toISOString().split("T")[1].split(/[Z.]/)[0] ?? "", (value) => {
-            if (!isValidTime(value)) {
-                return "Time has to be valid"
-            } else {
-                return null
-            }
-        }))
+        new ValidatableFieldData(
+            event?.date.toISOString().split("T")[1].split(/[Z.]/)[0].split(":").slice(0, 2).join(":") ?? "",
+            (value) => {
+                if (!isValidTime(value)) {
+                    return "Time has to be valid"
+                } else {
+                    return null
+                }
+            }))
     const locationName = useLocalObservable(() =>
         new ValidatableFieldData<string>(event?.locationName ?? "", (value) => {
             return null
@@ -143,15 +145,15 @@ const EventForm = observer((
                     <i className="fa-solid fa-exclamation-triangle text-warning mr-1"/>
                     This action will discard all changes!
                 </h3>
-                <p className="py-4">Are you sure you want to abort the event creation and return to the previous view?
-                    All data will be lost!</p>
+                <p className="py-4">Are you sure you want to abort the event {!event ? "creation" : "modification"}
+                    and return to the previous view? All data will be lost!</p>
                 <div className="modal-action">
                     <button className="btn btn-neutral" onClick={e => close()}>Stay here</button>
                     <button className="btn btn-primary" onClick={e => {
                         close()
                         router.back()
                     }}>
-                        {"Leave event creation!"}
+                        Leave event {!event ? "creation" : "editing"}!
                     </button>
                 </div>
             </div>)
@@ -203,13 +205,22 @@ const EventForm = observer((
                     seminarRecord = await ensureSeminar(data.formData.seminar)
                 }
 
-                let response = await createEvent(
-                    data.formData.maxParticipants,
-                    data.formData.date,
-                    data.formData.locationName,
-                    addressRecord,
-                    seminarRecord
-                )
+                let response = !!data.target ?
+                    await updateEvent(
+                        data.target.record,
+                        data.formData.maxParticipants,
+                        data.formData.date,
+                        data.formData.locationName,
+                        addressRecord,
+                        seminarRecord
+                    ) :
+                    await createEvent(
+                        data.formData.maxParticipants,
+                        data.formData.date,
+                        data.formData.locationName,
+                        addressRecord,
+                        seminarRecord
+                    )
 
                 if (response.error) {
                     throw response.error
@@ -232,7 +243,7 @@ const EventForm = observer((
                 }
 
                 notification.error({
-                    title: "Client cannot be created!",
+                    title: `Client cannot be ${!data.target ? "created" : "changed"}!`,
                     message: `"${errorMessage}". Do you want to try again?`
                 }, 15, {
                     "Retry": {
@@ -248,7 +259,11 @@ const EventForm = observer((
             form.setSubmitted(false)
         }
 
-        transact()
+        if (anyMutated()) {
+            transact().then()
+        } else {
+            router.back()
+        }
     }
 
     return <>
@@ -327,7 +342,9 @@ const EventForm = observer((
             </button>
             <button className={`btn btn-success ${form.submitted ? "loading" : ""}`} type="submit"
                     form="event-creation-form" disabled={!allValid()}>
-                {!form.submitted && <i className="fa-solid fa-calendar-plus mr-2"/>}Create
+                {!form.submitted &&
+                    <i className={`fa-solid ${!event ? "fa-calendar-plus" : "fa-pen-to-square"} mr-2`}/>}
+                {!event ? "Create" : "Change"}
             </button>
         </div>
     </>

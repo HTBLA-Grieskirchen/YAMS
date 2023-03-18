@@ -8,18 +8,15 @@ import { ValidatableFieldData } from "../../../libs/field/validatable";
 import { isValidEmail, isValidMobilenumber } from "../../../util/validation";
 import dialog from "../../../libs/dialog";
 import notification from "../../../libs/notification";
-import { createClient } from "../../../libs/database/client";
-import { ValidatableInputField } from "../../form/input";
-import { Combobox } from "@headlessui/react";
-import { ValidatableComboBox } from "../../form/combobox";
-import ClientRegisterAddressForm, {
-    emptyClientRegisterAddressFieldData,
-    NewClientRegisterAddress
-} from "./ClientRegisterAddress";
-import { query } from "../../../libs/database";
-import { makeRecordForTable, Record } from "../../../model/surreal";
-import { Result } from "surrealdb.js";
-import { createAddress } from "../../../libs/database/address";
+import {createClient} from "../../../libs/database/client";
+import {ValidatableInputField} from "../../form/input";
+import {Combobox} from "@headlessui/react";
+import {ValidatableComboBox} from "../../form/combobox";
+import { emptyClientRegisterAddressFieldData, NewAddressFormData } from "../../address/RegisterAddress";
+import {query} from "../../../libs/database";
+import {makeRecordForTable, Record} from "../../../model/surreal";
+import {Result} from "surrealdb.js";
+import {ensureAddress} from "../../../libs/database/address";
 import Client from "../../../model/client";
 
 const AddClientForm = observer(() => {
@@ -90,7 +87,7 @@ const AddClientForm = observer(() => {
 
 
     const address = useLocalObservable(() =>
-        new ValidatableFieldData<Address | NewClientRegisterAddress | null>(null, (value) => {
+        new ValidatableFieldData<Address | NewAddressFormData | null>(null, (value) => {
             if (value == null) {
                 return "You have to assign an address"
             } else {
@@ -156,6 +153,17 @@ const AddClientForm = observer(() => {
     async function submit() {
         form.setSubmitted(true)
 
+        const data = {
+            address: address.value instanceof Address ? address.value : {
+                extra: address.value!.extra.value.trim(),
+                street: address.value!.street.value.trim(),
+                streetNumber: address.value!.streetNumber.value.trim(),
+                postalCode: address.value!.zip.value.trim(),
+                city: address.value!.city.value.trim(),
+                country: address.value!.country.value.trim()
+            },
+        }
+
         let response: Result<any>
         const abortWithError = async (errorMessage: string) => {
             notification.error({
@@ -178,46 +186,10 @@ const AddClientForm = observer(() => {
         await query("BEGIN TRANSACTION")
 
         let addressRecord: Record
-        if (address.value == newAddress) {
-            const potentialDuplicate = store.addressStore.addresses.find((item) => {
-                return (item.extra ?? "") == newAddress.extra.value.trim() &&
-                    item.street == newAddress.street.value.trim() &&
-                    item.streetNumber == newAddress.streetNumber.value.trim() &&
-                    item.postalCode == newAddress.zip.value.trim() &&
-                    item.city == newAddress.city.value.trim() &&
-                    item.country == newAddress.country.value.trim()
-            })
-
-            if (potentialDuplicate !== undefined) {
-                addressRecord = potentialDuplicate.record
-            } else {
-                response = await createAddress(
-                    newAddress.street.value.trim(),
-                    newAddress.streetNumber.value.trim(),
-                    newAddress.extra.value.trim(),
-                    newAddress.zip.value.trim(),
-                    newAddress.city.value.trim(),
-                    newAddress.country.value.trim()
-                )
-
-                if (response.error) {
-                    await abortWithError(response.error.message)
-                    return
-                }
-
-                try {
-                    addressRecord = makeRecordForTable(response.result[0].id, Address.TABLE)
-                } catch (error: unknown) {
-                    if (typeof error === "string") {
-                        await abortWithError(error)
-                    } else if (error instanceof Error) {
-                        await abortWithError(error.message)
-                    }
-                    return
-                }
-            }
+        if (data.address instanceof Address) {
+            addressRecord = data.address.record
         } else {
-            addressRecord = (address.value as Address).record
+            addressRecord = await ensureAddress(data.address)
         }
 
         response = await createClient(
@@ -303,7 +275,7 @@ const AddClientForm = observer(() => {
                 </ValidatableComboBox>
             </div>
 
-            {address.value == newAddress && <ClientRegisterAddressForm addressData={newAddress}/>}
+            {address.value == newAddress && <RegisterAddressForm addressData={newAddress}/>}
         </form>
 
         <div className="card-actions justify-end">

@@ -12,14 +12,14 @@ export default class Event {
     date: Date
     location: Address
     locationName: string | null
-    maxParticipants: number
+    maxParticipants: number | null
     seminar: Seminar
 
 
     constructor(
         id: string,
         date: Date,
-        maxParticipants: number,
+        maxParticipants: number | null,
         locationName: string | null,
         location: Address,
         seminar: Seminar
@@ -51,7 +51,7 @@ export class EventResponse implements SurrealResponse<Event> {
     readonly data: {
         id: string,
         date: string,
-        max_participants: number,
+        max_participants: number | null,
         location_name: string | null,
         location: string,
         seminar: string
@@ -64,7 +64,7 @@ export class EventResponse implements SurrealResponse<Event> {
     static from(item: any): EventResponse | undefined {
         if (
             item.id === undefined ||
-            item.date === undefined || item.max_participants === undefined ||
+            item.date === undefined ||
             item.location === undefined || item.seminar === undefined
         ) return
 

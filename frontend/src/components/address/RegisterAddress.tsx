@@ -1,8 +1,8 @@
 import React from "react";
-import {observer} from "mobx-react";
-import {ValidatableFieldData} from "../../../libs/field/validatable";
-import {ValidatableInputField} from "../../form/input";
-import Address from "../../../model/address";
+import { observer } from "mobx-react";
+import { ValidatableFieldData } from "../../../libs/field/validatable";
+import { ValidatableInputField } from "../../form/input";
+import Address from "../../model/address";
 
 function clientRegisterAddressData(
     initialZipCode: string,
@@ -31,7 +31,6 @@ function clientRegisterAddressData(
                 return null
             }
         }),
-
         street:
             new ValidatableFieldData<string>(initialStreet, (value) => {
                 if (value.trim().length < 1) {
@@ -52,16 +51,17 @@ function clientRegisterAddressData(
     }
 }
 
-export function clientRegisterAddressDataFromAddress(address: Address): NewClientRegisterAddress {
+export function clientRegisterAddressDataFromAddress(address: Address): NewAddressFormData {
     return clientRegisterAddressData(address.postalCode, address.city, address.country, address.street, address.streetNumber, address.extra ?? "")
 }
 
 export const emptyClientRegisterAddressFieldData = clientRegisterAddressData("", "", "", "", "", "")
-export type NewClientRegisterAddress = typeof emptyClientRegisterAddressFieldData
 
-const ClientRegisterAddressForm = observer((
+export type NewAddressFormData = ReturnType<typeof clientRegisterAddressData>
+
+const RegisterAddressForm = observer((
     {addressData}:
-        { addressData: NewClientRegisterAddress }
+        { addressData: NewAddressFormData }
 ) => {
     return <>
         <div className="flex justify-between space-x-4">
@@ -81,4 +81,4 @@ const ClientRegisterAddressForm = observer((
         </div>
     </>
 })
-export default ClientRegisterAddressForm
+export default RegisterAddressForm

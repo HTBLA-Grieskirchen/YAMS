@@ -1,10 +1,48 @@
-import { Result } from "surrealdb.js";
-import { query } from "./index";
-import Address, { AddressResponse } from "../../model/address";
+import {Result} from "surrealdb.js";
+import {query} from "./index";
+import Address, {AddressResponse} from "../../model/address";
+import {makeRecordForTable} from "../../model/surreal";
+import store from "../../stores";
+
+export async function ensureAddress(address: {
+    extra: string,
+    street: string,
+    streetNumber: string,
+    postalCode: string,
+    city: string,
+    country: string
+}) {
+    const potentialDuplicate = store.addressStore.addresses.find((item) => {
+        return (item.extra ?? "") == address.extra.trim() &&
+            item.street == address.street.trim() &&
+            item.streetNumber == address.streetNumber.trim() &&
+            item.postalCode == address.postalCode.trim() &&
+            item.city == address.city.trim() &&
+            item.country == address.country.trim()
+    })
+
+    if (potentialDuplicate !== undefined) {
+        return potentialDuplicate.record
+    } else {
+        const response = await createAddress(
+            address.street.trim(),
+            address.streetNumber.trim(),
+            address.extra.trim(),
+            address.postalCode.trim(),
+            address.city.trim(),
+            address.country.trim()
+        )
+
+        if (response.error) {
+            throw response.error
+        }
+
+        return makeRecordForTable(response.result[0].id, Address.TABLE)
+    }
+}
 
 export async function deleteAddress(address: Address): Promise<Result<any>> {
-    // TODO: Add event check once implemented
-    const checkResult = await query("SELECT id FROM client WHERE address = type::thing($addressTable, $addressID)", {
+    const checkResult = await query("SELECT id FROM client, event WHERE address = type::thing($addressTable, $addressID)", {
         addressTable: address.record.table,
         addressID: address.record.id
     })

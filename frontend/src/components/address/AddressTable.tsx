@@ -1,16 +1,18 @@
-import { observer, useLocalObservable } from "mobx-react";
-import { categories } from "../../pages/addresses";
+import {observer, useLocalObservable} from "mobx-react";
+import {categories} from "../../pages/addresses";
 import Address from "../../model/address";
-import { ReactNode, useState } from "react";
-import { useStore } from "../../stores";
+import {ReactNode, useState} from "react";
+import {useStore} from "../../stores";
 import Client from "../../model/client";
-import { MD5 } from "object-hash";
+import Event from "../../model/event"
+import {MD5} from "object-hash";
 import dialog from "../../libs/dialog";
 import notification from "../../libs/notification";
-import { patchAddressesDynamic } from "../../libs/database/address";
-import { runInAction } from "mobx";
+import {patchAddressesDynamic} from "../../libs/database/address";
+import {runInAction} from "mobx";
 import Link from "next/link";
 import paths from "../../util/paths";
+import {capitalize, formatDuration} from "../../util/helpers";
 
 export const AddressTableHeader = observer((
     {selectedCategories}:
@@ -40,7 +42,7 @@ export const AddressTableRow = observer((
     const [expanded, setExpanded] = useState(false)
 
     const usingClients = store.clientStore.clients.filter((client) => backingAddresses.find((address) => client.address == address))
-    const usingEvents: any[] = [] // TODO: Implement once events are available
+    const usingEvents = store.eventStore.events.filter((event) => backingAddresses.find((address) => event.location == address))
     const clientsCount = usingClients.length
     const eventsCount = usingEvents.length
     const usages = clientsCount + eventsCount
@@ -246,9 +248,8 @@ const EditButton = observer((
 
 const AddressUsageInfo = observer((
     {clients, events}:
-        { clients: Client[], events: unknown[] }
+        { clients: Client[], events: Event[] }
 ) => {
-    // TODO: Add support for events once implemented
     type Tabs = "clients" | "events"
     const [selectedTab, setSelectedTab] = useState<Tabs>(!clients.length ? "events" : "clients")
 
@@ -334,11 +335,60 @@ const ClientUsages = observer((
 
 const EventsUsages = observer((
     {events}:
-        { events: unknown[] }
+        { events: Event[] }
 ) => {
-    return <p>
-        Unimplemented
-    </p>
+    const store = useStore()
+    const language = store.settingsStore.language
+
+    return <div className="flex flex-col divide-y divide-base-300 w-full">
+        {events.map((event) => {
+            const timeRemaining = event.date.valueOf() - Date.now()
+            const dayDifference = -Math.round(Math.abs(
+                new Date(event.date).setUTCHours(0, 0, 0) - new Date().setUTCHours(0, 0, 0)
+            ) / (1000 * 3600 * 24))
+
+            const dateFormat = Math.abs(dayDifference) > 2 ?
+                event.date.toLocaleDateString(language, {dateStyle: "long"}) :
+                capitalize(new Intl.RelativeTimeFormat(language, {numeric: "auto"}).format(dayDifference, "day"))
+
+            return <div key={event.record.join()} className="w-full flex place-content-between">
+                <div className="flex flex-col my-1">
+                    <div className="flex flex-row">
+                        <p className="text-lg font-medium mb-1 mr-2">{event.seminar.title}</p>
+                        {timeRemaining < -(event.seminar.duration ?? 0) ?
+                            <span className="badge">Past</span> :
+                            timeRemaining < 0 ?
+                                <span className="badge badge-error">Now</span> :
+                                timeRemaining < 1000 * 3600 * 24 * 7 ?
+                                    <span className="badge badge-warning">Upcoming</span> :
+                                    <span className="badge badge-success">Future</span>}
+                    </div>
+                    <div className="flex flex-row">
+                        <span>
+                            <i className="fa-solid fa-calendar mr-2"/>
+                            {dateFormat} at {event.date.toLocaleTimeString(language, {timeStyle: "short"})}
+                            {!!event.seminar.duration &&
+                                <span className="ml-4">
+                                    <i className="fa-solid fa-clock mr-2"/>{formatDuration(event.seminar.duration, language)}
+                                </span>}
+                        </span>
+                        <div className="divider divider-horizontal mx-3"/>
+                        <span>
+                                <i className="fa-solid fa-location-dot mr-2"/>
+                            {!!event.locationName ? event.locationName : `${event.location.street} ${event.location.streetNumber}`}
+                            </span>
+                    </div>
+                </div>
+
+                <div className="tooltip tooltip-accent tooltip-left w-fit cursor-help my-auto"
+                     data-tip={`View event ${event.seminar.title} in detail`}>
+                    <Link href={paths.event(event.record.join())}>
+                        <button className="btn btn-md my-2"><i className="fa-solid fa-external-link mr-2"/>Open</button>
+                    </Link>
+                </div>
+            </div>
+        })}
+    </div>
 })
 
 

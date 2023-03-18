@@ -1,12 +1,12 @@
-import { observer } from "mobx-react";
+import {observer} from "mobx-react";
 import React from "react";
-import { ValidatableFieldData } from "../../libs/field/validatable";
+import {ValidatableFieldData} from "../../libs/field/validatable";
 
 export const ValidatableInputField = observer(<T extends unknown>(
     {data, label, placeholder, type, required, mapSetValue, mapDisplayValue, className}:
         {
             data: ValidatableFieldData<T>, label?: string, placeholder?: string, type?: string, required?: boolean,
-            mapSetValue?: (targetValue: string) => T, mapDisplayValue?: (dataValue: T) => string, className?: string
+            mapSetValue?: (targetValue: string) => T, mapDisplayValue?: (dataValue: T) => string | undefined, className?: string
         }
 ) => {
     const actualType = type ?? "text"

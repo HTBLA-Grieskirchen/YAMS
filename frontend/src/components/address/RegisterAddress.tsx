@@ -1,7 +1,7 @@
 import React from "react";
-import { observer } from "mobx-react";
-import { ValidatableFieldData } from "../../../libs/field/validatable";
-import { ValidatableInputField } from "../../form/input";
+import {observer} from "mobx-react";
+import {ValidatableFieldData} from "../../libs/field/validatable";
+import {ValidatableInputField} from "../form/input";
 
 export const clientRegisterAddressFieldData = {
     zip: new ValidatableFieldData<string>("", (value) => {
@@ -42,11 +42,11 @@ export const clientRegisterAddressFieldData = {
     }),
     extra: new ValidatableFieldData<string>("", (value) => null),
 }
-export type NewClientRegisterAddress = typeof clientRegisterAddressFieldData
+export type NewAddressFormData = typeof clientRegisterAddressFieldData
 
-const ClientRegisterAddressForm = observer((
+const RegisterAddressForm = observer((
     {addressData}:
-        { addressData: NewClientRegisterAddress }
+        { addressData: NewAddressFormData }
 ) => {
     return <>
         <div className="flex justify-between space-x-4">
@@ -66,4 +66,4 @@ const ClientRegisterAddressForm = observer((
         </div>
     </>
 })
-export default ClientRegisterAddressForm
+export default RegisterAddressForm

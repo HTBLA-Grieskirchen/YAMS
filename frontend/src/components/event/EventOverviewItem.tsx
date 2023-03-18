@@ -5,6 +5,8 @@ import {capitalize, formatDuration} from "../../util/helpers";
 import dialog from "../../libs/dialog";
 import notification from "../../libs/notification";
 import {deleteEvent} from "../../libs/database/event";
+import Link from "next/link";
+import paths from "../../util/paths";
 
 const EventOverviewItem = observer((
     {event}:
@@ -84,7 +86,7 @@ const EventOverviewItem = observer((
                 <span className="text-lg font-medium">{event.seminar.title}</span>
                 <span className="mx-4 text-base-content/75">
                     <i className="fa-solid fa-people-group mr-2"/>
-                    0 of {event.maxParticipants}
+                    0 {event.maxParticipants != null && ` of ${event.maxParticipants}`}
                 </span>
                 {timeRemaining < -(event.seminar.duration ?? 0) ?
                     <span className="badge">Past</span> :
@@ -114,14 +116,22 @@ const EventOverviewItem = observer((
             <label tabIndex={0} className="btn btn-sm btn-ghost m-1"><i
                 className="text-lg fa-solid fa-ellipsis"/></label>
             <ul tabIndex={0} className="dropdown-content menu menu-compact shadow bg-base-100 rounded-box w-52">
-                <li><a>
-                    <i className="fa-solid fa-magnifying-glass text-primary"/>
-                    Detail
-                </a></li>
-                <li><a>
-                    <i className="fa-solid fa-pen"/>
-                    Edit
-                </a></li>
+                <li>
+                    <Link href={paths.event(event.record.join())}>
+                        <a>
+                            <i className="fa-solid fa-magnifying-glass text-primary"/>
+                            Detail
+                        </a>
+                    </Link>
+                </li>
+                <li>
+                    <Link href={paths.event_edit(event.record.join())}>
+                        <a>
+                            <i className="fa-solid fa-pen"/>
+                            Edit
+                        </a>
+                    </Link>
+                </li>
                 <li><a onClick={e => askSubmitDelete()}
                        className={!deleteState.submitted ? "" : "pointer-events-none bg-base-200/50 opacity-50"}>
                     {deleteState.submitted ?

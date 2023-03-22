@@ -16,9 +16,9 @@ const EventOverviewItem = observer((
     const language = store.settingsStore.language
 
     const timeRemaining = event.date.valueOf() - Date.now()
-    const dayDifference = -Math.round(Math.abs(
+    const dayDifference = Math.round(
         new Date(event.date).setUTCHours(0, 0, 0) - new Date().setUTCHours(0, 0, 0)
-    ) / (1000 * 3600 * 24))
+    ) / (1000 * 3600 * 24)
 
     const dateFormat = Math.abs(dayDifference) > 2 ?
         event.date.toLocaleDateString(language, {dateStyle: "long"}) :

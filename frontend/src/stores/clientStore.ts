@@ -1,8 +1,8 @@
 import store from "./index";
-import { action, autorun, computed, makeAutoObservable, observable, runInAction } from "mobx";
-import { live } from "../libs/database";
-import { ano, no } from "../util/consts";
-import Client, { ClientResponse } from "../model/client";
+import {action, autorun, computed, makeAutoObservable, observable, runInAction} from "mobx";
+import {live} from "../libs/database";
+import {ano, no} from "../util/consts";
+import Client, {ClientResponse} from "../model/client";
 import RelationStore from "./client/relationStore";
 
 export default class ClientStore {
@@ -47,6 +47,7 @@ export default class ClientStore {
     }
 
     close() {
+        this.relationStore.close()
         const [_r, _u, clean] = this.dataLive
 
         clean()

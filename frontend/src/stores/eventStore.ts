@@ -4,13 +4,15 @@ import {live} from "../libs/database";
 import {ano, no} from "../util/consts";
 import Event, {EventResponse} from "../model/event"
 import Seminar, {SeminarResponse} from "../model/seminar";
+import ParticipationStore from "./event/participationStore";
 
 export default class EventStore {
-    indexedEvents: Map<string, Event>
-    indexedSeminars: Map<string, Seminar>
+    participationStore: ParticipationStore
     private root: typeof store
     private eventsLive: Awaited<ReturnType<typeof live>>
     private seminarsLive: Awaited<ReturnType<typeof live>>
+    indexedEvents: Map<string, Event>
+    indexedSeminars: Map<string, Seminar>
 
     constructor(root: typeof store) {
         this.root = root
@@ -19,6 +21,7 @@ export default class EventStore {
 
         this.indexedEvents = observable.map()
         this.indexedSeminars = observable.map()
+        this.participationStore = new ParticipationStore(root)
 
         makeAutoObservable(this, {
             refresh: action.bound,
@@ -44,15 +47,20 @@ export default class EventStore {
         await refreshSeminars()
         await this.root.addressStore.refresh()
         await refreshEvents()
+
+        await this.participationStore.refresh()
     }
 
     async setup() {
         this.seminarsLive = await live("SELECT * FROM seminar ORDER BY id")
         this.eventsLive = await live("SELECT * FROM event ORDER BY id")
         this.registerSyncData()
+
+        await this.participationStore.setup()
     }
 
     close() {
+        this.participationStore.close()
         const [_r12r, _uadjf, cleanEvents] = this.eventsLive
         const [_r11, _uoid, cleanSeminars] = this.seminarsLive
 

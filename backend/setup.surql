@@ -129,6 +129,7 @@ DEFINE TABLE participated_in SCHEMAFULL;
 
 DEFINE FIELD in ON participated_in TYPE record(client) ASSERT $after != NULL;
 DEFINE FIELD out ON participated_in TYPE record(event) ASSERT $after != NULL;
+DEFINE FIELD cost ON participated_in TYPE decimal ASSERT $after != NULL;
 
 -- ------------------------------
 -- TABLE: product

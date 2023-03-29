@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Combobox} from '@headlessui/react'
 import {observer, useLocalObservable} from "mobx-react";
 import {useStore} from "../../stores";
@@ -8,13 +8,13 @@ import {Record} from "../../model/surreal";
 
 const AnimalComboBox = observer((
     {race}:
-        { race: { setValue: (value: Race) => void } }
+        { race: { setValue: (value: Race | null) => void } }
 ) => {
     const store = useStore()
 
     const races = store.animalStore.races
 
-    const [selectedPerson, setSelectedPerson] = useState(races[0])
+    const [selectedRace, setSelectedRace] = useState<Race | null>(null)
     const [query, setQuery] = useState('')
 
     const raceValue = useLocalObservable(() => ({
@@ -28,6 +28,10 @@ const AnimalComboBox = observer((
         }
     }))
 
+    useEffect(() => {
+        race.setValue(selectedRace)
+    }, [selectedRace])
+
     const filteredPeople =
         query === ''
             ? races
@@ -37,8 +41,7 @@ const AnimalComboBox = observer((
 
     const submit = () => {
         let newRace = new Race(new Record(Race.TABLE, "").join(), raceValue.desc, raceValue.species)
-        race.setValue(newRace)
-        setSelectedPerson(newRace)
+        setSelectedRace(newRace)
     }
 
     const openNewRaceDialog = () => {
@@ -97,10 +100,10 @@ const AnimalComboBox = observer((
             <label className="label">
                 <span className="label-text">Race</span>
             </label>
-            <Combobox value={selectedPerson} onChange={setSelectedPerson}>
+            <Combobox value={selectedRace} onChange={setSelectedRace}>
                 <Combobox.Input
                     onChange={(event) => setQuery(event.target.value)}
-                    displayValue={(race: Race) => race.description + ", " + race.animal_species}
+                    displayValue={(race: Race | null) => !!race ? race.description + ", " + race.animal_species : "Wö wos aus du huso"}
                     className="input shadow bg-base-100 rounded-box max-w-xs"
                 />
                 {(query.length > 0 || filteredPeople.length > 0) &&

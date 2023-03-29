@@ -75,16 +75,28 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                         <i className="fa-solid fa-remove"/>
                     </button>
 
-                    <Link href={{
-                        pathname: "/client/edit/[id]",
-                        query: {
-                            id: client.record.join()
-                        }
-                    }}>
-                        <button type="button" className="align-text-bottom text-xl hover:text-4xl hover:text-blue-700 text-blue-600 w-8 h-8 transition-all">
-                            <i className="fa-solid fa-file-pen"/>
-                        </button>
-                    </Link>
+                    <div className="dropdown dropdown-end">
+                        <label tabIndex={0} className="btn btn-ghost btn-square m-1">
+                            <i className="fa-solid fa-ellipsis-vertical"/>
+                        </label>
+                        <ul tabIndex={0} className="dropdown-content menu p-2 shadow-lg bg-base-200 rounded-btn w-52">
+                            <li>
+                                <Link href={paths.client(client.record.join())}>
+                                    <a>View File</a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href={paths.clientRelations(client.record.join())}>
+                                    <a>Relations</a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link  href={paths.clientEdit(client.record.join())}>
+                                    <a>Edit</a>
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             {showDetail ?

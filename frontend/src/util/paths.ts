@@ -5,6 +5,7 @@ const paths = {
     countries: "/addresses/country",
     client: client,
     clientRelations: clientRelations,
+    clientEdit: clientEdit,
     clients: "/client",
     new_client: "/client/add"
 }
@@ -15,6 +16,10 @@ function client(clientID: string): string {
 
 function clientRelations(clientID: string): string {
     return `/client/${encodeURIComponent(clientID)}/relations`
+}
+
+function clientEdit(clientID: string): string {
+    return `/client/${encodeURIComponent(clientID)}/edit`
 }
 
 export default paths

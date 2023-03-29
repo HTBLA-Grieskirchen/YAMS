@@ -259,7 +259,6 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                                        required className="basis-96 shrink grow-0"
                                        type="date" mapDisplayValue={(value) => value == null ? "" : value.toISOString().split("T")[0]}
                                        mapSetValue={(value) => {
-                                           console.log("Setted Birthdate: ", value)
                                            const [year, month, day] = value.split("-").map(Number)
                                            return new Date(year, month - 1, day + 1)
                                        }}/>

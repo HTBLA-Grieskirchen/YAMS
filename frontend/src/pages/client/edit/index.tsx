@@ -14,8 +14,6 @@ const EditClient: LayoutPage = () => {
         store.clientStore.indexedClients.get(id) :
         undefined
 
-    console.log("Firstname ", client?.firstName)
-
     return (
         <div className="flex flex-col w-11/12 m-5 p-3 rounded-lg bg-gray-200 shadow">
             <Head>

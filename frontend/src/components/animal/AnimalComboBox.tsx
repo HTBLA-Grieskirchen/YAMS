@@ -103,7 +103,7 @@ const AnimalComboBox = observer((
             <Combobox value={selectedRace} onChange={setSelectedRace}>
                 <Combobox.Input
                     onChange={(event) => setQuery(event.target.value)}
-                    displayValue={(race: Race | null) => !!race ? race.description + ", " + race.animal_species : "Wö wos aus du huso"}
+                    displayValue={(race: Race | null) => !!race ? race.description + ", " + race.animal_species : ""}
                     className="input shadow bg-base-100 rounded-box max-w-xs"
                 />
                 {(query.length > 0 || filteredPeople.length > 0) &&

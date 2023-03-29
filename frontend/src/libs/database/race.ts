@@ -26,7 +26,7 @@ export async function deleteRace(race: Race): Promise<Result<any>> {
 export async function patchRace(race: Race, newDescription: string, newSpecies: string): Promise<Result<any>> {
     const response = await query(`
         IF ( SELECT true FROM type::thing($raceTable, $raceID) ) THEN 
-            ( CREATE type::table($raceTable) SET description = $newDescription, animal_species = $newSpecies )
+            ( UPDATE type::thing($raceTable, $raceID) SET description = $newDescription, animal_species = $newSpecies )
         ELSE
             ( CREATE type::table($raceTable) SET description = $newDescription, animal_species = $newSpecies )            
         END

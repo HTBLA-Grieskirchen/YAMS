@@ -90,7 +90,7 @@ export const ClientTableRow = observer((
             <tr>
                 <td colSpan={100}>
                     <div className="bg-base-300 font-normal rounded-box p-2 w-[42rem] ">
-                        <p className="font-bold text-xs text-gray-400">
+                        <p className="font-bold text-xs">
                             FURTHER INFORMATION:
                         </p>
                         <div className="flex flex-col mb-1 w-fit">
@@ -130,7 +130,7 @@ export const ClientTableRow = observer((
                                 </div>
                             }
                         </div>
-                        <p className="text-xs text-gray-400 mb-1">
+                        <p className="text-xs mb-1">
                             REGISTERED ANIMALS:
                         </p>
                         {deleteSubmitted ?

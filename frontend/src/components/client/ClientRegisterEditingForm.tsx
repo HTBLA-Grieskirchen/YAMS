@@ -21,8 +21,10 @@ import {Result} from "surrealdb.js";
 import notification from "../../libs/notification";
 import {makeRecordForTable, Record} from "../../model/surreal";
 import {createAddress} from "../../libs/database/address";
-import {createClient} from "../../libs/database/client";
+import {createClient, updateClient} from "../../libs/database/client";
 import paths from "../../util/paths";
+import add from "../../pages/client/add";
+import {observable} from "mobx";
 
 const EditClientForm = observer(({client}: {client: Client}) => {
     const router = useRouter()
@@ -92,16 +94,15 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         }
     }))
 
+    const newAddress = useLocalObservable(() => clientRegisterAddressDataFromAddress(client.address))
     const address = useLocalObservable(() =>
-        new ValidatableFieldData<Address | NewClientRegisterAddress | null>(clientRegisterAddressDataFromAddress(client.address), (value) => {
+        new ValidatableFieldData<Address | NewClientRegisterAddress | null>(newAddress, (value) => {
             if (value == null) {
                 return "You have to assign an address"
             } else {
                 return null
             }
         }))
-
-    const newAddress = useLocalObservable(() => emptyClientRegisterAddressFieldData)
 
     const [addressSearchQuery, setAddressSearchQuery] = useState("")
 
@@ -139,7 +140,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                     <i className="fa-solid fa-exclamation-triangle text-warning mr-1"/>
                     This action will discard all changes!
                 </h3>
-                <p className="py-4">Are you sure you want to abort the client creation and return to the previous view?
+                <p className="py-4">Are you sure you want to abort the update-process and return to the previous view?
                     All data will be lost!</p>
                 <div className="modal-action">
                     <button className="btn btn-neutral" onClick={e => close()}>Stay here</button>
@@ -147,7 +148,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
                         close()
                         router.back()
                     }}>
-                        {"Leave client creation!"}
+                        {"Leave update-section!"}
                     </button>
                 </div>
             </div>)
@@ -223,7 +224,8 @@ const EditClientForm = observer(({client}: {client: Client}) => {
             addressRecord = (address.value as Address).record
         }
 
-        response = await createClient(
+        response = await updateClient(
+            client.record,
             firstname.value.trim(),
             lastname.value.trim(),
             email.value.trim(),
@@ -244,24 +246,11 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         form.setSubmitted(false)
     }
 
-    const handleButtonEditClient = async () => {
-
-        let result = await query('UPDATE type::thing($ClientTable, $ClientID) SET first_name = $firstname, last_name = $lastname, ' +
-        'email = $email, street_number=$streetNumber, postal_code=$postalCode, city = $city, street=$street, date=$birthdate, consent=$consent' ,
-            {
-
-                clientTable: client.record.table,
-                clientID: client.record.id,
-                firstname: firstname,
-                lastname: lastname,
-                email: email
-
-            }
-        )
-    }
-
     return <>
-        <form>
+        <form id="client-editing-form" onSubmit={e => {
+            e.preventDefault()
+            submit()
+        } }>
             <div className="flex justify-between space-x-4">
                 <ValidatableInputField data={firstname} label="Firstname" required/>
                 <ValidatableInputField data={lastname} label="Lastname" required/>
@@ -319,8 +308,9 @@ const EditClientForm = observer(({client}: {client: Client}) => {
             </button>
 
             <button className={`btn btn-success ${form.submitted ? "loading" : ""}`} type="submit"
-                    disabled={!allValid()}>
-                {!form.submitted && <i className="fa-solid fa-user-plus mr-2"/>}Update
+                    form="client-editing-form" disabled={!allValid()} >
+                {!form.submitted && <i className="fa-solid fa-user-plus mr-2"/>}
+                Update
             </button>
         </div>
     </>

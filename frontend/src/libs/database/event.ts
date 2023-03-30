@@ -45,9 +45,8 @@ export async function updateEvent(
     const actualLocationName = locationName?.trim()
 
     const response = await query(`
-        UPDATE type::thing($eventTable, $eventID)
-        SET max_participants = $maxParticipants, date = $date, location_name = $locationName, location = type ::thing($locationTable, $locationID), seminar = type ::thing($seminarTable, $seminarID);
-    `, {
+UPDATE type::thing($eventTable, $eventID) SET max_participants = $maxParticipants, date = $date, location_name = $locationName, location = type::thing($locationTable, $locationID), seminar = type::thing($seminarTable, $seminarID);
+`, {
         eventTable: event.table,
         eventID: event.id,
         maxParticipants: maxParticipants,

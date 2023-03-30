@@ -45,6 +45,12 @@ export default class Event {
                     2 :
                     3
     }
+
+    get daysFromNow() {
+        return Math.round(
+            new Date(this.date).setUTCHours(0, 0, 0) - new Date().setUTCHours(0, 0, 0)
+        ) / (1000 * 3600 * 24)
+    }
 }
 
 export class EventResponse implements SurrealResponse<Event> {

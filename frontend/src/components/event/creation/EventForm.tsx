@@ -49,8 +49,9 @@ const EventForm = observer((
         }))
     const time = useLocalObservable(() =>
         new ValidatableFieldData(
-            event?.date.toISOString().split("T")[1].split(/[Z.]/)[0].split(":").slice(0, 2).join(":") ?? "",
+            event?.date.toTimeString().split(":").slice(0, 2).join(":") ?? "",
             (value) => {
+                console.log(value)
                 if (!isValidTime(value)) {
                     return "Time has to be valid"
                 } else {

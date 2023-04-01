@@ -74,6 +74,7 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                             className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
                         <i className="fa-solid fa-remove"/>
                     </button>
+
                     <div className="dropdown dropdown-end">
                         <label tabIndex={0} className="btn btn-ghost btn-square m-1">
                             <i className="fa-solid fa-ellipsis-vertical"/>
@@ -87,6 +88,11 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                             <li>
                                 <Link href={paths.clientRelations(client.record.join())}>
                                     <a>Relations</a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link  href={paths.clientEdit(client.record.join())}>
+                                    <a>Edit</a>
                                 </Link>
                             </li>
                         </ul>

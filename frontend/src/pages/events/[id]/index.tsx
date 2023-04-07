@@ -91,9 +91,10 @@ EventDetail.NavMenu = observer(() => {
     const addParticipantState = useSubmissionState()
 
     const {id} = router.query
-    let event: Event | undefined
+    let temp_event: Event | undefined
 
-    if (typeof id !== "string" || (event = store.eventStore.indexedEvents.get(id)) === undefined) return <></>
+    if (typeof id !== "string" || (temp_event = store.eventStore.indexedEvents.get(id)) === undefined) return <></>
+    const event = temp_event
 
     const participants = store.eventStore.participationStore.indexedByDest.get(event.record.join()) ?? []
     const potentialClients = store.clientStore.clients.filter((client) => participants.every((participation => participation.from != client)))

@@ -230,8 +230,6 @@ const EditClientForm = observer(({client}: { client: Client }) => {
             consent.value,
             addressRecord
         )
-        console.log("Update sent, Lastname: ", lastname.value.trim())
-        console.log("Response: ", response)
 
         if (response.error) {
             await abortWithError(response.error.message)

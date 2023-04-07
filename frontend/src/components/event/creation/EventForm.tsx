@@ -11,7 +11,10 @@ import notification from "../../../libs/notification";
 import { ValidatableInputField } from "../../form/input";
 import { Combobox } from "@headlessui/react";
 import { ValidatableComboBox } from "../../form/combobox";
-import RegisterAddressForm, { clientRegisterAddressFieldData, NewAddressFormData } from "../../address/RegisterAddress";
+import RegisterAddressForm, {
+    emptyClientRegisterAddressFieldData,
+    NewAddressFormData
+} from "../../address/RegisterAddress";
 import { query } from "../../../libs/database";
 import { makeRecordForTable, Record } from "../../../model/surreal";
 import { ensureAddress } from "../../../libs/database/address";
@@ -51,7 +54,6 @@ const EventForm = observer((
         new ValidatableFieldData(
             event?.date.toTimeString().split(":").slice(0, 2).join(":") ?? "",
             (value) => {
-                console.log(value)
                 if (!isValidTime(value)) {
                     return "Time has to be valid"
                 } else {
@@ -108,7 +110,7 @@ const EventForm = observer((
         return valid
     }
 
-    const newAddress = useLocalObservable(() => clientRegisterAddressFieldData)
+    const newAddress = useLocalObservable(() => emptyClientRegisterAddressFieldData)
     const [addressSearchQuery, setAddressSearchQuery] = useState("")
     const filteredAddresses = addressSearchQuery.trim().length < 1 ? addresses :
         addresses.filter((address) => {

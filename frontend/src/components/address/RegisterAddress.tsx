@@ -1,7 +1,7 @@
 import React from "react";
 import { observer } from "mobx-react";
-import { ValidatableFieldData } from "../../../libs/field/validatable";
-import { ValidatableInputField } from "../../form/input";
+import { ValidatableFieldData } from "../../libs/field/validatable";
+import { ValidatableInputField } from "../form/input";
 import Address from "../../model/address";
 
 function clientRegisterAddressData(

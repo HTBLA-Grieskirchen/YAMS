@@ -8,15 +8,18 @@ import { ValidatableFieldData } from "../../../libs/field/validatable";
 import { isValidEmail, isValidMobilenumber } from "../../../util/validation";
 import dialog from "../../../libs/dialog";
 import notification from "../../../libs/notification";
-import {createClient} from "../../../libs/database/client";
-import {ValidatableInputField} from "../../form/input";
-import {Combobox} from "@headlessui/react";
-import {ValidatableComboBox} from "../../form/combobox";
-import { emptyClientRegisterAddressFieldData, NewAddressFormData } from "../../address/RegisterAddress";
-import {query} from "../../../libs/database";
-import {makeRecordForTable, Record} from "../../../model/surreal";
-import {Result} from "surrealdb.js";
-import {ensureAddress} from "../../../libs/database/address";
+import { createClient } from "../../../libs/database/client";
+import { ValidatableInputField } from "../../form/input";
+import { Combobox } from "@headlessui/react";
+import { ValidatableComboBox } from "../../form/combobox";
+import RegisterAddressForm, {
+    emptyClientRegisterAddressFieldData,
+    NewAddressFormData
+} from "../../address/RegisterAddress";
+import { query } from "../../../libs/database";
+import { makeRecordForTable, Record } from "../../../model/surreal";
+import { Result } from "surrealdb.js";
+import { ensureAddress } from "../../../libs/database/address";
 import Client from "../../../model/client";
 
 const AddClientForm = observer(() => {

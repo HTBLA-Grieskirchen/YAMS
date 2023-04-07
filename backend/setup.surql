@@ -40,7 +40,7 @@ DEFINE FIELD first_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD last_name ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
-DEFINE FIELD customer_number ON client TYPE int ASSERT $after != NULL AND count(( SELECT id FROM client WHERE customer_number = $after )) <= 0 VALUE $before OR math::max((SELECT customer_number FROM client)) + 1;
+DEFINE FIELD customer_number ON client TYPE int ASSERT $after != NULL AND count(( SELECT id FROM client WHERE customer_number = $after AND customer_number != $before )) <= 0 VALUE $before OR math::max((SELECT customer_number FROM client)) + 1;
 DEFINE FIELD animals ON client TYPE array VALUE $after OR [];
 DEFINE FIELD animals.* ON client TYPE record(animal);
 DEFINE EVENT delete_unused_address ON client WHEN $before != NONE AND $before != NULL AND ($before.address.id != $after.address.id OR $event = "DELETE") AND count(( SELECT id FROM client, event WHERE address = $before.address OR location = $before.address )) <= 0 THEN ( DELETE $before.address );

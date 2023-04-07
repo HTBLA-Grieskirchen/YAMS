@@ -39,45 +39,47 @@ const EventDetail: NavigationPage = observer(() => {
             <title>Event | {event.seminar.title}</title>
         </Head>
 
-        <main className="p-6 overflow-y-auto h-full flex-col space-y-4">
-            <div className="card card-compact p-2 shadow bg-base-100">
-                <div className="card-body overflow-visible">
-                    <div className="card-title">
-                        <h2 className="mb-1">{event.seminar.title}</h2>
-                        <span className="text-sm text-base-content/75">
-                            {eventWhen <= 0 ?
-                                <span className="badge">Past</span> :
-                                eventWhen <= 1 ?
-                                    <>
-                                        <span className="badge badge-error">Now</span>
-                                        {!!event.seminar.duration && <>
-                                            <i className="mx-1 pl-1 fa-solid fa-hourglass-half"/>
-                                            <span className="mx-1">for</span>
-                                            {Math.floor(-timeRemaining / 60_000) == 420 ?
-                                                <i className="fa-solid fa-cannabis"/> :
-                                                formatDuration(event.seminar.duration + timeRemaining, language)}</>}
-                                    </> :
-                                    eventWhen <= 2 ?
+        <main className="p-6 overflow-y-auto h-full">
+            <div className="flex flex-col gap-4 max-h-full">
+                <div className="card card-compact p-2 shadow bg-base-100">
+                    <div className="card-body overflow-visible">
+                        <div className="card-title">
+                            <h2 className="mb-1">{event.seminar.title}</h2>
+                            <span className="text-sm text-base-content/75">
+                                {eventWhen <= 0 ?
+                                    <span className="badge">Past</span> :
+                                    eventWhen <= 1 ?
                                         <>
-                                            <span className="badge badge-warning">Upcoming</span>
+                                            <span className="badge badge-error">Now</span>
                                             {!!event.seminar.duration && <>
-                                                <i className="mx-1 pl-1 fa-solid fa-hourglass-start"/>
-                                                <span className="mx-1">in</span>
-                                                {formatDuration(timeRemaining, language)}</>}
+                                                <i className="mx-1 pl-1 fa-solid fa-hourglass-half"/>
+                                                <span className="mx-1">for</span>
+                                                {Math.floor(-timeRemaining / 60_000) == 420 ?
+                                                    <i className="fa-solid fa-cannabis"/> :
+                                                    formatDuration(event.seminar.duration + timeRemaining, language)}</>}
                                         </> :
-                                        <span className="badge badge-success">Future</span>}
-                        </span>
-                    </div>
+                                        eventWhen <= 2 ?
+                                            <>
+                                                <span className="badge badge-warning">Upcoming</span>
+                                                {!!event.seminar.duration && <>
+                                                    <i className="mx-1 pl-1 fa-solid fa-hourglass-start"/>
+                                                    <span className="mx-1">in</span>
+                                                    {formatDuration(timeRemaining, language)}</>}
+                                            </> :
+                                            <span className="badge badge-success">Future</span>}
+                            </span>
+                        </div>
 
-                    <div className="divider my-0"/>
+                        <div className="divider my-0"/>
 
-                    <div>
-                        <EventDetailItem event={event}/>
+                        <div>
+                            <EventDetailItem event={event}/>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <EventParticipants event={event}/>
+                <EventParticipants event={event}/>
+            </div>
         </main>
     </>
 })

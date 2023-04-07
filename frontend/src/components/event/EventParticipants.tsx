@@ -21,19 +21,21 @@ const EventParticipants = observer((
     const participants = store.eventStore.participationStore.indexedByDest.get(event.record.join()) ?? []
     const filteredParticipants = participants.filter((participation) => participationSearchedClient(participation, participantFilter.value))
 
-    return <div className="card card-compact p-2 shadow bg-base-100">
-        <div className="card-body overflow-visible">
-            <div className="flex flex-col lg:flex-row justify-between space-y-2 lg:space-y-0">
-                <h2 className="card-title">Participants</h2>
-                <SmallSearchField value={participantFilter.value}
-                                  onChange={(value) => participantFilter.setValue(value)}/>
-            </div>
+    return <div className="flex w-full overflow-x-auto">
+        <div className="card card-compact bg-base-100 shadow p-2 max-h-full w-full">
+            <div className="card-body overflow-visible overflow-x-auto">
+                <div className="flex flex-col lg:flex-row justify-between space-y-2 lg:space-y-0">
+                    <h2 className="card-title">Participants</h2>
+                    <SmallSearchField value={participantFilter.value}
+                                      onChange={(value) => participantFilter.setValue(value)}/>
+                </div>
 
-            <div className="divider my-0"/>
+                <div className="divider my-0"/>
 
-            <div className="divide-y">
-                {filteredParticipants.map((participation) =>
-                    <ClientParticipation key={participation.record.join()} participation={participation}/>)}
+                <div className="flex flex-col divide-y overflow-y-auto">
+                    {filteredParticipants.map((participation) =>
+                        <ClientParticipation key={participation.record.join()} participation={participation}/>)}
+                </div>
             </div>
         </div>
     </div>

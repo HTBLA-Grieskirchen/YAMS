@@ -1,17 +1,20 @@
-import {observer} from "mobx-react";
-import {useRouter} from "next/router";
-import {useStore} from "../../../stores";
+import { observer } from "mobx-react";
+import { useRouter } from "next/router";
+import { useStore } from "../../../stores";
 import paths from "../../../util/paths";
 import Link from "next/link";
 import React from "react";
-import {NavigationPage} from "../../../types/layout";
+import { NavigationPage } from "../../../types/layout";
 import Event from "../../../model/event";
 import Head from "next/head";
 import EventsOverview from "../index";
-import {useSubmissionState} from "../../../libs/form/submit";
-import {askSubmitDeleteEvent} from "../../../components/event";
-import {formatDuration} from "../../../util/helpers";
+import { useSubmissionState } from "../../../libs/form/submit";
+import { askSubmitDeleteEvent } from "../../../components/event";
+import { formatDuration } from "../../../util/helpers";
 import EventDetailItem from "../../../components/event/EventDetailItem";
+import { askAddParticipantEvent } from "../../../components/participation";
+import { NavbarMenuEntry } from "../../../components/layout/MainNavbar";
+import EventParticipants from "../../../components/event/EventParticipants";
 
 const EventDetail: NavigationPage = observer(() => {
     const router = useRouter()
@@ -29,6 +32,7 @@ const EventDetail: NavigationPage = observer(() => {
 
     const timeRemaining = event.date.valueOf() - Date.now()
     const eventWhen = event.when
+
 
     return <>
         <Head>
@@ -73,17 +77,7 @@ const EventDetail: NavigationPage = observer(() => {
                 </div>
             </div>
 
-            <div className="card card-compact p-2 shadow bg-base-100">
-                <div className="card-body overflow-visible">
-                    <h2 className="card-title">Participants</h2>
-
-                    <div className="divider my-0"/>
-
-                    <div>
-                        Unsupported
-                    </div>
-                </div>
-            </div>
+            <EventParticipants event={event}/>
         </main>
     </>
 })
@@ -92,25 +86,34 @@ EventDetail.NavMenu = observer(() => {
     const router = useRouter()
     const store = useStore()
     const deleteState = useSubmissionState()
+    const addParticipantState = useSubmissionState()
 
     const {id} = router.query
     let event: Event | undefined
 
     if (typeof id !== "string" || (event = store.eventStore.indexedEvents.get(id)) === undefined) return <></>
 
+    const participants = store.eventStore.participationStore.indexedByDest.get(event.record.join()) ?? []
+    const potentialClients = store.clientStore.clients.filter((client) => participants.every((participation => participation.from != client)))
+
     return <>
-        <li>
+        <NavbarMenuEntry disabled={deleteState.submitted}>
             <a onClick={e => askSubmitDeleteEvent(event, deleteState, async () => {
                 await router.replace(paths.events)
             })}>
                 <i className="fa-solid fa-users-slash text-error"/>Cancel
             </a>
-        </li>
-        <li>
+        </NavbarMenuEntry>
+        <NavbarMenuEntry>
             <Link href={paths.event_edit(event.record.join())}>
                 <a><i className="fa-solid fa-pencil-alt text-primary"/>Edit</a>
             </Link>
-        </li>
+        </NavbarMenuEntry>
+        <NavbarMenuEntry disabled={addParticipantState.submitted || !potentialClients.length}>
+            <a onClick={e => askAddParticipantEvent(event, addParticipantState)}>
+                <i className="fa-solid fa-user-plus"/>Participant
+            </a>
+        </NavbarMenuEntry>
     </>
 })
 

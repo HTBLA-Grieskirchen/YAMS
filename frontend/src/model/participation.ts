@@ -1,5 +1,5 @@
-import {makeAutoObservable, runInAction} from "mobx"
-import {makeRecordForTable, Record, SurrealResponse} from "./surreal";
+import { makeAutoObservable, runInAction } from "mobx"
+import { makeRecordForTable, Record, SurrealResponse } from "./surreal";
 import store from "../stores";
 import Client from "./client";
 import Event from "./event";
@@ -34,7 +34,7 @@ export class EventParticipationResponse implements SurrealResponse<EventParticip
         id: string,
         in: string,
         out: string,
-        cost: number,
+        cost: string,
     }
 
     private constructor(data: EventParticipationResponse["data"]) {
@@ -67,7 +67,8 @@ export class EventParticipationResponse implements SurrealResponse<EventParticip
                 if (dest) object.dest = dest
             }
 
-            if (this.data.cost != object.cost) object.cost = this.data.cost
+            const cost = Number(this.data.cost)
+            if (cost != object.cost) object.cost = cost
         })
     }
 
@@ -79,7 +80,7 @@ export class EventParticipationResponse implements SurrealResponse<EventParticip
         return new EventParticipation(this.data.id,
             from,
             dest,
-            this.data.cost
+            Number(this.data.cost)
         )
     }
 }

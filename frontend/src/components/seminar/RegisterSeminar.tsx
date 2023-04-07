@@ -1,6 +1,6 @@
-import {ValidatableFieldData} from "../../libs/field/validatable";
-import {observer} from "mobx-react";
-import {ValidatableInputField} from "../form/input";
+import { ValidatableFieldData } from "../../libs/field/validatable";
+import { observer } from "mobx-react";
+import { ValidatableInputField } from "../form/input";
 import React from "react";
 import parseDuration from "parse-duration";
 
@@ -48,16 +48,16 @@ export function defaultSeminarFormData() {
 export type NewSeminarFormData = ReturnType<typeof createSeminarFormDate>
 
 const RegisterSeminarForm = observer((
-    {addressData}:
-        { addressData: NewSeminarFormData }
+    {seminarData}:
+        { seminarData: NewSeminarFormData }
 ) => {
     return <div className="flex space-x-4">
-        <ValidatableInputField data={addressData.title} label="Title" placeholder="Spine Injury Treatment"
+        <ValidatableInputField data={seminarData.title} label="Title" placeholder="Spine Injury Treatment"
                                className="max-w-lg shrink grow-0"/>
-        <ValidatableInputField data={addressData.duration} label="Duration" placeholder="2h 15m"
+        <ValidatableInputField data={seminarData.duration} label="Duration" placeholder="2h 15m"
                                className="basis-96 shrink grow-0" mapDisplayValue={(_) => undefined}
                                mapSetValue={(val) => val.trim().length < 1 ? null : (parseDuration(val) ?? Number.NaN)}/>
-        <ValidatableInputField data={addressData.price} label="Price" placeholder="20.50"
+        <ValidatableInputField data={seminarData.price} label="Price" placeholder="20.50"
                                className="basis-96 shrink grow-0" mapDisplayValue={(_) => undefined} required
                                mapSetValue={(val) => val.trim().length < 1 ? Number.NaN : Number(val)}/>
     </div>

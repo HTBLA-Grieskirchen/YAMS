@@ -1,5 +1,5 @@
-import {observer} from "mobx-react";
-import React, {ReactElement, ReactNode} from "react";
+import { observer } from "mobx-react";
+import React, { ReactElement, ReactNode } from "react";
 
 const MainNavbar = observer((
     {children, NavbarPath, NavbarMenu}:
@@ -33,3 +33,12 @@ const MainNavbar = observer((
 })
 
 export default MainNavbar
+
+export const NavbarMenuEntry = observer((
+    {disabled, children}:
+        { disabled?: boolean, children?: ReactNode }
+) => {
+    return <li className={disabled ? "opacity-25 pointer-events-none" : ""}>
+        {children}
+    </li>
+})

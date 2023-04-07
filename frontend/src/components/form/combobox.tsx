@@ -56,7 +56,7 @@ export const ValidatableComboBox = observer(<T extends unknown, N extends unknow
 
             {hasOptions &&
                 <Combobox.Options
-                    className="dropdown-content overflow-y-scroll menu shadow bg-base-200 p-2 rounded-btn max-w-md max-h-80 flex-nowrap">
+                    className="dropdown-content overflow-y-scroll menu shadow bg-base-200 rounded-btn max-w-md max-h-80 flex-nowrap">
                     {newValue !== undefined && isNotNewState && <>
                         <li className="menu-title mt-2">
                             <span>Custom</span>

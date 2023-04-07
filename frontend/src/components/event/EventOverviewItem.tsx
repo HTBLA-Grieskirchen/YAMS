@@ -1,11 +1,11 @@
-import {observer} from "mobx-react"
+import { observer } from "mobx-react"
 import Event from "../../model/event"
-import {useStore} from "../../stores";
-import {capitalize, formatDuration} from "../../util/helpers";
+import { useStore } from "../../stores";
+import { capitalize, formatDuration } from "../../util/helpers";
 import Link from "next/link";
 import paths from "../../util/paths";
-import {askSubmitDeleteEvent} from "./index";
-import {useSubmissionState} from "../../libs/form/submit";
+import { askSubmitDeleteEvent } from "./index";
+import { useSubmissionState } from "../../libs/form/submit";
 
 const EventOverviewItem = observer((
     {event}:
@@ -58,13 +58,14 @@ const EventOverviewItem = observer((
             </div>
         </div>
         <div className="self-center dropdown dropdown-left group-last:dropdown-end group-last:dropdown-left">
-            <label tabIndex={0} className="btn btn-sm btn-ghost m-1"><i
-                className="text-lg fa-solid fa-ellipsis"/></label>
-            <ul tabIndex={0} className="dropdown-content menu menu-compact shadow bg-base-100 rounded-box w-52">
+            <label tabIndex={0} className="btn btn-sm btn-ghost m-1">
+                <i className="text-lg fa-solid fa-ellipsis"/>
+            </label>
+            <ul tabIndex={0} className="dropdown-content menu menu-compact shadow-lg bg-base-100 rounded-box w-52">
                 <li>
                     <Link href={paths.event(event.record.join())}>
                         <a>
-                            <i className="fa-solid fa-magnifying-glass text-primary"/>
+                            <i className="fa-solid fa-magnifying-glass"/>
                             Detail
                         </a>
                     </Link>
@@ -72,7 +73,7 @@ const EventOverviewItem = observer((
                 <li>
                     <Link href={paths.event_edit(event.record.join())}>
                         <a>
-                            <i className="fa-solid fa-pen"/>
+                            <i className="fa-solid fa-pen text-primary"/>
                             Edit
                         </a>
                     </Link>

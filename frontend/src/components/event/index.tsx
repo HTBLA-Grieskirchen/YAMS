@@ -38,7 +38,7 @@ export async function submitDeleteEvent(event: Event, state?: SubmissionState, c
         }, 15, {
             "Retry": {
                 action: async () => {
-                    await submitDeleteEvent(event)
+                    await submitDeleteEvent(event, state)
                     return true
                 },
                 disabled: () => state?.submitted ?? false

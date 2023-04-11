@@ -1,32 +1,28 @@
-import React, {useState} from "react";
-import Address from "../../model/address";
-import {query} from "../../libs/database";
-import Select from "react-select";
-import {observer, useLocalObservable} from "mobx-react";
-import Client from "../../model/client";
-import {ValidatableInputField} from "../form/input";
-import {ValidatableComboBox} from "../form/combobox";
-import {Combobox} from "@headlessui/react";
-import {useRouter} from "next/router";
-import {useStore} from "../../stores";
-import {ValidatableFieldData} from "../../libs/field/validatable";
-import {isValidEmail, isValidMobilenumber} from "../../util/validation";
+import React, { useState } from "react";
+import Address from "../../../model/address";
+import { query } from "../../../libs/database";
+import { observer, useLocalObservable } from "mobx-react";
+import Client from "../../../model/client";
+import { ValidatableInputField } from "../../form/input";
+import { ValidatableComboBox } from "../../form/combobox";
+import { Combobox } from "@headlessui/react";
+import { useRouter } from "next/router";
+import { useStore } from "../../../stores";
+import { ValidatableFieldData } from "../../../libs/field/validatable";
+import { isValidEmail, isValidMobilenumber } from "../../../util/validation";
 import ClientRegisterAddressForm, {
     clientRegisterAddressDataFromAddress,
-    emptyClientRegisterAddressFieldData,
-    NewClientRegisterAddress
-} from "./register/ClientRegisterAddress";
-import dialog from "../../libs/dialog";
-import {Result} from "surrealdb.js";
-import notification from "../../libs/notification";
-import {makeRecordForTable, Record} from "../../model/surreal";
-import {createAddress} from "../../libs/database/address";
-import {createClient, updateClient} from "../../libs/database/client";
-import paths from "../../util/paths";
-import add from "../../pages/client/add";
-import {observable} from "mobx";
+    NewAddressFormData
+} from "../../address/RegisterAddress";
+import dialog from "../../../libs/dialog";
+import { Result } from "surrealdb.js";
+import notification from "../../../libs/notification";
+import { makeRecordForTable, Record } from "../../../model/surreal";
+import { createAddress } from "../../../libs/database/address";
+import { updateClient } from "../../../libs/database/client";
+import paths from "../../../util/paths";
 
-const EditClientForm = observer(({client}: {client: Client}) => {
+const EditClientForm = observer(({client}: { client: Client }) => {
     const router = useRouter()
     const store = useStore()
     const addresses = store.addressStore.addresses
@@ -96,7 +92,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
 
     const newAddress = useLocalObservable(() => clientRegisterAddressDataFromAddress(client.address))
     const address = useLocalObservable(() =>
-        new ValidatableFieldData<Address | NewClientRegisterAddress | null>(newAddress, (value) => {
+        new ValidatableFieldData<Address | NewAddressFormData | null>(newAddress, (value) => {
             if (value == null) {
                 return "You have to assign an address"
             } else {
@@ -163,7 +159,7 @@ const EditClientForm = observer(({client}: {client: Client}) => {
         let response: Result<any>
         const abortWithError = async (errorMessage: string) => {
             notification.error({
-                title: "Client cannot be updated+!",
+                title: "Client cannot be updated!",
                 message: `"${errorMessage}". Do you want to try again?`
             }, 15, {
                 "Retry": {

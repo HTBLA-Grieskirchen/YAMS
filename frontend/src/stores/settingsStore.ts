@@ -1,14 +1,14 @@
 import autoStore from "../libs/autoStore";
 import store from "./index";
-import {autorun, makeAutoObservable} from "mobx";
+import {autorun, makeAutoObservable} from "mobx"
 
 export default class SettingsStore {
     theme: string | null
-    language?: string
+    language: string
 
     constructor(root: typeof store) {
         this.theme = null
-        this.language = "en_US"
+        this.language = "en"
 
         makeAutoObservable(this)
     }

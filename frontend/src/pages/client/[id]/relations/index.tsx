@@ -18,6 +18,8 @@ import { query } from "../../../../libs/database";
 import ClientRelation from "../../../../model/relation";
 import { groupBy } from "../../../../util/helpers";
 import { runInAction } from "mobx";
+import { SmallSearchField } from "../../../../components/form/search";
+import { clientSearched } from "../../../../components/client";
 
 const ClientRelations: NavigationPage = observer(() => {
     const router = useRouter()
@@ -44,24 +46,15 @@ const ClientRelations: NavigationPage = observer(() => {
 
     return <>
         <Head>
-            <title>YAMS - Relations Client</title>
+            <title>Relations | {client.firstName} {client.lastName}</title>
         </Head>
 
         <main className="p-6 overflow-y-auto h-full">
-            <div className="card card-compact bg-base-100 shadow max-h-full">
+            <div className="card card-compact bg-base-100 p-2 shadow max-h-full">
                 <div className="card-body overflow-visible overflow-x-auto">
                     <div className="flex flex-col lg:flex-row justify-between space-y-2 lg:space-y-0">
                         <h2 className="card-title">{`${client.firstName} ${client.lastName}'s Relations`}</h2>
-                        <div className="form-control">
-                            <div className="input-group input-group-sm">
-                                <input type="text" placeholder="Search term..."
-                                       className="input input-bordered input-sm input-primary"
-                                       value={filter.value} onChange={e => filter.setValue(e.target.value)}/>
-                                <span className="px-2">
-                                    <i className="fa-solid fa-magnifying-glass"/>
-                                </span>
-                            </div>
-                        </div>
+                        <SmallSearchField value={filter.value} onChange={(value) => filter.setValue(value)}/>
                     </div>
 
                     <div className="divider my-0"/>
@@ -509,15 +502,3 @@ const Relation = observer((
         </button>
     </div>
 })
-
-function clientSearched(client: Client, query: string) {
-    return query.trim().split(" ").flatMap((item) => item.split(",")).every((segment) => {
-        const trimmedSegment = segment.trim().toLowerCase()
-        if (trimmedSegment.length < 0) return true
-
-        return client.firstName.toLowerCase().includes(trimmedSegment) ||
-            client.lastName.toLowerCase().includes(trimmedSegment) ||
-            client.email.toLowerCase().includes(trimmedSegment) ||
-            client.mobileNumber.toLowerCase().includes(trimmedSegment)
-    })
-}

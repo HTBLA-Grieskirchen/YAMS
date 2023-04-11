@@ -109,7 +109,7 @@ const Addresses: NavigationPage = observer(() => {
 
     return <>
         <Head>
-            <title>YAMS - Address</title>
+            <title>All Addresses</title>
         </Head>
 
         <main className="p-6 overflow-y-auto">

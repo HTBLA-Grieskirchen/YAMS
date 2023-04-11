@@ -15,3 +15,34 @@ export function isValidMobilenumber(number: string) {
     return String(number)
         .match(PhoneNumberRegEx)
 }
+
+export function isValidTime(timeString: string) {
+    const timeComponents = timeString.split(':')
+    if (timeComponents.length < 2) {
+        return false
+    }
+
+    const date = new Date()
+
+    const hours = Number(timeComponents[0])
+    date.setHours(hours)
+    if (isNaN(hours) || date.getHours() !== hours) {
+        return false
+    }
+
+    const minutes = Number(timeComponents[1])
+    date.setMinutes(minutes)
+    if (isNaN(minutes) || date.getMinutes() !== minutes) {
+        return false
+    }
+
+    if (timeComponents.length > 2) {
+        const seconds = Number(timeComponents[3])
+        date.setSeconds(seconds)
+        if (isNaN(seconds) || date.getSeconds() !== seconds) {
+            return false
+        }
+    }
+
+    return true
+}

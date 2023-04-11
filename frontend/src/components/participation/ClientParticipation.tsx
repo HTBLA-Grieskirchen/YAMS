@@ -1,9 +1,9 @@
-import { observer } from "mobx-react";
+import {observer} from "mobx-react";
 import EventParticipation from "../../model/participation";
 import Link from "next/link";
 import paths from "../../util/paths";
-import { useSubmissionState } from "../../libs/form/submit";
-import { askEditEventParticipation, submitDeleteEventParticipation } from "./index";
+import {useSubmissionState} from "../../libs/form/submit";
+import {askEditEventParticipation, submitDeleteEventParticipation} from "./index";
 
 const ClientParticipation = observer((
     {participation}:
@@ -47,7 +47,7 @@ const ClientParticipation = observer((
             </div>
 
             <div className="my-auto text-lg font-bold text-green-600">
-                <i className="fa-solid fa-dollar mr-2"/>
+                <i className="fa-solid fa-money-bill mr-2"/>
                 {price}
             </div>
         </div>

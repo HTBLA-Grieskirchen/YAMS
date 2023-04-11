@@ -1,7 +1,7 @@
-import { observer } from "mobx-react"
+import {observer} from "mobx-react"
 import Event from "../../model/event"
-import { useStore } from "../../stores";
-import { capitalize, formatDuration } from "../../util/helpers";
+import {useStore} from "../../stores";
+import {capitalize, formatDuration} from "../../util/helpers";
 
 const EventDetailItem = observer((
     {event}:
@@ -33,7 +33,7 @@ const EventDetailItem = observer((
                 {participants.length} {event.maxParticipants != null && ` of ${event.maxParticipants}`}
             </div>
             <div>
-                <i className="fa-solid fa-dollar-sign mr-2"/>
+                <i className="fa-solid fa-money-bills mr-2"/>
                 {participants.map((participation) => participation.cost).reduce((prev, curr) => prev + curr, 0)}
             </div>
         </div>

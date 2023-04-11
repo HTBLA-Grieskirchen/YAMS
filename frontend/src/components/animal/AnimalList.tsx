@@ -7,7 +7,7 @@ import {AnimalRow} from "./AnimalTable";
 
 const AnimalList = observer(({client}: { client: Client }) => {
     const store = useStore()
-    const animals = store.animalStore.animals
+    const animals = client.animals
 
     return (
         <main className="w-full">

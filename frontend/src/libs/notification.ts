@@ -8,15 +8,15 @@ class NotificationInfo {
     title?: string
     message: string
     actions?: NotificationActions
-    passed: number
+    msPassed: number
     readonly duration?: number
 
-    constructor(type: NotificationType, title: string | undefined, message: string, duration?: number, actions?: NotificationActions) {
+    constructor(type: NotificationType, message: string, title?: string, duration?: number, actions?: NotificationActions) {
         this.type = type
         this.title = title
         this.message = message
         this.actions = actions
-        this.passed = 0
+        this.msPassed = 0
         this.duration = duration
         this.uuid = uuid.v4()
 
@@ -26,11 +26,12 @@ class NotificationInfo {
     }
 
     tick(elapsed: number) {
-        this.passed += elapsed
+        this.msPassed += elapsed
     }
 }
 
 export enum NotificationType {
+    Neutral,
     Info,
     Success,
     Warn,
@@ -43,6 +44,7 @@ type NotificationActions = {
 
 export type NotificationBehaviour = {
     action: () => Promise<boolean> | boolean
+    type?: "standard" | "neutral" | "ghost"
     disabled?: () => boolean
 }
 
@@ -74,15 +76,29 @@ const notification = {
      * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
      * be clicked (defaults to false).
      */
+    neutral(content: NotificationContent, duration?: number, actions?: NotificationActions) {
+        store.notificationStore.addNotification(
+            new NotificationInfo(NotificationType.Neutral, content.message, content.title, (duration ? duration * 1000 : duration), actions)
+        )
+    },
+    /**
+     * This opens an info notification in the lower right corner of the screen. The content and actions can be specified
+     * using the parameters down below. The notification can either be closed manually or automatically after the
+     * specified amount of time.
+     *
+     *
+     * @param content - The content to be displayed. Must contain a message, but may optionally also contain a title,
+     * which will be displayed as title in the notification.
+     * @param duration - The duration for which the notification is shown (in seconds) and after which is automatically
+     * closed. May be undefined to indicate no automatic closure.
+     * @param actions - The possible actions in response to the notification. These are `string` (label) - `object`
+     * (behaviour) pairs. The `action` in the behaviour returns a boolean which indicates whether to close the
+     * notification after the action. The `disabled` flag in the behaviour determines if the action can currently
+     * be clicked (defaults to false).
+     */
     info(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
-            new NotificationInfo(
-                NotificationType.Info,
-                content.title,
-                content.message,
-                (duration ? duration * 1000 : duration),
-                actions
-            )
+            new NotificationInfo(NotificationType.Info, content.message, content.title, (duration ? duration * 1000 : duration), actions)
         )
     },
     /**
@@ -102,13 +118,7 @@ const notification = {
      */
     warn(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
-            new NotificationInfo(
-                NotificationType.Warn,
-                content.title,
-                content.message,
-                (duration ? duration * 1000 : duration),
-                actions
-            )
+            new NotificationInfo(NotificationType.Warn, content.message, content.title, (duration ? duration * 1000 : duration), actions)
         )
     },
     /**
@@ -128,13 +138,7 @@ const notification = {
      */
     success(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
-            new NotificationInfo(
-                NotificationType.Success,
-                content.title,
-                content.message,
-                (duration ? duration * 1000 : duration),
-                actions
-            )
+            new NotificationInfo(NotificationType.Success, content.message, content.title, (duration ? duration * 1000 : duration), actions)
         )
     },
     /**
@@ -154,12 +158,7 @@ const notification = {
      */
     error(content: NotificationContent, duration?: number, actions?: NotificationActions) {
         store.notificationStore.addNotification(
-            new NotificationInfo(NotificationType.Error,
-                content.title,
-                content.message,
-                (duration ? duration * 1000 : duration),
-                actions
-            )
+            new NotificationInfo(NotificationType.Error, content.message, content.title, (duration ? duration * 1000 : duration), actions)
         )
     }
 }

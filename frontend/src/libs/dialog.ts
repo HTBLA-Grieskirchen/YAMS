@@ -5,10 +5,12 @@ import * as uuid from "uuid";
 
 class DialogInfo {
     readonly uuid: string
+    readonly type: DialogType
     readonly component: DialogComponent
 
-    constructor(component: DialogComponent) {
+    constructor(component: DialogComponent, type: DialogType = "static") {
         this.uuid = uuid.v4()
+        this.type = type
         this.component = component
 
         makeAutoObservable(this)
@@ -17,6 +19,11 @@ class DialogInfo {
 
 type DialogInfoType = DialogInfo
 export type {DialogInfoType as DialogInfo}
+/**
+ * - responsive: displayed at bottom on small screens
+ * - static: always displayed at center
+ */
+export type DialogType = "responsive" | "static"
 
 /**
  * A DialogComponent returns a ReactElement which will be displayed in the dialog. It receives a closing
@@ -31,7 +38,8 @@ export type DialogComponent = (close: (allDialogs?: boolean) => void) => ReactEl
  * [DialogComponent](DialogComponent). For more information on that component, refer to its documentation.
  *
  * @param dialog - a simple [dialog content component](DialogComponent)
+ * @param type - the [type of dialog](DialogType)
  */
-export default function dialog(dialog: DialogComponent) {
-    store.dialogStore.addDialog(new DialogInfo(dialog))
+export default function dialog(dialog: DialogComponent, type: DialogType = "static") {
+    store.dialogStore.addDialog(new DialogInfo(dialog, type))
 }

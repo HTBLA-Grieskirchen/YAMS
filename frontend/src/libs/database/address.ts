@@ -1,11 +1,48 @@
 import {Result} from "surrealdb.js";
 import {query} from "./index";
-import City from "../../model/city";
-import Address from "../../model/address";
+import Address, {AddressResponse} from "../../model/address";
+import {makeRecordForTable} from "../../model/surreal";
+import store from "../../stores";
+
+export async function ensureAddress(address: {
+    extra: string,
+    street: string,
+    streetNumber: string,
+    postalCode: string,
+    city: string,
+    country: string
+}) {
+    const potentialDuplicate = store.addressStore.addresses.find((item) => {
+        return (item.extra ?? "") == address.extra.trim() &&
+            item.street == address.street.trim() &&
+            item.streetNumber == address.streetNumber.trim() &&
+            item.postalCode == address.postalCode.trim() &&
+            item.city == address.city.trim() &&
+            item.country == address.country.trim()
+    })
+
+    if (potentialDuplicate !== undefined) {
+        return potentialDuplicate.record
+    } else {
+        const response = await createAddress(
+            address.street.trim(),
+            address.streetNumber.trim(),
+            address.extra.trim(),
+            address.postalCode.trim(),
+            address.city.trim(),
+            address.country.trim()
+        )
+
+        if (response.error) {
+            throw response.error
+        }
+
+        return makeRecordForTable(response.result[0].id, Address.TABLE)
+    }
+}
 
 export async function deleteAddress(address: Address): Promise<Result<any>> {
-    // TODO: Add event check once implemented
-    const checkResult = await query("SELECT id FROM client WHERE address = type::thing($addressTable, $addressID)", {
+    const checkResult = await query("SELECT id FROM client, event WHERE address = type::thing($addressTable, $addressID)", {
         addressTable: address.record.table,
         addressID: address.record.id
     })
@@ -25,21 +62,56 @@ export async function deleteAddress(address: Address): Promise<Result<any>> {
     }
 }
 
-export async function patchAddress(address: Address, newStreet: string, newExtra: string, newCity: City): Promise<Result<any>> {
+export async function createAddress(
+    street: AddressResponse["data"]["street"],
+    streetNumber: AddressResponse["data"]["street_number"],
+    extra: AddressResponse["data"]["extra"],
+    postalCode: AddressResponse["data"]["postal_code"],
+    city: AddressResponse["data"]["city"],
+    country: AddressResponse["data"]["country"]
+): Promise<Result<any>> {
+    const actualStreet = street.trim()
+    const actualStreetNumber = streetNumber.trim()
+    const actualExtra = !!extra?.trim().length ? extra?.trim() : null
+    const actualPostalCode = postalCode.trim()
+    const actualCity = city.trim()
+    const actualCountry = country.trim()
+
     const response = await query(`
-IF ( SELECT true FROM type::thing($addressTable, $addressID) ) THEN
-    ( UPDATE type::thing($addressTable, $addressID) SET street = $street, extra = $extra, city = type::thing($cityTable, $cityID) )
-ELSE 
-    ( CREATE type::table($addressTable) SET street = $street, extra = $extra, city = type::thing($cityTable, $cityID) )
-END
+    CREATE type::table($addressTable) SET country = $country, postal_code = $postalCode, city = $city, street_number = $streetNumber, street = $street, extra = $extra;
 `, {
-        addressTable: address.record.table,
-        addressID: address.record.id,
-        cityTable: newCity.record.table,
-        cityID: newCity.record.id,
-        street: newStreet,
-        extra: newExtra,
+        addressTable: Address.TABLE,
+        country: actualCountry,
+        postalCode: actualPostalCode,
+        city: actualCity,
+        streetNumber: actualStreetNumber,
+        street: actualStreet,
+        extra: actualExtra
     })
+
+    if (!response[0]) {
+        return {
+            error: new Error("No Response at all")
+        }
+    }
+
+    return response[0]
+}
+
+export async function patchAddressesDynamic(
+    prev: { [field: string]: string }, next: { [field: string]: string }
+): Promise<Result<any>> {
+    const prefixedPrev = Object.entries(prev).map(([field, value]) => [`prev_${field}`, value])
+    const prefixedNext = Object.entries(next).map(([field, value]) => [`next_${field}`, value])
+
+    const prevRequirements = Object.keys(prev).map((field, index) => `${field} = $${prefixedPrev[index][0]}`).join(" AND ")
+    const nextValues = Object.keys(next).map((field, index) => `${field} = $${prefixedNext[index][0]}`).join(", ")
+
+    const response = await query(`
+        UPDATE type::table($addressTable)
+        SET ${nextValues}
+        WHERE ${prevRequirements}
+    `, {...Object.fromEntries(prefixedPrev), ...Object.fromEntries(prefixedNext), addressTable: Address.TABLE})
 
     if (!response[0]) {
         return {

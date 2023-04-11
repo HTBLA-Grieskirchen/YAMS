@@ -24,7 +24,7 @@ export default class NotificationStore {
             }, 25)
 
             disposeCheck = autorun(() => {
-                if (notification.passed >= notification.duration!!) {
+                if (notification.msPassed >= notification.duration!!) {
                     this.removeNotification(notification)
                 }
             })

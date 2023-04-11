@@ -1,9 +1,11 @@
-import {observer} from "mobx-react";
+import { observer } from "mobx-react";
 import Client from "../../model/client"
-import {LiveRefresher, query} from "../../libs/database";
-import React, {useState} from "react";
-import {Result} from "surrealdb.js";
+import { LiveRefresher, query } from "../../libs/database";
+import React, { useState } from "react";
+import { Result } from "surrealdb.js";
 import AnimalList from "../animal/AnimalList";
+import Link from "next/link";
+import paths from "../../util/paths";
 
 const ClientItem = observer(({client, refresher}: { client: Client, refresher: LiveRefresher }) => {
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
@@ -72,6 +74,29 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                             className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
                         <i className="fa-solid fa-remove"/>
                     </button>
+
+                    <div className="dropdown dropdown-end">
+                        <label tabIndex={0} className="btn btn-ghost btn-square m-1">
+                            <i className="fa-solid fa-ellipsis-vertical"/>
+                        </label>
+                        <ul tabIndex={0} className="dropdown-content menu p-2 shadow-lg bg-base-200 rounded-btn w-52">
+                            <li>
+                                <Link href={paths.client(client.record.join())}>
+                                    <a>View File</a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href={paths.clientRelations(client.record.join())}>
+                                    <a>Relations</a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link  href={paths.clientEdit(client.record.join())}>
+                                    <a>Edit</a>
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             {showDetail ?

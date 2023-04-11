@@ -77,8 +77,8 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
 
                 console.log(client.record.id)
                 console.log(resultAnimal.result)
-                const responseClient = await query("UPDATE type::thing($clientTable, $clientID) " +
-                    "SET animals = array::concat(animals, [type::thing($animalTable, $animalID), type::thing($animalTable, $animalID)])",
+                const responseClient = await query(
+                    "UPDATE type::thing($clientTable, $clientID) SET animals += [type::thing($animalTable, $animalID)]",
                     {
                         clientTable: client.record.table,
                         clientID: client.record.id,

@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useEffect, useState} from "react"
 import {query} from "../../libs/database";
 import Select from "react-select";
 import {observer} from "mobx-react";
@@ -40,6 +40,9 @@ const AddClientForm = observer(({onFinish}: { onFinish: (result: Result<any> | n
                 birthdate: new Date(date),
                 addressID: address.record.id
             })
+
+
+
 
             setFirstname('')
             setLastname('')

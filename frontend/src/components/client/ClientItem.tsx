@@ -1,13 +1,47 @@
 import {observer} from "mobx-react";
 import Client from "../../model/client"
-import {LiveRefresher, query} from "../../libs/database";
-import React, {useState} from "react";
+import {LiveRefresher, query, useLive} from "../../libs/database";
+import React, {useEffect, useState} from "react";
 import {Result} from "surrealdb.js";
 import AnimalList from "../animal/AnimalList";
+import paths from "../../util/paths";
+import {useRouter} from "next/router";
+import client from "../../pages/client";
+import Client_file from "../../pages/client_file";
+import ClientFile from "../../model/clientfile";
 
 const ClientItem = observer(({client, refresher}: { client: Client, refresher: LiveRefresher }) => {
     const [deleteSubmitted, setDeleteSubmitted] = useState(false)
     const [showDetail, setShowDetail] = useState(false)
+    const router = useRouter()
+    const dateOfBirth = new Date(1990, 4, 7)
+    const date: Date = new Date(2017, 4, 4, 17, 23, 42, 11);
+    const [entries, refreshEntries] = useLive("SELECT content FROM entry", undefined)
+    const entriesExtracted = entries.response !== undefined && entries.response.length > 0 ? entries.response[0].result : []
+
+
+
+    const client_files:ClientFile[]=[]
+
+    const cfileDate=new Date()
+    const behandlungsArt='test'
+    const anmerkung=''
+    const dauer=1
+    const kosten=1
+
+    //hier weiter machen
+   // const [clientFileRaw] = useLive("SELECT treatment.*.* FROM type::thing($table, $id)", {
+    //    table: "client_file",
+   //     id: client.record.id
+   // })client,
+
+
+
+    //useEffect(() => {
+        //query("Select * From treatment").then((result) => result.forEach((item) => console.log(item)))})
+
+    //Ich will eine Liste aller treatments von einem bestimmten clienten
+
 
     const deleteSubmit = async () => {
         setDeleteSubmitted(true)
@@ -20,6 +54,8 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
 
     return (
         <div className="flex flex-col w-fit">
+
+            {entries.loading && <p>Data is currently loading</p>}
             <div className="flex flex-row space-x-4 items-center">
                 <div className="flex flex-row space-x-2">
                     <div className="flex flex-col place-content-center mr-2">
@@ -71,6 +107,16 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                     }} disabled={deleteSubmitted}
                             className="align-text-bottom text-3xl hover:text-4xl hover:text-red-700 text-red-600 w-8 h-8 transition-all">
                         <i className="fa-solid fa-remove"/>
+                    </button>
+                    <button type="button" onClick={e => {
+                        //router.push(paths.client_file);
+                        router.push(
+                            { pathname: paths.client_file, query: { client_id: client.record.id } },
+                            "client_file"
+                        );
+                    }} disabled={deleteSubmitted}
+                            className="align-text-bottom text-3xl hover:text-4xl hover:text-black-700 text-black-600 w-8 h-8 transition-all">
+                        <i className=" fa-solid fa-address-card"></i>
                     </button>
                 </div>
             </div>
@@ -124,7 +170,9 @@ const ClientItem = observer(({client, refresher}: { client: Client, refresher: L
                 :
                 <div></div>
             }
+
         </div>
+
     )
 })
 

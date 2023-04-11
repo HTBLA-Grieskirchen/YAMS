@@ -11,6 +11,7 @@ export default class City implements SurrealObject {
     name: string
     plz: string
 
+
     constructor(id: string, country: Country, name: string, plz: string) {
         this.record = makeRecordForTable(id, this.table)
         this.country = country

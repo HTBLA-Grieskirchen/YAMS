@@ -60,6 +60,7 @@ DEFINE FIELD mobile_number ON client TYPE string ASSERT $after != NULL;
 DEFINE FIELD address ON client TYPE record(address) ASSERT $after != NULL;
 DEFINE FIELD animals ON client VALUE [];
 
+
 -- ------------------------------
 -- TABLE: client_file
 -- ------------------------------
@@ -73,7 +74,9 @@ DEFINE
 FIELD extra ON client_file TYPE string;
 DEFINE
 FIELD client ON client_file TYPE record(client) ASSERT $after != NULL;
-DEFINE FIELD treatment ON client_file VALUE [];
+DEFINE FIELD treatment ON client_file VALUE $after OR [];
+DEFINE FIELD treatment.* ON client_file TYPE record(treatment_appointment);
+
 
 -- ------------------------------
 -- TABLE: country

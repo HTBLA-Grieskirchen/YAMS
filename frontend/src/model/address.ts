@@ -68,7 +68,11 @@ export class AddressResponse implements SurrealResponse<Address> {
     intoObject(): Address | undefined {
         let city = store.addressStore.indexedCities.get(this.data.city)
         if (!city) return
-
-        return new Address(this.data.id, city, this.data.street, this.data.extra ?? "")
+        try{
+            return new Address(this.data.id, city, this.data.street, this.data.extra ?? "")
+        }
+        catch(RecordError){
+            return undefined
+        }
     }
 }

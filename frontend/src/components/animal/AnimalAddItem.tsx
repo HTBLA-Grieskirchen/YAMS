@@ -18,19 +18,13 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
     const [birthdate, setBirthdate] = useState(new Date().toISOString().substring(0, 10))
     const race = useLocalObservable(() => ({
         value: null as Race | null,
-        setValue(value: Race) {
+        setValue(value: Race | null) {
             this.value = value
         }
     }))
 
     const handleSubmit = async () => {
         setSubmitted(true)
-        //TODO: aufgrund eines Bugs von Surreal muss die Race_ID, welche in die animals_liste
-        // gepeichert werden soll, doppelt hineingespeichert werden
-
-        // updaten des clients : update client:7hts0tybxonc3n77dlmb SET animals = [animal:ircj4lk1n8h8uoe8ms52, animal:ircj4lk1n8h8uoe8ms52]
-        // erstellen des races : CREATE race SET description = 'TestDesc', animal_species = 'TestSpec';
-
         await query("BEGIN TRANSACTION;")
 
         let gotError: boolean = false
@@ -81,10 +75,8 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
                     await query("CANCEL TRANSACTION;")
                 }
 
-                console.log(client.record.id)
-                console.log(resultAnimal.result)
-                const responseClient = await query("UPDATE type::thing($clientTable, $clientID) " +
-                    "SET animals = array::concat(animals, [type::thing($animalTable, $animalID), type::thing($animalTable, $animalID)])",
+                const responseClient = await query(
+                    "UPDATE type::thing($clientTable, $clientID) SET animals += [type::thing($animalTable, $animalID)]",
                     {
                         clientTable: client.record.table,
                         clientID: client.record.id,
@@ -109,6 +101,10 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
 
     const handleCancel = () => {
         setAdding(!adding)
+    }
+
+    const validInput = () => {
+        return name != '' && name != null && race.value != null
     }
 
     return (
@@ -153,8 +149,8 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
                                 <AnimalComboBox race={race}/>
                             </div>
                             <button
-                                disabled={submitted}
-                                type="submit"
+                                disabled={!validInput()}
+                                type="button"
                                 onClick={event => {
                                     handleSubmit()
                                 }}

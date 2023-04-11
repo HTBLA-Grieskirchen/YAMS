@@ -8,10 +8,14 @@ export async function deleteAnimal(animal: Animal): Promise<Result<any>> {
         animalTable: animal.record.table,
         animalID: animal.record.id
     })
-    const response = await query("DELETE type::thing($animalTable, $animalID)", {
+    const response = await query(`
+        UPDATE client SET animals -= [type::thing($animalTable, $animalID)]; 
+        DELETE type::thing($animalTable, $animalID);
+`, {
         animalTable: animal.record.table,
         animalID: animal.record.id
     })
+
 
     return response[0] ?? {
         error: new Error("No response at all")

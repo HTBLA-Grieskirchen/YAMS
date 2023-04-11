@@ -1,12 +1,12 @@
 import {observer} from "mobx-react";
 import Head from "next/head";
-import ClientItem from "../../components/client/ClientItem";
 import {NavigationPage} from "../../types/layout";
 import {useStore} from "../../stores";
 import paths from "../../util/paths";
 import Link from "next/link";
 import React from "react";
 import {useRouter} from "next/router";
+import {ClientTableHeader, ClientTableRow} from "../../components/client/ClientTable";
 
 const ClientOverview: NavigationPage = observer(() => {
     const store = useStore()
@@ -18,21 +18,22 @@ const ClientOverview: NavigationPage = observer(() => {
                 <title>All Clients</title>
             </Head>
 
-            <main className="flex flex-col min-w-fit w-fit m-5 p-3 rounded-lg bg-gray-200 shadow">
-                <div className="flex flex-col pt-3">
-                    {clients.length > 0 ?
-                        <div className="divide-gray-400 divide-y">
-                            {clients.map((client) =>
-                                <div key={client.record.join()} className="p-2">
-                                    <ClientItem client={client} refresher={store.clientStore.refresh}/>
-                                </div>
-                            )}
-                        </div>
-                        :
-                        <p className="p-2 text-gray-600">
-                            No client available!
-                        </p>}
-                </div>
+            <main className="w-full p-6">
+                {clients.length > 0 ?
+                    <table className="table w-full">
+                        <thead className="sticky top-0 z-30">
+                        <ClientTableHeader/>
+                        </thead>
+                        <tbody className="overflow-y-auto">
+                        {clients.map((client) =>
+                            <ClientTableRow key={client.record.join()} client={client}
+                                            refresher={store.clientStore.refresh}/>
+                        )}
+                        </tbody>
+                    </table>
+                    :
+                    <p className="text-lg font-medium mb-1 mr-2 text-red-900">No clients available!</p>
+                }
             </main>
         </>
     )

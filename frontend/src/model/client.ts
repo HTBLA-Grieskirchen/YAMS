@@ -95,7 +95,9 @@ export class ClientResponse implements SurrealResponse<Client> {
             if (this.data.customer_number != object.customerNumber) object.customerNumber = this.data.customer_number
             if (this.data.consent != object.consent) object.consent = this.data.consent
 
-            const animals = this.data.animals ?? []
+            const animals = this.data.animals
+                ?.map(animal => store.animalStore.indexedAnimals.get(animal))
+                .filter((item): item is Animal => !!item) ?? []
             if (animals != object.animals) object.animals = animals
 
             const birthdate = new Date(this.data.birthdate)
@@ -107,6 +109,8 @@ export class ClientResponse implements SurrealResponse<Client> {
         const address = store.addressStore.indexedAddresses.get(this.data.address)
         if (!address) return
 
+        const animals = this.data.animals?.map(animal => store.animalStore.indexedAnimals.get(animal)).filter((item): item is Animal => !!item)
+
         return new Client(this.data.id,
             this.data.first_name,
             this.data.last_name,
@@ -116,6 +120,6 @@ export class ClientResponse implements SurrealResponse<Client> {
             address,
             this.data.consent,
             this.data.customer_number,
-            this.data.animals ?? [])
+            animals ?? [])
     }
 }

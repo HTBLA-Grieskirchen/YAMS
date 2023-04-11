@@ -75,8 +75,6 @@ const AnimalAddItem = observer(({client}: { client: Client }) => {
                     await query("CANCEL TRANSACTION;")
                 }
 
-                console.log(client.record.id)
-                console.log(resultAnimal.result)
                 const responseClient = await query(
                     "UPDATE type::thing($clientTable, $clientID) SET animals += [type::thing($animalTable, $animalID)]",
                     {

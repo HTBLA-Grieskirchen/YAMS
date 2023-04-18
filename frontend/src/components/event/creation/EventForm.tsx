@@ -1,29 +1,29 @@
-import React, { useState } from "react"
-import { observer, useLocalObservable } from "mobx-react";
+import React, {useState} from "react"
+import {observer, useLocalObservable} from "mobx-react";
 import Address from "../../../model/address";
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
 import paths from "../../../util/paths";
-import { useStore } from "../../../stores";
-import { ValidatableFieldData } from "../../../libs/field/validatable";
-import { isValidTime } from "../../../util/validation";
+import {useStore} from "../../../stores";
+import {ValidatableFieldData} from "../../../libs/field/validatable";
+import {isValidTime} from "../../../util/validation";
 import dialog from "../../../libs/dialog";
 import notification from "../../../libs/notification";
-import { ValidatableInputField } from "../../form/input";
-import { Combobox } from "@headlessui/react";
-import { ValidatableComboBox } from "../../form/combobox";
+import {ValidatableInputField} from "../../form/input";
+import {Combobox} from "@headlessui/react";
+import {ValidatableComboBox} from "../../form/combobox";
 import RegisterAddressForm, {
     emptyClientRegisterAddressFieldData,
     NewAddressFormData
 } from "../../address/RegisterAddress";
-import { query } from "../../../libs/database";
-import { makeRecordForTable, Record } from "../../../model/surreal";
-import { ensureAddress } from "../../../libs/database/address";
+import {query} from "../../../libs/database";
+import {makeRecordForTable, Record} from "../../../model/surreal";
+import {ensureAddress} from "../../../libs/database/address";
 import Event from "../../../model/event"
-import RegisterSeminarForm, { defaultSeminarFormData, NewSeminarFormData } from "../../seminar/RegisterSeminar";
+import RegisterSeminarForm, {defaultSeminarFormData, NewSeminarFormData} from "../../seminar/RegisterSeminar";
 import Seminar from "../../../model/seminar";
-import { formatDuration } from "../../../util/helpers";
-import { ensureSeminar } from "../../../libs/database/seminar";
-import { createEvent, updateEvent } from "../../../libs/database/event";
+import {formatDuration} from "../../../util/helpers";
+import {ensureSeminar} from "../../../libs/database/seminar";
+import {createEvent, updateEvent} from "../../../libs/database/event";
 
 const EventForm = observer((
     {event}:
@@ -230,7 +230,6 @@ const EventForm = observer((
                 }
 
                 const clientRecord = makeRecordForTable(response.result[0].id, Event.TABLE)
-
 
                 await query("COMMIT TRANSACTION")
                 await store.eventStore.refresh()

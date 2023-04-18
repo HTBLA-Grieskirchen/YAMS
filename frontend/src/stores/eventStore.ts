@@ -43,7 +43,6 @@ export default class EventStore {
         const [_r1, refreshEvents, _c1] = this.eventsLive
         const [_r2, refreshSeminars, _c2] = this.seminarsLive
 
-
         await refreshSeminars()
         await this.root.addressStore.refresh()
         await refreshEvents()
@@ -77,48 +76,51 @@ export default class EventStore {
     private syncData() {
         const [resultEvents, _u1, _c1] = this.eventsLive
         const [resultSeminars, _u2, _c2] = this.seminarsLive
-        if (!(resultSeminars.length > 0 && resultSeminars[0].result)) return
 
-        runInAction(() => {
-            // Update seminars
-            if (!(resultSeminars.length > 0 && resultSeminars[0].result)) return
-            const seminarsIDs: Set<string> = new Set(
-                resultSeminars[0].result.map((item: any) => {
-                    const response = SeminarResponse.from(item)
-                    if (!response) return
+        if (resultSeminars.length > 0 && !!resultSeminars[0].result) {
+            runInAction(() => {
+                // Update seminars
+                const seminarsIDs: Set<string> = new Set(
+                    resultSeminars[0].result.map((item: any) => {
+                        const response = SeminarResponse.from(item)
+                        if (!response) return
 
-                    let seminar = this.indexedSeminars.get(response.data.id)
-                    if (seminar !== undefined) {
-                        response.applyOn(seminar)
-                    } else {
-                        seminar = response.intoObject()
-                        if (!seminar) return
+                        let seminar = this.indexedSeminars.get(response.data.id)
+                        if (seminar !== undefined) {
+                            response.applyOn(seminar)
+                        } else {
+                            seminar = response.intoObject()
+                            if (!seminar) return
 
-                        this.indexedSeminars.set(response.data.id, seminar)
-                    }
-                    return response.data.id
-                }).filter((it: any) => !!it))
-            Array.from(this.indexedSeminars.keys()).filter((id) => !seminarsIDs.has(id)).forEach((id) => this.indexedSeminars.delete(id))
+                            this.indexedSeminars.set(response.data.id, seminar)
+                        }
+                        return response.data.id
+                    }).filter((it: any) => !!it))
+                Array.from(this.indexedSeminars.keys()).filter((id) => !seminarsIDs.has(id)).forEach((id) => this.indexedSeminars.delete(id))
+            })
+        }
 
-            // Update events
-            if (!(resultEvents.length > 0 && resultEvents[0].result)) return
-            const eventIDs: Set<string> = new Set(
-                resultEvents[0].result.map((item: any) => {
-                    const response = EventResponse.from(item)
-                    if (!response) return
+        if (resultEvents.length > 0 && !!resultEvents[0].result) {
+            runInAction(() => {
+                // Update events
+                const eventIDs: Set<string> = new Set(
+                    resultEvents[0].result.map((item: any) => {
+                        const response = EventResponse.from(item)
+                        if (!response) return
 
-                    let event = this.indexedEvents.get(response.data.id)
-                    if (event !== undefined) {
-                        response.applyOn(event)
-                    } else {
-                        event = response.intoObject()
-                        if (!event) return
+                        let event = this.indexedEvents.get(response.data.id)
+                        if (event !== undefined) {
+                            response.applyOn(event)
+                        } else {
+                            event = response.intoObject()
+                            if (!event) return
 
-                        this.indexedEvents.set(response.data.id, event)
-                    }
-                    return response.data.id
-                }).filter((it: any) => !!it))
-            Array.from(this.indexedEvents.keys()).filter((id) => !eventIDs.has(id)).forEach((id) => this.indexedEvents.delete(id))
-        })
+                            this.indexedEvents.set(response.data.id, event)
+                        }
+                        return response.data.id
+                    }).filter((it: any) => !!it))
+                Array.from(this.indexedEvents.keys()).filter((id) => !eventIDs.has(id)).forEach((id) => this.indexedEvents.delete(id))
+            })
+        }
     }
 }

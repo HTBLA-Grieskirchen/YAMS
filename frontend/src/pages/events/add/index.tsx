@@ -11,7 +11,6 @@ import EventCreationForm from "../../../components/event/creation/EventForm";
 
 const EventsCreation: NavigationPage = observer(() => {
     const store = useStore()
-    const clients = store.clientStore.clients
 
     return (
         <>

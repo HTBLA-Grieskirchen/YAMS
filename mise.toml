@@ -46,6 +46,10 @@ description = "Build Tauri app"
 dir = "frontend"
 run = "npx tauri build"
 
+[tasks."backend:export-spec"]
+description = "Export OpenAPI spec"
+run = "cargo run -p yams-server -- --export-spec"
+
 [tasks.dev]
 description = "Start dev environment"
 depends = ["frontend:dev"]

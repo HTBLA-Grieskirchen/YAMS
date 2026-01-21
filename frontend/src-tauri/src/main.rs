@@ -97,10 +97,22 @@ fn main() {
             app.manage(database);
             app.manage(backend_config);
             app.manage(frontend_config);
+
+            // Initialize LibSQL Adapter
+            let adapter = tauri::async_runtime::block_on(async {
+                yams_persistence::adapter::SqliteAdapter::new("yams.db").await
+            }).expect("failed to initialize LibSQL adapter");
+            app.manage(std::sync::Arc::new(adapter));
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            setup_database, check_database, query_database, frontend_config
+            setup_database, 
+            check_database, 
+            query_database, 
+            frontend_config,
+            commands::get_addresses,
+            commands::create_address
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

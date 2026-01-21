@@ -1,6 +1,6 @@
 import {observer, useLocalObservable} from "mobx-react";
 import {categories} from "../../pages/addresses";
-import Address from "../../model/address";
+import type {Address} from "../../api/client";
 import {ReactNode, useState} from "react";
 import {useStore} from "../../stores";
 import Client from "../../model/client";
@@ -41,8 +41,9 @@ export const AddressTableRow = observer((
     const editState = useLocalObservable(() => initialEditState)
     const [expanded, setExpanded] = useState(false)
 
-    const usingClients = store.clientStore.clients.filter((client) => backingAddresses.find((address) => client.address == address))
-    const usingEvents = store.eventStore.events.filter((event) => backingAddresses.find((address) => event.location == address))
+    // TODO: Migrate these to use TanStack Query for Clients and Events
+    const usingClients = store.clientStore.clients.filter((client) => backingAddresses.find((address) => client.address.record.id === address.id))
+    const usingEvents = store.eventStore.events.filter((event) => backingAddresses.find((address) => event.location.record.id === address.id))
     const clientsCount = usingClients.length
     const eventsCount = usingEvents.length
     const usages = clientsCount + eventsCount
@@ -155,7 +156,11 @@ const AddressEditTableRowContent = observer((
 
         const prev = Object.fromEntries(Object.entries(facingValues).map(([field, value]) => [categories[field].databaseField, value]))
         const next = Object.fromEntries(Object.entries(editValue).map(([field, value]) => [categories[field].databaseField, value]))
-        const result = await patchAddressesDynamic(prev, next)
+        
+        // TODO: Implement updateAddress in useAddresses hook
+        // const result = await patchAddressesDynamic(prev, next)
+        const result = { error: { message: "Update not yet implemented in new architecture" } };
+        
         if (result.error) {
             notification.error({
                 title: "Address cannot be updated!",

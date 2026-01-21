@@ -7,7 +7,8 @@ import paths from "../../util/paths";
 import {useRouter} from "next/router";
 import Link from "next/link";
 import {runInAction} from "mobx";
-import Address from "../../model/address";
+import {useAddresses} from "../../api/hooks/useAddresses";
+import type {Address} from "../../api/client";
 import {AddressTableHeader, AddressTableRow} from "../../components/address/AddressTable";
 import {MD5} from "object-hash";
 
@@ -23,7 +24,7 @@ export const categories: {
         }
     },
     "postalCode": {
-        humanReadable: "Postal Code", databaseField: "postal_code", validation: (val) => {
+        humanReadable: "Postal Code", databaseField: "postalCode", validation: (val) => {
             if (val.trim().length == 0) return "Postal code may not be empty"
 
             return null
@@ -44,7 +45,7 @@ export const categories: {
         }
     },
     "streetNumber": {
-        humanReadable: "Street Number", databaseField: "street_number", validation: (val) => {
+        humanReadable: "Street Number", databaseField: "streetNumber", validation: (val) => {
             if (val.trim().length == 0) return "Street number may not be empty"
 
             return null
@@ -56,8 +57,7 @@ type AddressGroup = { facing: { [key: string]: string }, addresses: Address[] }
 
 
 const Addresses: NavigationPage = observer(() => {
-    const store = useStore()
-    const addresses = store.addressStore.addresses
+    const {addresses, isLoading} = useAddresses()
 
     const selectedCategories = useLocalObservable(() => {
         const map = new Map<string, boolean>()
@@ -126,7 +126,9 @@ const Addresses: NavigationPage = observer(() => {
                 <div className="divider my-2"/>
 
                 <div className="overflow-x-auto w-full mt-2">
-                    {!Array.from(selectedCategories.values()).reduce((prev, cur) => prev || cur, false) ?
+                    {isLoading ? 
+                        <div className="flex justify-center p-10"><span className="loading loading-spinner loading-lg"></span></div> :
+                        !Array.from(selectedCategories.values()).reduce((prev, cur) => prev || cur, false) ?
                         <div className="alert alert-warning">
                             <div>
                                 <i className="fa-solid fa-warning flex-shrink-0 text-xl"/> No category selected!

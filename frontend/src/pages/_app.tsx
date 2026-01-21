@@ -12,6 +12,8 @@ import Modals from "../components/Modals";
 import Notifications from "../components/Notifications";
 import paths from "../util/paths";
 import {HeroUIProvider} from "@heroui/react";
+import {QueryClientProvider} from "@tanstack/react-query";
+import {queryClient} from "../api/queryClient";
 
 export type AppLayoutProps = AppProps & {
     Component: LayoutPage & NavigationPage
@@ -19,13 +21,15 @@ export type AppLayoutProps = AppProps & {
 
 export default function MyApp({Component, pageProps}: AppLayoutProps) {
 
-    return <HeroUIProvider>
-        <StoreProvider>
-            <Layout Page={Component}>
-                <Component {...pageProps} />
-            </Layout>
-        </StoreProvider>
-    </HeroUIProvider>
+    return <QueryClientProvider client={queryClient}>
+        <HeroUIProvider>
+            <StoreProvider>
+                <Layout Page={Component}>
+                    <Component {...pageProps} />
+                </Layout>
+            </StoreProvider>
+        </HeroUIProvider>
+    </QueryClientProvider>
 }
 
 const Layout = observer((

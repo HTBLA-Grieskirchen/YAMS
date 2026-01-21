@@ -1,15 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-.table {
-    @apply shadow-md
-}
+@layer base {
+  .table {
+    @apply shadow-md;
+  }
 
-.table th:first-child {
-    @apply static
-}
+  .table th:first-child {
+    @apply static;
+  }
 
-.btn-disabled .btn[disabled] {
+  .btn-disabled .btn[disabled] {
     pointer-events: auto;
+  }
 }

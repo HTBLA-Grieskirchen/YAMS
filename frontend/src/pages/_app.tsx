@@ -11,6 +11,7 @@ import MainNavbar from "../components/layout/MainNavbar";
 import Modals from "../components/Modals";
 import Notifications from "../components/Notifications";
 import paths from "../util/paths";
+import {HeroUIProvider} from "@heroui/react";
 
 export type AppLayoutProps = AppProps & {
     Component: LayoutPage & NavigationPage
@@ -18,11 +19,13 @@ export type AppLayoutProps = AppProps & {
 
 export default function MyApp({Component, pageProps}: AppLayoutProps) {
 
-    return <StoreProvider>
-        <Layout Page={Component}>
-            <Component {...pageProps} />
-        </Layout>
-    </StoreProvider>
+    return <HeroUIProvider>
+        <StoreProvider>
+            <Layout Page={Component}>
+                <Component {...pageProps} />
+            </Layout>
+        </StoreProvider>
+    </HeroUIProvider>
 }
 
 const Layout = observer((
@@ -69,4 +72,3 @@ const itemsMainMenu = {
         }
     },
 }
-

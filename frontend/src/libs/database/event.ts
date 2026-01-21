@@ -1,6 +1,6 @@
 import {Record} from "../../model/surreal";
-import {query} from "./index";
-import {Result} from "surrealdb.js";
+import {query, Result} from "./index";
+
 import Event, {EventResponse} from "../../model/event";
 
 export async function createEvent(

@@ -1,5 +1,5 @@
-import { Result } from "surrealdb.js";
-import { query } from "./index";
+
+import { query, Result } from "./index";
 import { Record } from "../../model/surreal";
 import EventParticipation, { EventParticipationResponse } from "../../model/participation";
 

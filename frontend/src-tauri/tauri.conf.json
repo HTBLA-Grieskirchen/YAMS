@@ -1,65 +1,14 @@
 {
+  "productName": "Yet Another Management Software",
+  "version": "0.1.0",
+  "identifier": "at.htlgrieskirchen.yams",
   "build": {
-    "beforeBuildCommand": "npm run build && npm run export",
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:3000",
-    "distDir": "../out",
-    "withGlobalTauri": true
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../out"
   },
-  "package": {
-    "productName": "Yet Another Management Software",
-    "version": "../package.json"
-  },
-  "tauri": {
-    "allowlist": {
-      "fs": {
-        "all": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "longDescription": "Yet Another Management Software is a management system for patients, customers and their pets.\nIt uses an embedded or centralized data storage system to allow seamless utilization of different client platforms.",
-      "shortDescription": "A management software for patients and animals",
-      "category": "Utility",
-      "copyright": "Copyright © 2022 HTBLA Grieskirchen",
-      "icon": [
-        "../../resources/logos/yams64x64.png",
-        "../../resources/logos/yams128x128.png",
-        "../../resources/logos/yams128x128@2.png",
-        "../../resources/logos/yams.icns",
-        "../../resources/logos/yams.ico"
-      ],
-      "identifier": "at.htlgrieskirchen.yams",
-      "resources": [],
-      "externalBin": [],
-      "deb": {
-        "depends": []
-      },
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "wix": {
-          "license": "../../LICENSE",
-          "bannerPath": "../../resources/logos/banner_wix.png",
-          "dialogImagePath": "../../resources/logos/yams_wix.png"
-        }
-      }
-    },
-    "security": {
-      "csp": "default-src 'self';"
-    },
-    "updater": {
-      "active": false
-    },
+  "app": {
     "windows": [
       {
         "title": "Yet Another Management Software",
@@ -68,6 +17,24 @@
         "resizable": true,
         "fullscreen": false
       }
-    ]
+    ],
+    "security": {
+      "csp": "default-src 'self';"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "../../resources/logos/yams64x64.png",
+      "../../resources/logos/yams128x128.png",
+      "../../resources/logos/yams128x128@2.png",
+      "../../resources/logos/yams.icns",
+      "../../resources/logos/yams.ico"
+    ],
+    "copyright": "Copyright © 2022 HTBLA Grieskirchen",
+    "category": "Utility",
+    "shortDescription": "A management software for patients and animals",
+    "longDescription": "Yet Another Management Software is a management system for patients, customers and their pets.\nIt uses an embedded or centralized data storage system to allow seamless utilization of different client platforms."
   }
 }

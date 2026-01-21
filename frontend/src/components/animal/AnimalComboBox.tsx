@@ -1,17 +1,16 @@
-import React, {useEffect, useState} from 'react'
-import {Combobox} from '@headlessui/react'
+import React, {useEffect, useState, useMemo} from 'react'
 import {observer, useLocalObservable} from "mobx-react";
 import {useStore} from "../../stores";
 import Race from "../../model/race";
 import dialog from "../../libs/dialog";
 import {Record} from "../../model/surreal";
+import { Autocomplete, AutocompleteItem, Button, Input } from "@heroui/react";
 
 const AnimalComboBox = observer((
     {race}:
         { race: { setValue: (value: Race | null) => void } }
 ) => {
     const store = useStore()
-
     const races = store.animalStore.races
 
     const [selectedRace, setSelectedRace] = useState<Race | null>(null)
@@ -30,14 +29,22 @@ const AnimalComboBox = observer((
 
     useEffect(() => {
         race.setValue(selectedRace)
-    }, [selectedRace])
+    }, [selectedRace, race])
 
-    const filteredPeople =
-        query === ''
+    const filteredRaces = useMemo(() => {
+        return query === ''
             ? races
             : races.filter((race) => {
                 return race.description.toLowerCase().includes(query.toLowerCase())
             })
+    }, [races, query])
+
+    const allOptions = useMemo(() => {
+        return [
+            { id: 'new-race', label: `+ Create new race "${query}"`, isCustom: true },
+            ...filteredRaces.map(r => ({ id: r.record.join(), label: `${r.description}, ${r.animal_species}`, isCustom: false }))
+        ];
+    }, [filteredRaces, query]);
 
     const submit = () => {
         let newRace = new Race(new Record(Race.TABLE, "").join(), raceValue.desc, raceValue.species)
@@ -46,49 +53,37 @@ const AnimalComboBox = observer((
 
     const openNewRaceDialog = () => {
         dialog((close) =>
-            <div className="modal-box">
-                <p className="font-bold text-lg">Add new race</p>
-                <form>
-                    <div className="flex flex-row space-x-4 items-end">
-                        <div>
-                            <label className="label">
-                                <span className="label-text">Race Description</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="input input-bordered w-full max-w-xs"
-                                placeholder="German Sheppard"
-                                value={raceValue.desc}
-                                onChange={e => raceValue.setDesc(e.target.value)}
-                                required={true}
-                            />
-                        </div>
-                        <div>
-                            <label className="label">
-                                <span className="label-text">Animal Species</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="input input-bordered w-full max-w-xs"
-                                placeholder="Dog"
-                                value={raceValue.species}
-                                onChange={e => raceValue.setSpecies(e.target.value)}
-                                required={true}
-                            />
-                        </div>
+            <div className="p-4">
+                <p className="font-bold text-lg mb-4">Add new race</p>
+                <form className="space-y-4">
+                    <div className="flex flex-col gap-4">
+                        <Input
+                            label="Race Description"
+                            placeholder="German Sheppard"
+                            value={raceValue.desc}
+                            onValueChange={raceValue.setDesc}
+                            isRequired
+                            variant="bordered"
+                        />
+                        <Input
+                            label="Animal Species"
+                            placeholder="Dog"
+                            value={raceValue.species}
+                            onValueChange={raceValue.setSpecies}
+                            isRequired
+                            variant="bordered"
+                        />
                     </div>
-                    <div className="flex flex-row space-x-4 items-end mt-3">
-                        <button className="btn btn-sm btn-success" onClick={() => {
+                    <div className="flex justify-end gap-2 mt-6">
+                        <Button color="danger" variant="light" onClick={() => close()}>
+                            Cancel
+                        </Button>
+                        <Button color="success" onClick={() => {
                             close()
                             submit()
                         }}>
                             Submit
-                        </button>
-                        <button className="btn btn-sm btn-error" onClick={() => {
-                            close()
-                        }}>
-                            Cancel
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>
@@ -96,33 +91,29 @@ const AnimalComboBox = observer((
     }
 
     return (
-        <>
-            <label className="label">
-                <span className="label-text">Race</span>
-            </label>
-            <Combobox value={selectedRace} onChange={setSelectedRace}>
-                <Combobox.Input
-                    onChange={(event) => setQuery(event.target.value)}
-                    displayValue={(race: Race | null) => !!race ? race.description + ", " + race.animal_species : ""}
-                    className="input shadow bg-base-100 rounded-box max-w-xs"
-                />
-                {(query.length > 0 || filteredPeople.length > 0) &&
-                    <Combobox.Options
-                        className="dropdown-content mt-1 menu p-2 shadow bg-base-100 rounded-box max-w-xs break-words">
-                        {query.length > 0 && (
-                            <Combobox.Option value={{id: null, name: query}} onClick={openNewRaceDialog}>
-                                Create new race
-                            </Combobox.Option>
-                        )}
-                        {filteredPeople.map((race: Race) => (
-                            <Combobox.Option key={race.record.join()} value={race}>
-                                {race.description + ", " + race.animal_species}
-                            </Combobox.Option>
-                        ))}
-                    </Combobox.Options>
+        <Autocomplete
+            label="Race"
+            labelPlacement="outside"
+            placeholder="Search or create a race..."
+            variant="bordered"
+            onInputChange={setQuery}
+            selectedKey={selectedRace ? selectedRace.record.join() : null}
+            onSelectionChange={(key) => {
+                if (key === "new-race") {
+                    openNewRaceDialog()
+                } else {
+                    const found = races.find(r => r.record.join() === String(key))
+                    if (found) setSelectedRace(found)
                 }
-            </Combobox>
-        </>
+            }}
+            items={allOptions}
+        >
+            {(item) => (
+                <AutocompleteItem key={item.id} textValue={item.label} color={item.isCustom ? "primary" : "default"}>
+                    {item.label}
+                </AutocompleteItem>
+            )}
+        </Autocomplete>
     )
 })
 

@@ -1,0 +1,59 @@
+[tools]
+node = "22"
+rust = "latest"
+surrealdb = "latest"
+
+[tasks."db:start"]
+description = "Start SurrealDB"
+run = "surreal start --bind 127.0.0.1:8004 --user root --pass root file:surreal_data"
+
+[tasks."db:setup"]
+description = "Setup SurrealDB schema"
+run = "surreal import --conn http://127.0.0.1:8004 --db yams --ns yams backend/setup.surql"
+
+[tasks."frontend:install"]
+description = "Install frontend dependencies"
+dir = "frontend"
+run = "npm install"
+
+[tasks."frontend:dev"]
+description = "Start Next.js dev server"
+dir = "frontend"
+run = "npm run dev"
+
+[tasks."frontend:build"]
+description = "Build Next.js app"
+dir = "frontend"
+run = "npm run build"
+
+[tasks."frontend:lint"]
+description = "Lint frontend"
+dir = "frontend"
+run = "npm run lint"
+
+[tasks."frontend:test"]
+description = "Run frontend tests"
+dir = "frontend"
+run = "npm run test"
+
+[tasks."tauri:dev"]
+description = "Start Tauri dev"
+dir = "frontend"
+run = "npx tauri dev"
+
+[tasks."tauri:build"]
+description = "Build Tauri app"
+dir = "frontend"
+run = "npx tauri build"
+
+[tasks.dev]
+description = "Start dev environment"
+depends = ["frontend:dev"]
+
+[tasks.build]
+description = "Build the whole project"
+depends = ["frontend:build", "tauri:build"]
+
+[tasks.test]
+description = "Run all tests"
+depends = ["frontend:test"]

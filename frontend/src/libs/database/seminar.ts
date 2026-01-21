@@ -1,8 +1,8 @@
 import store from "../../stores";
 import {makeRecordForTable} from "../../model/surreal";
 import Seminar, {SeminarResponse} from "../../model/seminar";
-import {Result} from "surrealdb.js";
-import {query} from "./index";
+
+import {query, Result} from "./index";
 
 export async function ensureSeminar(seminar: {
     title: string,

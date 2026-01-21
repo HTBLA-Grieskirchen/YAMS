@@ -1,6 +1,7 @@
 import {observer} from "mobx-react";
 import React from "react";
 import {ValidatableFieldData} from "../../libs/field/validatable";
+import { Input } from "@heroui/react";
 
 export const ValidatableInputField = observer(<T extends unknown>(
     {data, label, placeholder, type, required, mapSetValue, mapDisplayValue, className}:
@@ -13,25 +14,19 @@ export const ValidatableInputField = observer(<T extends unknown>(
     const actualSetValue = mapSetValue ?? ((targetValue) => targetValue as any)
     const actualDisplayValue = mapDisplayValue ?? ((dataValue) => String(dataValue))
 
-    return <div className={`form-control w-full ${!!className ? className : ""}`}>
-        <label className="label">
-            {label && <span className="label-text">{label}</span>}
-        </label>
-        <div className="indicator w-full">
-            {required &&
-                <span className="indicator-item badge badge-ghost text-error px-1.5">
-                    <i className="fa-solid fa-asterisk text-xs"/>
-                </span>}
-            <input type={actualType} placeholder={placeholder} required={required}
-                   className={`input input-bordered w-full ${data.displayError != null ? "input-error" : ""}`}
-                   value={actualDisplayValue(data.value)}
-                   onChange={e => data.setValue(actualSetValue(e.target.value))}/>
-        </div>
-        <label className="label">
-            {data.displayError != null && !!data.displayError.trim().length &&
-                <span className="label-text text-error">
-                    <i className="fa-solid fa-circle-exclamation"/> {data.displayError}
-                </span>}
-        </label>
-    </div>
+    return (
+        <Input
+            type={actualType}
+            label={label}
+            placeholder={placeholder}
+            isRequired={required}
+            className={className}
+            value={actualDisplayValue(data.value)}
+            onValueChange={(value) => data.setValue(actualSetValue(value))}
+            isInvalid={data.displayError != null && !!data.displayError.trim().length}
+            errorMessage={data.displayError}
+            variant="bordered"
+            labelPlacement="outside"
+        />
+    )
 })

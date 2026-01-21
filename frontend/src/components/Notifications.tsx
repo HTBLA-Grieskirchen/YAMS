@@ -4,11 +4,13 @@ import {CSSProperties, useEffect, useState} from "react";
 import {NotificationBehaviour, NotificationInfo, NotificationType} from "../libs/notification";
 import {isPromise} from "../util/types";
 import {autorun} from "mobx";
+import { Card, CardBody, Button, CircularProgress } from "@heroui/react";
+import { Bell, Info, CheckCircle2, AlertTriangle, XCircle, X } from "lucide-react";
 
 const Notifications = observer(() => {
     const store = useStore()
 
-    return <div className="toast">
+    return <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-md w-full">
         {store.notificationStore.currentNotifications().map((notification) =>
             <Notification key={notification.uuid} notification={notification}/>)}
     </div>
@@ -20,34 +22,57 @@ const Notification = observer((
     }
 ) => {
     const store = useStore()
-    const {icon, iconColor, alertColor} = notificationTypeValues(notification)
+    const {Icon, color} = notificationTypeValues(notification)
 
-    return <div className={`alert ${alertColor} shadow-lg max-w-prose`}>
-        <div>
-            {typeof icon === "string" ? <i className={`${icon} ${iconColor} text-xl`}/> : <>{icon}</>}
-            <div>
-                {notification.title && <h3 className="font-bold">{notification.title}</h3>}
-                <div className="text-xs">{notification.message}</div>
-            </div>
-        </div>
-        <div className="flex-none flex-col place-content-between place-self-start">
-            <button
-                onClick={e => store.notificationStore.removeNotification(notification)}
-                className={`btn btn-circle btn-ghost btn-xs self-end ${notification.duration ? "radial-progress" : ""}`}
-                style={{
-                    "--value": 100 - 100 * notification.msPassed / (notification.duration ?? Infinity),
-                    "--size": "1.5rem",
-                    "--thickness": "0.2rem"
-                } as CSSProperties}>
-                <i className="fa-solid fa-xmark text-lg"/>
-            </button>
-            <div className="flex flex-row gap-2">
-                {notification.actions && Object.entries(notification.actions).map(([label, action]) => {
-                    return <ActionButton key={label} notification={notification} label={label} behaviour={action}/>
-                })}
-            </div>
-        </div>
-    </div>
+    return (
+        <Card shadow="lg" className="border-none bg-background/80 backdrop-blur-md">
+            <CardBody className="p-3">
+                <div className="flex gap-3">
+                    <div className={`p-2 rounded-full bg-${color}/20 text-${color}`}>
+                        <Icon size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        {notification.title && <h4 className="text-sm font-bold truncate">{notification.title}</h4>}
+                        <p className="text-xs text-foreground-500 line-clamp-2">{notification.message}</p>
+                        
+                        {notification.actions && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {Object.entries(notification.actions).map(([label, action]) => (
+                                    <ActionButton key={label} notification={notification} label={label} behaviour={action}/>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                        <Button
+                            isIconOnly
+                            variant="light"
+                            size="sm"
+                            onClick={() => store.notificationStore.removeNotification(notification)}
+                        >
+                            {notification.duration ? (
+                                <CircularProgress
+                                    aria-label="Notification timeout"
+                                    size="sm"
+                                    value={100 - 100 * notification.msPassed / (notification.duration ?? Infinity)}
+                                    color={color as any}
+                                    showValueLabel={false}
+                                    strokeWidth={4}
+                                    classNames={{
+                                        svg: "w-6 h-6",
+                                    }}
+                                >
+                                    <X size={14} />
+                                </CircularProgress>
+                            ) : (
+                                <X size={18} />
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            </CardBody>
+        </Card>
+    )
 })
 
 const ActionButton = observer((
@@ -58,7 +83,7 @@ const ActionButton = observer((
     const [clicked, setClicked] = useState(false)
     const [disabled, setDisabled] = useState(false)
 
-    const {btnColorType} = buttonTypeValues(notification, behaviour)
+    const color = buttonColor(notification, behaviour)
 
     const handleClick = async () => {
         const result = behaviour.action()
@@ -84,96 +109,50 @@ const ActionButton = observer((
         })
 
         return () => dispose()
-    }, [])
+    }, [behaviour])
 
-    return <button disabled={clicked || disabled} onClick={e => {
-        handleClick().then()
-    }} className={`btn btn-xs ${btnColorType} disabled:cursor-not-allowed`}>
-        {label}
-    </button>
+    return (
+        <Button 
+            size="sm" 
+            variant={behaviour.type === "ghost" ? "light" : "flat"} 
+            color={color as any}
+            isLoading={clicked}
+            isDisabled={disabled}
+            onClick={handleClick}
+        >
+            {label}
+        </Button>
+    )
 })
 
 function notificationTypeValues(notification: NotificationInfo) {
     switch (notification.type) {
         case NotificationType.Neutral:
-            return {
-                icon: "fa-regular fa-bell",
-                iconColor: "text-info",
-                alertColor: ""
-            }
+            return { Icon: Bell, color: "default" }
         case NotificationType.Info:
-            return {
-                icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="2 2 20 20"
-                           className="stroke-current flex-shrink-0 w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>,
-                iconColor: "",
-                alertColor: "alert-info"
-            }
+            return { Icon: Info, color: "primary" }
         case NotificationType.Success:
-            return {
-                icon: "fa-regular fa-circle-check",
-                iconColor: "",
-                alertColor: "alert-success"
-            }
+            return { Icon: CheckCircle2, color: "success" }
         case NotificationType.Warn:
-            return {
-                icon: <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-5 w-5"
-                           fill="none" viewBox="2 2 20 20">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>,
-                iconColor: "",
-                alertColor: "alert-warning"
-            }
+            return { Icon: AlertTriangle, color: "warning" }
         case NotificationType.Error:
-            return {
-                icon: "fa-regular fa-circle-xmark",
-                iconColor: "",
-                alertColor: "alert-error"
-            }
+            return { Icon: XCircle, color: "danger" }
         default:
-            throw new Error("May never reach here")
+            return { Icon: Bell, color: "default" }
     }
 }
 
-function buttonTypeValues(notification: NotificationInfo, behaviour: NotificationBehaviour) {
-    if (behaviour.type === "ghost") {
-        return {
-            btnColorType: "btn-ghost"
-        }
-    }
-
-    if (behaviour.type === "neutral") {
-        return {
-            btnColorType: ""
-        }
-    }
+function buttonColor(notification: NotificationInfo, behaviour: NotificationBehaviour) {
+    if (behaviour.type === "ghost") return "default"
+    if (behaviour.type === "neutral") return "default"
 
     switch (notification.type) {
-        case NotificationType.Neutral:
-            return {
-                btnColorType: "btn-primary"
-            }
-        case NotificationType.Info:
-            return {
-                btnColorType: ""
-            }
-        case NotificationType.Success:
-            return {
-                btnColorType: ""
-            }
-        case NotificationType.Warn:
-            return {
-                btnColorType: ""
-            }
-        case NotificationType.Error:
-            return {
-                btnColorType: ""
-            }
-        default:
-            throw new Error("May never reach here")
+        case NotificationType.Neutral: return "primary"
+        case NotificationType.Info: return "primary"
+        case NotificationType.Success: return "success"
+        case NotificationType.Warn: return "warning"
+        case NotificationType.Error: return "danger"
+        default: return "default"
     }
 }
 

@@ -9,7 +9,6 @@ import { isValidTime } from "../../../util/validation";
 import dialog from "../../../libs/dialog";
 import notification from "../../../libs/notification";
 import { ValidatableInputField } from "../../form/input";
-import { Combobox } from "@headlessui/react";
 import { ValidatableComboBox } from "../../form/combobox";
 import RegisterAddressForm, {
     emptyClientRegisterAddressFieldData,
@@ -279,21 +278,12 @@ const EventForm = observer((
                                      placeholder="Main Seminar - 2h"
                                      required className="max-w-md"
                                      newValue={{data: newSeminar, prompt: "Define new seminar"}}
-                                     mapDisplayValue={(value) => {
-                                         return !(value instanceof Seminar) ? "" :
-                                             `${value.title}${value.duration != null ? ` - ${formatDuration(value.duration, language)}` : ""}`
-                                     }} setQuery={setSeminarSearchQuery}>
-                    {filteredSeminars.map((item) =>
-                        <Combobox.Option key={item.record.join()} value={item}>
-                            <a className={`${item == seminar.value ? "active" : ""}`}>
-                                <span className="font-medium">{item.title}</span>
-                                {!!item.duration &&
-                                    <><i
-                                        className="fa-solid fa-clock -mr-1"/>{formatDuration(item.duration, language)}</>}
-                            </a>
-                        </Combobox.Option>
-                    )}
-                </ValidatableComboBox>
+                                     items={filteredSeminars.map(item => ({
+                                         id: item.record.join(),
+                                         label: `${item.title}${item.duration != null ? ` - ${formatDuration(item.duration, language)}` : ""}`,
+                                         value: item
+                                     }))}
+                                     setQuery={setSeminarSearchQuery} />
 
                 <ValidatableInputField data={date} label="Date" placeholder="2001-01-01"
                                        required className="basis-96 shrink grow-0"
@@ -320,20 +310,13 @@ const EventForm = observer((
                                      placeholder="Musterstraße 12, 3456 Maxhausen, Austria"
                                      required className="max-w-md"
                                      newValue={{data: newAddress, prompt: "Create new address"}}
-                                     mapDisplayValue={(value: typeof location.value) => {
-                                         return !(value instanceof Address) ? "" :
-                                             `${value.street} ${value.streetNumber}${value.extra ? ` (${value.extra})` : ""}, ` +
-                                             `${value.postalCode} ${value.city}, ${value.country}`
-                                     }} setQuery={setAddressSearchQuery}>
-                    {filteredAddresses.map((item) =>
-                        <Combobox.Option key={item.record.join()} value={item}>
-                            <a className={`${item == location.value ? "active" : ""}`}>
-                                {`${item.street} ${item.streetNumber}${item.extra ? ` (${item.extra})` : ""}, ` +
-                                    `${item.postalCode} ${item.city}, ${item.country}`}
-                            </a>
-                        </Combobox.Option>
-                    )}
-                </ValidatableComboBox>
+                                     items={filteredAddresses.map(item => ({
+                                         id: item.record.join(),
+                                         label: `${item.street} ${item.streetNumber}${item.extra ? ` (${item.extra})` : ""}, ` +
+                                                `${item.postalCode} ${item.city}, ${item.country}`,
+                                         value: item
+                                     }))}
+                                     setQuery={setAddressSearchQuery} />
             </div>
 
             {location.value == newAddress && <RegisterAddressForm addressData={newAddress}/>}

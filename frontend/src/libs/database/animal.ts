@@ -1,6 +1,6 @@
 import Animal from "../../model/animal"
-import {Result} from "surrealdb.js"
-import {query} from "./index"
+
+import {query, Result} from "./index"
 import Race from "../../model/race";
 
 export async function deleteAnimal(animal: Animal): Promise<Result<any>> {

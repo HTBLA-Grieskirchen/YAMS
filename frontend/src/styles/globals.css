@@ -13,11 +13,3 @@
 .btn-disabled .btn[disabled] {
     pointer-events: auto;
 }
-
-.tab-active {
-    @apply [--tab-bg:hsl(var(--b3))] [--tab-color:hsl(var(--bc))]
-}
-
-.tab-lifted {
-    @apply [--tab-border-color:transparent]
-}

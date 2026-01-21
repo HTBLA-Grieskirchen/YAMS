@@ -10,7 +10,6 @@ import ClientDetail from "../index";
 import dialog from "../../../../libs/dialog";
 import { ValidatableComboBox } from "../../../../components/form/combobox";
 import { ValidatableFieldData } from "../../../../libs/field/validatable";
-import { Combobox } from "@headlessui/react";
 import notification from "../../../../libs/notification";
 import { deleteClientRelation, relateClients, updateClientRelation } from "../../../../libs/database/clientRelation";
 import Head from "next/head";
@@ -251,37 +250,22 @@ const AddRelationDialog = observer((
             <ValidatableComboBox data={targetClient} label="Other client"
                                  placeholder="Max Mustermann, 01.02.2003"
                                  className="max-w-md basis-7/12"
-                                 mapDisplayValue={(value: typeof targetClient.value) => {
-                                     return value == null || !(value instanceof Client) ? "" :
-                                         `${value.firstName} ${value.lastName}, ${value.birthdate.toLocaleDateString()}`
-                                 }} setQuery={setTargetClientQuery}>
-                {filteredTargetClients.map((item) =>
-                    <Combobox.Option className={`${item == targetClient.value ? "active" : ""}`}
-                                     key={item.record.join()} value={item}>
-                        <a className="flex items-center">
-                            <div className={`badge badge-xs ${item.consent ? "badge-success" : "badge-error"}`}></div>
-                            <div className="flex flex-col">
-                                <p className="font-medium">{`${item.firstName} ${item.lastName}, ${item.birthdate.toLocaleDateString()}`}</p>
-                                <p>{item.mobileNumber}, <span className="text-primary">{item.email}</span></p>
-                            </div>
-                        </a>
-                    </Combobox.Option>
-                )}
-            </ValidatableComboBox>
+                                 items={filteredTargetClients.map(item => ({
+                                     id: item.record.join(),
+                                     label: `${item.firstName} ${item.lastName}, ${item.birthdate.toLocaleDateString()}`,
+                                     value: item
+                                 }))}
+                                 setQuery={setTargetClientQuery} />
 
             <ValidatableComboBox data={relationType} label="Relation type"
                                  placeholder="Legal guardian" disabled={targetClient.value == null}
                                  className="max-w-sm basis-5/12"
-                                 mapDisplayValue={(value: typeof relationType.value) => {
-                                     return value
-                                 }} setQuery={relationType.setValue}>
-                {filteredRelationTypes.map((item) =>
-                    <Combobox.Option className={`${item == relationType.value.trim() ? "active" : ""}`}
-                                     key={item} value={item}>
-                        <a>{item}</a>
-                    </Combobox.Option>
-                )}
-            </ValidatableComboBox>
+                                 items={filteredRelationTypes.map(item => ({
+                                     id: item,
+                                     label: item,
+                                     value: item
+                                 }))}
+                                 setQuery={relationType.setValue} />
 
             <div className="form-control grow mt-8">
                 <label className={`label ${bidirectional.isPossible ? "cursor-pointer" : "cursor-help"} w-full`}>
@@ -466,15 +450,13 @@ const Relation = observer((
             </h3>
             <ValidatableComboBox data={mutability.changeValue} label="Relation type"
                                  placeholder={relation.relationType}
-                                 className="max-w-sm" mapDisplayValue={(value) => value}
-                                 setQuery={mutability.changeValue.setValue}>
-                {filteredRelationTypes.map((item) =>
-                    <Combobox.Option className={`${item == mutability.changeValue.value.trim() ? "active" : ""}`}
-                                     key={item} value={item}>
-                        <a>{item}</a>
-                    </Combobox.Option>
-                )}
-            </ValidatableComboBox>
+                                 className="max-w-sm"
+                                 items={filteredRelationTypes.map(item => ({
+                                     id: item,
+                                     label: item,
+                                     value: item
+                                 }))}
+                                 setQuery={mutability.changeValue.setValue} />
             <div className="modal-action">
                 <button className="btn" onClick={e => close()}>Abort</button>
                 <button className="btn btn-primary" onClick={e => {

@@ -1,6 +1,6 @@
 import Race from "../../model/race"
-import {Result} from "surrealdb.js"
-import {query} from "./index"
+
+import {query, Result} from "./index"
 
 export async function deleteRace(race: Race): Promise<Result<any>> {
     const checkResult = await query("SELECT * FROM animal WHERE race = type::thing($raceTable, $raceID)", {

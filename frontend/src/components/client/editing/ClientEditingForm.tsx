@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import Address from "../../../model/address";
-import { query } from "../../../libs/database";
+import { query, Result } from "../../../libs/database";
 import { observer, useLocalObservable } from "mobx-react";
 import Client from "../../../model/client";
 import { ValidatableInputField } from "../../form/input";
 import { ValidatableComboBox } from "../../form/combobox";
-import { Combobox } from "@headlessui/react";
 import { useRouter } from "next/router";
 import { useStore } from "../../../stores";
 import { ValidatableFieldData } from "../../../libs/field/validatable";
@@ -15,7 +14,7 @@ import ClientRegisterAddressForm, {
     NewAddressFormData
 } from "../../address/RegisterAddress";
 import dialog from "../../../libs/dialog";
-import { Result } from "surrealdb.js";
+
 import notification from "../../../libs/notification";
 import { makeRecordForTable, Record } from "../../../model/surreal";
 import { createAddress } from "../../../libs/database/address";
@@ -278,21 +277,13 @@ const EditClientForm = observer(({client}: { client: Client }) => {
                 <ValidatableComboBox data={address} label="Address"
                                      required className="max-w-md"
                                      newValue={{data: newAddress, prompt: "Create new address"}}
-                                     mapDisplayValue={(value: typeof address.value) => {
-                                         return value == null || !(value instanceof Address) ? (value != newAddress ?
-                                             `${client.address.street} ${client.address.streetNumber}${client.address.extra ? ` (${client.address.extra})` : ""}, ` +
-                                             `${client.address.postalCode} ${client.address.city}, ${client.address.country}`   : "") :
-                                             `${value.street} ${value.streetNumber}${value.extra ? ` (${value.extra})` : ""}, ` +
-                                             `${value.postalCode} ${value.city}, ${value.country}`
-                                     }} setQuery={setAddressSearchQuery}>
-                    {filteredAddresses.map((item) =>
-                        <Combobox.Option className={`${item == address.value ? "active" : ""}`}
-                                         key={item.record.join()} value={item}>
-                            <a>{`${item.street} ${item.streetNumber}${item.extra ? ` (${item.extra})` : ""}, ` +
-                                `${item.postalCode} ${item.city}, ${item.country}`}</a>
-                        </Combobox.Option>
-                    )}
-                </ValidatableComboBox>
+                                     items={filteredAddresses.map(item => ({
+                                         id: item.record.join(),
+                                         label: `${item.street} ${item.streetNumber}${item.extra ? ` (${item.extra})` : ""}, ` +
+                                                `${item.postalCode} ${item.city}, ${item.country}`,
+                                         value: item
+                                     }))}
+                                     setQuery={setAddressSearchQuery} />
             </div>
             {address.value != null && !(address.value instanceof Address) && <ClientRegisterAddressForm addressData={address.value}/>}
         </form>

@@ -9,7 +9,6 @@ import {
     updateEventParticipation
 } from "../../libs/database/eventParticipation";
 import { ValidatableComboBox } from "../form/combobox";
-import { Combobox } from "@headlessui/react";
 import React, { useState } from "react";
 import store, { useStore } from "../../stores";
 import { observer, useLocalObservable } from "mobx-react";
@@ -65,24 +64,12 @@ export function askAddParticipantEvent(event: Event, state?: SubmissionState, ca
                 <ValidatableComboBox data={targetClient} label="Client"
                                      placeholder="Max Mustermann, 01.02.2003"
                                      className="max-w-md basis-96"
-                                     mapDisplayValue={(value: typeof targetClient.value) => {
-                                         return value == null || !(value instanceof Client) ? "" :
-                                             `${value.firstName} ${value.lastName}, ${value.birthdate.toLocaleDateString()}`
-                                     }} setQuery={setTargetClientQuery}>
-                    {filteredClients.map((item) =>
-                        <Combobox.Option className={`${item == targetClient.value ? "active" : ""}`}
-                                         key={item.record.join()} value={item}>
-                            <a className="flex items-center">
-                                <div
-                                    className={`badge badge-xs ${item.consent ? "badge-success" : "badge-error"}`}></div>
-                                <div className="flex flex-col">
-                                    <p className="font-medium">{`${item.firstName} ${item.lastName}, ${item.birthdate.toLocaleDateString()}`}</p>
-                                    <p>{item.mobileNumber}, <span className="text-primary">{item.email}</span></p>
-                                </div>
-                            </a>
-                        </Combobox.Option>
-                    )}
-                </ValidatableComboBox>
+                                     items={filteredClients.map(item => ({
+                                         id: item.record.join(),
+                                         label: `${item.firstName} ${item.lastName}, ${item.birthdate.toLocaleDateString()}`,
+                                         value: item
+                                     }))}
+                                     setQuery={setTargetClientQuery} />
                 <ValidatableInputField data={price} label="Price" placeholder={event.seminar.price.toString()}
                                        className="basis-48 shrink grow-0" required
                                        mapDisplayValue={(num) => price.modified ? undefined : num.toString()}

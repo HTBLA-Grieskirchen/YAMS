@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import Client from "../../model/client"
-import { LiveRefresher, query } from "../../libs/database";
+import { LiveRefresher, query, Result } from "../../libs/database";
 import React, { useState } from "react";
-import { Result } from "surrealdb.js";
+
 import AnimalList from "../animal/AnimalList";
 import Link from "next/link";
 import paths from "../../util/paths";

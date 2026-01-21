@@ -1,49 +1,45 @@
+const { heroui } = require("@heroui/react");
+
 /** @type {import('tailwindcss').Config} */
-
 module.exports = {
-    content: [
-        "./src/**/*.{js,jsx,ts,tsx}",
-    ],
-
-    theme: {
-        extend: {},
-    },
-
-    plugins: [
-        require("@tailwindcss/typography"),
-        require("daisyui"),
-        require('@tailwindcss/line-clamp')
-    ],
-
-    daisyui: {
-        styled: true,
-
-        themes: [
-            {
-                light: {
-                    "primary": "#0ea5e9",
-                    "secondary": "#5eead4",
-                    "accent": "#d8b4fe",
-                    "neutral": "#374151",
-                    "base-100": "#f3f4f6",
-                    "info": "#a5f3fc",
-                    "success": "#5fe3a3",
-                    "warning": "#facc15",
-                    "error": "#fc404d",
-                },
-
-                dark: {
-                    "primary": "#3b82f6",
-                    "secondary": "#4ade80",
-                    "accent": "#e879f9",
-                    "neutral": "#191d24",
-                    "base-100": "#2a303c",
-                    "info": "#06b6d4",
-                    "success": "#32CD8A",
-                    "warning": "#fba53c",
-                    "error": "#f50a16",
-                },
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  darkMode: "class",
+  plugins: [
+    heroui({
+      themes: {
+        light: {
+          colors: {
+            primary: {
+              DEFAULT: "#0ea5e9",
+              foreground: "#ffffff",
             },
-        ],
-    },
-}
+            secondary: {
+              DEFAULT: "#5eead4",
+              foreground: "#000000",
+            },
+            focus: "#0ea5e9",
+          },
+        },
+        dark: {
+          colors: {
+            primary: {
+              DEFAULT: "#3b82f6",
+              foreground: "#ffffff",
+            },
+            secondary: {
+              DEFAULT: "#4ade80",
+              foreground: "#000000",
+            },
+            focus: "#3b82f6",
+          },
+        },
+      },
+    }),
+  ],
+};

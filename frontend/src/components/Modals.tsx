@@ -1,18 +1,28 @@
 import {observer} from "mobx-react";
 import {useStore} from "../stores";
+import { Modal, ModalContent } from "@heroui/react";
 
 const Modals = observer(() => {
     const store = useStore()
 
     return <>
-        {store.dialogStore.dialogs().map((dialog) =>
-            <div key={dialog.uuid} className="flex fixed inset-0 bg-gray-600 bg-opacity-50
-                overflow-y-auto h-full w-full items-center">
-                <div
-                    className={`modal modal-open ${dialog.type === "responsive" ? "modal-bottom md:modal-middle" : ""}`}>
-                    {dialog.component(store.dialogStore.closeDialog)}
-                </div>
-            </div>
+        {store.dialogStore.dialogs().map((dialog, index) =>
+            <Modal 
+                key={dialog.uuid || index} 
+                isOpen={true} 
+                onClose={() => store.dialogStore.closeDialog(false)}
+                scrollBehavior="inside"
+                placement="center"
+                backdrop="blur"
+            >
+                <ModalContent>
+                    {(onClose) => (
+                        <div className="p-1">
+                            {dialog.component(() => store.dialogStore.closeDialog(false))}
+                        </div>
+                    )}
+                </ModalContent>
+            </Modal>
         )}
     </>
 })

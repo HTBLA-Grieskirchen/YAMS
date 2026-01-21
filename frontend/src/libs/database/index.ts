@@ -1,7 +1,6 @@
-import Surreal, {Result} from "surrealdb.js";
+import Surreal, { type QueryResult } from "surrealdb";
 import {observable, runInAction} from "mobx";
 import {useEffect, useState} from "react";
-import Live from "surrealdb.js/types/classes/live";
 import {ano, no} from "../../util/consts";
 import getConfig, {tauri, TauriType} from "../../config";
 
@@ -35,11 +34,11 @@ class DatabaseConnection {
         }
     }
 
-    async query(statement: string, vars?: Record<string, unknown>): Promise<Result<any>[]> {
+    async query(statement: string, vars?: Record<string, unknown>): Promise<QueryResult<any>[]> {
         await this.setupCompleted()
         if (this.db) {
             // TODO: This will result in error if database connection is reset (f.e. database is restarted on remote)
-            return this.db.query(statement, vars)
+            return this.db.queryRaw(statement, vars)
         } else if (this.tauri) {
             return this.tauri.invoke("query_database", {
                 "query": statement,
@@ -50,11 +49,10 @@ class DatabaseConnection {
         throw new DatabaseError("No database is running")
     }
 
-    async live(statement: string, vars?: Record<string, unknown>): Promise<Live | undefined> {
+    async live(statement: string, vars?: Record<string, unknown>): Promise<any | undefined> {
         await this.setupCompleted()
         if (this.db && false) {
-            // TODO: This will result in error if database connection is reset (f.e. database is restarted on remote)
-            return this.db?.sync(statement, vars)
+            // TODO: Provide live support once sync is implemented
         }
 
         return undefined
@@ -86,12 +84,16 @@ class DatabaseConnection {
     }
 
     private async connectToDB(url: string) {
-        const db = new Surreal(url)
+        const db = new Surreal()
+        await db.connect(url)
         await db.signin({
-            user: "root",
-            pass: "root"
+            username: "root",
+            password: "root"
         })
-        await db.use("yams", "yams")
+        await db.use({
+            namespace: "yams",
+            database: "yams"
+        })
         this.db = db
     }
 }
@@ -110,11 +112,25 @@ export type LiveRefresher = () => Promise<void>
 // TODO: Remove once sync is implemented
 export type LiveCleaner = () => void
 
+export interface CompatibilityResult<T> {
+    result?: T;
+    error?: Error;
+}
+
+export type Result<T> = CompatibilityResult<T>;
+
 export async function query(
     statement: string,
     vars?: Record<string, unknown>
-): Promise<Result<any>[]> {
-    return db.query(statement, vars)
+): Promise<CompatibilityResult<any>[]> {
+    const response = await db.query(statement, vars)
+    return response.map(r => {
+        if (r.status === "OK") {
+            return { result: r.result, error: undefined }
+        } else {
+            return { result: undefined, error: new Error(r.result as string) }
+        }
+    })
 }
 
 /**
@@ -130,11 +146,11 @@ export async function query(
 export async function live(
     statement: string,
     vars?: Record<string, unknown>
-): Promise<[Result<any>[], LiveRefresher, LiveCleaner]> {
-    const live = await db.live(statement, vars)
-    if (live) {
+): Promise<[CompatibilityResult<any>[], LiveRefresher, LiveCleaner]> {
+    const liveResult = await db.live(statement, vars)
+    if (liveResult) {
         // TODO: Provide live support once sync is implemented
-        return [[] as Result<any>[], ano, no]
+        return [[] as CompatibilityResult<any>[], ano, no]
     }
 
     const getObservableResult = async () => {
@@ -142,7 +158,7 @@ export async function live(
         return staticResult.map(item => observable(item))
     }
 
-    const result: Result<any>[] = observable(await getObservableResult())
+    const result: CompatibilityResult<any>[] = observable(await getObservableResult())
 
     const updateResult = async () => {
         const observableResult = await getObservableResult()
@@ -154,7 +170,7 @@ export async function live(
     }
 
     // TODO: Remove once sync is implemented
-    let interval: NodeJS.Timer | undefined = undefined
+    let interval: any = undefined
     if (db.isRemote()) {
         interval = setInterval(updateResult, 1250)
     }
@@ -162,8 +178,8 @@ export async function live(
     return [result, updateResult, () => clearInterval(interval)]
 }
 
-interface QueryResult<T> {
-    response: Result<T>[],
+interface QueryResultState<T> {
+    response: CompatibilityResult<T>[],
     loading?: never
 }
 
@@ -172,7 +188,7 @@ interface LoadingResult {
     loading: boolean
 }
 
-export type RequestedResult<T> = QueryResult<T> | LoadingResult
+export type RequestedResult<T> = QueryResultState<T> | LoadingResult
 
 
 /**
@@ -220,7 +236,7 @@ export function useLive(
         const initPromise = init()
 
         return () => {
-            initPromise.then((clear) => clear())
+            initPromise.then((clear) => clear && clear())
         }
     }, [])
 

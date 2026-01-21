@@ -16,7 +16,7 @@ export default class NotificationStore {
     }
 
     addNotification(notification: NotificationInfo) {
-        let interval: NodeJS.Timer | undefined = undefined
+        let interval: any = undefined
         let disposeCheck: (() => void) | undefined = undefined
         if (notification.duration !== undefined) {
             interval = setInterval(() => {
@@ -57,5 +57,5 @@ export default class NotificationStore {
 type NotificationEntry = {
     info: NotificationInfo,
     clean: (() => void) | undefined,
-    interval: NodeJS.Timer | undefined
+    interval: any
 }

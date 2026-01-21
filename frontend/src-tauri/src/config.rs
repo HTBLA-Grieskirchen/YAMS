@@ -145,10 +145,10 @@ impl From<Arc<YAMSFileConfig>> for YAMSBackendConfig {
         let in_dev = dev_var_set();
 
         let location = if in_dev {
-            format!("file:{}", ["..", "..", "backend", "surreal_data"]
-                .iter().collect::<PathBuf>().to_str().unwrap())
+            ["..", "..", "backend", "yams.db"]
+                .iter().collect::<PathBuf>().to_str().unwrap().to_string()
         } else {
-            format!("file:{}", file_config.dirs.data_dir().join("surreal_data").to_str().unwrap())
+            file_config.dirs.data_dir().join("yams.db").to_str().unwrap().to_string()
         };
 
         let uses_local_database = (&file_config).remote_database_location.is_none();
@@ -170,10 +170,10 @@ impl Default for YAMSBackendConfig {
         let dirs = project_dirs();
 
         let location = if in_dev {
-            format!("file:{}", ["..", "..", "backend", "surreal_data"]
-                .iter().collect::<PathBuf>().to_str().unwrap())
+            ["..", "..", "backend", "yams.db"]
+                .iter().collect::<PathBuf>().to_str().unwrap().to_string()
         } else {
-            format!("file:{}", dirs.data_dir().join("surreal_data").to_str().unwrap())
+            dirs.data_dir().join("yams.db").to_str().unwrap().to_string()
         };
 
         Self {

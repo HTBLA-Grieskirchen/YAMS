@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use crate::models::Client;
+use crate::models::{Client, NewClient};
 use crate::context::YamsContext;
 use crate::error::Result;
 
@@ -16,7 +16,11 @@ impl ClientService {
         self.ctx.client_repo.find_all().await
     }
 
-    pub async fn create(&self, client: Client) -> Result<Client> {
-        self.ctx.client_repo.save(client).await
+    pub async fn create(&self, client: NewClient) -> Result<Client> {
+        self.ctx.client_repo.create(client).await
+    }
+
+    pub async fn update(&self, client: Client) -> Result<Client> {
+        self.ctx.client_repo.update(client).await
     }
 }

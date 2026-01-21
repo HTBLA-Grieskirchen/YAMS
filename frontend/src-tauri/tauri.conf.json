@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "identifier": "at.htlgrieskirchen.yams",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
     "devUrl": "http://localhost:3000",
     "frontendDist": "../out"
   },

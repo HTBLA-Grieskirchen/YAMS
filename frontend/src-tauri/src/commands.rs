@@ -1,5 +1,5 @@
 use tauri::State;
-use yams_core::models::Address;
+use yams_core::models::{Address, NewAddress};
 use yams_core::services::AddressService;
 
 #[tauri::command]
@@ -12,7 +12,7 @@ pub async fn get_addresses(
 
 #[tauri::command]
 pub async fn create_address(
-    address: Address,
+    address: NewAddress,
     service: State<'_, AddressService>,
 ) -> Result<Address, String> {
     service.create(address).await

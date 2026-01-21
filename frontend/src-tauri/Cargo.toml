@@ -6,7 +6,7 @@ authors = ["Tim Peko", "David Rathmair", "Dominik Wernsdorfer", "Julian Bachinge
 license-file = "../../LICENSE"
 repository = "https://github.com/HTBLA-Grieskirchen/YAMS/"
 default-run = "yams"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -23,7 +23,5 @@ tauri = { version = "2.0", features = [] }
 tauri-plugin-shell = "2.0"
 tauri-plugin-fs = "2.0"
 url = { version = "^2.3.1", features = ["serde"] }
-surrealdb = { version = "1.0", features = ["kv-rocksdb"] }
 directories = "^4.0.1"
 
-[features]

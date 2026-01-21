@@ -1,5 +1,5 @@
 use poem_openapi::OpenApiService;
-use yams_dto::{AddressDTO, GetAddressesResponse, CreateAddressResponse};
+use yams_dto::{NewAddressDTO, GetAddressesResponse, CreateAddressResponse};
 use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;
 
@@ -18,7 +18,7 @@ impl SpecApi {
     }
 
     #[oai(path = "/addresses", method = "post")]
-    async fn create_address(&self, _address: Json<AddressDTO>) -> CreateAddressResponse {
+    async fn create_address(&self, _address: Json<NewAddressDTO>) -> CreateAddressResponse {
         unimplemented!()
     }
 }

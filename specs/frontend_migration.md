@@ -19,4 +19,7 @@
 
 ## Developer Experience
 - **Tooling**: `mise` manages all tasks (build, dev, test, etc.).
-- **Type Generation**: Automated from Rust `yams-dto` crate.
+- **Task Convention**: `function:scope` (e.g., `test:backend`, `build:tauri`).
+- **Type Generation**: Automated from Rust `yams-dto` crate via `mise run generate:types`.
+- **CI/CD**: GitHub Actions use `mise run ci` for checks and delegate builds to `mise run build:tauri` via `tauri-action`.
+- **Environment**: Centralized configuration in `mise.toml`.

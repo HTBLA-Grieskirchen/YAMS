@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::models::Address;
+use crate::models::{Address, NewAddress};
 use crate::context::YamsContext;
 use crate::error::Result;
 
@@ -21,8 +21,12 @@ impl AddressService {
         self.ctx.address_repo.find_by_id(id).await
     }
 
-    pub async fn create(&self, address: Address) -> Result<Address> {
-        self.ctx.address_repo.save(address).await
+    pub async fn create(&self, address: NewAddress) -> Result<Address> {
+        self.ctx.address_repo.create(address).await
+    }
+
+    pub async fn update(&self, address: Address) -> Result<Address> {
+        self.ctx.address_repo.update(address).await
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<()> {

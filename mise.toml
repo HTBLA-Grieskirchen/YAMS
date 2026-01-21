@@ -1,62 +1,79 @@
+[env]
+FRONTEND_DIR = "frontend"
+OPENAPI_SPEC = "openapi.json"
+
 [tools]
 node = "22"
-rust = "latest"
+rust = "nightly"
 
-[tasks."frontend:install"]
-description = "Install frontend dependencies"
-dir = "frontend"
-run = "npm install"
+[tasks."build:openapi"]
+description = "Export OpenAPI spec to openapi.json"
+run = "cargo run -p yams-dto --bin export_spec > $OPENAPI_SPEC"
 
-[tasks."frontend:dev"]
-description = "Start Next.js dev server"
-dir = "frontend"
-run = "npm run dev"
+[tasks."generate:types"]
+description = "Generate TypeScript types from OpenAPI spec"
+depends = ["build:openapi"]
+dir = "{{env.FRONTEND_DIR}}"
+run = "npx openapi-typescript ../$OPENAPI_SPEC -o src/api/schema.d.ts"
 
-[tasks."frontend:build"]
+[tasks."build:frontend"]
 description = "Build Next.js app"
-dir = "frontend"
+depends = ["generate:types"]
+dir = "{{env.FRONTEND_DIR}}"
 run = "npm run build"
 
-[tasks."frontend:lint"]
-description = "Lint frontend"
-dir = "frontend"
-run = "npm run lint"
+[tasks."build:tauri"]
+description = "Build Tauri app"
+depends = ["build:frontend"]
+dir = "{{env.FRONTEND_DIR}}"
+run = "npx tauri build"
 
-[tasks."frontend:generate-types"]
-description = "Generate TypeScript types from OpenAPI spec"
-dir = "frontend"
-run = "npx openapi-typescript ../openapi.json -o src/api/schema.d.ts"
-
-[tasks."backend:check"]
+[tasks."check:backend"]
 description = "Check all backend crates"
 run = "cargo check"
 
-[tasks."backend:test"]
+[tasks."test:backend"]
 description = "Run all backend tests"
 run = "cargo test"
 
-[tasks."backend:export-spec"]
-description = "Export OpenAPI spec to openapi.json"
-run = "cargo run -p yams-dto --bin export_spec > openapi.json"
+[tasks."test:frontend"]
+description = "Run frontend tests"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run test"
 
-[tasks."tauri:dev"]
-description = "Start Tauri dev"
-dir = "frontend"
+[tasks."lint:frontend"]
+description = "Lint frontend"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run lint"
+
+[tasks."dev:frontend"]
+description = "Start Next.js dev server"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run dev"
+
+[tasks."dev:tauri_"]
+dir = "{{env.FRONTEND_DIR}}"
 run = "npx tauri dev"
 
-[tasks."tauri:build"]
-description = "Build Tauri app"
-dir = "frontend"
-run = "npx tauri build"
+[tasks."dev:tauri"]
+description = "Start Tauri dev"
+dir = "{{env.FRONTEND_DIR}}"
+run = [
+    {tasks = ["dev:tauri_", "dev:frontend"]}
+]
 
 [tasks.dev]
 description = "Start dev environment"
-depends = ["frontend:dev"]
+depends = ["dev:frontend"]
 
 [tasks.build]
 description = "Build the whole project"
-depends = ["backend:export-spec", "frontend:generate-types", "frontend:build", "tauri:build"]
+depends = ["build:tauri"]
 
 [tasks.test]
 description = "Run all tests"
-depends = ["backend:test", "frontend:test"]
+depends = ["test:backend", "test:frontend"]
+
+[tasks.ci]
+description = "CI pipeline task"
+depends = ["check:backend", "lint:frontend", "test"]

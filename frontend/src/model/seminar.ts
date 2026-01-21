@@ -1,5 +1,5 @@
 import {makeAutoObservable, runInAction} from "mobx"
-import {makeRecordForTable, Record, SurrealResponse} from "./surreal";
+import {makeRecordForTable, Record, DatabaseResponse} from "./database";
 import parseDuration from "parse-duration"
 
 export default class Seminar {
@@ -28,7 +28,7 @@ export default class Seminar {
     }
 }
 
-export class SeminarResponse implements SurrealResponse<Seminar> {
+export class SeminarResponse implements DatabaseResponse<Seminar> {
     readonly data: {
         id: string,
         duration: string | null,

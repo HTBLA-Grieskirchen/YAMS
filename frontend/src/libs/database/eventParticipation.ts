@@ -1,6 +1,6 @@
 
 import { query, Result } from "./index";
-import { Record } from "../../model/surreal";
+import { Record } from "../../model/database";
 import EventParticipation, { EventParticipationResponse } from "../../model/participation";
 
 export async function relateClientParticipateEvent(

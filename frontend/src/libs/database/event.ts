@@ -1,4 +1,4 @@
-import {Record} from "../../model/surreal";
+import {Record} from "../../model/database";
 import {query, Result} from "./index";
 
 import Event, {EventResponse} from "../../model/event";

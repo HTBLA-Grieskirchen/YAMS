@@ -1,9 +1,9 @@
-export interface SurrealObject {
+export interface DatabaseObject {
     readonly table: string
     readonly record: Record
 }
 
-export interface SurrealResponse<T extends SurrealObject> {
+export interface DatabaseResponse<T extends DatabaseObject> {
     applyOn(object: T): void
 
     intoObject(): T | undefined

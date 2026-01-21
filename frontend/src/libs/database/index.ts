@@ -1,11 +1,9 @@
-import Surreal, { type QueryResult } from "surrealdb";
 import {observable, runInAction} from "mobx";
 import {useEffect, useState} from "react";
 import {ano, no} from "../../util/consts";
 import getConfig, {tauri, TauriType} from "../../config";
 
 class DatabaseConnection {
-    private db: Surreal | undefined
     private tauri: TauriType | undefined
     private setupPromise: Promise<void> | undefined
 
@@ -17,10 +15,11 @@ class DatabaseConnection {
     async setup() {
         const config = await getConfig()
         if (config.remoteDatabaseLocation !== null) {
-            await this.connectToDB(config.remoteDatabaseLocation)
+            console.warn("Remote database location is set but remote connection is not implemented yet");
         } else if (tauri) {
             this.tauri = tauri
-            await tauri?.invoke("setup_database")
+            // We no longer call "setup_database" as it was SurrealDB specific
+            // The new SQLite adapter is initialized in Tauri setup
         }
     }
 
@@ -34,45 +33,32 @@ class DatabaseConnection {
         }
     }
 
-    async query(statement: string, vars?: Record<string, unknown>): Promise<QueryResult<any>[]> {
+    async query(statement: string, vars?: Record<string, unknown>): Promise<any[]> {
         await this.setupCompleted()
-        if (this.db) {
-            // TODO: This will result in error if database connection is reset (f.e. database is restarted on remote)
-            return this.db.queryRaw(statement, vars)
-        } else if (this.tauri) {
+        if (this.tauri) {
             return this.tauri.invoke("query_database", {
                 "query": statement,
                 "vars": vars
             })!
         }
 
-        throw new DatabaseError("No database is running")
+        throw new DatabaseError("No database is running or remote connection not implemented")
     }
 
     async live(statement: string, vars?: Record<string, unknown>): Promise<any | undefined> {
         await this.setupCompleted()
-        if (this.db && false) {
-            // TODO: Provide live support once sync is implemented
-        }
-
         return undefined
     }
 
     async check(): Promise<boolean> {
-        if (this.db) {
-            return true
-        } else if (this.tauri) {
+        if (this.tauri) {
             return this.tauri.invoke("check_database")!
         }
         return false
     }
 
     async close() {
-        if (this.db !== undefined) {
-            const db = this.db
-            this.db = undefined
-            await db.close()
-        }
+        // No close needed for now
     }
 
     isEmbedded(): boolean {
@@ -81,20 +67,6 @@ class DatabaseConnection {
 
     isRemote(): boolean {
         return !this.tauri
-    }
-
-    private async connectToDB(url: string) {
-        const db = new Surreal()
-        await db.connect(url)
-        await db.signin({
-            username: "root",
-            password: "root"
-        })
-        await db.use({
-            namespace: "yams",
-            database: "yams"
-        })
-        this.db = db
     }
 }
 
@@ -124,12 +96,11 @@ export async function query(
     vars?: Record<string, unknown>
 ): Promise<CompatibilityResult<any>[]> {
     const response = await db.query(statement, vars)
+    // Since we are no longer using SurrealDB's queryRaw, 
+    // we need to adapt the response.
+    // For now, let's assume the response is an array of results.
     return response.map(r => {
-        if (r.status === "OK") {
-            return { result: r.result, error: undefined }
-        } else {
-            return { result: undefined, error: new Error(r.result as string) }
-        }
+        return { result: r, error: undefined }
     })
 }
 

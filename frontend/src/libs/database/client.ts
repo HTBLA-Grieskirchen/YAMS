@@ -1,7 +1,7 @@
 
 import { query, Result } from "./index";
 import Client, { ClientResponse } from "../../model/client";
-import { Record } from "../../model/surreal";
+import { Record } from "../../model/database";
 
 export async function createClient(
     firstname: ClientResponse["data"]["first_name"],

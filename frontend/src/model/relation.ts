@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx"
-import { makeRecordForTable, Record, SurrealResponse } from "./surreal";
+import { makeRecordForTable, Record, DatabaseResponse } from "./database";
 import store from "../stores";
 import Client from "./client";
 
@@ -27,7 +27,7 @@ export default class ClientRelation {
     }
 }
 
-export class ClientRelationResponse implements SurrealResponse<ClientRelation> {
+export class ClientRelationResponse implements DatabaseResponse<ClientRelation> {
     readonly data: {
         id: string,
         in: string,

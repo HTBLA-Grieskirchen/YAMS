@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use tauri::Manager;
 use yams_core::context::YamsContext;
 use yams_core::services::{AddressService, ClientService, AnimalService, RaceService, EventService, SeminarService};
 use yams_persistence::adapter::SqliteAdapter;
@@ -12,11 +13,11 @@ use crate::config::{YAMSFileConfig, YAMSFrontendConfig, YAMSBackendConfig};
 fn frontend_config(
     config: tauri::State<'_, YAMSFrontendConfig>,
 ) -> YAMSFrontendConfig {
-    (&config).clone()
+    (*config).clone()
 }
 
 fn main() {
-    let (backend_config, frontend_config) = YAMSFileConfig::load();
+    let (backend_config, _frontend_config) = YAMSFileConfig::load();
 
     tauri::Builder::default()
         .setup(move |app| {
@@ -52,7 +53,7 @@ fn main() {
             app.manage(seminar_service);
             
             app.manage(backend_config);
-            app.manage(frontend_config);
+            app.manage(_frontend_config);
 
             Ok(())
         })

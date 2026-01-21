@@ -1,5 +1,5 @@
 import {makeAutoObservable, runInAction} from "mobx"
-import {makeRecordForTable, Record, SurrealResponse} from "./surreal";
+import {makeRecordForTable, Record, DatabaseResponse} from "./database";
 import Address from "./address";
 import store from "../stores";
 import Seminar from "./seminar";
@@ -53,7 +53,7 @@ export default class Event {
     }
 }
 
-export class EventResponse implements SurrealResponse<Event> {
+export class EventResponse implements DatabaseResponse<Event> {
     readonly data: {
         id: string,
         date: string,

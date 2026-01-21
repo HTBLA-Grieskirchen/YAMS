@@ -1,6 +1,6 @@
 
 import { query, Result } from "./index";
-import { Record } from "../../model/surreal";
+import { Record } from "../../model/database";
 import ClientRelation, { ClientRelationResponse } from "../../model/relation";
 
 export async function relateClients(

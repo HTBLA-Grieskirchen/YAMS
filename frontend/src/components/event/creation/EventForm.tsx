@@ -15,7 +15,7 @@ import RegisterAddressForm, {
     NewAddressFormData
 } from "../../address/RegisterAddress";
 import { query } from "../../../libs/database";
-import { makeRecordForTable, Record } from "../../../model/surreal";
+import { makeRecordForTable, Record } from "../../../model/database";
 import { ensureAddress } from "../../../libs/database/address";
 import Event from "../../../model/event"
 import RegisterSeminarForm, { defaultSeminarFormData, NewSeminarFormData } from "../../seminar/RegisterSeminar";

@@ -1,7 +1,7 @@
-import {makeRecordForTable, Record, SurrealObject, SurrealResponse} from "./surreal"
+import {makeRecordForTable, Record, DatabaseObject, DatabaseResponse} from "./database"
 import {makeAutoObservable, runInAction} from "mobx"
 
-export default class Address implements SurrealObject {
+export default class Address implements DatabaseObject {
     static readonly TABLE: string = "address"
     readonly table: string = Address.TABLE
     readonly record: Record
@@ -34,7 +34,7 @@ export default class Address implements SurrealObject {
     }
 }
 
-export class AddressResponse implements SurrealResponse<Address> {
+export class AddressResponse implements DatabaseResponse<Address> {
     readonly data: {
         id: string,
         country: string,

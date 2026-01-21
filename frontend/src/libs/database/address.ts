@@ -1,7 +1,7 @@
 
 import {query, Result} from "./index";
 import Address, {AddressResponse} from "../../model/address";
-import {makeRecordForTable} from "../../model/surreal";
+import {makeRecordForTable} from "../../model/database";
 import store from "../../stores";
 
 export async function ensureAddress(address: {

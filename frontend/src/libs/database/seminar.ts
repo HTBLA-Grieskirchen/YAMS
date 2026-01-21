@@ -1,5 +1,5 @@
 import store from "../../stores";
-import {makeRecordForTable} from "../../model/surreal";
+import {makeRecordForTable} from "../../model/database";
 import Seminar, {SeminarResponse} from "../../model/seminar";
 
 import {query, Result} from "./index";

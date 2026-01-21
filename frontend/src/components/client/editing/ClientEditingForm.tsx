@@ -16,7 +16,7 @@ import ClientRegisterAddressForm, {
 import dialog from "../../../libs/dialog";
 
 import notification from "../../../libs/notification";
-import { makeRecordForTable, Record } from "../../../model/surreal";
+import { makeRecordForTable, Record } from "../../../model/database";
 import { createAddress } from "../../../libs/database/address";
 import { updateClient } from "../../../libs/database/client";
 import paths from "../../../util/paths";

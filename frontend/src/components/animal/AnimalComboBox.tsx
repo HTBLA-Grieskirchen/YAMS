@@ -3,7 +3,7 @@ import {observer, useLocalObservable} from "mobx-react";
 import {useStore} from "../../stores";
 import Race from "../../model/race";
 import dialog from "../../libs/dialog";
-import {Record} from "../../model/surreal";
+import {Record} from "../../model/database";
 import { Autocomplete, AutocompleteItem, Button, Input } from "@heroui/react";
 
 const AnimalComboBox = observer((

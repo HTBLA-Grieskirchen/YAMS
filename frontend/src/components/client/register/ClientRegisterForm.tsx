@@ -16,7 +16,7 @@ import RegisterAddressForm, {
     NewAddressFormData
 } from "../../address/RegisterAddress";
 import { query, Result } from "../../../libs/database";
-import { makeRecordForTable, Record } from "../../../model/surreal";
+import { makeRecordForTable, Record } from "../../../model/database";
 
 import { ensureAddress } from "../../../libs/database/address";
 import Client from "../../../model/client";

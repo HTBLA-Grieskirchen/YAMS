@@ -1,5 +1,5 @@
 import {makeAutoObservable, runInAction} from "mobx"
-import {makeRecordForTable, Record, SurrealResponse} from "./surreal";
+import {makeRecordForTable, Record, DatabaseResponse} from "./database";
 import Race from "./race";
 import store from "../stores";
 
@@ -21,7 +21,7 @@ export default class Animal {
     }
 }
 
-export class AnimalResponse implements SurrealResponse<Animal> {
+export class AnimalResponse implements DatabaseResponse<Animal> {
     readonly data: {
         id: string,
         birthdate: Date,

@@ -8570,6 +8570,7 @@ dependencies = [
  "tauri-plugin-shell",
  "url",
  "yams-core",
+ "yams-dto",
  "yams-persistence",
 ]
 
@@ -8583,6 +8584,16 @@ dependencies = [
  "serde",
  "thiserror 1.0.69",
  "uuid",
+]
+
+[[package]]
+name = "yams-dto"
+version = "0.1.0"
+dependencies = [
+ "poem-openapi",
+ "serde",
+ "uuid",
+ "yams-core",
 ]
 
 [[package]]
@@ -8612,6 +8623,7 @@ dependencies = [
  "tokio",
  "uuid",
  "yams-core",
+ "yams-dto",
  "yams-persistence",
 ]
 

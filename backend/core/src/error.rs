@@ -11,3 +11,5 @@ pub enum Error {
     #[error("Internal error: {0}")]
     Internal(String),
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

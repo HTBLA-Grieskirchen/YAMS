@@ -5,21 +5,28 @@
 - **Value Objects**: Email, PhoneNumber, Date, Price.
 - **Ports**: 
   - `Repository`: For each entity (e.g., `ClientRepository`).
-  - `UseCase`: Application services (e.g., `RegisterClientUseCase`).
+- **Context**: `YamsContext` holds all repository implementations as `Arc<dyn Repository>`.
+- **Services**: Domain services (e.g., `AddressService`) that consume `YamsContext` and provide use cases.
+- **Error Handling**: Uses `thiserror` for idiomatic error propagation and `Result<T>` alias.
+
+## DTO Layer (`yams-dto`)
+- **Purpose**: Defines shared `poem-openapi` models used by both `yams-server` and `yams-tauri`.
+- **Naming**: Uses `camelCase` for compatibility with the frontend.
+- **Spec Export**: Provides a binary `export_spec` to print the OpenAPI spec to stdout.
 
 ## Persistence (`yams-persistence`)
-- **Driver**: `libsql`.
-- **Schema**: Replicate `setup.surql` in SQL. Use migrations.
+- **Driver**: `libsql` (SQLite).
+- **Schema**: Replicate `setup.surql` in SQL. Use migrations via `libsql_migration`.
 - **Mappers**: Convert database rows to/from domain entities.
 
 ## Standalone Server (`yams-server`)
 - **Framework**: `poem-openapi`.
-- **Adapters**: REST controllers mapping OpenAPI requests to `yams-core` use cases.
-- **Spec Generation**: Export `openapi.json` on build/start.
+- **Adapters**: REST controllers mapping OpenAPI requests to `yams-core` services.
+- **Injection**: Uses `YamsContext` and domain services for logic.
 
 ## Tauri Embedded (`yams-tauri`)
-- **Adapters**: Tauri commands mapping IPC messages to `yams-core` use cases.
-- **State**: Shared state holding the `yams-core` services and `yams-persistence` adapter.
+- **Adapters**: Tauri commands in `frontend/src-tauri` mapping IPC messages to `yams-core` services.
+- **State**: Shared state holding `YamsContext` and domain services.
 
 ## Communication Bridge
 - **Frontend Interface**: `BackendClient` interface in TypeScript.

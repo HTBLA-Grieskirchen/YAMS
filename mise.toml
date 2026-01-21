@@ -1,15 +1,6 @@
 [tools]
 node = "22"
 rust = "latest"
-surrealdb = "latest"
-
-[tasks."db:start"]
-description = "Start SurrealDB"
-run = "surreal start --bind 127.0.0.1:8004 --user root --pass root file:surreal_data"
-
-[tasks."db:setup"]
-description = "Setup SurrealDB schema"
-run = "surreal import --conn http://127.0.0.1:8004 --db yams --ns yams backend/setup.surql"
 
 [tasks."frontend:install"]
 description = "Install frontend dependencies"
@@ -31,10 +22,22 @@ description = "Lint frontend"
 dir = "frontend"
 run = "npm run lint"
 
-[tasks."frontend:test"]
-description = "Run frontend tests"
+[tasks."frontend:generate-types"]
+description = "Generate TypeScript types from OpenAPI spec"
 dir = "frontend"
-run = "npm run test"
+run = "npx openapi-typescript ../openapi.json -o src/api/schema.d.ts"
+
+[tasks."backend:check"]
+description = "Check all backend crates"
+run = "cargo check"
+
+[tasks."backend:test"]
+description = "Run all backend tests"
+run = "cargo test"
+
+[tasks."backend:export-spec"]
+description = "Export OpenAPI spec to openapi.json"
+run = "cargo run -p yams-dto --bin export_spec > openapi.json"
 
 [tasks."tauri:dev"]
 description = "Start Tauri dev"
@@ -46,18 +49,14 @@ description = "Build Tauri app"
 dir = "frontend"
 run = "npx tauri build"
 
-[tasks."backend:export-spec"]
-description = "Export OpenAPI spec"
-run = "cargo run -p yams-server -- --export-spec"
-
 [tasks.dev]
 description = "Start dev environment"
 depends = ["frontend:dev"]
 
 [tasks.build]
 description = "Build the whole project"
-depends = ["frontend:build", "tauri:build"]
+depends = ["backend:export-spec", "frontend:generate-types", "frontend:build", "tauri:build"]
 
 [tasks.test]
 description = "Run all tests"
-depends = ["frontend:test"]
+depends = ["backend:test", "frontend:test"]

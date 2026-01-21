@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 yams-core = { path = "../core" }
 yams-persistence = { path = "../persistence" }
+yams-dto = { path = "../dto" }
 poem = "3.0"
 poem-openapi = { version = "5.0", features = ["swagger-ui", "uuid"] }
 tokio = { version = "1.0", features = ["full"] }

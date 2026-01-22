@@ -1,35 +1,35 @@
 use std::sync::Arc;
 use uuid::Uuid;
 use crate::models::{Address, NewAddress};
-use crate::context::YamsContext;
+use crate::ports::AddressRepository;
 use crate::error::Result;
 
 pub struct AddressService {
-    ctx: Arc<YamsContext>,
+    repo: Arc<dyn AddressRepository>,
 }
 
 impl AddressService {
-    pub fn new(ctx: Arc<YamsContext>) -> Self {
-        Self { ctx }
+    pub fn new(repo: Arc<dyn AddressRepository>) -> Self {
+        Self { repo }
     }
 
     pub async fn get_all(&self) -> Result<Vec<Address>> {
-        self.ctx.address_repo.find_all().await
+        self.repo.find_all().await
     }
 
     pub async fn get_by_id(&self, id: Uuid) -> Result<Option<Address>> {
-        self.ctx.address_repo.find_by_id(id).await
+        self.repo.find_by_id(id).await
     }
 
     pub async fn create(&self, address: NewAddress) -> Result<Address> {
-        self.ctx.address_repo.create(address).await
+        self.repo.create(address).await
     }
 
     pub async fn update(&self, address: Address) -> Result<Address> {
-        self.ctx.address_repo.update(address).await
+        self.repo.update(address).await
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<()> {
-        self.ctx.address_repo.delete(id).await
+        self.repo.delete(id).await
     }
 }

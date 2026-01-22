@@ -5,8 +5,8 @@
 - **Value Objects**: Email, PhoneNumber, Date, Price.
 - **Ports**: 
   - `Repository`: For each entity (e.g., `ClientRepository`).
-- **Context**: `YamsContext` holds all repository implementations as `Arc<dyn Repository>`.
-- **Services**: Domain services (e.g., `AddressService`) that consume `YamsContext` and provide use cases.
+- **Services**: Domain services (e.g., `AddressService`) that depend on specific `Repository` ports.
+- **Context**: `YamsContext` holds all domain services and represents the unified entrypoint for ingoing adapters.
 - **Error Handling**: Uses `thiserror` for idiomatic error propagation and `Result<T>` alias.
 
 ## DTO Layer (`yams-dto`)

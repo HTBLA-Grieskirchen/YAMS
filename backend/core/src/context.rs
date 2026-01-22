@@ -1,31 +1,31 @@
 use std::sync::Arc;
-use crate::ports::repository::*;
+use crate::services::*;
 
 pub struct YamsContext {
-    pub address_repo: Arc<dyn AddressRepository>,
-    pub client_repo: Arc<dyn ClientRepository>,
-    pub animal_repo: Arc<dyn AnimalRepository>,
-    pub race_repo: Arc<dyn RaceRepository>,
-    pub event_repo: Arc<dyn EventRepository>,
-    pub seminar_repo: Arc<dyn SeminarRepository>,
+    pub address_service: Arc<AddressService>,
+    pub client_service: Arc<ClientService>,
+    pub animal_service: Arc<AnimalService>,
+    pub race_service: Arc<RaceService>,
+    pub event_service: Arc<EventService>,
+    pub seminar_service: Arc<SeminarService>,
 }
 
 impl YamsContext {
     pub fn new(
-        address_repo: Arc<dyn AddressRepository>,
-        client_repo: Arc<dyn ClientRepository>,
-        animal_repo: Arc<dyn AnimalRepository>,
-        race_repo: Arc<dyn RaceRepository>,
-        event_repo: Arc<dyn EventRepository>,
-        seminar_repo: Arc<dyn SeminarRepository>,
+        address_service: Arc<AddressService>,
+        client_service: Arc<ClientService>,
+        animal_service: Arc<AnimalService>,
+        race_service: Arc<RaceService>,
+        event_service: Arc<EventService>,
+        seminar_service: Arc<SeminarService>,
     ) -> Self {
         Self {
-            address_repo,
-            client_repo,
-            animal_repo,
-            race_repo,
-            event_repo,
-            seminar_repo,
+            address_service,
+            client_service,
+            animal_service,
+            race_service,
+            event_service,
+            seminar_service,
         }
     }
 }

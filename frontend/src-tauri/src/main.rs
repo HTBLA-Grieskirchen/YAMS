@@ -28,29 +28,23 @@ fn main() {
             }).expect("failed to initialize LibSQL adapter");
             let adapter = Arc::new(adapter);
 
+            let address_service = Arc::new(AddressService::new(adapter.clone()));
+            let client_service = Arc::new(ClientService::new(adapter.clone()));
+            let animal_service = Arc::new(AnimalService::new(adapter.clone()));
+            let race_service = Arc::new(RaceService::new(adapter.clone()));
+            let event_service = Arc::new(EventService::new(adapter.clone()));
+            let seminar_service = Arc::new(SeminarService::new(adapter.clone()));
+
             let ctx = Arc::new(YamsContext::new(
-                adapter.clone(),
-                adapter.clone(),
-                adapter.clone(),
-                adapter.clone(),
-                adapter.clone(),
-                adapter.clone(),
+                address_service,
+                client_service,
+                animal_service,
+                race_service,
+                event_service,
+                seminar_service,
             ));
 
-            let address_service = AddressService::new(ctx.clone());
-            let client_service = ClientService::new(ctx.clone());
-            let animal_service = AnimalService::new(ctx.clone());
-            let race_service = RaceService::new(ctx.clone());
-            let event_service = EventService::new(ctx.clone());
-            let seminar_service = SeminarService::new(ctx.clone());
-
             app.manage(ctx);
-            app.manage(address_service);
-            app.manage(client_service);
-            app.manage(animal_service);
-            app.manage(race_service);
-            app.manage(event_service);
-            app.manage(seminar_service);
             
             app.manage(backend_config);
             app.manage(_frontend_config);

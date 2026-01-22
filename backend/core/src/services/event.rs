@@ -1,65 +1,65 @@
 use std::sync::Arc;
 use uuid::Uuid;
 use crate::models::{Event, NewEvent, Seminar, NewSeminar};
-use crate::context::YamsContext;
+use crate::ports::{EventRepository, SeminarRepository};
 use crate::error::Result;
 
 pub struct EventService {
-    ctx: Arc<YamsContext>,
+    repo: Arc<dyn EventRepository>,
 }
 
 impl EventService {
-    pub fn new(ctx: Arc<YamsContext>) -> Self {
-        Self { ctx }
+    pub fn new(repo: Arc<dyn EventRepository>) -> Self {
+        Self { repo }
     }
 
     pub async fn get_all(&self) -> Result<Vec<Event>> {
-        self.ctx.event_repo.find_all().await
+        self.repo.find_all().await
     }
 
     pub async fn get_by_id(&self, id: Uuid) -> Result<Option<Event>> {
-        self.ctx.event_repo.find_by_id(id).await
+        self.repo.find_by_id(id).await
     }
 
     pub async fn create(&self, event: NewEvent) -> Result<Event> {
-        self.ctx.event_repo.create(event).await
+        self.repo.create(event).await
     }
 
     pub async fn update(&self, event: Event) -> Result<Event> {
-        self.ctx.event_repo.update(event).await
+        self.repo.update(event).await
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<()> {
-        self.ctx.event_repo.delete(id).await
+        self.repo.delete(id).await
     }
 }
 
 pub struct SeminarService {
-    ctx: Arc<YamsContext>,
+    repo: Arc<dyn SeminarRepository>,
 }
 
 impl SeminarService {
-    pub fn new(ctx: Arc<YamsContext>) -> Self {
-        Self { ctx }
+    pub fn new(repo: Arc<dyn SeminarRepository>) -> Self {
+        Self { repo }
     }
 
     pub async fn get_all(&self) -> Result<Vec<Seminar>> {
-        self.ctx.seminar_repo.find_all().await
+        self.repo.find_all().await
     }
 
     pub async fn get_by_id(&self, id: Uuid) -> Result<Option<Seminar>> {
-        self.ctx.seminar_repo.find_by_id(id).await
+        self.repo.find_by_id(id).await
     }
 
     pub async fn create(&self, seminar: NewSeminar) -> Result<Seminar> {
-        self.ctx.seminar_repo.create(seminar).await
+        self.repo.create(seminar).await
     }
 
     pub async fn update(&self, seminar: Seminar) -> Result<Seminar> {
-        self.ctx.seminar_repo.update(seminar).await
+        self.repo.update(seminar).await
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<()> {
-        self.ctx.seminar_repo.delete(id).await
+        self.repo.delete(id).await
     }
 }

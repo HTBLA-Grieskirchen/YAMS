@@ -80,7 +80,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json; charset=utf-8": components["schemas"]["AddressDTO"];
+                    "application/json; charset=utf-8": components["schemas"]["NewAddressDTO"];
                 };
             };
             responses: {
@@ -113,7 +113,16 @@ export interface components {
         /** AddressDTO */
         AddressDTO: {
             /** Format: uuid */
-            id?: string;
+            id: string;
+            country: string;
+            postalCode: string;
+            city: string;
+            street: string;
+            streetNumber: string;
+            extra: string;
+        };
+        /** NewAddressDTO */
+        NewAddressDTO: {
             country: string;
             postalCode: string;
             city: string;

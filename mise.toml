@@ -6,19 +6,20 @@ OPENAPI_SPEC = "openapi.json"
 node = "22"
 rust = "nightly"
 
-[tasks."build:openapi"]
-description = "Export OpenAPI spec to openapi.json"
-run = "cargo run -p yams-dto --bin export_spec > $OPENAPI_SPEC"
 
-[tasks."generate:types"]
-description = "Generate TypeScript types from OpenAPI spec"
-depends = ["build:openapi"]
+[tasks."export:openapi"]
+description = "Export OpenAPI spec to stdout"
+raw = true
+run = "cargo run -p yams-dto --bin export_spec"
+
+[tasks."build:openapi"]
+description = "Sync OpenAPI spec from backend to frontend"
 dir = "{{env.FRONTEND_DIR}}"
-run = "npx openapi-typescript ../$OPENAPI_SPEC -o src/api/schema.d.ts"
+run = "mise run export:openapi | npx openapi-typescript -o src/api/schema.d.ts --enum-values --empty-objects-unknown "
 
 [tasks."build:frontend"]
 description = "Build Next.js app"
-depends = ["generate:types"]
+depends = ["build:openapi"]
 dir = "{{env.FRONTEND_DIR}}"
 run = "npm run build"
 
@@ -66,6 +67,10 @@ run = [
 [tasks.dev]
 description = "Start dev environment"
 depends = ["dev:frontend"]
+
+[tasks."dev:backend"]
+description = "Start backend dev server"
+run = "cargo run -p yams-server"
 
 [tasks.build]
 description = "Build the whole project"

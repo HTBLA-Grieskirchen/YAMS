@@ -53,6 +53,7 @@ run = "npm run dev"
 
 [tasks."dev:tauri_"]
 dir = "{{env.FRONTEND_DIR}}"
+env = {"YAMS_DEV"="1"}
 run = "npx tauri dev"
 
 [tasks."dev:tauri"]

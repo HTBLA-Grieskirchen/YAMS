@@ -1,7 +1,6 @@
-use std::path::Path;
 use libsql::Builder;
-use libsql_migration::dir::migrate as migrate_dir;
 use crate::Error;
+use crate::migration::run_migrations;
 
 pub mod address;
 pub mod client;
@@ -28,15 +27,7 @@ impl SqliteAdapter {
     }
 
     async fn run_migrations(&self) -> Result<(), Error> {
-        let migrations_path = Path::new("backend/persistence/migrations");
-        let full_path = std::env::current_dir().unwrap().join(migrations_path);
-        
-        // Ensure migrations path exists
-        if !full_path.exists() {
-            return Err(Error::Internal(format!("Migrations directory not found: {:?}", full_path)));
-        }
-
-        migrate_dir(&self.db, full_path)
+        run_migrations(&self.db)
             .await
             .map_err(|e| Error::Database(e.to_string()))?;
         

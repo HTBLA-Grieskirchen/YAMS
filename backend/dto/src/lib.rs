@@ -1,4 +1,4 @@
-use poem_openapi::{Object, ApiResponse, payload::Json};
+use poem_openapi::{ApiResponse, Object, payload::Json};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use yams_core::models::{Address, NewAddress};

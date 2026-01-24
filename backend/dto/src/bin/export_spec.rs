@@ -1,7 +1,7 @@
-use poem_openapi::OpenApiService;
-use yams_dto::{NewAddressDTO, GetAddressesResponse, CreateAddressResponse};
-use poem_openapi::payload::Json;
 use poem_openapi::OpenApi;
+use poem_openapi::OpenApiService;
+use poem_openapi::payload::Json;
+use yams_dto::{CreateAddressResponse, GetAddressesResponse, NewAddressDTO};
 
 struct SpecApi;
 
@@ -24,7 +24,7 @@ impl SpecApi {
 }
 
 fn main() {
-    let api_service = OpenApiService::new(SpecApi, "YAMS API", "1.0")
-        .server("http://localhost:3000/api");
+    let api_service =
+        OpenApiService::new(SpecApi, "YAMS API", "1.0").server("http://localhost:3000/api");
     println!("{}", api_service.spec());
 }

@@ -1,18 +1,18 @@
 use std::sync::Arc;
 use tauri::Manager;
 use yams_core::context::YamsContext;
-use yams_core::services::{AddressService, ClientService, AnimalService, RaceService, EventService, SeminarService};
+use yams_core::services::{
+    AddressService, AnimalService, ClientService, EventService, RaceService, SeminarService,
+};
 use yams_persistence::adapter::SqliteAdapter;
 
-mod config;
 mod commands;
+mod config;
 
-use crate::config::{YAMSFileConfig, YAMSFrontendConfig, YAMSBackendConfig};
+use crate::config::{YAMSBackendConfig, YAMSFileConfig, YAMSFrontendConfig};
 
 #[tauri::command]
-fn frontend_config(
-    config: tauri::State<'_, YAMSFrontendConfig>,
-) -> YAMSFrontendConfig {
+fn frontend_config(config: tauri::State<'_, YAMSFrontendConfig>) -> YAMSFrontendConfig {
     (*config).clone()
 }
 
@@ -23,9 +23,9 @@ fn main() {
         .setup(move |app| {
             // Initialize LibSQL Adapter using config
             let db_url = &backend_config.local_database_location;
-            let adapter = tauri::async_runtime::block_on(async {
-                SqliteAdapter::new(db_url).await
-            }).expect("failed to initialize LibSQL adapter");
+            let adapter =
+                tauri::async_runtime::block_on(async { SqliteAdapter::new(db_url).await })
+                    .expect("failed to initialize LibSQL adapter");
             let adapter = Arc::new(adapter);
 
             let address_service = Arc::new(AddressService::new(adapter.clone()));
@@ -45,7 +45,7 @@ fn main() {
             ));
 
             app.manage(ctx);
-            
+
             app.manage(backend_config);
             app.manage(_frontend_config);
 

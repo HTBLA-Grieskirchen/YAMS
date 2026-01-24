@@ -1,8 +1,8 @@
-use std::sync::Arc;
-use uuid::Uuid;
+use crate::error::Result;
 use crate::models::{Address, NewAddress};
 use crate::ports::AddressRepository;
-use crate::error::Result;
+use std::sync::Arc;
+use uuid::Uuid;
 
 pub struct AddressService {
     repo: Arc<dyn AddressRepository>,

@@ -5,6 +5,7 @@ DATABASE_URL = "{{ config_root }}/sqlite.local/yams.db"
 
 [tools]
 node = "22"
+prettier = "latest"
 rust = "nightly"
 
 
@@ -68,11 +69,15 @@ run = [
 [tasks."fmt:web"]
 description = "Format the web code"
 dir = "{{env.FRONTEND_DIR}}"
-run = "npm run format"
+run = "prettier --write src/"
+
+[tasks."fmt:rust"]
+description = "Format the rust code"
+run = "cargo fmt --all"
 
 [tasks.fmt]
-description = "Format the code"
-run = "cargo fmt"
+description = "Format all the code"
+depends = ["fmt:*"]
 
 [tasks.dev]
 description = "Start dev environment"

@@ -76,12 +76,15 @@ async fn main() -> Result<(), std::io::Error> {
         .nest("/swagger", api_service.swagger_ui())
         .nest("/redoc", api_service.redoc())
         .nest("/spec.json", api_service.spec_endpoint())
-        .nest("/spec.yaml", api_service.spec_endpoint_yaml().after(|res| async move { 
-            res.map(IntoResponse::into_response).map(|mut resp| {
-                resp.headers_mut().remove("content-disposition");
-                resp
-            })
-        }))
+        .nest(
+            "/spec.yaml",
+            api_service.spec_endpoint_yaml().after(|res| async move {
+                res.map(IntoResponse::into_response).map(|mut resp| {
+                    resp.headers_mut().remove("content-disposition");
+                    resp
+                })
+            }),
+        )
         .nest("/api", api_service);
 
     println!("Server started at {}", api_url);

@@ -1,8 +1,8 @@
 use poem_openapi::{OpenApi, payload::Json};
 use std::sync::Arc;
-use yams_dto::{AddressDTO, NewAddressDTO, GetAddressesResponse, CreateAddressResponse};
-use yams_core::models::NewAddress;
 use yams_core::context::YamsContext;
+use yams_core::models::NewAddress;
+use yams_dto::{AddressDTO, CreateAddressResponse, GetAddressesResponse, NewAddressDTO};
 
 pub struct Api {
     pub ctx: Arc<YamsContext>,
@@ -18,7 +18,9 @@ impl Api {
     #[oai(path = "/addresses", method = "get")]
     async fn get_addresses(&self) -> GetAddressesResponse {
         match self.ctx.address_service.get_all().await {
-            Ok(addresses) => GetAddressesResponse::Ok(Json(addresses.into_iter().map(AddressDTO::from).collect())),
+            Ok(addresses) => GetAddressesResponse::Ok(Json(
+                addresses.into_iter().map(AddressDTO::from).collect(),
+            )),
             Err(_) => GetAddressesResponse::InternalError,
         }
     }

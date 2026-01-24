@@ -1,12 +1,12 @@
 use std::path::Path;
 
-use libsql::Builder;
 use crate::Error;
 use crate::migration::run_migrations;
+use libsql::Builder;
 
 pub mod address;
-pub mod client;
 pub mod animal;
+pub mod client;
 pub mod event;
 
 pub struct SqliteAdapter {
@@ -17,8 +17,9 @@ impl SqliteAdapter {
     pub async fn new(path: impl AsRef<Path>) -> Result<Self, Error> {
         let path = path.as_ref();
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| Error::Database(format!("Failed to create parent directories: {}", e)))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                Error::Database(format!("Failed to create parent directories: {}", e))
+            })?;
         }
         let db = Builder::new_local(path)
             .build()
@@ -29,7 +30,7 @@ impl SqliteAdapter {
 
         let adapter = Self { db };
         adapter.run_migrations().await?;
-        
+
         Ok(adapter)
     }
 
@@ -37,7 +38,7 @@ impl SqliteAdapter {
         run_migrations(&self.db)
             .await
             .map_err(|e| Error::Database(e.to_string()))?;
-        
+
         Ok(())
     }
 }

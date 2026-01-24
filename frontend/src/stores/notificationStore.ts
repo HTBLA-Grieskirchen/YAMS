@@ -1,61 +1,65 @@
 import store from "./index";
-import {action, autorun, makeAutoObservable, observable} from "mobx";
-import {NotificationInfo} from "../libs/notification";
+import { action, autorun, makeAutoObservable, observable } from "mobx";
+import { NotificationInfo } from "../libs/notification";
 
 export default class NotificationStore {
-    private root: typeof store
-    private notifications: NotificationEntry[]
+  private root: typeof store;
+  private notifications: NotificationEntry[];
 
-    constructor(root: typeof store) {
-        this.notifications = observable([])
+  constructor(root: typeof store) {
+    this.notifications = observable([]);
 
-        this.root = root
-        makeAutoObservable(this, {
-            removeNotification: action
-        })
-    }
+    this.root = root;
+    makeAutoObservable(this, {
+      removeNotification: action,
+    });
+  }
 
-    addNotification(notification: NotificationInfo) {
-        let interval: any = undefined
-        let disposeCheck: (() => void) | undefined = undefined
-        if (notification.duration !== undefined) {
-            interval = setInterval(() => {
-                notification.tick(25)
-            }, 25)
+  addNotification(notification: NotificationInfo) {
+    let interval: any = undefined;
+    let disposeCheck: (() => void) | undefined = undefined;
+    if (notification.duration !== undefined) {
+      interval = setInterval(() => {
+        notification.tick(25);
+      }, 25);
 
-            disposeCheck = autorun(() => {
-                if (notification.msPassed >= notification.duration!!) {
-                    this.removeNotification(notification)
-                }
-            })
+      disposeCheck = autorun(() => {
+        if (notification.msPassed >= notification.duration!!) {
+          this.removeNotification(notification);
         }
-
-        this.notifications.push({
-            info: notification,
-            clean: disposeCheck,
-            interval
-        })
+      });
     }
 
-    removeNotification(notification: NotificationInfo) {
-        this.notifications.splice(
-            this.notifications.findIndex(
-                (entry) => entry.info.uuid === notification.uuid),
-            1).forEach((entry) => {
-            if (entry.clean) {
-                entry.clean()
-            }
-            clearInterval(entry.interval)
-        })
-    }
+    this.notifications.push({
+      info: notification,
+      clean: disposeCheck,
+      interval,
+    });
+  }
 
-    currentNotifications(): NotificationInfo[] {
-        return this.notifications.map((entry) => entry.info)
-    }
+  removeNotification(notification: NotificationInfo) {
+    this.notifications
+      .splice(
+        this.notifications.findIndex(
+          (entry) => entry.info.uuid === notification.uuid,
+        ),
+        1,
+      )
+      .forEach((entry) => {
+        if (entry.clean) {
+          entry.clean();
+        }
+        clearInterval(entry.interval);
+      });
+  }
+
+  currentNotifications(): NotificationInfo[] {
+    return this.notifications.map((entry) => entry.info);
+  }
 }
 
 type NotificationEntry = {
-    info: NotificationInfo,
-    clean: (() => void) | undefined,
-    interval: any
-}
+  info: NotificationInfo;
+  clean: (() => void) | undefined;
+  interval: any;
+};

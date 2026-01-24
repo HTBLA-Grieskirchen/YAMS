@@ -1,10 +1,8 @@
 /**
  * **N**o **O**peration function (does nothing)
  */
-export const no = () => {
-}
+export const no = () => {};
 /**
  * **A**sync **N**o **O**peration function (does nothing)
  */
-export const ano = async () => {
-}
+export const ano = async () => {};

@@ -9,28 +9,33 @@ fn dev_var_set() -> bool {
     let dev_var: &str = &std::env::var("YAMS_DEV").unwrap_or("0".to_string());
     match dev_var {
         "1" => true,
-        _ => false
+        _ => false,
     }
 }
 
 fn project_dirs() -> ProjectDirs {
-    ProjectDirs::from("at", "HTL Grieskirchen", "YAMS")
-        .expect("unsupported OS")
+    ProjectDirs::from("at", "HTL Grieskirchen", "YAMS").expect("unsupported OS")
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct YAMSFileConfig {
-    #[serde(skip_serializing, skip_deserializing, default = "YAMSFileConfig::default_dirs")]
+    #[serde(
+        skip_serializing,
+        skip_deserializing,
+        default = "YAMSFileConfig::default_dirs"
+    )]
     pub dirs: ProjectDirs,
 
     #[serde(default)]
     pub remote_database_location: Option<String>,
 }
 
-impl YAMSFileConfig { fn default_dirs() -> ProjectDirs { YAMSFileConfig::default().dirs } }
-
+impl YAMSFileConfig {
+    fn default_dirs() -> ProjectDirs {
+        YAMSFileConfig::default().dirs
+    }
+}
 
 #[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -53,7 +58,6 @@ pub struct YAMSBackendConfig {
     pub uses_local_database: bool,
 }
 
-
 impl Default for YAMSFileConfig {
     fn default() -> Self {
         Self {
@@ -63,14 +67,12 @@ impl Default for YAMSFileConfig {
     }
 }
 
-
 impl YAMSFileConfig {
     pub fn load() -> (YAMSBackendConfig, YAMSFrontendConfig) {
         let dirs = project_dirs();
 
         let file_location = if dev_var_set() {
-            ["..", "yamsconfig.json"]
-                .iter().collect::<PathBuf>()
+            ["..", "yamsconfig.json"].iter().collect::<PathBuf>()
         } else {
             dirs.config_dir().join("yamsconfig.json")
         };
@@ -80,12 +82,18 @@ impl YAMSFileConfig {
             if let Ok(file_config) = file_config_result {
                 return file_config.to_configs();
             } else {
-                println!("The config file {{{:?}}} is malformed. \
-                 Resorting to default config.", file_location);
+                println!(
+                    "The config file {{{:?}}} is malformed. \
+                 Resorting to default config.",
+                    file_location
+                );
             }
         } else {
-            println!("The config file {{{:?}}} does not exist. \
-                 Resorting to default config.", file_location);
+            println!(
+                "The config file {{{:?}}} does not exist. \
+                 Resorting to default config.",
+                file_location
+            );
         }
 
         YAMSFileConfig::default_configs()
@@ -122,9 +130,7 @@ impl YAMSFileConfig {
 
 impl YAMSBackendConfig {
     pub fn as_frontend_config(&self) -> &YAMSFrontendConfig {
-        unsafe {
-            &*self.frontend_config
-        }
+        unsafe { &*self.frontend_config }
     }
 
     pub fn as_file_config(&self) -> &YAMSFileConfig {
@@ -146,9 +152,19 @@ impl From<Arc<YAMSFileConfig>> for YAMSBackendConfig {
 
         let location = if in_dev {
             ["..", "..", "backend", "yams.db"]
-                .iter().collect::<PathBuf>().to_str().unwrap().to_string()
+                .iter()
+                .collect::<PathBuf>()
+                .to_str()
+                .unwrap()
+                .to_string()
         } else {
-            file_config.dirs.data_dir().join("yams.db").to_str().unwrap().to_string()
+            file_config
+                .dirs
+                .data_dir()
+                .join("yams.db")
+                .to_str()
+                .unwrap()
+                .to_string()
         };
 
         let uses_local_database = (&file_config).remote_database_location.is_none();
@@ -171,9 +187,17 @@ impl Default for YAMSBackendConfig {
 
         let location = if in_dev {
             ["..", "..", "backend", "yams.db"]
-                .iter().collect::<PathBuf>().to_str().unwrap().to_string()
+                .iter()
+                .collect::<PathBuf>()
+                .to_str()
+                .unwrap()
+                .to_string()
         } else {
-            dirs.data_dir().join("yams.db").to_str().unwrap().to_string()
+            dirs.data_dir()
+                .join("yams.db")
+                .to_str()
+                .unwrap()
+                .to_string()
         };
 
         Self {
@@ -189,9 +213,7 @@ impl Default for YAMSBackendConfig {
 
 impl YAMSFrontendConfig {
     pub fn as_backend_config(&self) -> &YAMSBackendConfig {
-        unsafe {
-            &*self.backend_config
-        }
+        unsafe { &*self.backend_config }
     }
 
     pub fn as_file_config(&self) -> &YAMSFileConfig {
@@ -205,9 +227,11 @@ impl YAMSFrontendConfig {
 
 impl From<Arc<YAMSFileConfig>> for YAMSFrontendConfig {
     fn from(file_config: Arc<YAMSFileConfig>) -> Self {
-        let remote_database_location = file_config.remote_database_location.clone().filter(|s| {
-            !s.is_empty() && Url::parse(&s).is_ok()
-        }).map(|s| Url::parse(&s).unwrap());
+        let remote_database_location = file_config
+            .remote_database_location
+            .clone()
+            .filter(|s| !s.is_empty() && Url::parse(&s).is_ok())
+            .map(|s| Url::parse(&s).unwrap());
 
         Self {
             file_config,

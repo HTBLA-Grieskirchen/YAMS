@@ -1,8 +1,8 @@
+use crate::error::Result;
+use crate::models::{Animal, NewAnimal, NewRace, Race};
+use crate::ports::{AnimalRepository, RaceRepository};
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::models::{Animal, NewAnimal, Race, NewRace};
-use crate::ports::{AnimalRepository, RaceRepository};
-use crate::error::Result;
 
 pub struct AnimalService {
     repo: Arc<dyn AnimalRepository>,

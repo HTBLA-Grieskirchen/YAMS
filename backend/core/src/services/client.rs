@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use crate::error::Result;
 use crate::models::{Client, NewClient};
 use crate::ports::ClientRepository;
-use crate::error::Result;
+use std::sync::Arc;
 
 pub struct ClientService {
     repo: Arc<dyn ClientRepository>,

@@ -1,8 +1,8 @@
+use crate::error::Result;
+use crate::models::{Event, NewEvent, NewSeminar, Seminar};
+use crate::ports::{EventRepository, SeminarRepository};
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::models::{Event, NewEvent, Seminar, NewSeminar};
-use crate::ports::{EventRepository, SeminarRepository};
-use crate::error::Result;
 
 pub struct EventService {
     repo: Arc<dyn EventRepository>,

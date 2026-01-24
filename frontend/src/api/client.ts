@@ -44,8 +44,11 @@ export class TauriBackendClient implements BackendClient {
   }
 }
 
-export const getBackendClient = (config: { mode: 'standalone' | 'embedded', serverUrl?: string }): BackendClient => {
-  if (config.mode === 'standalone' && config.serverUrl) {
+export const getBackendClient = (config: {
+  mode: "standalone" | "embedded";
+  serverUrl?: string;
+}): BackendClient => {
+  if (config.mode === "standalone" && config.serverUrl) {
     return new HttpBackendClient(config.serverUrl);
   }
   return new TauriBackendClient();

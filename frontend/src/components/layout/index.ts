@@ -1,5 +1,5 @@
 export type MenuEntryData = {
-    href: string,
-    icon: string,
-    recursive?: boolean
-}
+  href: string;
+  icon: string;
+  recursive?: boolean;
+};

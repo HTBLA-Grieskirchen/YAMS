@@ -1,6 +1,6 @@
+use crate::models::*;
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::models::*;
 
 #[async_trait]
 pub trait ClientRepository: Send + Sync {

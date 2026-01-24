@@ -1,6 +1,7 @@
 [env]
 FRONTEND_DIR = "frontend"
 OPENAPI_SPEC = "openapi.json"
+DATABASE_URL = "{{ config_root }}/sqlite.local/yams.db"
 
 [tools]
 node = "22"
@@ -64,11 +65,20 @@ run = [
     {tasks = ["dev:tauri_", "dev:frontend"]}
 ]
 
+[tasks."fmt:web"]
+description = "Format the web code"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run format"
+
+[tasks.fmt]
+description = "Format the code"
+run = "cargo fmt"
+
 [tasks.dev]
 description = "Start dev environment"
 depends = ["dev:frontend"]
 
-[tasks."dev:backend"]
+[tasks."dev:server"]
 description = "Start backend dev server"
 run = "cargo run -p yams-server"
 

@@ -69,7 +69,7 @@ run = [
 [tasks."fmt:web"]
 description = "Format the web code"
 dir = "{{env.FRONTEND_DIR}}"
-run = "prettier --write src/"
+run = "prettier --write . --ignore-path ../.gitignore --ignore-path .gitignore --ignore-path src-tauri/.gitignore"
 
 [tasks."fmt:rust"]
 description = "Format the rust code"

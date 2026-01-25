@@ -22,7 +22,9 @@ export default class ClientRelation {
   }
 }
 
-export class ClientRelationResponse implements DatabaseResponse<ClientRelation> {
+export class ClientRelationResponse
+  implements DatabaseResponse<ClientRelation>
+{
   readonly data: {
     id: string;
     in: string;

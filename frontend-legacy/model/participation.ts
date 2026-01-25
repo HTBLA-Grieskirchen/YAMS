@@ -23,7 +23,9 @@ export default class EventParticipation {
   }
 }
 
-export class EventParticipationResponse implements DatabaseResponse<EventParticipation> {
+export class EventParticipationResponse
+  implements DatabaseResponse<EventParticipation>
+{
   readonly data: {
     id: string;
     in: string;

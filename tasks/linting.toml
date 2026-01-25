@@ -1,0 +1,23 @@
+["lint:crates"]
+description = "Check all rust crates"
+usage = """
+flag "--fix" env="YAMS_LINT_FIX" help="Apply all lint suggestions"
+flag "--allow-dirty" env="YAMS_LINT_FIX_DIRTY" help="Allow dirty working directory"
+"""
+run = '''
+#!/usr/bin/env bash
+cargo clippy --workspace \
+$([ "${usage_fix:-}" = "true" ] && echo "--fix") \
+$([ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
+'''
+
+["lint:check:ts"]
+description = "Compile the typescript code"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run test:ts"
+
+
+["lint:frontend"]
+description = "Lint frontend"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run lint"

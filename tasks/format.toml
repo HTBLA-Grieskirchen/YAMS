@@ -1,0 +1,34 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["fmt:web"]
+description = "Format the web code"
+usage = """
+flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
+"""
+run = """
+#!/usr/bin/env bash
+PRETTIER_CMD=$([ "${usage_check:-}" = "true" ] && echo "--check" || echo "--write")
+prettier $PRETTIER_CMD . --ignore-path .gitignore --ignore-path frontend/.gitignore --ignore-path frontend/src-tauri/.gitignore
+"""
+
+["fmt:rust"]
+description = "Format the rust code"
+usage = """
+flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
+"""
+run = """
+#!/usr/bin/env bash
+FMT_CMD=$([ "${usage_check:-}" = "true" ] && echo "--check")
+cargo fmt --all $FMT_CMD
+"""
+
+["fmt:typst"]
+description = "Format the typst code"
+usage = """
+flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
+"""
+tools = { typstyle = "latest" }
+run = """
+#!/usr/bin/env bash
+typstyle . --wrap-text $([ "${usage_check:-}" = "true" ] && echo "--diff" || echo "-i")
+"""

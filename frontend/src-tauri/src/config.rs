@@ -134,7 +134,7 @@ impl YAMSBackendConfig {
     }
 
     pub fn as_file_config(&self) -> &YAMSFileConfig {
-        &*self.file_config
+        &self.file_config
     }
 
     pub fn dirs(&self) -> &ProjectDirs {
@@ -167,7 +167,7 @@ impl From<Arc<YAMSFileConfig>> for YAMSBackendConfig {
                 .to_string()
         };
 
-        let uses_local_database = (&file_config).remote_database_location.is_none();
+        let uses_local_database = file_config.remote_database_location.is_none();
 
         Self {
             file_config,
@@ -217,7 +217,7 @@ impl YAMSFrontendConfig {
     }
 
     pub fn as_file_config(&self) -> &YAMSFileConfig {
-        &*self.file_config
+        &self.file_config
     }
 
     pub fn dirs(&self) -> &ProjectDirs {
@@ -230,7 +230,7 @@ impl From<Arc<YAMSFileConfig>> for YAMSFrontendConfig {
         let remote_database_location = file_config
             .remote_database_location
             .clone()
-            .filter(|s| !s.is_empty() && Url::parse(&s).is_ok())
+            .filter(|s| !s.is_empty() && Url::parse(s).is_ok())
             .map(|s| Url::parse(&s).unwrap());
 
         Self {

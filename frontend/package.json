@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "test:ts": "tsc --noEmit",
     "tauri": "tauri"
   },
   "dependencies": {

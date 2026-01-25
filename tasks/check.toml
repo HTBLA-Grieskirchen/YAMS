@@ -1,0 +1,9 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["check:format"]
+description = "Check the formatting of the code"
+depends = ["fmt:?* --check"]
+
+["check:lint"]
+description = "Check the linting of the code"
+depends = ["lint:?*"]

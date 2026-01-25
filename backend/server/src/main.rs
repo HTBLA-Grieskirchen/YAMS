@@ -1,5 +1,5 @@
 use clap::Parser;
-use poem::{EndpointExt, IntoResponse, Response};
+use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
 use poem_openapi::OpenApiService;
 use std::sync::Arc;

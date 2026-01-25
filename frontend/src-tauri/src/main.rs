@@ -9,7 +9,7 @@ use yams_persistence::adapter::SqliteAdapter;
 mod commands;
 mod config;
 
-use crate::config::{YAMSBackendConfig, YAMSFileConfig, YAMSFrontendConfig};
+use crate::config::{YAMSFileConfig, YAMSFrontendConfig};
 
 #[tauri::command]
 fn frontend_config(config: tauri::State<'_, YAMSFrontendConfig>) -> YAMSFrontendConfig {

@@ -1,0 +1,7 @@
+["fix:fmt"]
+description = "Format all the code"
+depends = ["fmt:*"]
+
+["fix:lint"]
+description = "Apply all lint suggestions"
+depends = ["lint:?* --fix"]

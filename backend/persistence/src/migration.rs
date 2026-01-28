@@ -21,6 +21,7 @@ pub async fn run_migrations(conn: &Connection) -> Result<(), Box<dyn std::error:
         }
 
         fs::write(&path, content.data)?;
+        println!("Wrote migration file: {}", fs::read_to_string(path)?);
     }
 
     // Apply migrations using libsql_migration

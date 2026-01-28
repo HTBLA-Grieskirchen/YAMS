@@ -1,3 +1,9 @@
+CREATE TABLE IF NOT EXISTS races (
+    id TEXT PRIMARY KEY,
+    description TEXT NOT NULL,
+    animal_species TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS addresses (
     id TEXT PRIMARY KEY,
     country TEXT NOT NULL,
@@ -8,11 +14,6 @@ CREATE TABLE IF NOT EXISTS addresses (
     extra TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS races (
-    id TEXT PRIMARY KEY,
-    description TEXT NOT NULL,
-    animal_species TEXT NOT NULL
-);
 
 CREATE TABLE IF NOT EXISTS animals (
     id TEXT PRIMARY KEY,

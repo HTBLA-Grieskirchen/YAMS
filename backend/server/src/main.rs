@@ -3,8 +3,8 @@ use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
 use poem_openapi::OpenApiService;
 use std::sync::Arc;
-use yams_core::context::YamsContext;
-use yams_core::services::{
+use yams_core::app::App;
+use yams_core::service::{
     AddressService, AnimalService, ClientService, EventService, RaceService, SeminarService,
 };
 use yams_persistence::adapter::SqliteAdapter;
@@ -47,7 +47,7 @@ async fn main() -> Result<(), std::io::Error> {
     let event_service = Arc::new(EventService::new(adapter.clone()));
     let seminar_service = Arc::new(SeminarService::new(adapter.clone()));
 
-    let ctx = Arc::new(YamsContext::new(
+    let ctx = Arc::new(App::new(
         address_service,
         client_service,
         animal_service,

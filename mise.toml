@@ -41,6 +41,6 @@ run = "npm run test"
 description = "Run all tests"
 depends = ["test:backend", "test:frontend"]
 
-[tasks.ci]
-description = "CI pipeline task"
-depends = ["check:backend", "lint:frontend", "test"]
+# [tasks.ci]
+# description = "CI pipeline task"
+# depends = ["check:backend", "lint:frontend", "test"]

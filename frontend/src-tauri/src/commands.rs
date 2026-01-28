@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use tauri::State;
-use yams_core::context::YamsContext;
+use yams_core::app::App;
 use yams_core::models::{Address, NewAddress};
 
 #[tauri::command]
-pub async fn get_addresses(ctx: State<'_, Arc<YamsContext>>) -> Result<Vec<Address>, String> {
+pub async fn get_addresses(ctx: State<'_, Arc<App>>) -> Result<Vec<Address>, String> {
     ctx.address_service
         .get_all()
         .await
@@ -14,7 +14,7 @@ pub async fn get_addresses(ctx: State<'_, Arc<YamsContext>>) -> Result<Vec<Addre
 #[tauri::command]
 pub async fn create_address(
     address: NewAddress,
-    ctx: State<'_, Arc<YamsContext>>,
+    ctx: State<'_, Arc<App>>,
 ) -> Result<Address, String> {
     ctx.address_service
         .create(address)

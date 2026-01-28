@@ -1,11 +1,11 @@
 use poem_openapi::{OpenApi, payload::Json};
 use std::sync::Arc;
-use yams_core::context::YamsContext;
+use yams_core::app::App;
 use yams_core::models::NewAddress;
 use yams_dto::{AddressDTO, CreateAddressResponse, GetAddressesResponse, NewAddressDTO};
 
 pub struct Api {
-    pub ctx: Arc<YamsContext>,
+    pub ctx: Arc<App>,
 }
 
 #[OpenApi]

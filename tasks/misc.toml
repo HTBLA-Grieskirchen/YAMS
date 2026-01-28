@@ -1,0 +1,5 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+["export:openapi"]
+description = "Export OpenAPI spec to stdout"
+raw = true
+run = "cargo run -p yams-dto --bin export_spec"

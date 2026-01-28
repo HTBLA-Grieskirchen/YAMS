@@ -1,0 +1,28 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["build:openapi"]
+description = "Sync OpenAPI spec from backend to frontend"
+dir = "{{env.FRONTEND_DIR}}"
+run = "mise run export:openapi | npx openapi-typescript -o src/api/schema.d.ts --enum-values --empty-objects-unknown"
+
+["build:server"]
+description = "Build the standalone backend server binary"
+run = "cargo build --release -p yams-server"
+
+["build:frontend"]
+description = "Build the Next.js frontend"
+dir = "{{env.FRONTEND_DIR}}"
+depends = ["build:openapi"]
+run = "npm run build"
+
+["build:tauri"]
+description = "Build Tauri app"
+dir = "{{env.FRONTEND_DIR}}"
+depends = ["build:frontend"]
+run = "npm run tauri build"
+
+[build]
+description = "Builds whole project"
+depends = ["build:{server,tauri}"]
+
+

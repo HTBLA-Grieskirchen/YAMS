@@ -5,7 +5,6 @@ DATABASE_URL = "{{ config_root }}/sqlite.local/yams.db"
 
 [tools]
 node = "22"
-prettier = "latest"
 rust = "nightly"
 
 [task_config]
@@ -14,33 +13,20 @@ includes = [
     "tasks/linting.toml",
     "tasks/check.toml",
     "tasks/fixes.toml",
+    "tasks/tests.toml",
+    "tasks/dev.toml",
+    "tasks/misc.toml",
+    "tasks/build.toml"
 ]
 
-[tasks."export:openapi"]
-description = "Export OpenAPI spec to stdout"
-raw = true
-run = "cargo run -p yams-dto --bin export_spec"
-
-[tasks."build:openapi"]
-description = "Sync OpenAPI spec from backend to frontend"
-dir = "{{env.FRONTEND_DIR}}"
-run = "mise run export:openapi | npx openapi-typescript -o src/api/schema.d.ts --enum-values --empty-objects-unknown"
-
-[tasks."build:frontend"]
-description = "Build Next.js app"
-depends = ["build:openapi"]
-dir = "{{env.FRONTEND_DIR}}"
-run = "npm run build"
+[settings]
+jobs = 1
 
 [tasks."build:tauri"]
 description = "Build Tauri app"
 depends = ["build:frontend"]
 dir = "{{env.FRONTEND_DIR}}"
 run = "npx tauri build"
-
-[tasks."check:backend"]
-description = "Check all backend crates"
-run = "cargo check"
 
 [tasks."test:backend"]
 description = "Run all backend tests"
@@ -50,35 +36,6 @@ run = "cargo test"
 description = "Run frontend tests"
 dir = "{{env.FRONTEND_DIR}}"
 run = "npm run test"
-
-[tasks."dev:frontend"]
-description = "Start Next.js dev server"
-dir = "{{env.FRONTEND_DIR}}"
-run = "npm run dev"
-
-[tasks."dev:tauri_"]
-dir = "{{env.FRONTEND_DIR}}"
-env = {"YAMS_DEV"="1"}
-run = "npx tauri dev"
-
-[tasks."dev:tauri"]
-description = "Start Tauri dev"
-dir = "{{env.FRONTEND_DIR}}"
-run = [
-    {tasks = ["dev:tauri_", "dev:frontend"]}
-]
-
-[tasks.dev]
-description = "Start dev environment"
-depends = ["dev:frontend"]
-
-[tasks."dev:server"]
-description = "Start backend dev server"
-run = "cargo run -p yams-server"
-
-[tasks.build]
-description = "Build the whole project"
-depends = ["build:tauri"]
 
 [tasks.test]
 description = "Run all tests"

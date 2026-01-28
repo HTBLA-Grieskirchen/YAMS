@@ -1,14 +1,18 @@
 #:schema https://mise.jdx.dev/schema/mise-task.json
 
-["fmt:web"]
-description = "Format the web code"
+["fmt:biome"]
+description = "Format the frontend code with biome"
+dir = "{{env.FRONTEND_DIR}}"
 usage = """
 flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
 """
 run = """
 #!/usr/bin/env bash
-PRETTIER_CMD=$([ "${usage_check:-}" = "true" ] && echo "--check" || echo "--write")
-prettier $PRETTIER_CMD . --ignore-path .gitignore --ignore-path frontend/.gitignore --ignore-path frontend/src-tauri/.gitignore
+if [ "${usage_check:-}" = "true" ]; then
+  npm run check:format
+else
+  npm run fix:format
+fi
 """
 
 ["fmt:rust"]

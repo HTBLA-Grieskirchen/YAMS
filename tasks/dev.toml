@@ -1,0 +1,44 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["dev:server"]
+description = "Start backend dev server"
+run = "cargo run -p yams-server"
+
+["dev:frontend"]
+description = "Start Next.js dev server"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run dev"
+
+["dev:tauri_"]
+hide = true
+dir = "{{env.FRONTEND_DIR}}"
+env.YAMS_DEV = "1"
+run = "npm run tauri dev"
+
+["dev:tauri"]
+description = "Start Tauri dev"
+dir = "{{env.FRONTEND_DIR}}"
+run = [
+    {tasks = ["dev:tauri_", "dev:frontend"]}
+]
+
+# TODO: implement all these variants
+["dev:tauri+server"]
+description = "Start Tauri dev with standalone backend dev server"
+env.YAMS_DEV = "1"
+depends = ["tmp:print-env"]
+
+["dev:frontend+server"]
+description = "Start Next.js dev server with standalone backend dev server"
+env.YAMS_DEV = "1"
+depends = ["tmp:print-env"]
+
+["dev:tauri+embedded"]
+description = "Start Tauri dev with embedded backend"
+env.YAMS_DEV = "1"
+run = [{task = "tmp:print-env"}]
+
+["tmp:print-env"]
+description = "Print the environment variables"
+run = "env"
+

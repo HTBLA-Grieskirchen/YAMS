@@ -15,7 +15,7 @@ $([ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
 description = "Compile the typescript code"
 dir = "{{env.FRONTEND_DIR}}"
 depends = [
-  "build:openapi"
+  "build:openapi --release"
 ]
 run = "npm run check:ts"
 

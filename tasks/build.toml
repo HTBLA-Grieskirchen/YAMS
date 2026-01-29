@@ -3,7 +3,14 @@
 ["build:openapi"]
 description = "Sync OpenAPI spec from backend to frontend"
 dir = "{{env.FRONTEND_DIR}}"
-run = "mise run export:openapi | npx openapi-typescript -o src/api/schema.d.ts --enum-values --empty-objects-unknown"
+usage = """
+flag "--release" env="YAMS_BUILD_OPENAPI_RELEASE" help="Build the OpenAPI spec in release mode"
+"""
+run = """
+#!/usr/bin/env bash
+OPENAPI_CMD=$([ "${usage_release:-}" = "true" ] && echo "--release")
+mise run export:openapi $OPENAPI_CMD | npx openapi-typescript -o src/api/schema.d.ts --enum-values --empty-objects-unknown 
+"""
 
 ["build:server"]
 description = "Build the standalone backend server binary"
@@ -12,7 +19,7 @@ run = "cargo build --release -p yams-server"
 ["build:frontend"]
 description = "Build the Next.js frontend"
 dir = "{{env.FRONTEND_DIR}}"
-depends = ["build:openapi"]
+depends = ["build:openapi --release"]
 run = "npm run build"
 
 ["build:tauri"]

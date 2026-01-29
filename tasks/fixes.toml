@@ -5,3 +5,10 @@ depends = ["fmt:*"]
 ["fix:lint"]
 description = "Apply all lint suggestions"
 depends = ["lint:?* --fix"]
+
+["fix"]
+description = "Fix all the code, ensure all guidelines"
+run = [
+    {task = "fix:lint"},
+    {task = "fix:fmt"}
+]

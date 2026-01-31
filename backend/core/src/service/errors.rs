@@ -1,11 +1,7 @@
-pub trait ServiceError {
-    fn should_retry(&self) -> bool;
-}
+use crate::application::OrchestratableError;
 
-impl ServiceError for ! {
-    fn should_retry(&self) -> bool {
-        false
-    }
+pub trait ServiceError: OrchestratableError {
+
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -42,7 +38,7 @@ pub enum PersistenceError {
     Unknown(#[source] anyhow::Error),
 }
 
-impl ServiceError for PersistenceError {
+impl OrchestratableError for PersistenceError {
     fn should_retry(&self) -> bool {
         match self {
             PersistenceError::NotFound => false,
@@ -62,4 +58,7 @@ impl ServiceError for PersistenceError {
             PersistenceError::Unknown(_) => false,
         }
     }
+}
+
+impl ServiceError for PersistenceError {
 }

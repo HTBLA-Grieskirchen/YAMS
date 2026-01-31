@@ -7,7 +7,7 @@ use uuid::Uuid;
 use yams_core::{domain::Address, service::client::CreateClient};
 
 #[pollster::test]
-async fn test_animal() {
+async fn test_client() {
     let (app, adaptors) = make_testing_app().await;
     let app = Arc::new(app);
 
@@ -33,6 +33,7 @@ async fn test_animal() {
             let app_clone = app.clone();
             let case_clone = case.clone();
             std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(1));
                 pollster::block_on(async move { app_clone.execute(case_clone).await.unwrap() })
             })
         })
@@ -57,6 +58,6 @@ async fn test_animal() {
         .values()
         .map(|v| v.cloned_data())
         .collect::<Vec<_>>();
-    assert_eq!(clients.len(), 1);
+    assert_eq!(clients.len(), 101);
     assert_eq!(clients[0].first_name, "Testname");
 }

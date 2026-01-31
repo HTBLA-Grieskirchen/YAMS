@@ -1,20 +1,20 @@
 use crate::{
-    domain::errors::DomainError,
+    application::OrchestratableError, domain::errors::DomainError,
     service::{Registry, errors::ServiceError},
 };
 use async_trait::async_trait;
 
+pub mod animals;
 pub mod client;
 
 #[async_trait]
 pub trait UseCase<Output>: Clone {
-    type DomainError: DomainError;
-    type ServiceError: ServiceError = !;
+    type Error: OrchestratableError;
 
     async fn perform(
         self,
         registry: &mut Registry,
-    ) -> UseCaseResult<Output, Self::DomainError, Self::ServiceError>;
+    ) -> Result<Output, Self::Error>;
 }
 
 #[derive(thiserror::Error, Debug)]

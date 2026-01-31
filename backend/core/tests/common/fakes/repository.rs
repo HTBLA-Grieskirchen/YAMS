@@ -86,7 +86,6 @@ impl FakeDatastore {
             .collect::<FxHashSet<_>>();
 
         for id in all_ids {
-            println!("Merging entity: {:?}", id);
             let target_versioned = target.get(&id).cloned();
             let reference_versioned = reference.get(&id).cloned();
             let tx_versioned = tx.get(&id).cloned();

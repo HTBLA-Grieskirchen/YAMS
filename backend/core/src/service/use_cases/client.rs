@@ -3,10 +3,12 @@ use chrono::NaiveDate;
 
 use super::UseCase;
 use crate::{
-    domain::{Address, Client, Email, MobileNumber, errors::NoError, factories::NewClient},
-    ports::uow::UnitOfWork,
+    application::OrchestratableError,
+    domain::{Address, Client, Email, MobileNumber, factories::NewClient},
+    ports::repos::Versioned,
     service::{
-        Registry, ServiceToUseCaseError, UseCaseError, UseCaseResult, errors::PersistenceError,
+        Registry,
+        errors::PersistenceError,
     },
 };
 
@@ -22,17 +24,31 @@ pub struct CreateClient {
     pub address: Address,
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum CreateClientError {
+    #[error(transparent)]
+    Persistence(#[from] PersistenceError),
+}
+
+impl OrchestratableError for CreateClientError {
+    fn should_retry(&self) -> bool {
+        match self {
+            CreateClientError::Persistence(e) => e.should_retry(),
+        }
+    }
+}
+
 #[async_trait]
 impl UseCase<Client> for CreateClient {
-    type DomainError = NoError;
-    type ServiceError = PersistenceError;
+    type Error = CreateClientError;
 
     async fn perform(
         self,
         registry: &mut Registry,
-    ) -> UseCaseResult<Client, Self::DomainError, Self::ServiceError> {
-        let result = registry
-            .uow
+    ) -> Result<Client, Self::Error> {
+        let Registry { uow, .. } = registry;
+
+        let result = uow
             .clients()
             .create(NewClient {
                 first_name: self.first_name,
@@ -46,15 +62,6 @@ impl UseCase<Client> for CreateClient {
             })
             .await;
 
-        registry
-            .uow
-            .commit()
-            .await
-            .map_err(ServiceToUseCaseError::into_service)?;
-
-        match result {
-            Ok(client) => Ok(client.into_data()),
-            Err(e) => Err(UseCaseError::Service(e)),
-        }
+        Ok(result.map(Versioned::into_data)?)
     }
 }

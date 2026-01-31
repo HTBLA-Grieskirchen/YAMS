@@ -33,6 +33,7 @@ impl FakeUnitOfWorkProvider {
 #[async_trait]
 impl UnitOfWorkProvider for FakeUnitOfWorkProvider {
     async fn begin(&self) -> Result<Box<dyn UnitOfWork>, PersistenceError> {
+        self.log.lock().unwrap().push(UoWEvent::Begin);
         Ok(Box::new(FakeUnitOfWork::new(
             Arc::clone(&self.log),
             Arc::clone(&self.datastore),
@@ -69,7 +70,6 @@ impl FakeUnitOfWork {
 #[async_trait]
 impl UnitOfWork for FakeUnitOfWork {
     async fn commit(&mut self) -> Result<(), PersistenceError> {
-        println!("Committing unit of work");
         self.log.lock().unwrap().push(UoWEvent::Commit);
 
         let new_snapshot = FakeDatastore::merge(
@@ -90,7 +90,7 @@ impl UnitOfWork for FakeUnitOfWork {
         Ok(())
     }
 
-    async fn rollback(self: Box<Self>) -> Result<(), PersistenceError> {
+    async fn finish(self: Box<Self>) -> Result<(), PersistenceError> {
         self.log.lock().unwrap().push(UoWEvent::Rollback);
         Ok(())
     }
@@ -104,7 +104,9 @@ impl UnitOfWork for FakeUnitOfWork {
     }
 }
 
+#[derive(Debug)]
 pub enum UoWEvent {
+    Begin,
     Commit,
     Rollback,
     Error(String),

@@ -2,10 +2,10 @@
 #![feature(never_type)]
 #![feature(error_generic_member_access)]
 
-pub mod app;
+pub mod application;
 pub mod domain;
 pub mod service;
 
-pub use app::App;
+pub use application::App;
 pub use service::ports;
 pub use service::use_cases;

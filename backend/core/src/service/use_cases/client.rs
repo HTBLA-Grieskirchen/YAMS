@@ -6,10 +6,7 @@ use crate::{
     application::OrchestratableError,
     domain::{Address, Client, Email, MobileNumber, factories::NewClient},
     ports::repos::Versioned,
-    service::{
-        Registry,
-        errors::PersistenceError,
-    },
+    service::{ExecutionContext, errors::PersistenceError},
 };
 
 #[derive(Clone)]
@@ -42,11 +39,8 @@ impl OrchestratableError for CreateClientError {
 impl UseCase<Client> for CreateClient {
     type Error = CreateClientError;
 
-    async fn perform(
-        self,
-        registry: &mut Registry,
-    ) -> Result<Client, Self::Error> {
-        let Registry { uow, .. } = registry;
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Client, Self::Error> {
+        let ExecutionContext { uow, .. } = ctx;
 
         let result = uow
             .clients()

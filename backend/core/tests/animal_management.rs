@@ -6,7 +6,11 @@ use common::make_testing_app;
 use uuid::Uuid;
 use yams_core::{
     domain::Address,
-    service::{animals::CreateAnimal, client::CreateClient},
+    service::{
+        UseCase,
+        animals::{CreateAnimal, CreateManyAnimals},
+        client::CreateClient,
+    },
 };
 
 #[pollster::test]
@@ -33,7 +37,7 @@ async fn test_animal() {
     let client = app.execute(create_client).await.unwrap();
     let animal_amount = 10;
 
-    // Execute the case 100 times in parallel using threads
+    // Execute the case 10 times in parallel using threads
     let results: Vec<_> = (0..animal_amount)
         .map(|i| {
             let app_clone = app.clone();
@@ -71,5 +75,29 @@ async fn test_animal() {
         .unwrap()
         .clone();
     assert_eq!(client.animal_ids.len(), animal_amount);
+
+    let cmd = CreateManyAnimals {
+        animals: (0..animal_amount)
+            .map(|i| CreateAnimal {
+                client_id: client.id.clone(),
+                name: format!("Testanimal {}", i).into(),
+                birthdate: Utc::now().date_naive(),
+                animal_species: "Testspecies".into(),
+                description: "Testdescription".into(),
+            })
+            .collect(),
+    };
+    let results = app.execute(cmd).await.unwrap();
+    assert_eq!(results.len(), 10);
+    let client = adaptors
+        .datastore
+        .clients
+        .lock()
+        .unwrap()
+        .values()
+        .next()
+        .unwrap()
+        .clone();
+    assert_eq!(client.animal_ids.len(), animal_amount * 2);
     println!("{:?}", adaptors.uow_log.lock().unwrap());
 }

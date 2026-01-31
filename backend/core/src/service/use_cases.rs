@@ -1,6 +1,7 @@
 use crate::{
-    application::OrchestratableError, domain::errors::DomainError,
-    service::{Registry, errors::ServiceError},
+    application::OrchestratableError,
+    domain::errors::DomainError,
+    service::{ExecutionContext, errors::ServiceError},
 };
 use async_trait::async_trait;
 
@@ -11,10 +12,7 @@ pub mod client;
 pub trait UseCase<Output>: Clone {
     type Error: OrchestratableError;
 
-    async fn perform(
-        self,
-        registry: &mut Registry,
-    ) -> Result<Output, Self::Error>;
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Output, Self::Error>;
 }
 
 #[derive(thiserror::Error, Debug)]

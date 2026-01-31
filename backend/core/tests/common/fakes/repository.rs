@@ -165,7 +165,7 @@ impl AnimalRepository for FakeAnimalsRepository {
         Ok(versioned)
     }
 
-    async fn update(&self, animal: Versioned<Animal>) -> RepositoryResult<()> {
+    async fn update(&self, animal: &mut Versioned<Animal>) -> RepositoryResult<()> {
         let mut data = self.datastore.animals.lock().unwrap();
         if let Some(existing) = data.get(&animal.id.0) {
             if existing.v() != animal.v() {
@@ -175,16 +175,23 @@ impl AnimalRepository for FakeAnimalsRepository {
                 });
             }
 
-            data.insert(animal.id.0.clone(), animal.incremented());
+            *animal = animal.clone().incremented();
+            data.insert(animal.id.0.clone(), animal.clone());
             return Ok(());
         }
         Err(PersistenceError::NotFound)
     }
 
-    async fn delete(&self, id: AnimalId) -> RepositoryResult<()> {
+    async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()> {
         let mut data = self.datastore.animals.lock().unwrap();
-        if let Some(existing) = data.get(&id.0) {
-            data.remove(&id.0);
+        if let Some(existing) = data.get(&animal.id.0) {
+            if existing.v() != animal.v() {
+                return Err(PersistenceError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: animal.v(),
+                });
+            }
+            data.remove(&animal.id.0);
             return Ok(());
         }
         Err(PersistenceError::NotFound)
@@ -228,7 +235,7 @@ impl ClientRepository for FakeClientsRepository {
         Ok(versioned)
     }
 
-    async fn update(&self, client: Versioned<Client>) -> RepositoryResult<()> {
+    async fn update(&self, client: &mut Versioned<Client>) -> RepositoryResult<()> {
         let mut data = self.datastore.clients.lock().unwrap();
         if let Some(existing) = data.get(&client.id.0) {
             if existing.v() != client.v() {
@@ -237,16 +244,23 @@ impl ClientRepository for FakeClientsRepository {
                     actual: client.v(),
                 });
             }
-            data.insert(client.id.0.clone(), client.incremented());
+            *client = client.clone().incremented();
+            data.insert(client.id.0.clone(), client.clone());
             return Ok(());
         }
         Err(PersistenceError::NotFound)
     }
 
-    async fn delete(&self, id: ClientId) -> RepositoryResult<()> {
+    async fn delete(&self, client: Versioned<Client>) -> RepositoryResult<()> {
         let mut data = self.datastore.clients.lock().unwrap();
-        if let Some(existing) = data.get(&id.0) {
-            data.remove(&id.0);
+        if let Some(existing) = data.get(&client.id.0) {
+            if existing.v() != client.v() {
+                return Err(PersistenceError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: client.v(),
+                });
+            }
+            data.remove(&client.id.0);
             return Ok(());
         }
         Err(PersistenceError::NotFound)

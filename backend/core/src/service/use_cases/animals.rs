@@ -5,10 +5,7 @@ use super::UseCase;
 use crate::{
     application::OrchestratableError,
     domain::{Animal, ClientId, factories::NewAnimal},
-    service::{
-        Registry,
-        errors::PersistenceError,
-    },
+    service::{ExecutionContext, errors::PersistenceError},
 };
 
 #[derive(Clone)]
@@ -38,11 +35,8 @@ impl OrchestratableError for CreateAnimalError {
 impl UseCase<Animal> for CreateAnimal {
     type Error = CreateAnimalError;
 
-    async fn perform(
-        self,
-        registry: &mut Registry,
-    ) -> Result<Animal, Self::Error> {
-        let Registry { uow, .. } = registry;
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Animal, Self::Error> {
+        let ExecutionContext { mut uow, .. } = ctx;
 
         let mut client = uow
             .clients()
@@ -60,11 +54,29 @@ impl UseCase<Animal> for CreateAnimal {
             })
             .await?;
 
+        uow.checkpoint().await?;
+
         client.animal_ids.push(animal.id.clone());
-        uow.clients()
-            .update(client)
-            .await?;
+        uow.clients().update(&mut client).await?;
 
         Ok(animal.into_data())
+    }
+}
+
+#[derive(Clone)]
+pub struct CreateManyAnimals {
+    pub animals: Vec<CreateAnimal>,
+}
+
+#[async_trait]
+impl UseCase<Vec<Animal>> for CreateManyAnimals {
+    type Error = CreateAnimalError;
+
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<Animal>, Self::Error> {
+        let mut animals = Vec::with_capacity(self.animals.len());
+        for fut in self.animals.into_iter().map(|a| a.perform(ctx.to_locked())) {
+            animals.push(fut.await?)
+        }
+        Ok(animals)
     }
 }

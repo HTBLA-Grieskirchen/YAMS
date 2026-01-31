@@ -1,5 +1,5 @@
 use crate::{
-    application::uow::UnitOfWork, ports::repos::UnitOfWorkProvider, service::{ports::repos::UnitOfWorkImpl, *}, use_cases::UseCase
+    application::uow::UnitOfWork, ports::repos::UnitOfWorkProvider, service::*, use_cases::UseCase,
 };
 use anyhow::anyhow;
 
@@ -29,11 +29,13 @@ impl App {
         for _attempt in 0..self.configuration.max_attempts {
             match self.try_execute(use_case.clone()).await {
                 Ok(result) => return Ok(result),
-                Err(ExecutionError::UseCase(e)) if e.should_retry() => {},
+                Err(ExecutionError::UseCase(e)) if e.should_retry() => {}
                 Err(e) => return Err(e),
             }
         }
-        Err(ExecutionError::Orchestration(OrchestrationError::MaxAttemptsReached))
+        Err(ExecutionError::Orchestration(
+            OrchestrationError::MaxAttemptsReached,
+        ))
     }
 
     #[inline(always)]
@@ -41,27 +43,30 @@ impl App {
         &self,
         use_case: U,
     ) -> Result<O, ExecutionError<U::Error>> {
-        // 1. Create the UoW (Factory starts the TX behind the scenes) and Registry
-        let uow = self
+        // 1. Create the UoW (Factory starts the TX behind the scenes)
+        let mut uow = self
             .uow_provider
             .begin()
             .await
             .map(UnitOfWork::new)
             .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
-        let mut registry = Registry { uow };
 
         // 2. Run UseCase
-        let result = use_case.perform(&mut registry).await;
+        let registry = ExecutionContext { uow: uow.shared() };
+        let result = use_case.perform(registry).await;
 
         // 3. Decide what to do
-        let Registry { uow, .. } = registry;
         match result {
             Ok(output) => {
-                uow.commit().await.map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
+                uow.commit()
+                    .await
+                    .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
                 Ok(output)
             }
             Err(e) => {
-                uow.rollback().await.map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
+                uow.rollback()
+                    .await
+                    .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
                 Err(ExecutionError::UseCase(e))
             }
         }

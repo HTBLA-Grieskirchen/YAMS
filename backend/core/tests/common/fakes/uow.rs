@@ -5,10 +5,7 @@ use crate::common::fakes::repository::{
 };
 use async_trait::async_trait;
 use yams_core::{
-    ports::{
-        repos::{AnimalRepository, ClientRepository},
-        uow::{UnitOfWork, UnitOfWorkProvider},
-    },
+    ports::repos::{AnimalRepository, ClientRepository, UnitOfWorkImpl, UnitOfWorkProvider},
     service::errors::PersistenceError,
 };
 
@@ -32,7 +29,7 @@ impl FakeUnitOfWorkProvider {
 
 #[async_trait]
 impl UnitOfWorkProvider for FakeUnitOfWorkProvider {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWork>, PersistenceError> {
+    async fn begin(&self) -> Result<Box<dyn UnitOfWorkImpl>, PersistenceError> {
         self.log.lock().unwrap().push(UoWEvent::Begin);
         Ok(Box::new(FakeUnitOfWork::new(
             Arc::clone(&self.log),
@@ -68,8 +65,28 @@ impl FakeUnitOfWork {
 }
 
 #[async_trait]
-impl UnitOfWork for FakeUnitOfWork {
-    async fn commit(&mut self) -> Result<(), PersistenceError> {
+impl UnitOfWorkImpl for FakeUnitOfWork {
+    async fn checkpoint(&mut self) -> Result<(), PersistenceError> {
+        self.log.lock().unwrap().push(UoWEvent::Checkpoint);
+
+        let new_snapshot = FakeDatastore::merge(
+            &self.backing_datastore,
+            &self.snapshotted_datastore,
+            &self.transaction_datastore,
+        )
+        .inspect_err(|e| {
+            self.log
+                .lock()
+                .unwrap()
+                .push(UoWEvent::Error(e.to_string()))
+        })?;
+
+        self.snapshotted_datastore = new_snapshot;
+
+        Ok(())
+    }
+
+    async fn commit(mut self: Box<Self>) -> Result<(), PersistenceError> {
         self.log.lock().unwrap().push(UoWEvent::Commit);
 
         let new_snapshot = FakeDatastore::merge(
@@ -90,7 +107,7 @@ impl UnitOfWork for FakeUnitOfWork {
         Ok(())
     }
 
-    async fn finish(self: Box<Self>) -> Result<(), PersistenceError> {
+    async fn rollback(self: Box<Self>) -> Result<(), PersistenceError> {
         self.log.lock().unwrap().push(UoWEvent::Rollback);
         Ok(())
     }
@@ -107,6 +124,7 @@ impl UnitOfWork for FakeUnitOfWork {
 #[derive(Debug)]
 pub enum UoWEvent {
     Begin,
+    Checkpoint,
     Commit,
     Rollback,
     Error(String),

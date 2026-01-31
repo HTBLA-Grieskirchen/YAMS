@@ -1,8 +1,6 @@
 use crate::application::OrchestratableError;
 
-pub trait ServiceError: OrchestratableError {
-
-}
+pub trait ServiceError: OrchestratableError {}
 
 #[derive(thiserror::Error, Debug)]
 pub enum PersistenceError {
@@ -60,5 +58,4 @@ impl OrchestratableError for PersistenceError {
     }
 }
 
-impl ServiceError for PersistenceError {
-}
+impl ServiceError for PersistenceError {}

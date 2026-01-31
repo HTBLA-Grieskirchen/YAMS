@@ -133,7 +133,7 @@ pub trait AnimalRepository: Send + Sync {
 /// UoW Provider
 #[async_trait]
 pub trait UnitOfWorkImpl: Send + Sync {
-    /// Different from a commit, this allows further usage of this UoW afterwards. It guarantees that the changes are fully persisted, and can be read from anew upon full system restart. 
+    /// Different from a commit, this allows further usage of this UoW afterwards. It guarantees that the changes are fully persisted, and can be read from anew upon full system restart.
     /// Beware, rollback after a checkpoint will not revert the changes, and the system will be in an inconsistent state. Rollback will only revert changes up to the latest checkpoint.
     /// Use sparingly, idealy for long running events such as batch pdf generation.
     async fn checkpoint(&mut self) -> RepositoryResult<()>;

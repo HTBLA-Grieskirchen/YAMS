@@ -16,3 +16,4 @@ rust_decimal = { version = "1.0", features = ["serde"] }
 tokio = { version = "1.0", features = ["full"] }
 rust-embed = "8.5"
 tempfile = "3.10"
+anyhow = "1.0.100"

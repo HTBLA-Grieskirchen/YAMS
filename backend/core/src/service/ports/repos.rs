@@ -63,6 +63,10 @@ where
 }
 
 impl<T> Versioned<T> {
+    pub fn new(version: i64, data: T) -> Self {
+        Self { version, data }
+    }
+
     pub fn init(data: T) -> Self {
         Self { version: 0, data }
     }

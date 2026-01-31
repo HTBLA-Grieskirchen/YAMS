@@ -1,0 +1,11 @@
+[package]
+name = "molting"
+version = "0.1.0"
+edition = "2024"
+authors = ["Tim Peko <timererd@gmail.com>"]
+description = "Migration framework for evolving your database schema or whatever really. Molt into your new version."
+license-file = "../../LICENSE"
+
+[dependencies]
+async-trait = "0.1.89"
+thiserror = "2.0.18"

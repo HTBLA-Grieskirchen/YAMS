@@ -1,3 +1,4 @@
+pub const UP: &str = r#"
 CREATE TABLE IF NOT EXISTS races (
     id TEXT PRIMARY KEY,
     description TEXT NOT NULL,
@@ -14,13 +15,13 @@ CREATE TABLE IF NOT EXISTS addresses (
     extra TEXT NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS animals (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     birthdate TEXT NOT NULL,
-    race_id TEXT NOT NULL,
-    FOREIGN KEY (race_id) REFERENCES races(id)
+    animal_species TEXT NOT NULL,
+    description TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS clients (
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS clients (
     customer_number INTEGER NOT NULL UNIQUE,
     address_id TEXT NOT NULL,
     consent BOOLEAN NOT NULL,
+    version INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (address_id) REFERENCES addresses(id)
 );
 
@@ -61,3 +63,14 @@ CREATE TABLE IF NOT EXISTS events (
     FOREIGN KEY (location_id) REFERENCES addresses(id),
     FOREIGN KEY (seminar_id) REFERENCES seminars(id)
 );
+"#;
+
+pub const DOWN: &str = r#"
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS seminars;
+DROP TABLE IF EXISTS client_animals;
+DROP TABLE IF EXISTS clients;
+DROP TABLE IF EXISTS animals;
+DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS races;
+"#;

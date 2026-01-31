@@ -4,6 +4,7 @@ members = [
     "backend/persistence",
     "backend/server",
     "backend/dto",
+    "backend/molting",
     "frontend/src-tauri",
 ]
 resolver = "2"

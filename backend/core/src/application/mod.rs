@@ -22,7 +22,7 @@ pub struct App {
 }
 
 impl App {
-    pub async fn execute<U: UseCase<O>, O>(
+    pub async fn execute<U: UseCase<O> + Clone, O>(
         &self,
         use_case: U,
     ) -> Result<O, ExecutionError<U::Error>> {
@@ -39,10 +39,20 @@ impl App {
     }
 
     #[inline(always)]
-    async fn try_execute<U: UseCase<O>, O>(
+    pub async fn try_execute<U: UseCase<O>, O>(
         &self,
         use_case: U,
     ) -> Result<O, ExecutionError<U::Error>> {
+        self.orchestrate_any(|ctx| use_case.perform(ctx)).await
+    }
+
+    pub async fn execute_fn<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>> 
+    where F: AsyncFnOnce(&ExecutionContext) -> Result<O, E>
+    {
+        self.orchestrate_any(|ctx| f(&ctx)).await
+    }
+
+    async fn orchestrate_any<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>> where F: AsyncFnOnce(ExecutionContext) -> Result<O, E> {
         // 1. Create the UoW (Factory starts the TX behind the scenes)
         let mut uow = self
             .uow_provider
@@ -52,8 +62,8 @@ impl App {
             .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
 
         // 2. Run UseCase
-        let registry = ExecutionContext { uow: uow.shared() };
-        let result = use_case.perform(registry).await;
+        let ctx = ExecutionContext { uow: uow.shared() };
+        let result = f(ctx).await;
 
         // 3. Decide what to do
         match result {

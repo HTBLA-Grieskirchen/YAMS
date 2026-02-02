@@ -1,8 +1,7 @@
-mod common;
 use std::sync::Arc;
 
+use super::super::make_testing_app;
 use chrono::{DateTime, Utc};
-use common::make_testing_app;
 use uuid::Uuid;
 use yams_core::{
     domain::Address,

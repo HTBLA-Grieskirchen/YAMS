@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::{ops::Deref, pin::Pin, sync::Arc};
 
 use async_trait::async_trait;
 
@@ -119,7 +119,7 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static> DownMigration<T, 
 pub trait MigrationTarget<T: Send + Sync + 'static, E: std::error::Error + 'static> {
     /// Retrieve the currently applied version ID (if any).
     /// Returns None if no migrations have been applied.
-    fn get_current_version(&self) -> Result<Option<usize>, E>;
+    fn get_current_version(&self) -> Pin<Box<dyn Future<Output = Result<Option<usize>, E>> + '_>>;
 
     /// Apply a migration within a transactional context.
     ///
@@ -152,7 +152,7 @@ impl<M: ?Sized> MigrationRegistry<M> {
         Self { migrations: vec![] }
     }
 
-    fn get_versions<T: Send + Sync + 'static, E: std::error::Error + 'static>(
+    async fn get_versions<T: Send + Sync + 'static, E: std::error::Error + 'static>(
         &self,
         runner: &impl MigrationTarget<T, E>,
         target_version: Option<usize>,
@@ -162,6 +162,7 @@ impl<M: ?Sized> MigrationRegistry<M> {
     {
         let current_ver = runner
             .get_current_version()
+            .await
             .map_err(MigrationError::RunnerError)?;
 
         let latest_ver = self.migrations.last().map(|m| m.version()).unwrap_or(0);
@@ -193,7 +194,7 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static>
         runner: &mut impl MigrationTarget<T, E>,
         target_version: Option<usize>,
     ) -> Result<(), MigrationError<E>> {
-        let (current, target) = self.get_versions(runner, target_version)?;
+        let (current, target) = self.get_versions(runner, target_version).await?;
 
         println!("Migration Status: Current: {}, Target: {}", current, target);
 
@@ -246,7 +247,7 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static>
         runner: &mut impl MigrationTarget<T, E>,
         target_version: Option<usize>,
     ) -> Result<(), MigrationError<E>> {
-        let (current, target) = self.get_versions(runner, target_version)?;
+        let (current, target) = self.get_versions(runner, target_version).await?;
 
         println!("Migration Status: Current: {}, Target: {}", current, target);
 

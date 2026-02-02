@@ -9,7 +9,7 @@ pub mod animals;
 pub mod client;
 
 #[async_trait]
-pub trait UseCase<Output>: Clone {
+pub trait UseCase<Output> {
     type Error: OrchestratableError;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Output, Self::Error>;

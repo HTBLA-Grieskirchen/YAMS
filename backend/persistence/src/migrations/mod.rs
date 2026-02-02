@@ -1,107 +1,74 @@
-pub mod m0001_initial;
+use std::pin::Pin;
+use std::sync::LazyLock;
 
-use libsql::{Connection, params};
-use yams_core::service::errors::PersistenceError as Error;
+use async_trait::async_trait;
+use molting::{AppliableMigration, MigrationRegistry, MigrationTarget, UpMigration};
 
-pub struct Migration {
-    pub id: i32,
-    pub name: &'static str,
-    pub up: &'static str,
-    pub down: &'static str,
-}
+use crate::SQLiteInstance;
 
-pub fn get_migrations() -> Vec<Migration> {
-    vec![Migration {
-        id: 1,
-        name: "initial_schema",
-        up: m0001_initial::UP,
-        down: m0001_initial::DOWN,
-    }]
-}
+mod v0001_initial;
 
-pub async fn init_migrations_table(conn: &Connection) -> Result<(), Error> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS _migrations (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )",
-        (),
-    )
-    .await
-    .map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?;
-    Ok(())
-}
+type Registry = MigrationRegistry<dyn UpMigration<libsql::Transaction, libsql::Error>>;
 
-pub async fn migrate_up(conn: &Connection) -> Result<(), Error> {
-    init_migrations_table(conn).await?;
+pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
+    let mut registry: Registry = MigrationRegistry::new();
+    registry.add(v0001_initial::Migration);
+    registry
+});
 
-    let migrations = get_migrations();
-    
-    let applied_migrations: Vec<i32> = {
-        let mut rows = conn
-            .query("SELECT id FROM _migrations ORDER BY id ASC", ())
-            .await
-            .map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?;
-        
-        let mut ids = Vec::new();
-        while let Some(row) = rows.next().await.map_err(|e| Error::Unknown(anyhow::anyhow!(e)))? {
-            ids.push(row.get(0).map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?);
-        }
-        ids
-    };
-
-    for m in migrations {
-        if !applied_migrations.contains(&m.id) {
-            println!("Applying migration {}: {}", m.id, m.name);
-            conn.execute_batch(m.up)
-                .await
-                .map_err(|e| Error::Unknown(anyhow::anyhow!("Failed to apply migration {}: {}", m.name, e)))?;
-            
-            conn.execute(
-                "INSERT INTO _migrations (id, name) VALUES (?1, ?2)",
-                params![m.id, m.name],
+#[async_trait]
+impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
+    fn get_current_version(
+        &self,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, libsql::Error>> + '_>> {
+        let tx = self.connection.transaction();
+        Box::pin(async move {
+            let tx = tx.await?;
+            // Create migrations table if it doesn't exist
+            tx.execute(
+                "CREATE TABLE IF NOT EXISTS _migration_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    version INTEGER,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )",
+                (),
             )
-            .await
-            .map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?;
-        }
+            .await?;
+
+            // Get the latest version based on the most recent application time
+            let mut rows = tx
+                .query(
+                    "SELECT version FROM _migration_history ORDER BY applied_at DESC LIMIT 1",
+                    (),
+                )
+                .await?;
+
+            tx.commit().await?;
+            let Some(row) = rows.next().await? else {
+                return Ok(None);
+            };
+            let version: Option<u64> = row.get(0)?;
+            Ok(version.map(|v| v as usize))
+        })
     }
 
-    Ok(())
-}
+    async fn apply_migration(
+        &mut self,
+        new_version: Option<usize>,
+        implementation: impl AppliableMigration<libsql::Transaction, libsql::Error> + Send,
+    ) -> Result<(), libsql::Error> {
+        let mut tx = self.connection.transaction().await?;
 
-pub async fn migrate_down(conn: &Connection) -> Result<(), Error> {
-    init_migrations_table(conn).await?;
+        implementation.run(&mut tx).await?;
 
-    let migrations = get_migrations();
-    
-    let last_applied_id: Option<i32> = {
-        let mut rows = conn
-            .query("SELECT id FROM _migrations ORDER BY id DESC LIMIT 1", ())
-            .await
-            .map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?;
-        
-        if let Some(row) = rows.next().await.map_err(|e| Error::Unknown(anyhow::anyhow!(e)))? {
-            Some(row.get(0).map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?)
-        } else {
-            None
-        }
-    };
+        tx.execute(
+            "INSERT INTO _migration_history (version) VALUES (?1)",
+            [new_version.map(|v| v as i64)],
+        )
+        .await?;
 
-    if let Some(id) = last_applied_id {
-        if let Some(m) = migrations.iter().find(|m| m.id == id) {
-            println!("Rolling back migration {}: {}", m.id, m.name);
-            conn.execute_batch(m.down)
-                .await
-                .map_err(|e| Error::Unknown(anyhow::anyhow!("Failed to rollback migration {}: {}", m.name, e)))?;
-            
-            conn.execute("DELETE FROM _migrations WHERE id = ?1", params![m.id])
-                .await
-                .map_err(|e| Error::Unknown(anyhow::anyhow!(e)))?;
-        }
-    } else {
-        println!("No migrations to rollback");
+        tx.commit().await?;
+
+        Ok(())
     }
-
-    Ok(())
 }

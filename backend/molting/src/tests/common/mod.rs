@@ -1,6 +1,7 @@
 //! Shared test doubles and helpers for molting integration tests.
 
 use std::cell::Cell;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
 
 use crate::{AppliableMigration, DownMigration, MigrationTarget, UpMigration};
@@ -54,11 +55,15 @@ impl FakeMigrationTarget {
 
 #[async_trait]
 impl MigrationTarget<(), TestError> for FakeMigrationTarget {
-    fn get_current_version(&self) -> Result<Option<usize>, TestError> {
+    fn get_current_version(
+        &self,
+    ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, TestError>>>> {
         if let Some(ref e) = self.fail_get_version.take() {
-            return Err(e.clone());
+            let e = e.clone();
+            return Box::pin(async move { Err(e) });
         }
-        Ok(self.current_version.get())
+        let current_version = self.current_version.get();
+        Box::pin(async move { Ok(current_version) })
     }
 
     async fn apply_migration(

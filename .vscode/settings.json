@@ -1,3 +1,6 @@
 {
-  "git.enabled": false
+  "git.enabled": false,
+  "rust-analyzer.vfs.extraIncludes": [
+    " ${workspaceFolder}"
+  ]
 }

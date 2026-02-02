@@ -2498,16 +2498,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libsql_migration"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "257b5f2880d907038bfc280918342034adf0c1cb07140e9473fc53c9677afdbc"
-dependencies = [
- "libsql",
- "tokio",
-]
-
-[[package]]
 name = "libsql_replication"
 version = "0.9.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2662,6 +2652,7 @@ name = "molting"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "pollster 0.3.0",
  "thiserror 2.0.18",
 ]
 
@@ -3425,6 +3416,12 @@ dependencies = [
 
 [[package]]
 name = "pollster"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22686f4785f02a4fcc856d3b3bb19bf6c8160d103f7a99cc258bddd0251dc7f2"
+
+[[package]]
+name = "pollster"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
@@ -3895,40 +3892,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "rust-embed"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04113cb9355a377d83f06ef1f0a45b8ab8cd7d8b1288160717d66df5c7988d27"
-dependencies = [
- "rust-embed-impl",
- "rust-embed-utils",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-impl"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da0902e4c7c8e997159ab384e6d0fc91c221375f6894346ae107f47dd0f3ccaa"
-dependencies = [
- "proc-macro2",
- "quote",
- "rust-embed-utils",
- "syn 2.0.114",
- "walkdir",
-]
-
-[[package]]
-name = "rust-embed-utils"
-version = "8.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bcdef0be6fe7f6fa333b1073c949729274b05f123a0ad7efcb8efd878e5c3b1"
-dependencies = [
- "sha2",
- "walkdir",
 ]
 
 [[package]]
@@ -6476,7 +6439,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "fxhash",
- "pollster",
+ "pollster 0.4.0",
  "rust_decimal",
  "thiserror 1.0.69",
  "uuid",
@@ -6500,13 +6463,10 @@ dependencies = [
  "async-trait",
  "chrono",
  "libsql",
- "libsql_migration",
- "rust-embed",
+ "molting",
  "rust_decimal",
  "serde",
- "tempfile",
  "thiserror 1.0.69",
- "tokio",
  "uuid",
  "yams-core",
 ]

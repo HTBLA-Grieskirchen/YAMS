@@ -243,11 +243,7 @@ impl ClientRepository for LibSqlUnitOfWork {
             .await
             .map_err(|e| PersistenceError::Unknown(anyhow::anyhow!(e)))?;
         
-        let address_id: Option<String> = if let Some(row) = rows.next().await.map_err(|e| PersistenceError::Unknown(anyhow::anyhow!(e)))? {
-            Some(row.get(0).unwrap())
-        } else {
-            None
-        };
+        let address_id: Option<String> = rows.next().await.map_err(|e| PersistenceError::Unknown(anyhow::anyhow!(e)))?.map(|row| row.get(0).unwrap());
 
         let res = self.tx.execute(
             "DELETE FROM clients WHERE id = ?1 AND version = ?2",

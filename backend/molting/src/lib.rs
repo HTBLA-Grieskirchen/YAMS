@@ -1,9 +1,14 @@
-use std::{ops::Deref, pin::Pin, sync::Arc};
+use std::{ops::Deref, sync::Arc};
 
 use async_trait::async_trait;
 
+#[cfg(test)]
+mod tests;
+
 #[async_trait]
-pub trait UpMigration<T: Send + Sync + 'static, E: std::error::Error + 'static>: Send + Sync + 'static {
+pub trait UpMigration<T: Send + Sync + 'static, E: std::error::Error + 'static>:
+    Send + Sync + 'static
+{
     /// The version ID of this migration. Must be unique and monotonically increasing.
     fn version(&self) -> usize;
 
@@ -17,7 +22,9 @@ pub trait UpMigration<T: Send + Sync + 'static, E: std::error::Error + 'static>:
 }
 
 #[async_trait]
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E> for Box<dyn UpMigration<T, E>> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E>
+    for Box<dyn UpMigration<T, E>>
+{
     fn version(&self) -> usize {
         self.deref().version()
     }
@@ -32,61 +39,79 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E>
 }
 
 #[async_trait]
-pub trait DownMigration<T: Send + Sync + 'static, E: std::error::Error + 'static>: UpMigration<T, E> {
+pub trait DownMigration<T: Send + Sync + 'static, E: std::error::Error + 'static>:
+    UpMigration<T, E>
+{
     /// Revert this migration from the target.
     async fn down(&self, target: &mut T) -> Result<(), E>;
 }
 
-trait AppliableMigration<T: Send + Sync + 'static, E: std::error::Error + 'static> {
-    async fn run(&self, target: &mut T) -> Result<(), E>;
+/// Internal trait for running a single migration step (up or down).
+/// Public so that external `MigrationTarget` implementations can type the `apply_migration` argument.
+pub trait AppliableMigration<T: Send + Sync + 'static, E: std::error::Error + 'static> {
+    fn run(&self, target: &mut T) -> impl std::future::Future<Output = Result<(), E>> + Send;
 }
 
-struct ApplyMigrationUp<T: Send + Sync + 'static, E: std::error::Error + 'static>(Box<dyn UpMigration<T, E>>);
+struct ApplyMigrationUp<T: Send + Sync + 'static, E: std::error::Error + 'static>(
+    Box<dyn UpMigration<T, E>>,
+);
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> AppliableMigration<T, E> for ApplyMigrationUp<T, E> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> AppliableMigration<T, E>
+    for ApplyMigrationUp<T, E>
+{
     async fn run(&self, target: &mut T) -> Result<(), E> {
         self.0.up(target).await
     }
 }
 
-struct ApplyMigrationDown<T: Send + Sync + 'static, E: std::error::Error + 'static>(Box<dyn DownMigration<T, E>>);
+struct ApplyMigrationDown<T: Send + Sync + 'static, E: std::error::Error + 'static>(
+    Box<dyn DownMigration<T, E>>,
+);
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> AppliableMigration<T, E> for ApplyMigrationDown<T, E> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> AppliableMigration<T, E>
+    for ApplyMigrationDown<T, E>
+{
     async fn run(&self, target: &mut T) -> Result<(), E> {
         self.0.down(target).await
     }
 }
 
 #[async_trait]
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E> for Arc<dyn UpMigration<T, E>> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E>
+    for Arc<dyn UpMigration<T, E>>
+{
     fn version(&self) -> usize {
-        self.version()
+        self.deref().version()
     }
     fn description(&self) -> Option<&'static str> {
-        self.description()
+        self.deref().description()
     }
     async fn up(&self, target: &mut T) -> Result<(), E> {
-        self.up(target).await
+        self.deref().up(target).await
     }
 }
 
 #[async_trait]
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E> for Arc<dyn DownMigration<T, E>> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> UpMigration<T, E>
+    for Arc<dyn DownMigration<T, E>>
+{
     fn version(&self) -> usize {
-        self.version()
+        self.deref().version()
     }
     fn description(&self) -> Option<&'static str> {
-        self.description()
+        self.deref().description()
     }
     async fn up(&self, target: &mut T) -> Result<(), E> {
-        self.up(target).await
+        self.deref().up(target).await
     }
 }
 
 #[async_trait]
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> DownMigration<T, E> for Arc<dyn DownMigration<T, E>> {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static> DownMigration<T, E>
+    for Arc<dyn DownMigration<T, E>>
+{
     async fn down(&self, target: &mut T) -> Result<(), E> {
-        self.down(target).await
+        self.deref().down(target).await
     }
 }
 
@@ -105,11 +130,21 @@ pub trait MigrationTarget<T: Send + Sync + 'static, E: std::error::Error + 'stat
     /// 4. Commits the transaction
     ///
     /// If any step fails, the transaction should be rolled back automatically.
-    async fn apply_migration(&mut self, new_version: Option<usize>, implementation: impl AppliableMigration<T, E>) -> Result<(), E>;
+    async fn apply_migration(
+        &mut self,
+        new_version: Option<usize>,
+        implementation: impl AppliableMigration<T, E> + Send,
+    ) -> Result<(), E>;
 }
 
 pub struct MigrationRegistry<M: ?Sized> {
     migrations: Vec<Arc<M>>,
+}
+
+impl<M: ?Sized> Default for MigrationRegistry<M> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<M: ?Sized> MigrationRegistry<M> {
@@ -121,7 +156,10 @@ impl<M: ?Sized> MigrationRegistry<M> {
         &self,
         runner: &impl MigrationTarget<T, E>,
         target_version: Option<usize>,
-    ) -> Result<(usize, usize), MigrationError<E>> where M: UpMigration<T, E> {
+    ) -> Result<(usize, usize), MigrationError<E>>
+    where
+        M: UpMigration<T, E>,
+    {
         let current_ver = runner
             .get_current_version()
             .map_err(MigrationError::RunnerError)?;
@@ -133,8 +171,15 @@ impl<M: ?Sized> MigrationRegistry<M> {
     }
 }
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> MigrationRegistry<dyn UpMigration<T, E>> {
-    pub fn add_migration(&mut self, migration: impl Into<Arc<dyn UpMigration<T, E>>>) -> &mut Self {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static>
+    MigrationRegistry<dyn UpMigration<T, E>>
+{
+    pub fn add(&mut self, migration: impl UpMigration<T, E>) -> &mut Self {
+        self.add_dyn(Arc::new(migration) as Arc<dyn UpMigration<T, E>>);
+        self
+    }
+
+    pub fn add_dyn(&mut self, migration: impl Into<Arc<dyn UpMigration<T, E>>>) -> &mut Self {
         self.migrations.push(migration.into());
         // Ensure strictly sorted order to guarantee deterministic chains
         self.migrations.sort_by_key(|m| m.version());
@@ -169,20 +214,27 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static> MigrationRegistry
     }
 }
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static, I: Into<Arc<dyn UpMigration<T, E>>>> From<Vec<I>>
-    for MigrationRegistry<dyn UpMigration<T, E>>
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static, I: Into<Arc<dyn UpMigration<T, E>>>>
+    From<Vec<I>> for MigrationRegistry<dyn UpMigration<T, E>>
 {
     fn from(migrations: Vec<I>) -> Self {
         let mut registry = Self::new();
         for migration in migrations {
-            registry.add_migration(migration.into());
+            registry.add(migration.into());
         }
         registry
     }
 }
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static> MigrationRegistry<dyn DownMigration<T, E>> {
-    pub fn add_migration(&mut self, migration: impl Into<Arc<dyn DownMigration<T, E>>>) -> &mut Self {
+impl<T: Send + Sync + 'static, E: std::error::Error + 'static>
+    MigrationRegistry<dyn DownMigration<T, E>>
+{
+    pub fn add(&mut self, migration: impl DownMigration<T, E> + 'static) -> &mut Self {
+        self.add_dyn(Arc::new(migration) as Arc<dyn DownMigration<T, E>>);
+        self
+    }
+
+    pub fn add_dyn(&mut self, migration: impl Into<Arc<dyn DownMigration<T, E>>>) -> &mut Self {
         self.migrations.push(migration.into());
         // Ensure strictly sorted order to guarantee deterministic chains
         self.migrations.sort_by_key(|m| m.version());
@@ -215,13 +267,16 @@ impl<T: Send + Sync + 'static, E: std::error::Error + 'static> MigrationRegistry
     }
 }
 
-impl<T: Send + Sync + 'static, E: std::error::Error + 'static, I: Into<Arc<dyn DownMigration<T, E>>>> From<Vec<I>>
-    for MigrationRegistry<dyn DownMigration<T, E>>
+impl<
+    T: Send + Sync + 'static,
+    E: std::error::Error + 'static,
+    I: Into<Arc<dyn DownMigration<T, E>>>,
+> From<Vec<I>> for MigrationRegistry<dyn DownMigration<T, E>>
 {
     fn from(migrations: Vec<I>) -> Self {
         let mut registry = Self::new();
         for migration in migrations {
-            registry.add_migration(migration.into());
+            registry.add_dyn(migration.into());
         }
         registry
     }
@@ -239,7 +294,11 @@ pub enum MigrationError<E: std::error::Error + 'static> {
     DownMigrationNotSupported,
 }
 
-async fn apply_up_migrations<T: Send + Sync + 'static, E: std::error::Error + 'static, I: UpMigration<T, E> + 'static>(
+async fn apply_up_migrations<
+    T: Send + Sync + 'static,
+    E: std::error::Error + 'static,
+    I: UpMigration<T, E> + 'static,
+>(
     migrations: impl Iterator<Item = I>,
     runner: &mut impl MigrationTarget<T, E>,
     current_version: usize,
@@ -270,7 +329,11 @@ async fn apply_up_migrations<T: Send + Sync + 'static, E: std::error::Error + 's
     Ok(())
 }
 
-async fn apply_down_migrations<T: Send + Sync + 'static, E: std::error::Error + 'static, I: DownMigration<T, E> + 'static>(
+async fn apply_down_migrations<
+    T: Send + Sync + 'static,
+    E: std::error::Error + 'static,
+    I: DownMigration<T, E> + 'static,
+>(
     migrations: impl DoubleEndedIterator<Item = I>,
     runner: &mut impl MigrationTarget<T, E>,
     current_version: usize,
@@ -294,7 +357,10 @@ async fn apply_down_migrations<T: Send + Sync + 'static, E: std::error::Error + 
         println!();
 
         runner
-            .apply_migration(next_migration.as_ref().map(|m| m.version()), ApplyMigrationDown(Box::new(migration)))
+            .apply_migration(
+                next_migration.as_ref().map(|m| m.version()),
+                ApplyMigrationDown(Box::new(migration)),
+            )
             .await
             .map_err(|e| MigrationError::MigrationFailed {
                 id: m_version,

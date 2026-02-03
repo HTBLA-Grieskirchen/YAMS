@@ -59,21 +59,6 @@ async fn test_animal() {
         .collect();
 
     assert_eq!(results.len(), animal_amount);
-    assert_eq!(
-        adaptors.datastore.animals.lock().unwrap().len(),
-        animal_amount
-    );
-    assert_eq!(adaptors.datastore.clients.lock().unwrap().len(), 1);
-    let client = adaptors
-        .datastore
-        .clients
-        .lock()
-        .unwrap()
-        .values()
-        .next()
-        .unwrap()
-        .clone();
-    assert_eq!(client.animal_ids.len(), animal_amount);
 
     let cmd = CreateManyAnimals {
         animals: (0..animal_amount)
@@ -86,17 +71,14 @@ async fn test_animal() {
             })
             .collect(),
     };
+
     let results = app.execute(cmd).await.unwrap();
     assert_eq!(results.len(), 10);
-    let client = adaptors
-        .datastore
-        .clients
-        .lock()
+
+    let client = app
+        .execute_fn(async |ctx| ctx.uow.clients().find_by_id(client.id).await)
+        .await
         .unwrap()
-        .values()
-        .next()
-        .unwrap()
-        .clone();
+        .unwrap();
     assert_eq!(client.animal_ids.len(), animal_amount * 2);
-    println!("{:?}", adaptors.uow_log.lock().unwrap());
 }

@@ -1,8 +1,19 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use libsql::Transaction;
-use yams_core::{ports::repos::{AnimalRepository, ClientRepository, RepositoryResult, UnitOfWorkImpl, UnitOfWorkProvider}, service::errors::PersistenceError};
+use yams_core::{
+    ports::repos::{
+        AnimalRepository, ClientRepository, RepositoryResult, UnitOfWorkImpl, UnitOfWorkProvider,
+    },
+    service::errors::PersistenceError,
+};
 
-use crate::{SQLiteInstance, repos::{SQLiteAnimalRepository, SQLiteClientRepository}};
+use crate::{
+    SQLiteInstance,
+    errors::ToPersistenceResultExt,
+    repos::{SQLiteAnimalRepository, SQLiteClientRepository},
+};
 
 #[async_trait]
 impl UnitOfWorkProvider for SQLiteInstance {
@@ -12,23 +23,31 @@ impl UnitOfWorkProvider for SQLiteInstance {
 }
 
 pub struct SQLiteUnitOfWork {
-    pub(crate) tx: Transaction,
+    connection: Arc<libsql::Connection>,
+    tx: Transaction,
 }
 
 #[async_trait]
 impl UnitOfWorkImpl for SQLiteUnitOfWork {
     async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        todo!()
+        std::mem::replace(
+            &mut self.tx,
+            self.connection.transaction().await.to_persistence()?,
+        )
+        .commit()
+        .await
+        .to_persistence()?;
+        Ok(())
     }
-    
+
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
-        todo!()
+        self.tx.commit().await.to_persistence()
     }
 
     async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
-        todo!()
+        self.tx.rollback().await.to_persistence()
     }
-    
+
     fn clients(&self) -> &dyn ClientRepository {
         &SQLiteClientRepository {
 
@@ -36,8 +55,6 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
     }
 
     fn animals(&self) -> &dyn AnimalRepository {
-        &SQLiteAnimalRepository {
-
-        }
+        &SQLiteAnimalRepository {}
     }
 }

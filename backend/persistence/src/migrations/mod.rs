@@ -21,7 +21,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
     fn get_current_version(
         &self,
     ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, libsql::Error>> + '_>> {
-        let tx = self.connection.transaction();
+        let tx = self.connection.transaction_with_behavior(libsql::TransactionBehavior::Exclusive);
         Box::pin(async move {
             let tx = tx.await?;
             // Create migrations table if it doesn't exist
@@ -57,7 +57,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
         new_version: Option<usize>,
         implementation: impl AppliableMigration<libsql::Transaction, libsql::Error> + Send,
     ) -> Result<(), libsql::Error> {
-        let mut tx = self.connection.transaction().await?;
+        let mut tx = self.connection.transaction_with_behavior(libsql::TransactionBehavior::Exclusive).await?;
 
         implementation.run(&mut tx).await?;
 

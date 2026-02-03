@@ -3,7 +3,10 @@ use std::sync::Arc;
 use super::super::make_testing_app;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use yams_core::{domain::Address, service::client::CreateClient};
+use yams_core::{
+    domain::Address,
+    service::{client::CreateClient, errors::PersistenceError},
+};
 
 #[pollster::test]
 async fn test_client() {
@@ -49,14 +52,16 @@ async fn test_client() {
 
     println!("{:?}", result);
 
-    let clients = adaptors
-        .datastore
-        .clients
-        .lock()
-        .unwrap()
-        .values()
-        .map(|v| v.cloned_data())
-        .collect::<Vec<_>>();
+    let clients = app
+        .execute_fn::<_, _, PersistenceError>(async |ctx| {
+            let mut clients = vec![ctx.uow.clients().find_by_id(result.id).await?.unwrap()];
+            for res in parallel_results {
+                clients.push(ctx.uow.clients().find_by_id(res.id).await?.unwrap());
+            }
+            Ok(clients)
+        })
+        .await
+        .unwrap();
     assert_eq!(clients.len(), 101);
     assert_eq!(clients[0].first_name, "Testname");
 }

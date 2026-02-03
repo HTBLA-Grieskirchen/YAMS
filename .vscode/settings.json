@@ -1,6 +1,6 @@
 {
   "git.enabled": false,
   "rust-analyzer.vfs.extraIncludes": [
-    " ${workspaceFolder}"
+    "${workspaceFolder}/backend/core/tests/**"
   ]
 }

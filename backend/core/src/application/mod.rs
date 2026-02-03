@@ -6,8 +6,10 @@ use anyhow::anyhow;
 mod orchestration;
 pub mod uow;
 
+use orchestration::*;
+
 pub struct AppConfiguration {
-    max_attempts: u32,
+    pub max_attempts: u32,
 }
 
 impl Default for AppConfiguration {
@@ -22,10 +24,13 @@ pub struct App {
 }
 
 impl App {
-    pub async fn execute<U: UseCase<O> + Clone, O>(
+    pub async fn execute<U: UseCase<O> + Clone + Send, O>(
         &self,
         use_case: U,
-    ) -> Result<O, ExecutionError<U::Error>> {
+    ) -> Result<O, ExecutionError<U::Error>>
+    where
+        U::Error: Send,
+    {
         for _attempt in 0..self.configuration.max_attempts {
             match self.try_execute(use_case.clone()).await {
                 Ok(result) => return Ok(result),
@@ -39,21 +44,29 @@ impl App {
     }
 
     #[inline(always)]
-    pub async fn try_execute<U: UseCase<O>, O>(
+    pub async fn try_execute<U: UseCase<O> + Send, O>(
         &self,
         use_case: U,
-    ) -> Result<O, ExecutionError<U::Error>> {
-        self.orchestrate_any(|ctx| use_case.perform(ctx)).await
-    }
-
-    pub async fn execute_fn<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>> 
-    where F: AsyncFnOnce(&ExecutionContext) -> Result<O, E>
+    ) -> Result<O, ExecutionError<U::Error>>
+    where
+        U::Error: Send,
     {
-        self.orchestrate_any(|ctx| f(&ctx)).await
+        self.orchestrate(UseCaseOp(use_case)).await
     }
 
-    async fn orchestrate_any<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>> where F: AsyncFnOnce(ExecutionContext) -> Result<O, E> {
-        // 1. Create the UoW (Factory starts the TX behind the scenes)
+    pub async fn execute_fn<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>>
+    where
+        for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> Result<O, E> + Send,
+        E: Send,
+    {
+        self.orchestrate(FnOp(f)).await
+    }
+
+    async fn orchestrate<T, O, E>(&self, op: T) -> Result<O, ExecutionError<E>>
+    where
+        T: OrchestrateFn<O, E>,
+    {
+        // 1. Create the UoW (Factory starts TX behind the scenes)
         let mut uow = self
             .uow_provider
             .begin()
@@ -61,9 +74,9 @@ impl App {
             .map(UnitOfWork::new)
             .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
 
-        // 2. Run UseCase
+        // 2. Run the operation
         let ctx = ExecutionContext { uow: uow.shared() };
-        let result = f(ctx).await;
+        let result = op.run(ctx).await;
 
         // 3. Decide what to do
         match result {

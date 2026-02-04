@@ -7,13 +7,17 @@ pub enum PersistenceError {
     #[error("entity not found")]
     NotFound,
     #[error("version mismatch - entity was modified by another process")]
-    VersionMismatch { expected: i64, actual: i64 },
+    VersionMismatch { expected: u64, actual: Option<u64> },
     #[error("concurrent modification detected")]
     ConcurrentModification,
     #[error("connection error")]
     ConnectionError(#[source] std::io::Error),
     #[error("transaction failed")]
-    TransactionFailed(#[source] anyhow::Error),
+    TransactionFailed(
+        #[source]
+        #[backtrace]
+        anyhow::Error,
+    ),
     #[error("constraint violation")]
     ConstraintViolation(#[source] anyhow::Error),
     #[error("serialization error")]

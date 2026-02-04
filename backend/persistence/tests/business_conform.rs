@@ -8,7 +8,7 @@ mod cases;
 
 pub async fn make_testing_app() -> (App, TestAdapters) {
     let mut sqlite_instance = SQLiteInstance::in_memory().await.unwrap();
-    sqlite_instance.migrate_to_latest().await;
+    sqlite_instance.migrate_to_latest().await.unwrap();
 
     (
         App {

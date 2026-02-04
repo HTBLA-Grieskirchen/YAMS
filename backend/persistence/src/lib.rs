@@ -5,14 +5,15 @@ mod uow;
 
 use std::{path::Path, sync::Arc};
 
-use libsql::OpenFlags;
+use async_lock::Mutex;
+use migrations::MIGRATIONS;
 pub use uow::*;
 use yams_core::service::errors::PersistenceError;
 
 use crate::errors::ToPersistenceResultExt;
 
 pub struct SQLiteInstance {
-    pub(crate) connection: Arc<libsql::Connection>,
+    pub(crate) connection: Arc<Mutex<libsql::Connection>>,
 }
 
 impl SQLiteInstance {
@@ -24,7 +25,9 @@ impl SQLiteInstance {
             .to_persistence()?
             .connect()
             .to_persistence()?;
-        Ok(Self { connection: Arc::new(connection) })
+        Ok(Self {
+            connection: Arc::new(Mutex::new(connection)),
+        })
     }
 
     pub async fn in_memory() -> Result<Self, PersistenceError> {
@@ -34,7 +37,9 @@ impl SQLiteInstance {
             .to_persistence()?
             .connect()
             .to_persistence()?;
-        Ok(Self { connection: Arc::new(connection) })
+        Ok(Self {
+            connection: Arc::new(Mutex::new(connection)),
+        })
     }
 
     pub async fn migrate_to_latest(&mut self) -> Result<(), PersistenceError> {

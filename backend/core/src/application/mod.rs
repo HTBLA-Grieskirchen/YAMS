@@ -34,7 +34,9 @@ impl App {
         for _attempt in 0..self.configuration.max_attempts {
             match self.try_execute(use_case.clone()).await {
                 Ok(result) => return Ok(result),
-                Err(ExecutionError::UseCase(e)) if e.should_retry() => {}
+                Err(ExecutionError::UseCase(e)) if e.should_retry() => {
+                    println!("Error during execution: {e:?}");
+                }
                 Err(e) => return Err(e),
             }
         }

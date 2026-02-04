@@ -101,7 +101,7 @@ impl FakeDatastore {
                         if target_versioned.v() > reference_versioned.v() {
                             return Err(PersistenceError::VersionMismatch {
                                 expected: reference_versioned.v(),
-                                actual: target_versioned.v(),
+                                actual: Some(target_versioned.v()),
                             });
                         }
                         target.insert(id, tx_versioned);
@@ -114,7 +114,7 @@ impl FakeDatastore {
                     {
                         return Err(PersistenceError::VersionMismatch {
                             expected: reference_versioned.v(),
-                            actual: target_v.v(),
+                            actual: Some(target_v.v()),
                         });
                     }
                     target.remove(&id);
@@ -171,7 +171,7 @@ impl AnimalRepository for FakeAnimalsRepository {
             if existing.v() != animal.v() {
                 return Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
-                    actual: animal.v(),
+                    actual: Some(animal.v()),
                 });
             }
 
@@ -188,7 +188,7 @@ impl AnimalRepository for FakeAnimalsRepository {
             if existing.v() != animal.v() {
                 return Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
-                    actual: animal.v(),
+                    actual: Some(animal.v()),
                 });
             }
             data.remove(&animal.id.0);
@@ -241,7 +241,7 @@ impl ClientRepository for FakeClientsRepository {
             if existing.v() != client.v() {
                 return Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
-                    actual: client.v(),
+                    actual: Some(client.v()),
                 });
             }
             *client = client.clone().incremented();
@@ -257,7 +257,7 @@ impl ClientRepository for FakeClientsRepository {
             if existing.v() != client.v() {
                 return Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
-                    actual: client.v(),
+                    actual: Some(client.v()),
                 });
             }
             data.remove(&client.id.0);

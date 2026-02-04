@@ -10,7 +10,7 @@ pub mod client;
 
 #[async_trait]
 pub trait UseCase<Output> {
-    type Error: OrchestratableError;
+    type Error: OrchestratableError + std::error::Error;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Output, Self::Error>;
 }

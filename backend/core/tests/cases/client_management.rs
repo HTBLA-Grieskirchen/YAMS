@@ -31,9 +31,10 @@ async fn test_client() {
 
     // Execute the case 100 times in parallel using threads
     let handles: Vec<_> = (0..100)
-        .map(|_| {
+        .map(|i| {
             let app_clone = app.clone();
-            let case_clone = case.clone();
+            let mut case_clone = case.clone();
+            case_clone.customer_number = 1000 + i;
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(1));
                 pollster::block_on(async move { app_clone.execute(case_clone).await.unwrap() })

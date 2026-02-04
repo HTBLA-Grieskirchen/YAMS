@@ -27,7 +27,7 @@ impl<T> RepositoryResultExt<T> for RepositoryResult<Option<T>> {
 }
 
 pub struct Versioned<T> {
-    version: i64,
+    version: u64,
     data: T,
 }
 
@@ -63,7 +63,7 @@ where
 }
 
 impl<T> Versioned<T> {
-    pub fn new(version: i64, data: T) -> Self {
+    pub fn new(version: u64, data: T) -> Self {
         Self { version, data }
     }
 
@@ -71,15 +71,18 @@ impl<T> Versioned<T> {
         Self { version: 0, data }
     }
 
-    pub fn v(&self) -> i64 {
+    pub fn v(&self) -> u64 {
         self.version
     }
 
-    pub fn incremented(self) -> Self {
-        Self {
-            version: self.version + 1,
-            data: self.data,
-        }
+    pub fn increment(&mut self) -> u64 {
+        self.version += 1;
+        self.version
+    }
+
+    pub fn incremented(mut self) -> Self {
+        self.increment();
+        self
     }
 
     pub fn into_data(self) -> T {

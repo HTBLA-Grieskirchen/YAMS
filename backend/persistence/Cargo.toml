@@ -8,6 +8,7 @@ yams-core = { path = "../core" }
 molting = { path = "../molting" }
 libsql = "0.9"
 async-trait = "0.1"
+async-lock = "2"
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.0", features = ["v4", "serde"] }
@@ -15,7 +16,7 @@ thiserror = "1.0"
 rust_decimal = { version = "1.0", features = ["serde"] }
 anyhow = "1.0.100"
 
-[dev-dependencies]
 pollster = { version = "0.4.0", features = ["macro"] }
+[dev-dependencies]
 
 

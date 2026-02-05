@@ -1,36 +1,57 @@
-use poem_openapi::{OpenApi, payload::Json};
 use std::sync::Arc;
-use yams_core::app::App;
-use yams_core::models::NewAddress;
-use yams_dto::{AddressDTO, CreateAddressResponse, GetAddressesResponse, NewAddressDTO};
 
-pub struct Api {
-    pub ctx: Arc<App>,
+use async_trait::async_trait;
+use poem_openapi::payload::Json;
+use yams_core::{
+    App,
+    service::{animals::CreateAnimal, client::CreateClient},
+};
+use yams_schema::{
+    api::{
+        AnimalCreation, Api, ApiImpl, ClientCreation, CreateAnimalResponse, CreateClientResponse,
+    },
+    errors::InternalServerError,
+};
+
+pub type AppApi = Api<AppApiImplementation>;
+
+pub struct AppApiImplementation {
+    app: Arc<App>,
 }
 
-#[OpenApi]
-impl Api {
-    #[oai(path = "/health", method = "get")]
-    async fn health(&self) -> Json<String> {
-        Json("OK".to_string())
+impl AppApiImplementation {
+    pub fn new(app: App) -> Self {
+        Self { app: Arc::new(app) }
+    }
+}
+
+#[async_trait]
+impl ApiImpl for AppApiImplementation {
+    async fn create_client(&self, body: ClientCreation) -> CreateClientResponse {
+        let client = match self
+            .app
+            .execute(CreateClient::from(body))
+            .await
+            .map_err(|e| anyhow::anyhow!(e))
+            .map_err(InternalServerError::from)
+        {
+            Ok(client) => client,
+            Err(e) => return CreateClientResponse::InternalError(Json(e)),
+        };
+        CreateClientResponse::Ok(Json(yams_schema::schema_client_from_domain(client, vec![])))
     }
 
-    #[oai(path = "/addresses", method = "get")]
-    async fn get_addresses(&self) -> GetAddressesResponse {
-        match self.ctx.address_service.get_all().await {
-            Ok(addresses) => GetAddressesResponse::Ok(Json(
-                addresses.into_iter().map(AddressDTO::from).collect(),
-            )),
-            Err(_) => GetAddressesResponse::InternalError,
-        }
-    }
-
-    #[oai(path = "/addresses", method = "post")]
-    async fn create_address(&self, address: Json<NewAddressDTO>) -> CreateAddressResponse {
-        let address: NewAddress = address.0.into();
-        match self.ctx.address_service.create(address).await {
-            Ok(saved) => CreateAddressResponse::Ok(Json(AddressDTO::from(saved))),
-            Err(_) => CreateAddressResponse::InternalError,
-        }
+    async fn create_animal(&self, body: AnimalCreation) -> CreateAnimalResponse {
+        let animal = match self
+            .app
+            .execute(CreateAnimal::from(body))
+            .await
+            .map_err(|e| anyhow::anyhow!(e))
+            .map_err(InternalServerError::from)
+        {
+            Ok(animal) => animal,
+            Err(e) => return CreateAnimalResponse::InternalError(Json(e)),
+        };
+        CreateAnimalResponse::Ok(Json(yams_schema::schema_animal_from_domain(animal)))
     }
 }

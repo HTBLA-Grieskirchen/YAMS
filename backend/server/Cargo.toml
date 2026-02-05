@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 yams-core = { path = "../core" }
 yams-persistence = { path = "../persistence" }
-yams-dto = { path = "../dto" }
+yams-api = { path = "../api" }
 poem = "3.0"
 poem-openapi = { version = "5.0", features = ["swagger-ui", "uuid", "redoc"] }
 tokio = { version = "1.0", features = ["full"] }
@@ -14,3 +14,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.0", features = ["v4", "serde"] }
 clap = { version = "4.0", features = ["derive", "env"] }
+async-trait = "0.1.89"
+anyhow = "1.0.101"

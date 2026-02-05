@@ -133,9 +133,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.100"
+version = "1.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
+checksum = "5f0e0fee31ef5ed1ba1316088939cea399010ed7731dba877ed44aeb407a75ea"
 
 [[package]]
 name = "arrayvec"
@@ -3392,6 +3392,7 @@ checksum = "1ccbcc395bf4dd03df1da32da351b6b6732e4074ce27ddec315650e52a2be44c"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "chrono",
  "derive_more 2.1.1",
  "futures-util",
  "indexmap 2.13.0",
@@ -6441,9 +6442,23 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-shell",
  "url",
+ "yams-api",
  "yams-core",
- "yams-dto",
  "yams-persistence",
+]
+
+[[package]]
+name = "yams-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "poem-openapi",
+ "serde",
+ "thiserror 1.0.69",
+ "uuid",
+ "yams-core",
 ]
 
 [[package]]
@@ -6458,16 +6473,6 @@ dependencies = [
  "rust_decimal",
  "thiserror 1.0.69",
  "uuid",
-]
-
-[[package]]
-name = "yams-dto"
-version = "0.1.0"
-dependencies = [
- "poem-openapi",
- "serde",
- "uuid",
- "yams-core",
 ]
 
 [[package]]
@@ -6492,6 +6497,8 @@ dependencies = [
 name = "yams-server"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
  "clap",
  "poem",
  "poem-openapi",
@@ -6499,8 +6506,8 @@ dependencies = [
  "serde_json",
  "tokio",
  "uuid",
+ "yams-api",
  "yams-core",
- "yams-dto",
  "yams-persistence",
 ]
 

@@ -38,38 +38,14 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/addresses": {
+  "/client": {
     parameters: {
       query?: never;
       header?: never;
       path?: never;
       cookie?: never;
     };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": components["schemas"]["AddressDTO"][];
-          };
-        };
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-      };
-    };
+    get?: never;
     put?: never;
     post: {
       parameters: {
@@ -80,7 +56,7 @@ export interface paths {
       };
       requestBody: {
         content: {
-          "application/json; charset=utf-8": components["schemas"]["NewAddressDTO"];
+          "application/json; charset=utf-8": components["schemas"]["ClientCreation"];
         };
       };
       responses: {
@@ -89,14 +65,62 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            "application/json; charset=utf-8": components["schemas"]["AddressDTO"];
+            "application/json; charset=utf-8": components["schemas"]["Client"];
           };
         };
         500: {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json; charset=utf-8": string;
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/animal": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json; charset=utf-8": components["schemas"]["AnimalCreation"];
+        };
+      };
+      responses: {
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json; charset=utf-8": components["schemas"]["Animal"];
+          };
+        };
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json; charset=utf-8": string;
+          };
         };
       };
     };
@@ -110,25 +134,61 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    /** AddressDTO */
-    AddressDTO: {
+    /** Address */
+    Address: {
+      postalCode: string;
+      city: string;
+      streetAndNumber: string;
+      countryCode: string;
+    };
+    /** Animal */
+    Animal: {
       /** Format: uuid */
       id: string;
-      country: string;
-      postalCode: string;
-      city: string;
-      street: string;
-      streetNumber: string;
-      extra: string;
+      name: string;
+      species: string;
+      /** Format: naive-date */
+      birthdate: string;
+      description: string;
     };
-    /** NewAddressDTO */
-    NewAddressDTO: {
-      country: string;
-      postalCode: string;
-      city: string;
-      street: string;
-      streetNumber: string;
-      extra: string;
+    /** AnimalCreation */
+    AnimalCreation: {
+      name: string;
+      /** Format: naive-date */
+      birthdate: string;
+      animalSpecies: string;
+      description: string;
+      /** Format: uuid */
+      clientId: string;
+    };
+    /** Client */
+    Client: {
+      /** Format: uuid */
+      id: string;
+      firstName: string;
+      lastName: string;
+      /** Format: naive-date */
+      birthdate: string;
+      email: string;
+      mobileNumber: string;
+      /** Format: int64 */
+      customerNumber: number;
+      consent: boolean;
+      address: components["schemas"]["Address"];
+      animalIds: string[];
+    };
+    /** ClientCreation */
+    ClientCreation: {
+      firstName: string;
+      lastName: string;
+      /** Format: naive-date */
+      birthdate: string;
+      email: string;
+      mobileNumber: string;
+      /** Format: int64 */
+      customerNumber: number;
+      consent: boolean;
+      address: components["schemas"]["Address"];
     };
   };
   responses: never;

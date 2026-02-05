@@ -1,10 +1,8 @@
 use std::sync::Arc;
 use tauri::Manager;
-use yams_core::app::App;
-use yams_core::service::{
-    AddressService, AnimalService, ClientService, EventService, RaceService, SeminarService,
-};
-use yams_persistence::adapter::SqliteAdapter;
+use yams_core::App;
+use yams_core::application::AppConfiguration;
+use yams_persistence::SQLiteInstance;
 
 mod commands;
 mod config;
@@ -20,34 +18,25 @@ fn main() {
     let (backend_config, _frontend_config) = YAMSFileConfig::load();
 
     tauri::Builder::default()
-        .setup(move |app| {
+        .setup(move |tauri_app| {
             // Initialize LibSQL Adapter using config
             let db_url = &backend_config.local_database_location;
-            let adapter =
-                tauri::async_runtime::block_on(async { SqliteAdapter::new(db_url).await })
-                    .expect("failed to initialize LibSQL adapter");
-            let adapter = Arc::new(adapter);
+            let db_instance = tauri::async_runtime::block_on(async {
+                let mut sqlite = SQLiteInstance::local(db_url).await?;
+                sqlite.migrate_to_latest().await?;
+                Ok(sqlite)
+            })
+            .expect("failed to initialize LibSQL adapter");
 
-            let address_service = Arc::new(AddressService::new(adapter.clone()));
-            let client_service = Arc::new(ClientService::new(adapter.clone()));
-            let animal_service = Arc::new(AnimalService::new(adapter.clone()));
-            let race_service = Arc::new(RaceService::new(adapter.clone()));
-            let event_service = Arc::new(EventService::new(adapter.clone()));
-            let seminar_service = Arc::new(SeminarService::new(adapter.clone()));
+            let app = App {
+                uow_provider: Box::new(db_instance),
+                configuration: AppConfiguration::default(),
+            };
 
-            let ctx = Arc::new(App::new(
-                address_service,
-                client_service,
-                animal_service,
-                race_service,
-                event_service,
-                seminar_service,
-            ));
+            tauri_app.manage(Arc::new(app));
 
-            app.manage(ctx);
-
-            app.manage(backend_config);
-            app.manage(_frontend_config);
+            tauri_app.manage(backend_config);
+            tauri_app.manage(_frontend_config);
 
             Ok(())
         })

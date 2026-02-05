@@ -3,11 +3,11 @@ use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
 use poem_openapi::OpenApiService;
 use std::sync::Arc;
-use yams_core::app::App;
-use yams_core::service::{
-    AddressService, AnimalService, ClientService, EventService, RaceService, SeminarService,
-};
-use yams_persistence::adapter::SqliteAdapter;
+use yams_core::App;
+use yams_core::application::AppConfiguration;
+use yams_persistence::SQLiteInstance;
+
+use crate::api::{AppApi, AppApiImplementation};
 
 mod api;
 
@@ -32,29 +32,18 @@ struct Config {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), std::io::Error> {
+async fn main() -> anyhow::Result<()> {
     let config = Config::parse();
 
-    let adapter = SqliteAdapter::new(&config.database_url)
+    let mut adapter = SQLiteInstance::local(&config.database_url)
         .await
         .expect("Failed to initialize database");
-    let adapter = Arc::new(adapter);
+    adapter.migrate_to_latest().await?;
 
-    let address_service = Arc::new(AddressService::new(adapter.clone()));
-    let client_service = Arc::new(ClientService::new(adapter.clone()));
-    let animal_service = Arc::new(AnimalService::new(adapter.clone()));
-    let race_service = Arc::new(RaceService::new(adapter.clone()));
-    let event_service = Arc::new(EventService::new(adapter.clone()));
-    let seminar_service = Arc::new(SeminarService::new(adapter.clone()));
-
-    let ctx = Arc::new(App::new(
-        address_service,
-        client_service,
-        animal_service,
-        race_service,
-        event_service,
-        seminar_service,
-    ));
+    let app = App {
+        uow_provider: Box::new(adapter),
+        configuration: AppConfiguration::default(),
+    };
 
     let base_path = config.subpath.trim_matches('/');
     let subpath = if base_path.is_empty() {
@@ -69,8 +58,12 @@ async fn main() -> Result<(), std::io::Error> {
     );
 
     // TODO: add dynamic version loading
-    let api_service = OpenApiService::new(api::Api { ctx }, "YAMS API", env!("CARGO_PKG_VERSION"))
-        .server("http://localhost:3000/api");
+    let api_service = OpenApiService::new(
+        AppApi::from(AppApiImplementation::new(app)),
+        "YAMS API",
+        env!("CARGO_PKG_VERSION"),
+    )
+    .server(&api_url);
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())
@@ -93,5 +86,6 @@ async fn main() -> Result<(), std::io::Error> {
         config.bind_address, config.port
     )))
     .run(app)
-    .await
+    .await?;
+    Ok(())
 }

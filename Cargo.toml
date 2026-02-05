@@ -3,7 +3,7 @@ members = [
     "backend/core",
     "backend/persistence",
     "backend/server",
-    "backend/dto",
+    "backend/api",
     "backend/molting",
     "frontend/src-tauri",
 ]

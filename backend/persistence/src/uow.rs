@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use async_lock::{Mutex, MutexGuardArc};
+use async_lock::Mutex;
 use async_trait::async_trait;
 use libsql::Transaction;
 use yams_core::{
@@ -11,14 +11,14 @@ use yams_core::{
 };
 
 use crate::{
-    SQLiteInstance,
+    SQLiteConnection, SQLiteInstance,
     errors::ToPersistenceResultExt,
     repos::{SQLiteAnimalRepository, SQLiteClientRepository},
 };
 
 pub struct SQLiteUnitOfWork {
     /// Held for the whole UoW; ensures only one transaction on the connection. Dropped on commit/rollback.
-    connection: MutexGuardArc<libsql::Connection>,
+    connection: SQLiteConnection,
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
     pub(crate) client_repo: SQLiteClientRepository,
     pub(crate) animal_repo: SQLiteAnimalRepository,
@@ -27,19 +27,18 @@ pub struct SQLiteUnitOfWork {
 #[async_trait]
 impl UnitOfWorkProvider for SQLiteInstance {
     async fn begin(&self) -> Result<Box<dyn UnitOfWorkImpl>, PersistenceError> {
-        let connection = Arc::clone(&self.connection).lock_arc().await;
+        let connection = self.create_connection().await?;
         let tx = connection
-            .transaction_with_behavior(libsql::TransactionBehavior::Immediate)
+            .transaction_with_behavior(libsql::TransactionBehavior::Deferred)
             .await
             .to_persistence()?;
         let tx = Arc::new(Mutex::new(Some(tx)));
-        let uow = SQLiteUnitOfWork {
+        Ok(Box::new(SQLiteUnitOfWork {
             connection,
             client_repo: SQLiteClientRepository { tx: tx.clone() },
             animal_repo: SQLiteAnimalRepository { tx: tx.clone() },
             tx,
-        };
-        Ok(Box::new(uow))
+        }))
     }
 }
 
@@ -53,7 +52,7 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
         old_tx.commit().await.to_persistence()?;
         let new_tx = self
             .connection
-            .transaction_with_behavior(libsql::TransactionBehavior::Immediate)
+            .transaction_with_behavior(libsql::TransactionBehavior::Deferred)
             .await
             .to_persistence()?;
         *tx_guard = Some(new_tx);
@@ -65,6 +64,9 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
         let tx = tx_guard
             .take()
             .ok_or(PersistenceError::ConcurrentModification)?;
+        tx.query("PRAGMA incremental_vacuum", ())
+            .await
+            .to_persistence()?;
         tx.commit().await.to_persistence()
     }
 

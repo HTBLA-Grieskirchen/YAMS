@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 use async_trait::async_trait;
 use molting::{AppliableMigration, MigrationRegistry, MigrationTarget, UpMigration};
 
-use crate::SQLiteInstance;
+use crate::SQLiteConnection;
 
 mod v0001_initial;
 
@@ -18,15 +18,12 @@ pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
 });
 
 #[async_trait]
-impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
+impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteConnection {
     fn get_current_version(
         &self,
     ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, libsql::Error>> + '_>> {
         Box::pin(async move {
             let tx = self
-                .connection
-                .lock()
-                .await
                 .transaction_with_behavior(libsql::TransactionBehavior::Exclusive)
                 .await?;
             // Create migrations table if it doesn't exist
@@ -63,9 +60,6 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
         implementation: impl AppliableMigration<libsql::Transaction, libsql::Error> + Send,
     ) -> Result<(), libsql::Error> {
         let mut tx = self
-            .connection
-            .lock()
-            .await
             .transaction_with_behavior(libsql::TransactionBehavior::Exclusive)
             .await?;
 
@@ -74,6 +68,14 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteInstance {
         tx.execute(
             "INSERT INTO _migration_history (version) VALUES (?1)",
             [new_version.map(|v| v as i64)],
+        )
+        .await?;
+        tx.query(
+            &format!(
+                "PRAGMA user_version = {}",
+                new_version.map(|v| v as i64).unwrap_or(0)
+            ),
+            (),
         )
         .await?;
 

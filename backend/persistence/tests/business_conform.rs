@@ -7,7 +7,7 @@ use crate::cases::TestAdapters;
 mod cases;
 
 pub async fn make_testing_app() -> (App, TestAdapters) {
-    let mut sqlite_instance = SQLiteInstance::in_memory().await.unwrap();
+    let mut sqlite_instance = SQLiteInstance::in_temp_dir().await.unwrap();
     sqlite_instance.migrate_to_latest().await.unwrap();
 
     (

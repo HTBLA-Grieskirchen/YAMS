@@ -114,3 +114,9 @@ impl<T> ToPersistenceResultExt<T> for Result<T, MigrationError<libsql::Error>> {
         })
     }
 }
+
+impl<T> ToPersistenceResultExt<T> for Result<T, io::Error> {
+    fn to_persistence(self) -> Result<T, PersistenceError> {
+        self.map_err(|e| PersistenceError::Unknown(anyhow!(e)))
+    }
+}

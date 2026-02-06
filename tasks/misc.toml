@@ -2,4 +2,4 @@
 ["export:openapi"]
 description = "Export OpenAPI spec to stdout"
 raw = true
-run = "cargo run -p yams-api --bin export_openapi"
+run = "cargo run -p yams-api --bin export_openapi --features openapi"

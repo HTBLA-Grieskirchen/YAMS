@@ -9,6 +9,21 @@ members = [
 ]
 resolver = "2"
 
+[workspace.dependencies]
+thiserror = "2.0.18"
+async-trait = "0.1.89"
+anyhow = "1.0.101"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.20.0", features = ["v4", "serde"] }
+clap = { version = "4.5.57", features = ["derive", "env"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = { version = "1.0", features = ["serde"] }
+fxhash = "0.2.1"
+libsql = { version = "0.9.29", default-features = false, features = ["serde", "core"] }
+poem = "3.0"
+poem-openapi = { version = "5.0", features = ["swagger-ui", "uuid", "redoc"] }
+
 [profile.release]
 panic = "abort" # Strip expensive panic clean-up logic
 codegen-units = 1 # Compile crates one after another so the compiler can optimize better

@@ -6,13 +6,14 @@ mod uow;
 use std::{ops::Deref, path::Path, sync::Arc};
 
 use async_lock::{Mutex, MutexGuardArc};
+use error_stack::ResultExt;
 use migrations::MIGRATIONS;
 use tempdir::TempDir;
 pub use uow::*;
 use uuid::Uuid;
-use yams_core::service::errors::PersistenceError;
+use yams_core::service::errors::{CoreResult, ErrorReportExt, PersistenceError};
 
-use crate::errors::ToPersistenceResultExt;
+use crate::errors::{libsql_error_to_persistence_error, migration_error_to_persistence_error};
 
 pub struct SQLiteInstance {
     variant: InstanceType,
@@ -57,14 +58,14 @@ impl Deref for SQLiteConnection {
 }
 
 impl SQLiteInstance {
-    pub async fn local(path: impl AsRef<Path>) -> Result<Self, PersistenceError> {
+    pub async fn local(path: impl AsRef<Path>) -> CoreResult<Self, PersistenceError> {
         let path = path.as_ref();
         let this = Self {
             variant: InstanceType::Local(
                 libsql::Builder::new_local(path)
                     .build()
                     .await
-                    .to_persistence()?,
+                    .contextualize_with(libsql_error_to_persistence_error)?,
             ),
         };
         // Sanity check connection
@@ -72,49 +73,56 @@ impl SQLiteInstance {
         Ok(this)
     }
 
-    pub async fn in_temp_dir() -> Result<Self, PersistenceError> {
-        let temp_dir = TempDir::new("yams-persistence").to_persistence()?;
+    pub async fn in_temp_dir() -> CoreResult<Self, PersistenceError> {
+        let temp_dir =
+            TempDir::new("yams-persistence").contextualize(PersistenceError::ConnectionError)?;
         let path = temp_dir.path().join("yams.db");
         Ok(Self {
             variant: InstanceType::TempDir {
                 db: libsql::Builder::new_local(path)
                     .build()
                     .await
-                    .to_persistence()?,
+                    .contextualize_with(libsql_error_to_persistence_error)?,
                 temp_dir: Arc::new(temp_dir),
             },
         })
     }
 
-    pub async fn in_memory() -> Result<Self, PersistenceError> {
+    pub async fn in_memory() -> CoreResult<Self, PersistenceError> {
         let memory_uuid = Uuid::new_v4();
         let db =
             libsql::Builder::new_local(format!("file:{}.db?mode=memory&cache=shared", memory_uuid))
                 .build()
                 .await
-                .to_persistence()?;
+                .contextualize_with(libsql_error_to_persistence_error)?;
         Ok(Self {
             variant: InstanceType::InMemory {
                 connection: Arc::new(
-                    Self::initialize_connection(db.connect().to_persistence()?).await?,
+                    Self::initialize_connection(
+                        db.connect()
+                            .contextualize_with(libsql_error_to_persistence_error)?,
+                    )
+                    .await?,
                 ),
                 connection_lock: Arc::new(Mutex::new(())),
             },
         })
     }
 
-    pub async fn migrate_to_latest(&mut self) -> Result<(), PersistenceError> {
+    pub async fn migrate_to_latest(&mut self) -> CoreResult<(), PersistenceError> {
         let mut connection = self.create_connection().await?;
         MIGRATIONS
             .apply(&mut connection, None)
             .await
-            .to_persistence()
+            .contextualize_with(migration_error_to_persistence_error)
     }
 
-    pub(crate) async fn create_connection(&self) -> Result<SQLiteConnection, PersistenceError> {
+    pub(crate) async fn create_connection(&self) -> CoreResult<SQLiteConnection, PersistenceError> {
         match &self.variant {
             InstanceType::Local(db) => {
-                let connection = db.connect().to_persistence()?;
+                let connection = db
+                    .connect()
+                    .contextualize_with(libsql_error_to_persistence_error)?;
                 let connection = Self::initialize_connection(connection).await?;
                 Ok(SQLiteConnection::Local(connection))
             }
@@ -129,7 +137,9 @@ impl SQLiteInstance {
                 })
             }
             InstanceType::TempDir { db, temp_dir } => {
-                let connection = db.connect().to_persistence()?;
+                let connection = db
+                    .connect()
+                    .contextualize_with(libsql_error_to_persistence_error)?;
                 let connection = Self::initialize_connection(connection).await?;
                 Ok(SQLiteConnection::TempDir {
                     connection,
@@ -141,7 +151,7 @@ impl SQLiteInstance {
 
     async fn initialize_connection(
         connection: libsql::Connection,
-    ) -> Result<libsql::Connection, PersistenceError> {
+    ) -> CoreResult<libsql::Connection, PersistenceError> {
         let statements = vec![
             "PRAGMA journal_mode=WAL",
             "PRAGMA busy_timeout=5000",
@@ -153,7 +163,13 @@ impl SQLiteInstance {
             "PRAGMA mmap_size=2147483648",
         ];
         for statement in statements {
-            connection.query(statement, ()).await.to_persistence()?;
+            connection
+                .query(statement, ())
+                .await
+                .contextualize_with(libsql_error_to_persistence_error)
+                .attach(format!(
+                    "while initializing connection with stmt: {statement}"
+                ))?;
         }
         Ok(connection)
     }

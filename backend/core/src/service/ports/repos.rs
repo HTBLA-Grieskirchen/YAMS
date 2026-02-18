@@ -3,28 +3,15 @@ use std::fmt::Debug;
 use std::ops::{Deref, DerefMut};
 
 use async_trait::async_trait;
+use error_stack::Report;
 
 use crate::domain::{
     Animal, AnimalId, Client, ClientId,
     factories::{NewAnimal, NewClient},
 };
-use crate::service::errors::PersistenceError;
+use crate::service::errors::{CoreResult, PersistenceError};
 
-pub type RepositoryResult<T> = Result<T, PersistenceError>;
-
-pub trait RepositoryResultExt<T> {
-    fn or_notfound(self) -> Result<T, PersistenceError>;
-}
-
-impl<T> RepositoryResultExt<T> for RepositoryResult<Option<T>> {
-    fn or_notfound(self) -> Result<T, PersistenceError> {
-        match self {
-            Ok(Some(data)) => Ok(data),
-            Ok(None) => Err(PersistenceError::NotFound),
-            Err(e) => Err(e),
-        }
-    }
-}
+pub type RepositoryResult<T> = Result<T, Report<PersistenceError>>;
 
 pub struct Versioned<T> {
     version: u64,
@@ -123,7 +110,7 @@ where
 
 #[async_trait]
 pub trait ClientRepository: Send + Sync {
-    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Option<Versioned<Client>>>;
+    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>>;
     async fn create(&self, client: NewClient) -> RepositoryResult<Versioned<Client>>;
     async fn update(&self, client: &mut Versioned<Client>) -> RepositoryResult<()>;
     async fn delete(&self, client: Versioned<Client>) -> RepositoryResult<()>;
@@ -131,7 +118,7 @@ pub trait ClientRepository: Send + Sync {
 
 #[async_trait]
 pub trait AnimalRepository: Send + Sync {
-    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Option<Versioned<Animal>>>;
+    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>>;
     async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>>;
     async fn update(&self, animal: &mut Versioned<Animal>) -> RepositoryResult<()>;
     async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()>;
@@ -161,5 +148,5 @@ pub trait UnitOfWorkImpl: Send + Sync {
 
 #[async_trait]
 pub trait UnitOfWorkProvider: Send + Sync {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWorkImpl>, PersistenceError>;
+    async fn begin(&self) -> CoreResult<Box<dyn UnitOfWorkImpl>, PersistenceError>;
 }

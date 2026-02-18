@@ -9,7 +9,7 @@ yams-persistence = { path = "../persistence" }
 yams-api = { path = "../api" }
 
 thiserror = { workspace = true }
-anyhow = { workspace = true }
+error-stack = { workspace = true }
 
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

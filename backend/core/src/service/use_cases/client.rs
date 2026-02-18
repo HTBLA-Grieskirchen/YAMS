@@ -1,12 +1,12 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use error_stack::{IntoReport, Report, ResultExt};
 
 use super::UseCase;
 use crate::{
-    application::OrchestratableError,
     domain::{Address, Client, Email, MobileNumber, factories::NewClient},
     ports::repos::Versioned,
-    service::{ExecutionContext, errors::PersistenceError},
+    service::ExecutionContext,
 };
 
 #[derive(Clone)]
@@ -23,23 +23,15 @@ pub struct CreateClient {
 
 #[derive(thiserror::Error, Debug)]
 pub enum CreateClientError {
-    #[error(transparent)]
-    Persistence(#[from] PersistenceError),
-}
-
-impl OrchestratableError for CreateClientError {
-    fn should_retry(&self) -> bool {
-        match self {
-            CreateClientError::Persistence(e) => e.should_retry(),
-        }
-    }
+    #[error("error during creation of client")]
+    Creation,
 }
 
 #[async_trait]
 impl UseCase<Client> for CreateClient {
     type Error = CreateClientError;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Client, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Client, Report<Self::Error>> {
         let ExecutionContext { uow, .. } = ctx;
 
         let result = uow
@@ -56,6 +48,9 @@ impl UseCase<Client> for CreateClient {
             })
             .await;
 
-        Ok(result.map(Versioned::into_data)?)
+        result
+            .map(Versioned::into_data)
+            .map_err(IntoReport::into_report)
+            .change_context(Self::Error::Creation)
     }
 }

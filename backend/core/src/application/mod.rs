@@ -1,7 +1,14 @@
+use error_stack::Report;
+
 use crate::{
-    application::uow::UnitOfWork, ports::repos::UnitOfWorkProvider, service::*, use_cases::UseCase,
+    application::uow::UnitOfWork,
+    ports::repos::UnitOfWorkProvider,
+    service::{
+        errors::{MarkShouldRetry, PersistenceError, StableError},
+        *,
+    },
+    use_cases::UseCase,
 };
-use anyhow::anyhow;
 
 mod orchestration;
 pub mod uow;
@@ -35,14 +42,23 @@ impl App {
         for _ in 1..=self.configuration.max_attempts {
             match self.try_execute(use_case.clone()).await {
                 Ok(result) => return Ok(result),
-                Err(ExecutionError::UseCase(e)) if e.should_retry() => {
-                    println!("Error during execution: {e:?}");
+                Err(e) => {
+                    let retry = match &e {
+                        ExecutionError::UseCase(e) => {
+                            e.request_ref::<MarkShouldRetry>().count() > 0
+                        }
+                        ExecutionError::Orchestration(e) => {
+                            e.request_ref::<MarkShouldRetry>().count() > 0
+                        }
+                    };
                     last_error = Some(e);
+                    if !retry {
+                        break;
+                    }
                 }
-                Err(e) => return Err(e),
             }
         }
-        Err(ExecutionError::UseCase(last_error.unwrap()))
+        Err(last_error.unwrap())
     }
 
     #[inline(always)]
@@ -56,15 +72,15 @@ impl App {
         self.orchestrate(UseCaseOp(use_case)).await
     }
 
-    pub async fn execute_fn<F, O, E>(&self, f: F) -> Result<O, ExecutionError<E>>
+    pub async fn execute_fn<F, O, E: StableError>(&self, f: F) -> Result<O, ExecutionError<E>>
     where
-        for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> Result<O, E> + Send,
+        for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> Result<O, Report<E>> + Send,
         E: Send,
     {
         self.orchestrate(FnOp(f)).await
     }
 
-    async fn orchestrate<T, O, E>(&self, op: T) -> Result<O, ExecutionError<E>>
+    async fn orchestrate<T, O, E: StableError>(&self, op: T) -> Result<O, ExecutionError<E>>
     where
         T: OrchestrateFn<O, E>,
     {
@@ -74,7 +90,7 @@ impl App {
             .begin()
             .await
             .map(UnitOfWork::new)
-            .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
+            .map_err(|e| ExecutionError::Orchestration(e))?;
 
         // 2. Run the operation
         let ctx = ExecutionContext { uow: uow.shared() };
@@ -85,36 +101,28 @@ impl App {
             Ok(output) => {
                 uow.commit()
                     .await
-                    .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
+                    .map_err(|e| ExecutionError::Orchestration(e))?;
                 Ok(output)
             }
             Err(e) => {
                 uow.rollback()
                     .await
-                    .map_err(|e| OrchestrationError::Orchestration(anyhow!(e)))?;
+                    .map_err(|e| ExecutionError::Orchestration(e))?;
                 Err(ExecutionError::UseCase(e))
             }
         }
     }
 }
 
-pub trait OrchestratableError {
-    fn should_retry(&self) -> bool;
-}
-
 #[derive(thiserror::Error, Debug)]
-pub enum OrchestrationError {
-    #[error(transparent)]
-    Orchestration(#[from] anyhow::Error),
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum ExecutionError<E> {
+pub enum ExecutionError<E>
+where
+    E: StableError,
+{
     // The UseCase failed logic (e.g., EmailTaken or DB Error inside logic)
     #[error(transparent)]
-    UseCase(E),
+    UseCase(Report<E>),
 
     // The App failed to orchestrate (e.g., Commit failed)
-    #[error(transparent)]
-    Orchestration(#[from] OrchestrationError),
+    Orchestration(Report<PersistenceError>),
 }

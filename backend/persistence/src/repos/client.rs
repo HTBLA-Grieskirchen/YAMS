@@ -3,14 +3,16 @@ use std::{str::FromStr, sync::Arc};
 use async_lock::Mutex;
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use error_stack::{IntoReport, ResultExt};
 use libsql::Transaction;
 use uuid::Uuid;
 use yams_core::{
     domain::{Address, Client, ClientId, Email, MobileNumber, factories::NewClient},
     ports::repos::{ClientRepository, RepositoryResult, Versioned},
+    service::errors::{ErrorReportExt, PersistenceError},
 };
 
-use crate::errors::ToPersistenceResultExt;
+use crate::errors::libsql_error_to_persistence_error;
 
 pub struct SQLiteClientRepository {
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
@@ -22,7 +24,7 @@ fn parse_naive_date(s: &str) -> Result<NaiveDate, chrono::format::ParseError> {
 
 #[async_trait]
 impl ClientRepository for SQLiteClientRepository {
-    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Option<Versioned<Client>>> {
+    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>> {
         let mut guard = self.tx.lock().await;
         let tx = guard
             .as_mut()
@@ -35,45 +37,76 @@ impl ClientRepository for SQLiteClientRepository {
                 [id_str.clone()],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
-        let Some(row) = rows.next().await.to_persistence()? else {
-            return Ok(None);
-        };
+        let row = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+            .ok_or(PersistenceError::NotFound)?;
 
-        let id_raw: String = row.get(0).to_persistence()?;
-        let first_name: String = row.get(1).to_persistence()?;
-        let last_name: String = row.get(2).to_persistence()?;
-        let birthdate_str: String = row.get(3).to_persistence()?;
-        let email_str: String = row.get(4).to_persistence()?;
-        let mobile_number_str: String = row.get(5).to_persistence()?;
-        let customer_number: i64 = row.get(6).to_persistence()?;
-        let consent: bool = row.get::<i64>(7).to_persistence()? != 0;
-        let postal_code: String = row.get(8).to_persistence()?;
-        let city: String = row.get(9).to_persistence()?;
-        let street_and_number: String = row.get(10).to_persistence()?;
-        let country_code: String = row.get(11).to_persistence()?;
-        let version: u64 = row.get(12).to_persistence()?;
+        let id_raw: String = row
+            .get(0)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let first_name: String = row
+            .get(1)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let last_name: String = row
+            .get(2)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let birthdate_str: String = row
+            .get(3)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let email_str: String = row
+            .get(4)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let mobile_number_str: String = row
+            .get(5)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let customer_number: i64 = row
+            .get(6)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let consent: bool = row
+            .get::<i64>(7)
+            .contextualize_with(libsql_error_to_persistence_error)?
+            != 0;
+        let postal_code: String = row
+            .get(8)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let city: String = row
+            .get(9)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let street_and_number: String = row
+            .get(10)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let country_code: String = row
+            .get(11)
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        let version: u64 = row
+            .get(12)
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
-        let birthdate = parse_naive_date(&birthdate_str).map_err(|e| {
-            yams_core::service::errors::PersistenceError::DeserializationError(anyhow::anyhow!(e))
-        })?;
-        let uuid = Uuid::from_str(&id_raw).map_err(|e| {
-            yams_core::service::errors::PersistenceError::DeserializationError(anyhow::anyhow!(e))
-        })?;
+        let birthdate = parse_naive_date(&birthdate_str)
+            .contextualize(PersistenceError::DeserializationError)?;
+        let uuid = Uuid::from_str(&id_raw).contextualize(PersistenceError::DeserializationError)?;
 
         let mut animal_rows = tx
             .query("SELECT id FROM animals WHERE client_id = ?1", [id_str])
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
         let mut animal_ids = Vec::new();
-        while let Some(arow) = animal_rows.next().await.to_persistence()? {
-            let aid: String = arow.get(0).to_persistence()?;
-            let auuid = Uuid::from_str(&aid).map_err(|e| {
-                yams_core::service::errors::PersistenceError::DeserializationError(anyhow::anyhow!(
-                    e
-                ))
-            })?;
+        while let Some(arow) = animal_rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            let aid: String = arow
+                .get(0)
+                .contextualize_with(libsql_error_to_persistence_error)?;
+            let auuid = Uuid::from_str(&aid)
+                .map_err(IntoReport::into_report)
+                .attach(format!("animal uuid {aid}"))
+                .change_context(PersistenceError::DeserializationError)?;
             animal_ids.push(yams_core::domain::AnimalId(auuid));
         }
 
@@ -94,7 +127,7 @@ impl ClientRepository for SQLiteClientRepository {
             },
             animal_ids,
         };
-        Ok(Some(Versioned::new(version, client)))
+        Ok(Versioned::new(version, client))
     }
 
     async fn create(&self, new: NewClient) -> RepositoryResult<Versioned<Client>> {
@@ -119,7 +152,7 @@ impl ClientRepository for SQLiteClientRepository {
         let mut guard = self.tx.lock().await;
         let tx = guard
             .as_mut()
-            .ok_or(yams_core::service::errors::PersistenceError::ConcurrentModification)?;
+            .ok_or(PersistenceError::ConcurrentModification)?;
 
         tx.execute(
             "INSERT INTO clients (id, first_name, last_name, birthdate, email, mobile_number, customer_number, consent, postal_code, city, street_and_number, country_code, _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
@@ -140,7 +173,7 @@ impl ClientRepository for SQLiteClientRepository {
             ],
         )
         .await
-        .to_persistence()?;
+        .contextualize_with(libsql_error_to_persistence_error)?;
 
         Ok(client)
     }
@@ -176,15 +209,13 @@ impl ClientRepository for SQLiteClientRepository {
                 ],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
         if result != 1 {
-            return Err(
-                yams_core::service::errors::PersistenceError::VersionMismatch {
-                    expected: version,
-                    actual: None,
-                },
-            );
+            Err(PersistenceError::VersionMismatch {
+                expected: version,
+                actual: None,
+            })?;
         }
 
         tx.execute(
@@ -192,7 +223,7 @@ impl ClientRepository for SQLiteClientRepository {
             [id_str.clone()],
         )
         .await
-        .to_persistence()?;
+        .contextualize_with(libsql_error_to_persistence_error)?;
 
         for animal_id in &client.animal_ids {
             tx.execute(
@@ -200,7 +231,7 @@ impl ClientRepository for SQLiteClientRepository {
                 libsql::params![id_str.clone(), animal_id.0.to_string()],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
         }
 
         *client = client.clone().incremented();
@@ -221,7 +252,7 @@ impl ClientRepository for SQLiteClientRepository {
             [id_str.clone()],
         )
         .await
-        .to_persistence()?;
+        .contextualize_with(libsql_error_to_persistence_error)?;
 
         let result = tx
             .execute(
@@ -229,15 +260,13 @@ impl ClientRepository for SQLiteClientRepository {
                 libsql::params![id_str, version],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
         if result != 1 {
-            return Err(
-                yams_core::service::errors::PersistenceError::VersionMismatch {
-                    expected: version,
-                    actual: None,
-                },
-            );
+            Err(PersistenceError::VersionMismatch {
+                expected: version,
+                actual: None,
+            })?;
         }
         Ok(())
     }

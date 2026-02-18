@@ -78,7 +78,6 @@ async fn test_animal() {
     let client = app
         .execute_fn(async |ctx| ctx.uow.clients().find_by_id(client.id).await)
         .await
-        .unwrap()
         .unwrap();
     assert_eq!(client.animal_ids.len(), animal_amount * 2);
 }

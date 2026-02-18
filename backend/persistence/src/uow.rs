@@ -7,12 +7,12 @@ use yams_core::{
     ports::repos::{
         AnimalRepository, ClientRepository, RepositoryResult, UnitOfWorkImpl, UnitOfWorkProvider,
     },
-    service::errors::PersistenceError,
+    service::errors::{CoreResult, ErrorReportExt, PersistenceError},
 };
 
 use crate::{
     SQLiteConnection, SQLiteInstance,
-    errors::ToPersistenceResultExt,
+    errors::libsql_error_to_persistence_error,
     repos::{SQLiteAnimalRepository, SQLiteClientRepository},
 };
 
@@ -26,12 +26,12 @@ pub struct SQLiteUnitOfWork {
 
 #[async_trait]
 impl UnitOfWorkProvider for SQLiteInstance {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWorkImpl>, PersistenceError> {
+    async fn begin(&self) -> CoreResult<Box<dyn UnitOfWorkImpl>, PersistenceError> {
         let connection = self.create_connection().await?;
         let tx = connection
             .transaction_with_behavior(libsql::TransactionBehavior::Deferred)
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
         let tx = Arc::new(Mutex::new(Some(tx)));
         Ok(Box::new(SQLiteUnitOfWork {
             connection,
@@ -49,12 +49,15 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
         let old_tx = tx_guard
             .take()
             .ok_or(PersistenceError::ConcurrentModification)?;
-        old_tx.commit().await.to_persistence()?;
+        old_tx
+            .commit()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
         let new_tx = self
             .connection
             .transaction_with_behavior(libsql::TransactionBehavior::Deferred)
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
         *tx_guard = Some(new_tx);
         Ok(())
     }
@@ -66,8 +69,10 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
             .ok_or(PersistenceError::ConcurrentModification)?;
         tx.query("PRAGMA incremental_vacuum", ())
             .await
-            .to_persistence()?;
-        tx.commit().await.to_persistence()
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        tx.commit()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)
     }
 
     async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
@@ -75,7 +80,9 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
         let tx = tx_guard
             .take()
             .ok_or(PersistenceError::ConcurrentModification)?;
-        tx.rollback().await.to_persistence()
+        tx.rollback()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)
     }
 
     fn clients(&self) -> &dyn ClientRepository {

@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use error_stack::{Report, ResultExt, bail};
 
 use super::UseCase;
 use crate::{
-    application::OrchestratableError,
     domain::{Animal, ClientId, factories::NewAnimal},
-    service::{ExecutionContext, errors::PersistenceError},
+    service::ExecutionContext,
 };
 
 #[derive(Clone)]
@@ -19,30 +19,24 @@ pub struct CreateAnimal {
 
 #[derive(thiserror::Error, Debug)]
 pub enum CreateAnimalError {
-    #[error(transparent)]
-    Persistence(#[from] PersistenceError),
-}
-
-impl OrchestratableError for CreateAnimalError {
-    fn should_retry(&self) -> bool {
-        match self {
-            CreateAnimalError::Persistence(e) => e.should_retry(),
-        }
-    }
+    #[error("persistence error occurred")]
+    Persistence,
+    #[error("client with id `{}` not found", 0.0)]
+    ClientNotFound(ClientId),
 }
 
 #[async_trait]
 impl UseCase<Animal> for CreateAnimal {
     type Error = CreateAnimalError;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Animal, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Animal, Report<Self::Error>> {
         let ExecutionContext { mut uow, .. } = ctx;
 
         let mut client = uow
             .clients()
-            .find_by_id(self.client_id)
-            .await?
-            .ok_or(PersistenceError::NotFound)?;
+            .find_by_id(self.client_id.clone())
+            .await
+            .change_context(CreateAnimalError::ClientNotFound(self.client_id.clone()))?;
 
         let animal = uow
             .animals()
@@ -52,12 +46,18 @@ impl UseCase<Animal> for CreateAnimal {
                 animal_species: self.animal_species,
                 description: self.description,
             })
-            .await?;
+            .await
+            .change_context(CreateAnimalError::Persistence)?;
 
-        uow.checkpoint().await?;
+        uow.checkpoint()
+            .await
+            .change_context(CreateAnimalError::Persistence)?;
 
         client.animal_ids.push(animal.id.clone());
-        uow.clients().update(&mut client).await?;
+        uow.clients()
+            .update(&mut client)
+            .await
+            .change_context(CreateAnimalError::Persistence)?;
 
         Ok(animal.into_data())
     }
@@ -68,14 +68,35 @@ pub struct CreateManyAnimals {
     pub animals: Vec<CreateAnimal>,
 }
 
+#[derive(thiserror::Error, Debug)]
+#[error("failed to create {failures} out of {target} animals")]
+pub struct CreateManyAnimalsError {
+    failures: usize,
+    target: usize,
+}
+
 #[async_trait]
 impl UseCase<Vec<Animal>> for CreateManyAnimals {
-    type Error = CreateAnimalError;
+    type Error = CreateManyAnimalsError;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<Animal>, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<Animal>, Report<Self::Error>> {
+        let mut errors = Option::<Report<[CreateAnimalError]>>::None;
         let mut animals = Vec::with_capacity(self.animals.len());
         for fut in self.animals.into_iter().map(|a| a.perform(ctx.to_locked())) {
-            animals.push(fut.await?)
+            match fut.await {
+                Ok(animal) => animals.push(animal),
+                Err(e) => match &mut errors {
+                    Some(errors) => errors.push(e),
+                    None => errors = Some(e.expand()),
+                },
+            }
+        }
+        if let Some(errors) = errors {
+            let failures = errors.current_contexts().count();
+            bail!(errors.change_context(CreateManyAnimalsError {
+                failures,
+                target: animals.capacity(),
+            }));
         }
         Ok(animals)
     }

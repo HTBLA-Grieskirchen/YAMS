@@ -55,9 +55,9 @@ async fn test_client() {
 
     let clients = app
         .execute_fn::<_, _, PersistenceError>(async |ctx| {
-            let mut clients = vec![ctx.uow.clients().find_by_id(result.id).await?.unwrap()];
+            let mut clients = vec![ctx.uow.clients().find_by_id(result.id).await?];
             for res in parallel_results {
-                clients.push(ctx.uow.clients().find_by_id(res.id).await?.unwrap());
+                clients.push(ctx.uow.clients().find_by_id(res.id).await?);
             }
             Ok(clients)
         })

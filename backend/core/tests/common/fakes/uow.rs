@@ -5,7 +5,9 @@ use crate::common::fakes::repository::{
 };
 use async_trait::async_trait;
 use yams_core::{
-    ports::repos::{AnimalRepository, ClientRepository, UnitOfWorkImpl, UnitOfWorkProvider},
+    ports::repos::{
+        AnimalRepository, ClientRepository, RepositoryResult, UnitOfWorkImpl, UnitOfWorkProvider,
+    },
     service::errors::PersistenceError,
 };
 
@@ -29,7 +31,7 @@ impl FakeUnitOfWorkProvider {
 
 #[async_trait]
 impl UnitOfWorkProvider for FakeUnitOfWorkProvider {
-    async fn begin(&self) -> Result<Box<dyn UnitOfWorkImpl>, PersistenceError> {
+    async fn begin(&self) -> RepositoryResult<Box<dyn UnitOfWorkImpl>> {
         self.log.lock().unwrap().push(UoWEvent::Begin);
         Ok(Box::new(FakeUnitOfWork::new(
             Arc::clone(&self.log),
@@ -66,7 +68,7 @@ impl FakeUnitOfWork {
 
 #[async_trait]
 impl UnitOfWorkImpl for FakeUnitOfWork {
-    async fn checkpoint(&mut self) -> Result<(), PersistenceError> {
+    async fn checkpoint(&mut self) -> RepositoryResult<()> {
         self.log.lock().unwrap().push(UoWEvent::Checkpoint);
 
         let new_snapshot = FakeDatastore::merge(
@@ -86,7 +88,7 @@ impl UnitOfWorkImpl for FakeUnitOfWork {
         Ok(())
     }
 
-    async fn commit(mut self: Box<Self>) -> Result<(), PersistenceError> {
+    async fn commit(mut self: Box<Self>) -> RepositoryResult<()> {
         self.log.lock().unwrap().push(UoWEvent::Commit);
 
         let new_snapshot = FakeDatastore::merge(
@@ -107,7 +109,7 @@ impl UnitOfWorkImpl for FakeUnitOfWork {
         Ok(())
     }
 
-    async fn rollback(self: Box<Self>) -> Result<(), PersistenceError> {
+    async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
         self.log.lock().unwrap().push(UoWEvent::Rollback);
         Ok(())
     }

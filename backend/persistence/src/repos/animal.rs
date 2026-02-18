@@ -2,13 +2,15 @@ use std::{str::FromStr, sync::Arc};
 
 use async_trait::async_trait;
 use chrono::NaiveDate;
+use error_stack::bail;
 use uuid::Uuid;
 use yams_core::{
     domain::{Animal, AnimalId, factories::NewAnimal},
     ports::repos::{AnimalRepository, RepositoryResult, Versioned},
+    service::errors::{ErrorReportExt, PersistenceError},
 };
 
-use crate::errors::ToPersistenceResultExt;
+use crate::errors::libsql_error_to_persistence_error;
 use async_lock::Mutex;
 use libsql::Transaction;
 
@@ -22,11 +24,11 @@ fn parse_naive_date(s: &str) -> Result<NaiveDate, chrono::format::ParseError> {
 
 #[async_trait]
 impl AnimalRepository for SQLiteAnimalRepository {
-    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Option<Versioned<Animal>>> {
+    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>> {
         let mut guard = self.tx.lock().await;
         let tx = guard
             .as_mut()
-            .ok_or(yams_core::service::errors::PersistenceError::ConcurrentModification)?;
+            .ok_or(PersistenceError::ConcurrentModification)?;
 
         let id_str = id.0.to_string();
         let mut rows = tx
@@ -35,25 +37,24 @@ impl AnimalRepository for SQLiteAnimalRepository {
                 [id_str],
             )
             .await
-            .to_persistence()?;
+            .contextualize(PersistenceError::NotFound)?;
 
-        let Some(row) = rows.next().await.to_persistence()? else {
-            return Ok(None);
-        };
+        let row = rows
+            .next()
+            .await
+            .contextualize(PersistenceError::NotFound)?
+            .ok_or(PersistenceError::NotFound)?;
 
-        let id_raw: String = row.get(0).to_persistence()?;
-        let name: String = row.get(1).to_persistence()?;
-        let birthdate_str: String = row.get(2).to_persistence()?;
-        let animal_species: String = row.get(3).to_persistence()?;
-        let description: String = row.get(4).to_persistence()?;
-        let version: u64 = row.get(5).to_persistence()?;
+        let id_raw: String = row.get(0).contextualize(PersistenceError::DataCorruption)?;
+        let name: String = row.get(1).contextualize(PersistenceError::DataCorruption)?;
+        let birthdate_str: String = row.get(2).contextualize(PersistenceError::DataCorruption)?;
+        let animal_species: String = row.get(3).contextualize(PersistenceError::DataCorruption)?;
+        let description: String = row.get(4).contextualize(PersistenceError::DataCorruption)?;
+        let version: u64 = row.get(5).contextualize(PersistenceError::DataCorruption)?;
 
-        let birthdate = parse_naive_date(&birthdate_str).map_err(|e| {
-            yams_core::service::errors::PersistenceError::DeserializationError(anyhow::anyhow!(e))
-        })?;
-        let uuid = Uuid::from_str(&id_raw).map_err(|e| {
-            yams_core::service::errors::PersistenceError::DeserializationError(anyhow::anyhow!(e))
-        })?;
+        let birthdate = parse_naive_date(&birthdate_str)
+            .contextualize(PersistenceError::DeserializationError)?;
+        let uuid = Uuid::from_str(&id_raw).contextualize(PersistenceError::DeserializationError)?;
 
         let animal = Animal {
             id: AnimalId(uuid),
@@ -62,7 +63,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
             animal_species,
             description,
         };
-        Ok(Some(Versioned::new(version, animal)))
+        Ok(Versioned::new(version, animal))
     }
 
     async fn create(&self, new: NewAnimal) -> RepositoryResult<Versioned<Animal>> {
@@ -95,7 +96,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
             ],
         )
         .await
-        .to_persistence()?;
+        .contextualize_with(libsql_error_to_persistence_error)?;
 
         Ok(animal)
     }
@@ -123,15 +124,13 @@ impl AnimalRepository for SQLiteAnimalRepository {
                 ],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
         if result != 1 {
-            return Err(
-                yams_core::service::errors::PersistenceError::VersionMismatch {
-                    expected: version,
-                    actual: None,
-                },
-            );
+            bail!(PersistenceError::VersionMismatch {
+                expected: version,
+                actual: None,
+            });
         }
 
         animal.increment();
@@ -153,15 +152,13 @@ impl AnimalRepository for SQLiteAnimalRepository {
                 libsql::params![id_str, version],
             )
             .await
-            .to_persistence()?;
+            .contextualize_with(libsql_error_to_persistence_error)?;
 
         if result != 1 {
-            return Err(
-                yams_core::service::errors::PersistenceError::VersionMismatch {
-                    expected: version,
-                    actual: None,
-                },
-            );
+            bail!(PersistenceError::VersionMismatch {
+                expected: version,
+                actual: None,
+            });
         }
         Ok(())
     }

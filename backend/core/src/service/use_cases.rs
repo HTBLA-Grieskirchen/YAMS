@@ -1,53 +1,13 @@
-use crate::{
-    application::OrchestratableError,
-    domain::errors::DomainError,
-    service::{ExecutionContext, errors::ServiceError},
-};
+use crate::service::{ExecutionContext, errors::StableError};
 use async_trait::async_trait;
+use error_stack::Report;
 
 pub mod animals;
 pub mod client;
 
 #[async_trait]
 pub trait UseCase<Output> {
-    type Error: OrchestratableError + std::error::Error;
+    type Error: StableError;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Output, Self::Error>;
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Output, Report<Self::Error>>;
 }
-
-#[derive(thiserror::Error, Debug)]
-pub enum UseCaseError<D, I> {
-    Domain(
-        #[source]
-        #[backtrace]
-        D,
-    ),
-    Service(
-        #[source]
-        #[backtrace]
-        I,
-    ),
-}
-
-pub trait DomainToUseCaseError: Sized {
-    fn into_domain<I: ServiceError + Sized>(self) -> UseCaseError<Self, I>;
-}
-
-pub trait ServiceToUseCaseError: Sized {
-    fn into_service<D: DomainError + Sized>(self) -> UseCaseError<D, Self>;
-}
-
-impl<D: DomainError + Sized> DomainToUseCaseError for D {
-    fn into_domain<I: ServiceError + Sized>(self) -> UseCaseError<D, I> {
-        UseCaseError::Domain(self)
-    }
-}
-
-impl<I: ServiceError + Sized> ServiceToUseCaseError for I {
-    fn into_service<D: DomainError + Sized>(self) -> UseCaseError<D, I> {
-        UseCaseError::Service(self)
-    }
-}
-
-pub type UseCaseResult<Output, DomainError, InfrastructureError> =
-    Result<Output, UseCaseError<DomainError, InfrastructureError>>;

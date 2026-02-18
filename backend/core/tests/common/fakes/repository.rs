@@ -146,9 +146,9 @@ impl FakeAnimalsRepository {
 
 #[async_trait]
 impl AnimalRepository for FakeAnimalsRepository {
-    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Option<Versioned<Animal>>> {
+    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>> {
         let data = self.datastore.animals.lock().unwrap();
-        Ok(data.get(&id.0).cloned())
+        Ok(data.get(&id.0).cloned().ok_or(PersistenceError::NotFound)?)
     }
 
     async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>> {
@@ -169,32 +169,32 @@ impl AnimalRepository for FakeAnimalsRepository {
         let mut data = self.datastore.animals.lock().unwrap();
         if let Some(existing) = data.get(&animal.id.0) {
             if existing.v() != animal.v() {
-                return Err(PersistenceError::VersionMismatch {
+                Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(animal.v()),
-                });
+                })?;
             }
 
             *animal = animal.clone().incremented();
             data.insert(animal.id.0.clone(), animal.clone());
             return Ok(());
         }
-        Err(PersistenceError::NotFound)
+        Err(PersistenceError::NotFound)?
     }
 
     async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()> {
         let mut data = self.datastore.animals.lock().unwrap();
         if let Some(existing) = data.get(&animal.id.0) {
             if existing.v() != animal.v() {
-                return Err(PersistenceError::VersionMismatch {
+                Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(animal.v()),
-                });
+                })?;
             }
             data.remove(&animal.id.0);
             return Ok(());
         }
-        Err(PersistenceError::NotFound)
+        Err(PersistenceError::NotFound)?
     }
 }
 
@@ -210,9 +210,9 @@ impl FakeClientsRepository {
 
 #[async_trait]
 impl ClientRepository for FakeClientsRepository {
-    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Option<Versioned<Client>>> {
+    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>> {
         let data = self.datastore.clients.lock().unwrap();
-        Ok(data.get(&id.0).cloned())
+        Ok(data.get(&id.0).cloned().ok_or(PersistenceError::NotFound)?)
     }
 
     async fn create(&self, client: NewClient) -> RepositoryResult<Versioned<Client>> {
@@ -239,30 +239,30 @@ impl ClientRepository for FakeClientsRepository {
         let mut data = self.datastore.clients.lock().unwrap();
         if let Some(existing) = data.get(&client.id.0) {
             if existing.v() != client.v() {
-                return Err(PersistenceError::VersionMismatch {
+                Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(client.v()),
-                });
+                })?;
             }
             *client = client.clone().incremented();
             data.insert(client.id.0.clone(), client.clone());
             return Ok(());
         }
-        Err(PersistenceError::NotFound)
+        Err(PersistenceError::NotFound)?
     }
 
     async fn delete(&self, client: Versioned<Client>) -> RepositoryResult<()> {
         let mut data = self.datastore.clients.lock().unwrap();
         if let Some(existing) = data.get(&client.id.0) {
             if existing.v() != client.v() {
-                return Err(PersistenceError::VersionMismatch {
+                Err(PersistenceError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(client.v()),
-                });
+                })?;
             }
             data.remove(&client.id.0);
             return Ok(());
         }
-        Err(PersistenceError::NotFound)
+        Err(PersistenceError::NotFound)?
     }
 }

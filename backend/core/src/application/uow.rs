@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use error_stack::Report;
 
 use crate::{
     ports::repos::{AnimalRepository, ClientRepository, RepositoryResult},
@@ -16,15 +17,15 @@ impl<'a> UnitOfWork<'a> {
 }
 
 impl UnitOfWork<'_> {
-    pub async fn checkpoint(&mut self) -> Result<(), PersistenceError> {
+    pub async fn checkpoint(&mut self) -> Result<(), Report<PersistenceError>> {
         self.implementation.checkpoint().await
     }
 
-    pub async fn commit(self) -> Result<(), PersistenceError> {
+    pub async fn commit(self) -> Result<(), Report<PersistenceError>> {
         self.implementation.commit().await
     }
 
-    pub async fn rollback(self) -> Result<(), PersistenceError> {
+    pub async fn rollback(self) -> Result<(), Report<PersistenceError>> {
         self.implementation.rollback().await
     }
 

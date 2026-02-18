@@ -1,19 +1,22 @@
-use poem_openapi::{NewType, Object};
-use serde::{Deserialize, Serialize};
 use yams_core::domain;
 
-#[derive(NewType, Serialize, Deserialize, Debug, Clone)]
-#[serde(transparent)]
-pub struct CountryCode(pub String);
+api_serde! {
+    transparent;
+    api_oai_derive_newtype!(#[derive(Debug, Clone)] pub struct CountryCode(pub String))
+}
 
-#[derive(Object, Serialize, Deserialize, Debug, Clone)]
-#[oai(rename_all = "camelCase")]
-#[serde(rename_all = "camelCase")]
-pub struct Address {
-    pub postal_code: String,
-    pub city: String,
-    pub street_and_number: String,
-    pub country_code: CountryCode,
+api_oai! {
+    rename_all = "camelCase";
+    api_oai_derive_object!(api_serde! {
+        rename_all = "camelCase";
+        #[derive(Debug, Clone)]
+        pub struct Address {
+            pub postal_code: String,
+            pub city: String,
+            pub street_and_number: String,
+            pub country_code: CountryCode,
+        }
+    })
 }
 
 impl From<Address> for domain::Address {

@@ -175,7 +175,7 @@ export interface components {
       customerNumber: number;
       consent: boolean;
       address: components["schemas"]["Address"];
-      animalIds: string[];
+      animals: components["schemas"]["Animal"][];
     };
     /** ClientCreation */
     ClientCreation: {

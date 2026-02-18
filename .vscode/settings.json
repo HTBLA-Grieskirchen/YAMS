@@ -2,5 +2,9 @@
   "git.enabled": false,
   "rust-analyzer.vfs.extraIncludes": [
     "${workspaceFolder}/backend/core/tests/**"
+  ],
+  "rust-analyzer.cargo.features": [
+    "openapi",
+    "serde"
   ]
 }

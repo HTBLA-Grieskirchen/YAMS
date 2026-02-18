@@ -1,15 +1,31 @@
 [package]
 name = "yams-api"
 version = "0.1.0"
+authors = ["Tim Peko <timererd@gmail.com>"]
+description = "API for the YAMS project"
+license-file = "../../LICENSE"
 edition = "2024"
 
 [dependencies]
 yams-core = { path = "../core" }
-poem-openapi = { version = "5.0", features = ["uuid", "chrono"] }
-serde = { version = "1.0", features = ["derive"] }
-uuid = { version = "1.0", features = ["serde"] }
-chrono = { version = "0.4.43", features = ["serde"] }
-thiserror = "1.0"
-anyhow = "1.0.101"
-async-trait = "0.1.89"
+
+async-trait = { workspace = true }
+
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+
+[features]
+#default = ["serde", "openapi"]
+openapi = ["dep:poem-openapi"]
+serde = ["dep:serde", "uuid/serde", "chrono/serde"]
+
+[[bin]]
+name = "export_spec"
+required-features = ["openapi"]
 

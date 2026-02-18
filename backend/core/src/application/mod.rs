@@ -31,18 +31,18 @@ impl App {
     where
         U::Error: Send,
     {
-        for _attempt in 0..self.configuration.max_attempts {
+        let mut last_error = None;
+        for _ in 1..=self.configuration.max_attempts {
             match self.try_execute(use_case.clone()).await {
                 Ok(result) => return Ok(result),
                 Err(ExecutionError::UseCase(e)) if e.should_retry() => {
                     println!("Error during execution: {e:?}");
+                    last_error = Some(e);
                 }
                 Err(e) => return Err(e),
             }
         }
-        Err(ExecutionError::Orchestration(
-            OrchestrationError::MaxAttemptsReached,
-        ))
+        Err(ExecutionError::UseCase(last_error.unwrap()))
     }
 
     #[inline(always)]
@@ -104,8 +104,6 @@ pub trait OrchestratableError {
 
 #[derive(thiserror::Error, Debug)]
 pub enum OrchestrationError {
-    #[error("max attempts reached")]
-    MaxAttemptsReached,
     #[error(transparent)]
     Orchestration(#[from] anyhow::Error),
 }

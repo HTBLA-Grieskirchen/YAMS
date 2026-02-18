@@ -1,51 +1,32 @@
-mod animal;
-mod blank;
-mod client;
+pub mod requests;
+pub mod responses;
+mod unimplemented;
 
 pub use animal::*;
 use async_trait::async_trait;
 pub use client::*;
-use poem_openapi::{OpenApi, payload::Json};
 
-pub use blank::*;
+pub use unimplemented::*;
 
-pub struct Api<I: ApiImpl> {
+pub struct Api<I: YamsApi> {
     inner: I,
 }
 
-impl<I: ApiImpl> Api<I> {
+impl<I: YamsApi> Api<I> {
     pub fn new(inner: I) -> Self {
         Self { inner }
     }
 }
 
-impl<I: ApiImpl> From<I> for Api<I> {
+impl<I: YamsApi> From<I> for Api<I> {
     fn from(inner: I) -> Self {
         Self::new(inner)
     }
 }
 
 #[async_trait]
-pub trait ApiImpl: Send + Sync + 'static {
+pub trait YamsApi: Send + Sync + 'static {
     async fn create_client(&self, body: ClientCreation) -> CreateClientResponse;
 
     async fn create_animal(&self, body: AnimalCreation) -> CreateAnimalResponse;
-}
-
-#[OpenApi]
-impl<I: ApiImpl> Api<I> {
-    #[oai(path = "/health", method = "get")]
-    async fn health(&self) -> Json<String> {
-        Json("OK".to_string())
-    }
-
-    #[oai(path = "/client", method = "post")]
-    async fn create_client(&self, body: Json<ClientCreation>) -> CreateClientResponse {
-        self.inner.create_client(body.0).await
-    }
-
-    #[oai(path = "/animal", method = "post")]
-    async fn create_animal(&self, body: Json<AnimalCreation>) -> CreateAnimalResponse {
-        self.inner.create_animal(body.0).await
-    }
 }

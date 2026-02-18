@@ -1,10 +1,9 @@
 use crate::{
     Address, Client,
-    api::{Api, ApiImpl},
     errors::InternalServerError,
 };
 use chrono::NaiveDate;
-use poem_openapi::{ApiResponse, Object, OpenApi, payload::Json};
+use poem_openapi::{ApiResponse, Object, payload::Json};
 use serde::{Deserialize, Serialize};
 use yams_core::use_cases;
 

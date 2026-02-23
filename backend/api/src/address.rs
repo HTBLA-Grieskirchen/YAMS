@@ -1,22 +1,21 @@
 use yams_core::domain;
 
-api_serde! {
-    transparent;
-    api_oai_derive_newtype!(#[derive(Debug, Clone)] pub struct CountryCode(pub String))
-}
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(poem_openapi::NewType))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+pub struct CountryCode(pub String);
 
-api_oai! {
-    rename_all = "camelCase";
-    api_oai_derive_object!(api_serde! {
-        rename_all = "camelCase";
-        #[derive(Debug, Clone)]
-        pub struct Address {
-            pub postal_code: String,
-            pub city: String,
-            pub street_and_number: String,
-            pub country_code: CountryCode,
-        }
-    })
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct Address {
+    pub postal_code: String,
+    pub city: String,
+    pub street_and_number: String,
+    pub country_code: CountryCode,
 }
 
 impl From<Address> for domain::Address {

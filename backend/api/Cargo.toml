@@ -21,9 +21,9 @@ poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = tru
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]
-#default = ["serde", "openapi"]
+default = ["serde", "openapi"]
 openapi = ["dep:poem-openapi"]
-serde = ["dep:serde", "uuid/serde", "chrono/serde"]
+serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde"]
 
 [[bin]]
 name = "export_spec"

@@ -1025,6 +1025,7 @@ checksum = "b878b3fac9613c3c7f22eb70bc8a3c6ebdc03cc11479ee60fde1692d747fd45f"
 dependencies = [
  "anyhow",
  "rustc_version",
+ "serde",
 ]
 
 [[package]]

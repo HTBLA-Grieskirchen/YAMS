@@ -1,11 +1,14 @@
+[settings]
+idiomatic_version_file_enable_tools = ["rust"]
+jobs = 1
+
+[tools]
+node = "22"
+
 [env]
 FRONTEND_DIR = "frontend"
 OPENAPI_SPEC = "openapi.json"
 DATABASE_URL = "{{ config_root }}/sqlite.local/yams.db"
-
-[tools]
-node = "22"
-rust = "nightly"
 
 [task_config]
 includes = [
@@ -19,8 +22,6 @@ includes = [
     "tasks/build.toml"
 ]
 
-[settings]
-jobs = 1
 
 [tasks."build:tauri"]
 description = "Build Tauri app"

@@ -1,0 +1,15 @@
+[package]
+name = "molting"
+description = "Migration framework for evolving your database schema or whatever really. Molt into your new version."
+version = "0.1.0"
+authors.workspace = true
+license-file.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+pollster = { version = "0.4.0", features = ["macro", "pollster-macro"] }

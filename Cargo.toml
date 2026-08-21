@@ -1,25 +1,30 @@
 [workspace]
 members = [
-    "backend/core",
-    "backend/persistence",
+    "crates/*",
     "backend/server",
-    "backend/api",
-    "backend/molting",
     "frontend/src-tauri",
 ]
 resolver = "2"
 
+[workspace.package]
+version = "0.1.0"
+authors = ["Tim Peko <timerertim@gmail.com>", "David Rathmair", "Dominik Wernsdorfer", "Julian Bachinger", "David Edthaler", "Daniel Ferihumer"]
+license-file = "../../LICENSE"
+edition = "2024"
+repository = "https://github.com/HTBLA-Grieskirchen/YAMS/"
+
 [workspace.dependencies]
-thiserror = "2.0.18"
-error-stack = { version = "0.6.0", default-features = false, features = ["std"] }
-async-trait = "0.1.89"
+thiserror = "2.0.20"
+error-stack = { version = "0.8.0", default-features = false, features = ["std"] }
+bon = { version   = "3.9.3" }
+async-trait = "0.1.92"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.21.0", features = ["v4", "serde"] }
 clap = { version = "4.5.59", features = ["derive", "env"] }
 chrono = { version = "0.4", features = ["serde"] }
 rust_decimal = { version = "1.0", features = ["serde"] }
-fxhash = "0.2.1"
+rustc-hash = "2.1.0"
 libsql = { version = "0.9.29", default-features = false, features = ["serde", "core"] }
 poem = "3.0"
 poem-openapi = { version = "5.0", features = ["swagger-ui", "uuid", "redoc"] }

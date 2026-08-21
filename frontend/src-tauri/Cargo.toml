@@ -1,12 +1,12 @@
 [package]
 name = "yams"
-version = "0.1.0"
 description = "A management software for patients and animals"
-authors = ["Tim Peko", "David Rathmair", "Dominik Wernsdorfer", "Julian Bachinger", "David Edthaler", "Daniel Ferihumer"]
-license-file = "../../LICENSE"
-repository = "https://github.com/HTBLA-Grieskirchen/YAMS/"
 default-run = "yams"
-edition = "2024"
+version.workspace = true
+authors.workspace = true
+license-file.workspace = true
+edition.workspace = true
+repository.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,9 +14,9 @@ edition = "2024"
 tauri-build = { version = "^2.0", features = [] }
 
 [dependencies]
-yams-core = { path = "../../backend/core" }
-yams-persistence = { path = "../../backend/persistence" }
-yams-api = { path = "../../backend/api", default-features = false, features = ["serde"] }
+yams-core = { path = "../../crates/yams-core" }
+yams-persistence = { path = "../../crates/yams-persistence" }
+yams-api = { path = "../../crates/yams-api", default-features = false, features = ["serde"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

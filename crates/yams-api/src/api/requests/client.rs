@@ -1,14 +1,13 @@
-use crate::{
-    Address, Client,
-    errors::InternalServerError,
-};
 use chrono::NaiveDate;
-use poem_openapi::{ApiResponse, Object, payload::Json};
-use serde::{Deserialize, Serialize};
-use yams_core::use_cases;
+use yams_core::service::CreateClient;
 
-#[derive(Object, Serialize, Deserialize, Debug, Clone)]
-#[oai(rename_all = "camelCase")]
+use crate::schema::Address;
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct ClientCreation {
     pub first_name: String,
     pub last_name: String,
@@ -20,7 +19,7 @@ pub struct ClientCreation {
     pub address: Address,
 }
 
-impl From<ClientCreation> for use_cases::client::CreateClient {
+impl From<ClientCreation> for CreateClient {
     fn from(value: ClientCreation) -> Self {
         Self {
             first_name: value.first_name,
@@ -33,12 +32,4 @@ impl From<ClientCreation> for use_cases::client::CreateClient {
             address: value.address.into(),
         }
     }
-}
-
-#[derive(ApiResponse)]
-pub enum CreateClientResponse {
-    #[oai(status = 200)]
-    Ok(Json<Client>),
-    #[oai(status = 500)]
-    InternalError(Json<InternalServerError>),
 }

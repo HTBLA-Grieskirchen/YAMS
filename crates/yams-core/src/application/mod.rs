@@ -19,9 +19,9 @@ pub use context::ExecutionContext;
 use orchestration::*;
 
 mod errors;
+pub use errors::ErrorReportExt;
 pub use errors::ResultReport;
 pub use errors::ThreadSafeError;
-pub use errors::ErrorReportExt;
 
 #[derive(Builder)]
 pub struct App {
@@ -39,7 +39,10 @@ impl App {
         self.orchestrate(UseCaseOp(use_case)).await
     }
 
-    pub async fn execute_fn<F, O, E: ThreadSafeError>(&self, f: F) -> ResultReport<O, ExecutionError>
+    pub async fn execute_fn<F, O, E: ThreadSafeError>(
+        &self,
+        f: F,
+    ) -> ResultReport<O, ExecutionError>
     where
         for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> ResultReport<O, E> + Send,
         E: Send,
@@ -70,9 +73,17 @@ impl App {
                 Ok(output)
             }
             Err(e) => {
-                let mut e = e.into_report().change_context(ExecutionError).attach("UseCase failed").expand();
+                let mut e = e
+                    .into_report()
+                    .change_context(ExecutionError)
+                    .attach("UseCase failed")
+                    .expand();
                 if let Err(rollback_error) = uow.rollback().await {
-                    e.push(rollback_error.change_context(ExecutionError).attach("Rollback failed"));
+                    e.push(
+                        rollback_error
+                            .change_context(ExecutionError)
+                            .attach("Rollback failed"),
+                    );
                 }
                 Err(e.change_context(ExecutionError))
             }

@@ -10,5 +10,8 @@ pub use use_cases::*;
 pub trait UseCase<Output> {
     type Error: IntoReport + Send;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> ResultReport<Output, <Self::Error as IntoReport>::Context>;
+    async fn perform(
+        self,
+        ctx: ExecutionContext<'_>,
+    ) -> ResultReport<Output, <Self::Error as IntoReport>::Context>;
 }

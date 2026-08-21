@@ -5,11 +5,11 @@ use std::ops::{Deref, DerefMut};
 use async_trait::async_trait;
 use error_stack::Report;
 
+use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Animal, AnimalId, Client, ClientId,
     factories::{NewAnimal, NewClient},
 };
-use crate::application::{uow::Versioned, ResultReport};
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
 

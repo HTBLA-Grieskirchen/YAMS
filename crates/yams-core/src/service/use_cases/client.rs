@@ -3,7 +3,10 @@ use chrono::NaiveDate;
 use error_stack::{IntoReport, Report, ResultExt};
 
 use crate::{
-    ResultReport, domain::{Address, Client, Email, MobileNumber, factories::NewClient}, application::uow::Versioned, service::{ExecutionContext, UseCase},
+    ResultReport,
+    application::uow::Versioned,
+    domain::{Address, Client, Email, MobileNumber, factories::NewClient},
+    service::{ExecutionContext, UseCase},
 };
 
 #[derive(Clone)]

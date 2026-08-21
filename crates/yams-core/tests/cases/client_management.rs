@@ -5,10 +5,8 @@ use crate::cases::TestAdapters;
 use super::super::make_testing_app;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
+use yams_core::domain::Address;
 use yams_core::ports::RepositoryError;
-use yams_core::{
-    domain::Address,
-};
 use yams_core::service::CreateClient;
 
 #[pollster::test]

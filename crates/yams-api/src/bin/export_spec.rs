@@ -1,7 +1,6 @@
-use poem_openapi::OpenApiService;
-use yams_api::{Api, UnimplementedApi};
+use yams_api::{api::UnimplementedApi, openapi_service};
 
 fn main() {
-    let api_service = openapi_service(UnimplementedApi, []);
+    let api_service = openapi_service(UnimplementedApi, std::iter::empty::<String>());
     println!("{}", api_service.spec());
 }

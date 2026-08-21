@@ -1,5 +1,5 @@
-mod repos;
 mod clock;
+mod repos;
 
-pub use repos::*;
 pub use clock::*;
+pub use repos::*;

@@ -1,6 +1,6 @@
 use poem_openapi::{LicenseObject, OpenApi, OpenApiService, ServerObject, payload::Json};
 
-use crate::YamsApi;
+use crate::{YamsApi, requests::AnimalCreation, requests::ClientCreation, responses::CreateAnimalResponse, responses::CreateClientResponse};
 
 pub struct YamsApiSpec<I: YamsApi>(I);
 

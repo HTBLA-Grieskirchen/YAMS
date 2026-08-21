@@ -3,7 +3,9 @@ use chrono::NaiveDate;
 use error_stack::{IntoReport, Report, ResultExt, bail};
 
 use crate::{
-    ResultReport, domain::{Animal, ClientId, factories::NewAnimal}, service::{ExecutionContext, UseCase},
+    ResultReport,
+    domain::{Animal, ClientId, factories::NewAnimal},
+    service::{ExecutionContext, UseCase},
 };
 
 #[derive(Clone)]
@@ -77,7 +79,10 @@ pub struct CreateManyAnimalsError {
 impl UseCase<Vec<Animal>> for CreateManyAnimals {
     type Error = Report<[CreateAnimalError]>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> ResultReport<Vec<Animal>, <Self::Error as IntoReport>::Context> {
+    async fn perform(
+        self,
+        ctx: ExecutionContext<'_>,
+    ) -> ResultReport<Vec<Animal>, <Self::Error as IntoReport>::Context> {
         let mut errors = Option::<Report<[CreateAnimalError]>>::None;
         let mut animals = Vec::with_capacity(self.animals.len());
         for fut in self.animals.into_iter().map(|a| a.perform(ctx.to_locked())) {

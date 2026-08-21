@@ -4,9 +4,9 @@ use async_lock::Mutex;
 use async_trait::async_trait;
 use libsql::Transaction;
 use yams_core::{
-    ErrorReportExt, ResultReport, ports::{
-        AnimalRepository, ClientRepository, RepositoryError, RepositoryResult
-    }, uow::{UnitOfWorkImpl, UnitOfWorkProvider}
+    ErrorReportExt, ResultReport,
+    ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult},
+    uow::{UnitOfWorkImpl, UnitOfWorkProvider},
 };
 
 use crate::{
@@ -45,9 +45,7 @@ impl UnitOfWorkProvider for SQLiteInstance {
 impl UnitOfWorkImpl for SQLiteUnitOfWork {
     async fn checkpoint(&mut self) -> RepositoryResult<()> {
         let mut tx_guard = self.tx.lock().await;
-        let old_tx = tx_guard
-            .take()
-            .ok_or(RepositoryError::Conflict)?;
+        let old_tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;
         old_tx
             .commit()
             .await
@@ -63,9 +61,7 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
 
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
         let mut tx_guard = self.tx.lock().await;
-        let tx = tx_guard
-            .take()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;
         tx.query("PRAGMA incremental_vacuum", ())
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
@@ -76,9 +72,7 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
 
     async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
         let mut tx_guard = self.tx.lock().await;
-        let tx = tx_guard
-            .take()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;
         tx.rollback()
             .await
             .contextualize_with(libsql_error_to_persistence_error)

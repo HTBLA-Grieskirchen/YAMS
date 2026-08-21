@@ -2,9 +2,9 @@
 #![feature(never_type)]
 #![feature(error_generic_member_access)]
 
+pub mod adapters;
 pub mod application;
 pub mod domain;
 pub mod service;
-pub mod adapters;
 
-pub use application::{App, ResultReport, ThreadSafeError, ports, uow, ErrorReportExt};
+pub use application::{App, ErrorReportExt, ResultReport, ThreadSafeError, ports, uow};

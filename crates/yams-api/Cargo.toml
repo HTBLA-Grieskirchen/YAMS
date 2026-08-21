@@ -10,10 +10,11 @@ repository.workspace = true
 [dependencies]
 yams-core = { path = "../yams-core" }
 
-async-trait = { workspace = true }
-
 thiserror = { workspace = true }
 error-stack = { workspace = true }
+
+async-trait = { workspace = true }
+
 
 uuid = { workspace = true }
 chrono = { workspace = true }

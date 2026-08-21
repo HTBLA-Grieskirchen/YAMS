@@ -7,7 +7,9 @@ use async_trait::async_trait;
 use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
-    domain::factories::NewClient, ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult}, uow::Versioned,
+    domain::factories::NewClient,
+    ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult},
+    uow::Versioned,
 };
 
 use yams_core::domain::{Animal, AnimalId, Client, ClientId, factories::NewAnimal};

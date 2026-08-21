@@ -1,13 +1,14 @@
 use clap::Parser;
+use error_stack::{Report, ResultExt};
 use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
 use poem_openapi::OpenApiService;
-use std::sync::Arc;
+use thiserror::Error;
+use yams_api::openapi_service;
 use yams_core::App;
-use yams_core::application::AppConfiguration;
 use yams_persistence::SQLiteInstance;
 
-use crate::api::{AppApi, AppApiImplementation};
+use crate::api::AppApi;
 
 mod api;
 
@@ -31,19 +32,23 @@ struct Config {
     database_url: String,
 }
 
+#[derive(Debug, Error)]
+#[error("Backend server fatal error")]
+pub struct BackendServerError;
+
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<(), Report<BackendServerError>> {
     let config = Config::parse();
 
     let mut adapter = SQLiteInstance::local(&config.database_url)
         .await
         .expect("Failed to initialize database");
-    adapter.migrate_to_latest().await?;
+    adapter
+        .migrate_to_latest()
+        .await
+        .change_context(BackendServerError)?;
 
-    let app = App {
-        uow_provider: Box::new(adapter),
-        configuration: AppConfiguration::default(),
-    };
+    let app = App::builder().uow_provider(Box::new(adapter)).build();
 
     let base_path = config.subpath.trim_matches('/');
     let subpath = if base_path.is_empty() {
@@ -58,12 +63,7 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // TODO: add dynamic version loading
-    let api_service = OpenApiService::new(
-        AppApi::from(AppApiImplementation::new(app)),
-        "YAMS API",
-        env!("CARGO_PKG_VERSION"),
-    )
-    .server(&api_url);
+    let api_service = openapi_service(AppApi::new(app), [api_url.clone()]);
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())
@@ -86,6 +86,7 @@ async fn main() -> anyhow::Result<()> {
         config.bind_address, config.port
     )))
     .run(app)
-    .await?;
+    .await
+    .change_context(BackendServerError)?;
     Ok(())
 }

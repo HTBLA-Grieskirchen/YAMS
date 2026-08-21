@@ -11,8 +11,8 @@ use migrations::MIGRATIONS;
 use tempdir::TempDir;
 pub use uow::*;
 use uuid::Uuid;
-use yams_core::{ErrorReportExt, ResultReport};
 use yams_core::ports::RepositoryError;
+use yams_core::{ErrorReportExt, ResultReport};
 
 use crate::errors::{libsql_error_to_persistence_error, migration_error_to_persistence_error};
 
@@ -118,7 +118,9 @@ impl SQLiteInstance {
             .contextualize_with(migration_error_to_persistence_error)
     }
 
-    pub(crate) async fn create_connection(&self) -> ResultReport<SQLiteConnection, RepositoryError> {
+    pub(crate) async fn create_connection(
+        &self,
+    ) -> ResultReport<SQLiteConnection, RepositoryError> {
         match &self.variant {
             InstanceType::Local(db) => {
                 let connection = db

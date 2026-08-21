@@ -6,7 +6,9 @@ use super::super::make_testing_app;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 use yams_core::{
-    domain::Address, ports::{AnimalRepository, ClientRepository}, service::{CreateAnimal, CreateClient, CreateManyAnimals, UseCase}
+    domain::Address,
+    ports::{AnimalRepository, ClientRepository},
+    service::{CreateAnimal, CreateClient, CreateManyAnimals, UseCase},
 };
 
 #[pollster::test]

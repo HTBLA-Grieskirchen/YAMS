@@ -4,7 +4,10 @@ use crate::common::fakes::repository::{
     FakeAnimalsRepository, FakeClientsRepository, FakeDatastore,
 };
 use async_trait::async_trait;
-use yams_core::{ports::{AnimalRepository, ClientRepository, RepositoryResult}, uow::{UnitOfWorkImpl, UnitOfWorkProvider}};
+use yams_core::{
+    ports::{AnimalRepository, ClientRepository, RepositoryResult},
+    uow::{UnitOfWorkImpl, UnitOfWorkProvider},
+};
 
 pub struct FakeUnitOfWorkProvider {
     pub log: Arc<Mutex<Vec<UoWEvent>>>,

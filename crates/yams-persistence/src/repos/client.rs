@@ -7,7 +7,10 @@ use error_stack::{IntoReport, ResultExt};
 use libsql::Transaction;
 use uuid::Uuid;
 use yams_core::{
-    ErrorReportExt, domain::{Address, Client, ClientId, Email, MobileNumber, factories::NewClient}, ports::{ClientRepository, RepositoryError, RepositoryResult}, uow::Versioned,
+    ErrorReportExt,
+    domain::{Address, Client, ClientId, Email, MobileNumber, factories::NewClient},
+    ports::{ClientRepository, RepositoryError, RepositoryResult},
+    uow::Versioned,
 };
 
 use crate::errors::libsql_error_to_persistence_error;
@@ -24,9 +27,7 @@ fn parse_naive_date(s: &str) -> Result<NaiveDate, chrono::format::ParseError> {
 impl ClientRepository for SQLiteClientRepository {
     async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>> {
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let id_str = id.0.to_string();
         let mut rows = tx
@@ -84,8 +85,7 @@ impl ClientRepository for SQLiteClientRepository {
             .get(12)
             .contextualize_with(libsql_error_to_persistence_error)?;
 
-        let birthdate = parse_naive_date(&birthdate_str)
-            .contextualize(RepositoryError::Data)?;
+        let birthdate = parse_naive_date(&birthdate_str).contextualize(RepositoryError::Data)?;
         let uuid = Uuid::from_str(&id_raw).contextualize(RepositoryError::Data)?;
 
         let mut animal_rows = tx
@@ -148,9 +148,7 @@ impl ClientRepository for SQLiteClientRepository {
         let client = Versioned::init(client);
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
             "INSERT INTO clients (id, first_name, last_name, birthdate, email, mobile_number, customer_number, consent, postal_code, city, street_and_number, country_code, _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
@@ -183,9 +181,7 @@ impl ClientRepository for SQLiteClientRepository {
         let version = client.v();
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let result = tx
             .execute(
@@ -241,9 +237,7 @@ impl ClientRepository for SQLiteClientRepository {
         let version = client.v();
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
             "UPDATE animals SET client_id = NULL WHERE client_id = ?1",

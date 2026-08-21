@@ -1,7 +1,8 @@
-use crate::{Address, Animal, schema_animal_from_domain};
 use chrono::NaiveDate;
 use uuid::Uuid;
 use yams_core::domain;
+
+use crate::schema::{Address, Animal, schema_animal_from_domain};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]

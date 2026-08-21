@@ -1,4 +1,4 @@
-use yams_core::{App};
+use yams_core::App;
 use yams_persistence::SQLiteInstance;
 
 use crate::cases::TestAdapters;

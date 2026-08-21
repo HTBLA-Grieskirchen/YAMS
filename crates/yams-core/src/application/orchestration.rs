@@ -1,4 +1,7 @@
-use crate::{ResultReport, application::{ExecutionContext, UseCase}};
+use crate::{
+    ResultReport,
+    application::{ExecutionContext, UseCase},
+};
 use error_stack::{IntoReport, Report};
 use thiserror::Error;
 
@@ -20,7 +23,10 @@ impl<U, O> OrchestrateFn<O, Report<<U::Error as IntoReport>::Context>> for UseCa
 where
     U: UseCase<O> + Send,
 {
-    async fn run<'a>(self, ctx: ExecutionContext<'a>) -> ResultReport<O, <U::Error as IntoReport>::Context>
+    async fn run<'a>(
+        self,
+        ctx: ExecutionContext<'a>,
+    ) -> ResultReport<O, <U::Error as IntoReport>::Context>
     where
         Self: 'a,
     {

@@ -5,7 +5,10 @@ use chrono::NaiveDate;
 use error_stack::bail;
 use uuid::Uuid;
 use yams_core::{
-    ErrorReportExt, domain::{Animal, AnimalId, factories::NewAnimal}, ports::{AnimalRepository, RepositoryError, RepositoryResult}, uow::Versioned
+    ErrorReportExt,
+    domain::{Animal, AnimalId, factories::NewAnimal},
+    ports::{AnimalRepository, RepositoryError, RepositoryResult},
+    uow::Versioned,
 };
 
 use crate::errors::libsql_error_to_persistence_error;
@@ -24,9 +27,7 @@ fn parse_naive_date(s: &str) -> Result<NaiveDate, chrono::format::ParseError> {
 impl AnimalRepository for SQLiteAnimalRepository {
     async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>> {
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let id_str = id.0.to_string();
         let mut rows = tx
@@ -50,8 +51,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
         let description: String = row.get(4).contextualize(RepositoryError::Data)?;
         let version: u64 = row.get(5).contextualize(RepositoryError::Data)?;
 
-        let birthdate = parse_naive_date(&birthdate_str)
-            .contextualize(RepositoryError::Data)?;
+        let birthdate = parse_naive_date(&birthdate_str).contextualize(RepositoryError::Data)?;
         let uuid = Uuid::from_str(&id_raw).contextualize(RepositoryError::Data)?;
 
         let animal = Animal {
@@ -78,9 +78,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
         let birthdate_str = new.birthdate.format("%Y-%m-%d").to_string();
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
             "INSERT INTO animals (id, name, birthdate, animal_species, description, client_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6)",
@@ -105,9 +103,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
         let version = animal.v();
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let result = tx
             .execute(
@@ -140,9 +136,7 @@ impl AnimalRepository for SQLiteAnimalRepository {
         let version = animal.v();
 
         let mut guard = self.tx.lock().await;
-        let tx = guard
-            .as_mut()
-            .ok_or(RepositoryError::Conflict)?;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let result = tx
             .execute(

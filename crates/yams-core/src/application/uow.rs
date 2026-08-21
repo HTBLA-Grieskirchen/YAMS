@@ -117,7 +117,6 @@ impl UnitOfWorkImpl for SharedUnitOfWorkImpl<'_> {
     }
 }
 
-
 /// UoW Provider
 #[async_trait]
 pub trait UnitOfWorkImpl: Send + Sync {

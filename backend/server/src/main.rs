@@ -63,7 +63,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     );
 
     // TODO: add dynamic version loading
-    let api_service = openapi_service(AppApi::new(app), [api_url.clone()]);
+    let api_service = openapi_service(app, [api_url.clone()]);
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())

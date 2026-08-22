@@ -1,16 +1,42 @@
 pub mod requests;
-pub mod responses;
-mod unimplemented;
 
-use async_trait::async_trait;
+use std::sync::Arc;
 
-pub use unimplemented::*;
+use yams_core::{
+    App, ResultReport,
+    application::ExecutionError,
+    service::{CreateAnimal, CreateClient, CreateClientError},
+};
 
-use crate::{requests::{AnimalCreation, ClientCreation}, responses::{CreateAnimalResponse, CreateClientResponse}};
+use crate::{
+    requests::{AnimalCreation, ClientCreation},
+    schema::{Animal, Client, schema_animal_from_domain, schema_client_from_domain},
+};
 
-#[async_trait]
-pub trait YamsApi: Send + Sync + 'static {
-    async fn create_client(&self, body: ClientCreation) -> CreateClientResponse;
+pub struct YamsAppApi {
+    app: Arc<App>,
+}
 
-    async fn create_animal(&self, body: AnimalCreation) -> CreateAnimalResponse;
+impl YamsAppApi {
+    pub fn new(app: App) -> Self {
+        Self { app: Arc::new(app) }
+    }
+}
+
+impl YamsAppApi {
+    pub async fn create_client(
+        &self,
+        body: ClientCreation,
+    ) -> ResultReport<Client, ExecutionError> {
+        let client = self.app.execute(CreateClient::from(body)).await?;
+        Ok(schema_client_from_domain(client, vec![]))
+    }
+
+    pub async fn create_animal(
+        &self,
+        body: AnimalCreation,
+    ) -> ResultReport<Animal, ExecutionError> {
+        let animal = self.app.execute(CreateAnimal::from(body)).await?;
+        Ok(schema_animal_from_domain(animal))
+    }
 }

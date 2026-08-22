@@ -20,11 +20,12 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 
 poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = true }
+http = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]
 default = ["serde", "openapi"]
-openapi = ["dep:poem-openapi"]
+openapi = ["dep:poem-openapi", "dep:http"]
 serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde"]
 
 [[bin]]

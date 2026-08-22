@@ -7,3 +7,9 @@ use thiserror::Error;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct InternalServerError;
+
+impl From<InternalServerError> for String {
+    fn from(value: InternalServerError) -> Self {
+        format!("{}", value)
+    }
+}

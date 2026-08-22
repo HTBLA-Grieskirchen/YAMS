@@ -1,10 +1,10 @@
+use error_stack::Report;
 use std::sync::Arc;
 use tauri::Manager;
-use yams_core::App;
-use yams_core::application::AppConfiguration;
+use yams_core::{App, ports::RepositoryError};
 use yams_persistence::SQLiteInstance;
 
-mod commands;
+//mod commands;
 mod config;
 
 use crate::config::{YAMSFileConfig, YAMSFrontendConfig};
@@ -24,14 +24,11 @@ fn main() {
             let db_instance = tauri::async_runtime::block_on(async {
                 let mut sqlite = SQLiteInstance::local(db_url).await?;
                 sqlite.migrate_to_latest().await?;
-                Ok(sqlite)
+                Ok::<_, Report<RepositoryError>>(sqlite)
             })
             .expect("failed to initialize LibSQL adapter");
 
-            let app = App {
-                uow_provider: Box::new(db_instance),
-                configuration: AppConfiguration::default(),
-            };
+            let app = App::builder().uow_provider(Box::new(db_instance)).build();
 
             tauri_app.manage(Arc::new(app));
 
@@ -42,8 +39,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             frontend_config,
-            commands::get_addresses,
-            commands::create_address
+            //commands::get_addresses,
+            //commands::create_address
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

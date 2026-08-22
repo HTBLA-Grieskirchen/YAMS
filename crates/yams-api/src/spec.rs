@@ -1,45 +1,94 @@
-use poem_openapi::{LicenseObject, OpenApi, OpenApiService, ServerObject, payload::Json};
+use error_stack::Report;
+use http::StatusCode;
+use poem_openapi::{
+    LicenseObject, OpenApi, OpenApiService, ServerObject,
+    payload::{Json, PlainText},
+    types::ToJSON,
+};
+use yams_core::{App, ThreadSafeError};
 
-use crate::{YamsApi, requests::AnimalCreation, requests::ClientCreation, responses::CreateAnimalResponse, responses::CreateClientResponse};
+use crate::{
+    api::YamsAppApi,
+    errors::{InternalServerError, StructuredError},
+    requests::{AnimalCreation, ClientCreation},
+    schema::{Animal, Client},
+};
 
-pub struct YamsApiSpec<I: YamsApi>(I);
+pub struct YamsApiSpec {
+    app_api: YamsAppApi,
+}
 
-impl<I: YamsApi> YamsApiSpec<I> {
-    pub fn new(inner: I) -> Self {
-        Self(inner)
+impl YamsApiSpec {
+    pub fn new(app_api: YamsAppApi) -> Self {
+        Self { app_api }
     }
 }
 
-impl<I: YamsApi> From<I> for YamsApiSpec<I> {
-    fn from(inner: I) -> Self {
-        Self::new(inner)
+impl From<YamsAppApi> for YamsApiSpec {
+    fn from(app_api: YamsAppApi) -> Self {
+        Self::new(app_api)
+    }
+}
+
+impl From<App> for YamsApiSpec {
+    fn from(app: App) -> Self {
+        Self::new(YamsAppApi::new(app))
+    }
+}
+
+#[derive(poem_openapi::ApiResponse)]
+pub enum TypicalJsonResponse<T: ToJSON> {
+    #[oai(status = 200)]
+    Ok(Json<T>),
+    #[oai(status_range = "4XX")]
+    ClientError(StatusCode, Json<StructuredError>),
+    #[oai(status = 500)]
+    InternalError(PlainText<InternalServerError>),
+}
+
+impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonResponse<T> {
+    fn from(result: Result<T, Report<C>>) -> Self {
+        match result {
+            Ok(value) => TypicalJsonResponse::Ok(Json(value)),
+            Err(error) => {
+                // extract StatusCode from error, default to 400
+                let status = error
+                    .request_value::<StatusCode>()
+                    .next()
+                    .unwrap_or(StatusCode::BAD_REQUEST);
+                if status.is_server_error() {
+                    return TypicalJsonResponse::InternalError(PlainText(InternalServerError));
+                }
+                TypicalJsonResponse::ClientError(status, Json(error.into()))
+            }
+        }
     }
 }
 
 #[OpenApi]
-impl<I: YamsApi> YamsApiSpec<I> {
+impl YamsApiSpec {
     #[oai(path = "/health", method = "get")]
     async fn health(&self) -> Json<String> {
         Json("OK".to_string())
     }
 
     #[oai(path = "/client", method = "post")]
-    async fn create_client(&self, body: Json<ClientCreation>) -> CreateClientResponse {
-        self.0.create_client(body.0).await
+    async fn create_client(&self, body: Json<ClientCreation>) -> TypicalJsonResponse<Client> {
+        self.app_api.create_client(body.0).await.into()
     }
 
     #[oai(path = "/animal", method = "post")]
-    async fn create_animal(&self, body: Json<AnimalCreation>) -> CreateAnimalResponse {
-        self.0.create_animal(body.0).await
+    async fn create_animal(&self, body: Json<AnimalCreation>) -> TypicalJsonResponse<Animal> {
+        self.app_api.create_animal(body.0).await.into()
     }
 }
 
-pub fn openapi_service<A: YamsApi>(
-    api: A,
+pub fn openapi_service(
+    app: App,
     server_urls: impl IntoIterator<Item = impl Into<ServerObject>>,
-) -> OpenApiService<YamsApiSpec<A>, ()> {
+) -> OpenApiService<YamsApiSpec, ()> {
     let mut service = OpenApiService::new(
-        YamsApiSpec::from(api),
+        YamsApiSpec::from(app),
         "YAMS API",
         env!("CARGO_PKG_VERSION"),
     )

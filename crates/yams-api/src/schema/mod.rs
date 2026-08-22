@@ -1,7 +1,7 @@
 mod address;
-mod client;
 mod animal;
+mod client;
 
 pub use address::*;
-pub use client::*;
 pub use animal::*;
+pub use client::*;

@@ -28,6 +28,7 @@ rustc-hash = "2.1.0"
 libsql = { version = "0.9.29", default-features = false, features = ["serde", "core"] }
 poem = "3.0"
 poem-openapi = { version = "5.0", features = ["swagger-ui", "uuid", "redoc"] }
+http = "1.5.0"
 
 [profile.release]
 panic = "abort" # Strip expensive panic clean-up logic

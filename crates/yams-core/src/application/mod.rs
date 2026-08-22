@@ -22,6 +22,7 @@ mod errors;
 pub use errors::ErrorReportExt;
 pub use errors::ResultReport;
 pub use errors::ThreadSafeError;
+pub use orchestration::ExecutionError;
 
 #[derive(Builder)]
 pub struct App {

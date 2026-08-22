@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use crate::cases::TestAdapters;
 
-use super::super::make_testing_app;
+use super::super::base_app_builder;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 use yams_core::{
@@ -13,7 +12,7 @@ use yams_core::{
 
 #[pollster::test]
 async fn test_animal() {
-    let app = make_testing_app(&TestAdapters::default()).await;
+    let app = base_app_builder().await.build();
     let app = Arc::new(app);
 
     let create_client = CreateClient {

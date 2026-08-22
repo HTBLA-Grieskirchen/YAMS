@@ -31,6 +31,8 @@ pub struct App {
     pub clock: Arc<dyn Clock>,
 }
 
+pub use app_builder::{SetUowProvider, SetClock};
+
 impl App {
     #[inline(always)]
     pub async fn execute<U: UseCase<O> + Send, O>(

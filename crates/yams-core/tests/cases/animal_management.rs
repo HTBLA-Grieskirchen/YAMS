@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-
 use super::super::base_app_builder;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;

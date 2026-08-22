@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use error_stack::Report;
 use http::StatusCode;
 use poem_openapi::{

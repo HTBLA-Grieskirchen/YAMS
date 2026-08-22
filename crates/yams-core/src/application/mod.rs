@@ -31,7 +31,7 @@ pub struct App {
     pub clock: Arc<dyn Clock>,
 }
 
-pub use app_builder::{SetUowProvider, SetClock};
+pub use app_builder::{SetClock, SetUowProvider};
 
 impl App {
     #[inline(always)]

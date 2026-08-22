@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, NaiveDate, Utc};
 
 pub trait Clock: Send + Sync {

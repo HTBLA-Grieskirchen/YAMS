@@ -38,11 +38,11 @@ fn into_structured_error_from_frame(frame: &Frame, head: &[&Frame]) -> Vec<Struc
                 .flat_map(|source| into_structured_error_from_frame(source, &[]))
                 .collect();
 
-            return vec![StructuredError {
+            vec![StructuredError {
                 message: format!("{context}"),
                 attachments: attachments_msgs,
                 sources: sources_vec,
-            }];
+            }]
         }
         FrameKind::Attachment(_) => match frame.sources() {
             [] => {
@@ -52,15 +52,15 @@ fn into_structured_error_from_frame(frame: &Frame, head: &[&Frame]) -> Vec<Struc
             [source] => {
                 attachments.push(frame);
                 // Continue down single-child
-                return into_structured_error_from_frame(source, &attachments);
+                into_structured_error_from_frame(source, &attachments)
             }
             sources => {
                 attachments.push(frame);
                 // For each fork, clone attachments, flat_map results
-                return sources
+                sources
                     .iter()
                     .flat_map(|source| into_structured_error_from_frame(source, &attachments))
-                    .collect();
+                    .collect()
             }
         },
     }

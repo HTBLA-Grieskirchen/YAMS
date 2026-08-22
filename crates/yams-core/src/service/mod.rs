@@ -1,4 +1,4 @@
-use crate::{ResultReport, ThreadSafeError, application::ExecutionContext};
+use crate::{ResultReport, application::ExecutionContext};
 
 use async_trait::async_trait;
 mod use_cases;

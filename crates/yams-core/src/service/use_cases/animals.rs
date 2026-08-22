@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use error_stack::{IntoReport, Report, ResultExt, bail};
+use error_stack::{IntoReport, Report, ResultExt};
 
 use crate::{
     ResultReport,

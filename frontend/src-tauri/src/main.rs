@@ -1,5 +1,4 @@
 use error_stack::Report;
-use std::sync::Arc;
 use tauri::Manager;
 use yams_api::YamsAppApi;
 use yams_core::{App, ports::RepositoryError};

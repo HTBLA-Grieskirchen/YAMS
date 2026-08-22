@@ -1,7 +1,7 @@
 use error_stack::Report;
 use http::StatusCode;
 use poem_openapi::{
-    LicenseObject, OpenApi, OpenApiService, ServerObject,
+    OpenApi, OpenApiService, ServerObject,
     payload::{Json, PlainText},
     types::ToJSON,
 };

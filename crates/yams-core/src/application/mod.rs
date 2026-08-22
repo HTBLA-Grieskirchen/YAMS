@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bon::Builder;
 use error_stack::IntoReport;
-use error_stack::{Report, ResultExt};
+use error_stack::ResultExt;
 
 use crate::adapters::SystemClock;
 use crate::application::uow::UnitOfWork;

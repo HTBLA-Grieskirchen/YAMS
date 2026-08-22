@@ -1,9 +1,7 @@
-use std::sync::Arc;
 use tauri::State;
 use yams_api::YamsAppApi;
 use yams_api::requests::AnimalCreation;
 use yams_api::schema::Animal;
-use yams_core::App;
 
 #[tauri::command]
 pub async fn get_animals(ctx: State<'_, YamsAppApi>) -> Result<Vec<Animal>, String> {

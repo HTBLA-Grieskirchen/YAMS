@@ -5,7 +5,7 @@ use std::sync::Arc;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
-    service::{CreateAnimal, CreateClient, CreateClientError},
+    service::{CreateAnimal, CreateClient},
     uow::Versioned,
 };
 

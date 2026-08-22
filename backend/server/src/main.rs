@@ -2,13 +2,10 @@ use clap::Parser;
 use error_stack::{Report, ResultExt};
 use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
-use poem_openapi::OpenApiService;
 use thiserror::Error;
 use yams_api::openapi_service;
 use yams_core::App;
 use yams_persistence::SQLiteInstance;
-
-use crate::api::AppApi;
 
 mod api;
 

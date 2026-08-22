@@ -4,7 +4,7 @@ use error_stack::{IntoReport, Report, ResultExt};
 
 use crate::{
     application::uow::Versioned,
-    domain::{Address, Client, Email, MobileNumber, factories::NewClient},
+    domain::{Address, Client, EmailAddress, MobileNumber, client::NewClient},
     service::{ExecutionContext, UseCase},
 };
 
@@ -13,7 +13,7 @@ pub struct CreateClient {
     pub first_name: String,
     pub last_name: String,
     pub birthdate: NaiveDate,
-    pub email: Email,
+    pub email: EmailAddress,
     pub mobile_number: MobileNumber,
     pub customer_number: i64,
     pub consent: bool,

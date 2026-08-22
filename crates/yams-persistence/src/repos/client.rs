@@ -8,7 +8,7 @@ use libsql::Transaction;
 use uuid::Uuid;
 use yams_core::{
     ErrorReportExt,
-    domain::{Address, Client, ClientId, Email, MobileNumber, factories::NewClient},
+    domain::{Address, Client, ClientId, EmailAddress, MobileNumber, client::NewClient},
     ports::{ClientRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
 };
@@ -113,8 +113,9 @@ impl ClientRepository for SQLiteClientRepository {
             first_name,
             last_name,
             birthdate,
-            email: Email(email_str),
-            mobile_number: MobileNumber(mobile_number_str),
+            email: EmailAddress::new(email_str).change_context(RepositoryError::Data)?,
+            mobile_number: MobileNumber::new(mobile_number_str)
+                .change_context(RepositoryError::Data)?,
             customer_number,
             consent,
             address: Address {
@@ -157,8 +158,8 @@ impl ClientRepository for SQLiteClientRepository {
                 client.first_name.clone(),
                 client.last_name.clone(),
                 birthdate_str,
-                client.email.0.clone(),
-                client.mobile_number.0.clone(),
+                client.email.as_ref(),
+                client.mobile_number.as_ref(),
                 client.customer_number,
                 consent_i,
                 client.address.postal_code.clone(),
@@ -190,8 +191,8 @@ impl ClientRepository for SQLiteClientRepository {
                     client.first_name.clone(),
                     client.last_name.clone(),
                     birthdate_str,
-                    client.email.0.clone(),
-                    client.mobile_number.0.clone(),
+                    client.email.as_ref(),
+                    client.mobile_number.as_ref(),
                     client.customer_number,
                     consent_i,
                     client.address.postal_code.clone(),

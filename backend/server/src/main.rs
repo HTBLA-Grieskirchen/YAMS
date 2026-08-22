@@ -7,8 +7,6 @@ use yams_api::openapi_service;
 use yams_core::App;
 use yams_persistence::SQLiteInstance;
 
-mod api;
-
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Config {

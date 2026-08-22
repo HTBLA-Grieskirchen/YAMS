@@ -8,7 +8,7 @@ pub struct CountryCode(pub String);
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
-#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase", example))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Address {
@@ -16,6 +16,18 @@ pub struct Address {
     pub city: String,
     pub street_and_number: String,
     pub country_code: CountryCode,
+}
+
+#[cfg(feature = "openapi")]
+impl poem_openapi::types::Example for Address {
+    fn example() -> Self {
+        Self {
+            postal_code: "4040".to_string(),
+            city: "Linz".to_string(),
+            street_and_number: "Landesstraße 1".to_string(),
+            country_code: CountryCode("AT".to_string()),
+        }
+    }
 }
 
 impl From<Address> for domain::Address {

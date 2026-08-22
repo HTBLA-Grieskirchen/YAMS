@@ -2,9 +2,12 @@ pub mod requests;
 
 use std::sync::Arc;
 
+use error_stack::ResultExt;
+use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
+    domain::AnimalId,
     service::{CreateAnimal, CreateClient},
     uow::Versioned,
 };
@@ -34,7 +37,10 @@ impl YamsAppApi {
         &self,
         body: ClientCreation,
     ) -> ResultReport<Client, ExecutionError> {
-        let client = self.app.execute(CreateClient::from(body)).await?;
+        let client = self
+            .app
+            .execute(CreateClient::try_from(body).change_context(ExecutionError)?)
+            .await?;
         Ok(schema_client_from_domain(client, vec![]))
     }
 
@@ -54,5 +60,14 @@ impl YamsAppApi {
             .into_iter()
             .map(Versioned::into_data);
         Ok(animals.map(schema_animal_from_domain).collect())
+    }
+
+    pub async fn get_animal(&self, id: Uuid) -> ResultReport<Animal, ExecutionError> {
+        let animal = self
+            .app
+            .execute_fn(async |ctx| ctx.uow.animals().find_by_id(AnimalId(id)).await)
+            .await?
+            .into_data();
+        Ok(schema_animal_from_domain(animal))
     }
 }

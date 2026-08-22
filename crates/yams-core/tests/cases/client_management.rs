@@ -16,8 +16,8 @@ async fn test_client() {
         first_name: "Testname".into(),
         last_name: "Testname Last".into(),
         birthdate: Utc::now().date_naive(),
-        email: "test@test.com".into(),
-        mobile_number: "1234567890".into(),
+        email: "test@test.com".try_into().unwrap(),
+        mobile_number: "1234567890".try_into().unwrap(),
         customer_number: 1234567890,
         consent: false,
         address: Address {

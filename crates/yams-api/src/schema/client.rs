@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use uuid::Uuid;
 use yams_core::domain;
 
-use crate::schema::{Address, Animal, schema_animal_from_domain};
+use crate::schema::{Address, Animal, EmailAddress, MobileNumber, schema_animal_from_domain};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
@@ -14,8 +14,8 @@ pub struct Client {
     pub first_name: String,
     pub last_name: String,
     pub birthdate: NaiveDate,
-    pub email: String,
-    pub mobile_number: String,
+    pub email: EmailAddress,
+    pub mobile_number: MobileNumber,
     pub customer_number: i64,
     pub consent: bool,
     pub address: Address,
@@ -28,8 +28,8 @@ pub fn schema_client_from_domain(client: domain::Client, animals: Vec<domain::An
         first_name: client.first_name,
         last_name: client.last_name,
         birthdate: client.birthdate,
-        email: client.email.0,
-        mobile_number: client.mobile_number.0,
+        email: client.email.into(),
+        mobile_number: client.mobile_number.into(),
         customer_number: client.customer_number,
         consent: client.consent,
         address: client.address.into(),

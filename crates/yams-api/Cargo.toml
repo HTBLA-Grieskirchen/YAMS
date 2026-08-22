@@ -15,17 +15,16 @@ error-stack = { workspace = true }
 
 async-trait = { workspace = true }
 
-
 uuid = { workspace = true }
 chrono = { workspace = true }
+http = { workspace = true }
 
 poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = true }
-http = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]
 default = ["serde", "openapi"]
-openapi = ["dep:poem-openapi", "dep:http"]
+openapi = ["dep:poem-openapi"]
 serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde"]
 
 [[bin]]

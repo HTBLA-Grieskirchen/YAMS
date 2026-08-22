@@ -4,7 +4,7 @@ use error_stack::{IntoReport, Report, ResultExt};
 
 use crate::{
     ResultReport,
-    domain::{Animal, ClientId, factories::NewAnimal},
+    domain::{Animal, ClientId, animal::NewAnimal},
     service::{ExecutionContext, UseCase},
 };
 

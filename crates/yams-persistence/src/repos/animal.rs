@@ -6,7 +6,7 @@ use error_stack::bail;
 use uuid::Uuid;
 use yams_core::{
     ErrorReportExt,
-    domain::{Animal, AnimalId, factories::NewAnimal},
+    domain::{Animal, AnimalId, animal::NewAnimal},
     ports::{AnimalRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
 };

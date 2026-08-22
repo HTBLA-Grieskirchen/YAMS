@@ -2,9 +2,11 @@ use error_stack::Report;
 use http::StatusCode;
 use poem_openapi::{
     OpenApi, OpenApiService, ServerObject,
+    param::Path,
     payload::{Json, PlainText},
     types::ToJSON,
 };
+use uuid::Uuid;
 use yams_core::{App, ThreadSafeError};
 
 use crate::{
@@ -55,7 +57,7 @@ impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonRe
                 let status = error
                     .request_value::<StatusCode>()
                     .next()
-                    .unwrap_or(StatusCode::BAD_REQUEST);
+                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
                 if status.is_server_error() {
                     return TypicalJsonResponse::InternalError(PlainText(InternalServerError));
                 }
@@ -85,6 +87,11 @@ impl YamsApiSpec {
     #[oai(path = "/animal", method = "get")]
     async fn get_animals(&self) -> TypicalJsonResponse<Vec<Animal>> {
         self.app_api.get_all_animals().await.into()
+    }
+
+    #[oai(path = "/animal/:id", method = "get")]
+    async fn get_animal(&self, id: Path<Uuid>) -> TypicalJsonResponse<Animal> {
+        self.app_api.get_animal(id.0).await.into()
     }
 }
 

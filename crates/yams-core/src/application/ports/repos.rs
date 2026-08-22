@@ -3,10 +3,7 @@ use std::fmt::Debug;
 use async_trait::async_trait;
 
 use crate::application::{ResultReport, uow::Versioned};
-use crate::domain::{
-    Animal, AnimalId, Client, ClientId,
-    factories::{NewAnimal, NewClient},
-};
+use crate::domain::{Animal, AnimalId, Client, ClientId, animal::NewAnimal, client::NewClient};
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
 

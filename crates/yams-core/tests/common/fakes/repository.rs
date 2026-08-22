@@ -7,12 +7,12 @@ use async_trait::async_trait;
 use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
-    domain::factories::NewClient,
+    domain::client::NewClient,
     ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
 };
 
-use yams_core::domain::{Animal, AnimalId, Client, ClientId, factories::NewAnimal};
+use yams_core::domain::{Animal, AnimalId, Client, ClientId, animal::NewAnimal};
 
 pub struct FakeDatastore {
     pub clients: Mutex<FxHashMap<Uuid, Versioned<Client>>>,

@@ -13,7 +13,7 @@ use yams_core::{
 
 use crate::errors::libsql_error_to_persistence_error;
 use async_lock::Mutex;
-use libsql::Transaction;
+use libsql::{Row, Transaction};
 
 pub struct SQLiteAnimalRepository {
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
@@ -44,24 +44,29 @@ impl AnimalRepository for SQLiteAnimalRepository {
             .contextualize(RepositoryError::NotFound)?
             .ok_or(RepositoryError::NotFound)?;
 
-        let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
-        let name: String = row.get(1).contextualize(RepositoryError::Data)?;
-        let birthdate_str: String = row.get(2).contextualize(RepositoryError::Data)?;
-        let animal_species: String = row.get(3).contextualize(RepositoryError::Data)?;
-        let description: String = row.get(4).contextualize(RepositoryError::Data)?;
-        let version: u64 = row.get(5).contextualize(RepositoryError::Data)?;
+        Ok(animal_from_row(&row)?)
+    }
 
-        let birthdate = parse_naive_date(&birthdate_str).contextualize(RepositoryError::Data)?;
-        let uuid = Uuid::from_str(&id_raw).contextualize(RepositoryError::Data)?;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Animal>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
-        let animal = Animal {
-            id: AnimalId(uuid),
-            name,
-            birthdate,
-            animal_species,
-            description,
-        };
-        Ok(Versioned::new(version, animal))
+        let mut rows = tx
+            .query(
+                "SELECT id, name, birthdate, animal_species, description, _version FROM animals",
+                (),
+            )
+            .await
+            .contextualize(RepositoryError::Data)?;
+        let mut animals = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize(RepositoryError::Connection)?
+        {
+            animals.push(animal_from_row(&row)?);
+        }
+        Ok(animals)
     }
 
     async fn create(&self, new: NewAnimal) -> RepositoryResult<Versioned<Animal>> {
@@ -154,4 +159,25 @@ impl AnimalRepository for SQLiteAnimalRepository {
         }
         Ok(())
     }
+}
+
+fn animal_from_row(row: &Row) -> RepositoryResult<Versioned<Animal>> {
+    let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
+    let name: String = row.get(1).contextualize(RepositoryError::Data)?;
+    let birthdate_str: String = row.get(2).contextualize(RepositoryError::Data)?;
+    let animal_species: String = row.get(3).contextualize(RepositoryError::Data)?;
+    let description: String = row.get(4).contextualize(RepositoryError::Data)?;
+    let version: u64 = row.get(5).contextualize(RepositoryError::Data)?;
+
+    let birthdate = parse_naive_date(&birthdate_str).contextualize(RepositoryError::Data)?;
+    let uuid = Uuid::from_str(&id_raw).contextualize(RepositoryError::Data)?;
+
+    let animal = Animal {
+        id: AnimalId(uuid),
+        name,
+        birthdate,
+        animal_species,
+        description,
+    };
+    Ok(Versioned::new(version, animal))
 }

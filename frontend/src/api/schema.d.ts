@@ -4,198 +4,254 @@
  */
 
 export interface paths {
-  "/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": string;
-          };
+    "/client": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["ClientCreation"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Client"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/client": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/animal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Animal"][];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["AnimalCreation"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Animal"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          "application/json; charset=utf-8": components["schemas"]["ClientCreation"];
-        };
-      };
-      responses: {
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": components["schemas"]["Client"];
-          };
-        };
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": string;
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/animal": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          "application/json; charset=utf-8": components["schemas"]["AnimalCreation"];
-        };
-      };
-      responses: {
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": components["schemas"]["Animal"];
-          };
-        };
-        500: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json; charset=utf-8": string;
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /** Address */
-    Address: {
-      postalCode: string;
-      city: string;
-      streetAndNumber: string;
-      countryCode: string;
+    schemas: {
+        /** Address */
+        Address: {
+            postalCode: string;
+            city: string;
+            streetAndNumber: string;
+            countryCode: string;
+        };
+        /** Animal */
+        Animal: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            species: string;
+            /** Format: naive-date */
+            birthdate: string;
+            description: string;
+        };
+        /** AnimalCreation */
+        AnimalCreation: {
+            name: string;
+            /** Format: naive-date */
+            birthdate: string;
+            animalSpecies: string;
+            description: string;
+            /** Format: uuid */
+            clientId: string;
+        };
+        /** Client */
+        Client: {
+            /** Format: uuid */
+            id: string;
+            firstName: string;
+            lastName: string;
+            /** Format: naive-date */
+            birthdate: string;
+            email: string;
+            mobileNumber: string;
+            /** Format: int64 */
+            customerNumber: number;
+            consent: boolean;
+            address: components["schemas"]["Address"];
+            animals: components["schemas"]["Animal"][];
+        };
+        /** ClientCreation */
+        ClientCreation: {
+            firstName: string;
+            lastName: string;
+            /** Format: naive-date */
+            birthdate: string;
+            email: string;
+            mobileNumber: string;
+            /** Format: int64 */
+            customerNumber: number;
+            consent: boolean;
+            address: components["schemas"]["Address"];
+        };
+        /** StructuredError */
+        StructuredError: {
+            message: string;
+            attachments: string[];
+            sources: components["schemas"]["StructuredError"][];
+        };
     };
-    /** Animal */
-    Animal: {
-      /** Format: uuid */
-      id: string;
-      name: string;
-      species: string;
-      /** Format: naive-date */
-      birthdate: string;
-      description: string;
-    };
-    /** AnimalCreation */
-    AnimalCreation: {
-      name: string;
-      /** Format: naive-date */
-      birthdate: string;
-      animalSpecies: string;
-      description: string;
-      /** Format: uuid */
-      clientId: string;
-    };
-    /** Client */
-    Client: {
-      /** Format: uuid */
-      id: string;
-      firstName: string;
-      lastName: string;
-      /** Format: naive-date */
-      birthdate: string;
-      email: string;
-      mobileNumber: string;
-      /** Format: int64 */
-      customerNumber: number;
-      consent: boolean;
-      address: components["schemas"]["Address"];
-      animals: components["schemas"]["Animal"][];
-    };
-    /** ClientCreation */
-    ClientCreation: {
-      firstName: string;
-      lastName: string;
-      /** Format: naive-date */
-      birthdate: string;
-      email: string;
-      mobileNumber: string;
-      /** Format: int64 */
-      customerNumber: number;
-      consent: boolean;
-      address: components["schemas"]["Address"];
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

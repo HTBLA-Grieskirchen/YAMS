@@ -24,6 +24,7 @@ pub trait ClientRepository: Send + Sync {
 #[async_trait]
 pub trait AnimalRepository: Send + Sync {
     async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Animal>>>;
     async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>>;
     async fn update(&self, animal: &mut Versioned<Animal>) -> RepositoryResult<()>;
     async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()>;

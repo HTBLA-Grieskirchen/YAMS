@@ -81,6 +81,11 @@ impl YamsApiSpec {
     async fn create_animal(&self, body: Json<AnimalCreation>) -> TypicalJsonResponse<Animal> {
         self.app_api.create_animal(body.0).await.into()
     }
+
+    #[oai(path = "/animal", method = "get")]
+    async fn get_animals(&self) -> TypicalJsonResponse<Vec<Animal>> {
+        self.app_api.get_all_animals().await.into()
+    }
 }
 
 pub fn openapi_service(

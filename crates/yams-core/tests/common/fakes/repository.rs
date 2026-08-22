@@ -151,6 +151,11 @@ impl AnimalRepository for FakeAnimalsRepository {
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Animal>>> {
+        let data = self.datastore.animals.lock().unwrap();
+        Ok(data.values().cloned().collect())
+    }
+
     async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>> {
         let id = AnimalId(Uuid::new_v4());
         let mut data = self.datastore.animals.lock().unwrap();

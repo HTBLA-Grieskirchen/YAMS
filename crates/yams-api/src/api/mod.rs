@@ -6,6 +6,7 @@ use yams_core::{
     App, ResultReport,
     application::ExecutionError,
     service::{CreateAnimal, CreateClient, CreateClientError},
+    uow::Versioned,
 };
 
 use crate::{
@@ -13,6 +14,7 @@ use crate::{
     schema::{Animal, Client, schema_animal_from_domain, schema_client_from_domain},
 };
 
+#[derive(Clone)]
 pub struct YamsAppApi {
     app: Arc<App>,
 }
@@ -20,6 +22,10 @@ pub struct YamsAppApi {
 impl YamsAppApi {
     pub fn new(app: App) -> Self {
         Self { app: Arc::new(app) }
+    }
+
+    pub fn inner_app(&self) -> Arc<App> {
+        self.app.clone()
     }
 }
 
@@ -38,5 +44,15 @@ impl YamsAppApi {
     ) -> ResultReport<Animal, ExecutionError> {
         let animal = self.app.execute(CreateAnimal::from(body)).await?;
         Ok(schema_animal_from_domain(animal))
+    }
+
+    pub async fn get_all_animals(&self) -> ResultReport<Vec<Animal>, ExecutionError> {
+        let animals = self
+            .app
+            .execute_fn(async |ctx| ctx.uow.animals().find_all().await)
+            .await?
+            .into_iter()
+            .map(Versioned::into_data);
+        Ok(animals.map(schema_animal_from_domain).collect())
     }
 }

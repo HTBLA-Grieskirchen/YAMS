@@ -1,2 +1,5 @@
 [toolchain]
-channel = "nightly"
+# Pin to this specific version because newer nightly versions break the openapi endpoint
+# due to lifetime capturing across await bounds
+# https://share.google/aimode/viuFtDqpaqp396sCw
+channel = "nightly-2026-07-02"

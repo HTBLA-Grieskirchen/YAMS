@@ -4,6 +4,15 @@ use yams_core::{
 };
 use yams_persistence::SQLiteInstance;
 
+#[path = "../../yams-core/tests/common/fakes/clock.rs"]
+mod fixed_clock;
+
+mod common {
+    pub mod fakes {
+        pub use super::super::fixed_clock::FixedClock;
+    }
+}
+
 #[path = "../../yams-core/tests/cases/mod.rs"]
 mod cases;
 

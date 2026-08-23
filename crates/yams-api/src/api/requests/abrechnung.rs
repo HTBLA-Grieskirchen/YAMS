@@ -22,16 +22,19 @@ pub struct ProduktErstellung {
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: String,
+    pub mwst_prozentsatz: String,
 }
 
 impl TryFrom<ProduktErstellung> for ProduktErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: ProduktErstellung) -> Result<Self, Self::Error> {
         let einzelpreis = parse_preis(&value.einzelpreis)?;
+        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
             einzelpreis,
+            mwst_prozentsatz,
         })
     }
 }
@@ -45,16 +48,19 @@ pub struct BehandlungErstellung {
     pub name: String,
     pub beschreibung: String,
     pub standardpreis: String,
+    pub mwst_prozentsatz: String,
 }
 
 impl TryFrom<BehandlungErstellung> for BehandlungErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: BehandlungErstellung) -> Result<Self, Self::Error> {
         let standardpreis = parse_preis(&value.standardpreis)?;
+        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
             standardpreis,
+            mwst_prozentsatz,
         })
     }
 }
@@ -126,6 +132,7 @@ pub struct LeistungManuelleErstellung {
     pub haustier_id: Option<Uuid>,
     pub beschreibung: String,
     pub betrag: String,
+    pub mwst_prozentsatz: String,
     pub leistungsdatum: NaiveDate,
 }
 
@@ -133,11 +140,13 @@ impl TryFrom<LeistungManuelleErstellung> for LeistungManuellErfassen {
     type Error = Report<ValidationError>;
     fn try_from(value: LeistungManuelleErstellung) -> Result<Self, Self::Error> {
         let betrag = parse_preis(&value.betrag)?;
+        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
         Ok(Self {
             klient_id: KlientId(value.klient_id),
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
             beschreibung: value.beschreibung,
             betrag,
+            mwst_prozentsatz,
             leistungsdatum: value.leistungsdatum,
         })
     }

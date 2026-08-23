@@ -18,7 +18,7 @@ pub struct Klient {
     pub geburtstag: NaiveDate,
     pub email: EmailAdresse,
     pub mobilnummer: Mobilnummer,
-    pub kundennummer: i64,
+    pub kundennummer: u64,
     pub einwilligung: bool,
     pub adresse: Adresse,
     pub haustiere: Vec<Haustier>,

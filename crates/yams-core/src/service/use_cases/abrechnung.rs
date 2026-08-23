@@ -19,6 +19,7 @@ pub struct ProduktErstellen {
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: Preis,
+    pub mwst_prozentsatz: Decimal,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -39,6 +40,7 @@ impl UseCase<Produkt> for ProduktErstellen {
                 name: self.name,
                 beschreibung: self.beschreibung,
                 einzelpreis: self.einzelpreis,
+                mwst_prozentsatz: self.mwst_prozentsatz,
             })
             .await
             .map(Versioned::into_data)
@@ -51,6 +53,7 @@ pub struct BehandlungErstellen {
     pub name: String,
     pub beschreibung: String,
     pub standardpreis: Preis,
+    pub mwst_prozentsatz: Decimal,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -71,6 +74,7 @@ impl UseCase<Behandlung> for BehandlungErstellen {
                 name: self.name,
                 beschreibung: self.beschreibung,
                 standardpreis: self.standardpreis,
+                mwst_prozentsatz: self.mwst_prozentsatz,
             })
             .await
             .map(Versioned::into_data)
@@ -125,6 +129,7 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
                     produkt_id: self.produkt_id,
                     menge: self.menge,
                     einzelpreis: produkt.einzelpreis.clone(),
+                    mwst_prozentsatz: produkt.mwst_prozentsatz,
                 },
             })
             .await
@@ -176,6 +181,7 @@ impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
                 quelle: LeistungQuelle::Behandlung {
                     behandlung_id: self.behandlung_id,
                     preis,
+                    mwst_prozentsatz: behandlung.mwst_prozentsatz,
                 },
             })
             .await
@@ -190,6 +196,7 @@ pub struct LeistungManuellErfassen {
     pub haustier_id: Option<HaustierId>,
     pub beschreibung: String,
     pub betrag: Preis,
+    pub mwst_prozentsatz: Decimal,
     pub leistungsdatum: NaiveDate,
 }
 
@@ -214,6 +221,7 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
                 leistungsdatum: self.leistungsdatum,
                 quelle: LeistungQuelle::Manuell {
                     preis: self.betrag,
+                    mwst_prozentsatz: self.mwst_prozentsatz,
                 },
             })
             .await
@@ -263,10 +271,10 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
 
         let mut rechnungen = Vec::new();
         for (klient_id, gruppen_leistungen) in gruppen {
-            let mut leistung_daten = gruppen_leistungen
+            let mut leistungen: Vec<Leistung> = gruppen_leistungen
                 .iter()
-                .map(|l| l.cloned_data())
-                .collect::<Vec<_>>();
+                .map(|l| Leistung::Offen(l.cloned_data()))
+                .collect();
 
             let rechnungsnummer = uow
                 .rechnungen()
@@ -274,11 +282,11 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
                 .await
                 .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
 
-            let (rechnung, abgerechnet) = RechnungOffen::aus_leistungen(
+            let rechnung = RechnungOffen::aus_leistungen(
                 klient_id,
                 rechnungsnummer,
                 abschlussdatum,
-                &mut leistung_daten,
+                &mut leistungen,
             )
             .map_err(|report| report.change_context(TagesabschlussDurchfuehrenFehler::Rechnung))?;
 
@@ -288,16 +296,15 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
                 .await
                 .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
 
-            for abgerechnet_leistung in abgerechnet {
-                let original = gruppen_leistungen
-                    .iter()
-                    .find(|l| l.id() == abgerechnet_leistung.id())
-                    .expect("abgerechnete leistung stammt aus geladener gruppe");
+            for (original, leistung) in gruppen_leistungen.iter().zip(leistungen.iter()) {
+                let updated = match leistung {
+                    Leistung::Abgerechnet(abgerechnet) => {
+                        Leistung::Abgerechnet(abgerechnet.clone())
+                    }
+                    Leistung::Offen(_) => continue,
+                };
 
-                let mut versioned = Versioned::new(
-                    original.v(),
-                    Leistung::Abgerechnet(abgerechnet_leistung),
-                );
+                let mut versioned = Versioned::new(original.v(), updated);
                 uow.leistungen()
                     .update(&mut versioned)
                     .await

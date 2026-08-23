@@ -47,7 +47,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
         geburtstag,
         email: EmailAdresse::new(email_str).change_context(RepositoryError::Data)?,
         mobilnummer: Mobilnummer::new(mobilnummer_str).change_context(RepositoryError::Data)?,
-        kundennummer,
+        kundennummer: kundennummer as u64,
         einwilligung,
         adresse: Adresse {
             postleitzahl,

@@ -62,7 +62,7 @@ pub trait LeistungRepository: Send + Sync {
 #[async_trait]
 pub trait RechnungRepository: Send + Sync {
     async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>>;
-    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64>;
+    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<u64>;
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,

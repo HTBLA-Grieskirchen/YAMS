@@ -4,7 +4,7 @@ use yams_core::domain;
 #[cfg_attr(feature = "openapi", derive(poem_openapi::NewType))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-pub struct Laendercode(pub String);
+pub struct Ländercode(pub String);
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
@@ -15,9 +15,14 @@ pub struct Adresse {
     pub postleitzahl: String,
     pub stadt: String,
     pub strasse_und_hausnummer: String,
-    #[cfg_attr(feature = "openapi", oai(rename = "ländercode"))]
-    #[cfg_attr(feature = "serde", serde(rename = "ländercode"))]
-    pub laendercode: Laendercode,
+    pub ländercode: Ländercode,
+}
+
+#[cfg(feature = "openapi")]
+impl poem_openapi::types::Example for Ländercode {
+    fn example() -> Self {
+        Self("AT".to_string())
+    }
 }
 
 #[cfg(feature = "openapi")]
@@ -27,7 +32,7 @@ impl poem_openapi::types::Example for Adresse {
             postleitzahl: "4040".to_string(),
             stadt: "Linz".to_string(),
             strasse_und_hausnummer: "Landesstraße 1".to_string(),
-            laendercode: Laendercode("AT".to_string()),
+            ländercode: Ländercode("AT".to_string()),
         }
     }
 }
@@ -38,7 +43,7 @@ impl From<domain::Adresse> for Adresse {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
             strasse_und_hausnummer: value.strasse_und_hausnummer,
-            laendercode: Laendercode(value.ländercode.as_str().to_string()),
+            ländercode: Ländercode(value.ländercode.as_str().to_string()),
         }
     }
 }
@@ -50,7 +55,7 @@ impl TryFrom<Adresse> for domain::Adresse {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
             strasse_und_hausnummer: value.strasse_und_hausnummer,
-            ländercode: domain::Ländercode::from_str(&value.laendercode.0)?,
+            ländercode: domain::Ländercode::from_str(&value.ländercode.0)?,
         })
     }
 }

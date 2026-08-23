@@ -163,7 +163,7 @@ impl YamsAppApi {
             .collect())
     }
 
-    pub async fn rechnungen_fuer_klient(
+    pub async fn rechnungen_für_klient(
         &self,
         klient_id: Uuid,
     ) -> ResultReport<Vec<Rechnung>, ExecutionError> {

@@ -1,4 +1,3 @@
-use uuid::Uuid;
 use yams_core::domain;
 
 #[derive(Debug, Clone)]
@@ -7,10 +6,11 @@ use yams_core::domain;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Produkt {
-    pub id: Uuid,
+    pub id: uuid::Uuid,
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: String,
+    pub mwst_prozentsatz: String,
 }
 
 pub fn schema_produkt_from_domain(produkt: domain::Produkt) -> Produkt {
@@ -19,5 +19,6 @@ pub fn schema_produkt_from_domain(produkt: domain::Produkt) -> Produkt {
         name: produkt.name,
         beschreibung: produkt.beschreibung,
         einzelpreis: produkt.einzelpreis.value().to_string(),
+        mwst_prozentsatz: produkt.mwst_prozentsatz.to_string(),
     }
 }

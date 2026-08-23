@@ -26,10 +26,11 @@ pub struct SQLiteRechnungRepository {
 
 struct RechnungRowData {
     id: RechnungId,
-    rechnungsnummer: i64,
+    rechnungsnummer: u64,
     klient_id: KlientId,
     rechnungsdatum: chrono::NaiveDate,
     status: String,
+    bezahlt_datum: Option<chrono::NaiveDate>,
     version: u64,
 }
 
@@ -39,29 +40,35 @@ fn parse_rechnung_header(row: &Row) -> RepositoryResult<RechnungRowData> {
     let klient_id_str: String = row.get(2).contextualize(RepositoryError::Data)?;
     let rechnungsdatum_str: String = row.get(3).contextualize(RepositoryError::Data)?;
     let status: String = row.get(4).contextualize(RepositoryError::Data)?;
-    let version: u64 = row.get(5).contextualize(RepositoryError::Data)?;
+    let bezahlt_datum_str: Option<String> = row.get(5).contextualize(RepositoryError::Data)?;
+    let version: u64 = row.get(6).contextualize(RepositoryError::Data)?;
 
     let uuid = parse_uuid(&id_raw)?;
     let klient_id = parse_klient_id(&klient_id_str)?;
     let rechnungsdatum =
         parse_naive_date(&rechnungsdatum_str).contextualize(RepositoryError::Data)?;
+    let bezahlt_datum = bezahlt_datum_str
+        .map(|s| parse_naive_date(&s))
+        .transpose()
+        .contextualize(RepositoryError::Data)?;
 
     Ok(RechnungRowData {
         id: RechnungId(uuid),
-        rechnungsnummer,
+        rechnungsnummer: rechnungsnummer as u64,
         klient_id,
         rechnungsdatum,
         status,
+        bezahlt_datum,
         version,
     })
 }
 
 fn parse_position_from_row(row: &Row) -> RepositoryResult<Rechnungsposition> {
-    let leistung_id_str: Option<String> = row.get(6).contextualize(RepositoryError::Data)?;
-    let beschreibung: Option<String> = row.get(7).contextualize(RepositoryError::Data)?;
-    let einzelpreis_str: Option<String> = row.get(8).contextualize(RepositoryError::Data)?;
-    let stueckzahl_str: Option<String> = row.get(9).contextualize(RepositoryError::Data)?;
-    let mwst_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
+    let leistung_id_str: Option<String> = row.get(7).contextualize(RepositoryError::Data)?;
+    let beschreibung: Option<String> = row.get(8).contextualize(RepositoryError::Data)?;
+    let einzelpreis_str: Option<String> = row.get(9).contextualize(RepositoryError::Data)?;
+    let stueckzahl_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
+    let mwst_str: Option<String> = row.get(11).contextualize(RepositoryError::Data)?;
 
     let leistung_id_str = leistung_id_str.ok_or(RepositoryError::Data)?;
     let beschreibung = beschreibung.ok_or(RepositoryError::Data)?;
@@ -83,7 +90,12 @@ fn geladene_rechnung_from_parts(
     header: &RechnungRowData,
     positionen: Vec<Rechnungsposition>,
 ) -> RepositoryResult<Rechnung> {
-    let bezahlt = header.status == "bezahlt";
+    let bezahlt_datum = if header.status == "bezahlt" {
+        Some(header.bezahlt_datum.ok_or(RepositoryError::Data)?)
+    } else {
+        None
+    };
+
     Ok(
         Rechnung::from_parts(
             header.id.clone(),
@@ -91,7 +103,7 @@ fn geladene_rechnung_from_parts(
             header.klient_id.clone(),
             header.rechnungsdatum,
             positionen,
-            bezahlt,
+            bezahlt_datum,
         )
         .map_err(|_| RepositoryError::Data)?,
     )
@@ -140,7 +152,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
         Ok(versioned)
     }
 
-    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64> {
+    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<u64> {
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
@@ -159,7 +171,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
             .ok_or(RepositoryError::Data)?;
 
         let nummer: i64 = row.get(0).contextualize(RepositoryError::Data)?;
-        Ok(nummer)
+        Ok(nummer as u64)
     }
 
     async fn find_by_klient_id(
@@ -172,7 +184,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
         let klient_id_str = klient_id.0.to_string();
         let mut rows = tx
             .query(
-                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stueckzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stueckzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
                 [klient_id_str],
             )
             .await

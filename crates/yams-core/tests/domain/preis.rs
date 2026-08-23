@@ -11,7 +11,7 @@ fn preis_add_sums_values() {
     let a = Preis::new(Decimal::new(1250, 2)).unwrap();
     let b = Preis::new(Decimal::new(750, 2)).unwrap();
 
-    assert_eq!(a.add(&b).unwrap().value(), Decimal::new(20, 0));
+    assert_eq!((a + b).value(), Decimal::new(20, 0));
 }
 
 #[test]

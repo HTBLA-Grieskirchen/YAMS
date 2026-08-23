@@ -64,6 +64,7 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
             name: "Futter".into(),
             beschreibung: "Premium Futter".into(),
             einzelpreis: Preis::new(Decimal::new(25, 0)).unwrap(),
+            mwst_prozentsatz: Decimal::new(19, 0),
         })
         .await
         .unwrap();
@@ -73,6 +74,7 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
             name: "Untersuchung".into(),
             beschreibung: "Allgemeine Untersuchung".into(),
             standardpreis: Preis::new(Decimal::new(50, 0)).unwrap(),
+            mwst_prozentsatz: Decimal::new(19, 0),
         })
         .await
         .unwrap();
@@ -104,6 +106,7 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
         haustier_id: None,
         beschreibung: "Beratung".into(),
         betrag: Preis::new(Decimal::new(30, 0)).unwrap(),
+        mwst_prozentsatz: Decimal::new(19, 0),
         leistungsdatum: abschlussdatum,
     })
     .await

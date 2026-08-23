@@ -5,18 +5,19 @@ use uuid::Uuid;
 
 use crate::{
     ResultReport,
-    domain::{KlientId, LeistungAbgerechnet, LeistungId, LeistungOffen, LeistungQuelle, Preis},
+    domain::{KlientId, Leistung, LeistungId, LeistungOffen, LeistungQuelle, Preis},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct RechnungId(pub Uuid);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RechnungOffenMarker;
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RechnungBezahltMarker;
+pub struct Offen;
 
-const DEFAULT_MWST_PROZENTSATZ: Decimal = Decimal::from_parts(19, 0, 0, false, 0);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Bezahlt {
+    bezahlt_datum: NaiveDate,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rechnungsposition {
@@ -77,24 +78,22 @@ impl Rechnungsposition {
     }
 
     pub fn gesamtpreis_brutto(&self) -> Preis {
-        self.gesamtpreis_netto()
-            .add(&self.mwst_betrag())
-            .expect("bruttopreis aus nicht-negativem netto und mwst")
+        self.gesamtpreis_netto() + self.mwst_betrag()
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct RechnungIn<S> {
     id: RechnungId,
-    rechnungsnummer: i64,
+    rechnungsnummer: u64,
     klient_id: KlientId,
     rechnungsdatum: NaiveDate,
     positionen: Vec<Rechnungsposition>,
     state: S,
 }
 
-pub type RechnungOffen = RechnungIn<RechnungOffenMarker>;
-pub type RechnungBezahlt = RechnungIn<RechnungBezahltMarker>;
+pub type RechnungOffen = RechnungIn<Offen>;
+pub type RechnungBezahlt = RechnungIn<Bezahlt>;
 
 #[derive(Debug, Clone)]
 pub enum Rechnung {
@@ -107,7 +106,7 @@ impl<S> RechnungIn<S> {
         &self.id
     }
 
-    pub fn rechnungsnummer(&self) -> i64 {
+    pub fn rechnungsnummer(&self) -> u64 {
         self.rechnungsnummer
     }
 
@@ -126,26 +125,20 @@ impl<S> RechnungIn<S> {
     pub fn gesamtbetrag_netto(&self) -> Preis {
         self.positionen
             .iter()
-            .fold(Preis::zero(), |acc, position| {
-                acc.add(&position.gesamtpreis_netto())
-                    .expect("summe nicht-negativer nettopreise")
-            })
+            .fold(Preis::zero(), |acc, position| acc + position.gesamtpreis_netto())
     }
 
     pub fn gesamtbetrag_brutto(&self) -> Preis {
         self.positionen
             .iter()
-            .fold(Preis::zero(), |acc, position| {
-                acc.add(&position.gesamtpreis_brutto())
-                    .expect("summe nicht-negativer bruttopreise")
-            })
+            .fold(Preis::zero(), |acc, position| acc + position.gesamtpreis_brutto())
     }
 }
 
 impl RechnungOffen {
     pub fn neu(
         id: RechnungId,
-        rechnungsnummer: i64,
+        rechnungsnummer: u64,
         klient_id: KlientId,
         rechnungsdatum: NaiveDate,
         positionen: Vec<Rechnungsposition>,
@@ -160,77 +153,93 @@ impl RechnungOffen {
             klient_id,
             rechnungsdatum,
             positionen,
-            state: RechnungOffenMarker,
+            state: Offen,
         })
     }
 
     pub fn aus_leistungen(
         klient_id: KlientId,
-        rechnungsnummer: i64,
+        rechnungsnummer: u64,
         rechnungsdatum: NaiveDate,
-        leistungen: &mut Vec<LeistungOffen>,
-    ) -> ResultReport<(Self, Vec<LeistungAbgerechnet>), RechnungFehler> {
-        if leistungen.is_empty() {
+        leistungen: &mut Vec<Leistung>,
+    ) -> ResultReport<Self, RechnungFehler> {
+        let mut offene = Vec::new();
+        let mut andere = Vec::new();
+
+        for leistung in leistungen.drain(..) {
+            match leistung {
+                Leistung::Offen(o) => offene.push(o),
+                other => andere.push(other),
+            }
+        }
+
+        if offene.is_empty() {
+            *leistungen = andere;
             return Err(Report::new(RechnungFehler::KeineLeistungen));
         }
 
         let rechnung_id = RechnungId(Uuid::new_v4());
-        let mut positionen = Vec::with_capacity(leistungen.len());
-        let mut abgerechnet = Vec::with_capacity(leistungen.len());
+        let mut positionen = Vec::with_capacity(offene.len());
 
-        for leistung in leistungen.drain(..) {
+        for leistung in offene {
             if leistung.klient_id() != &klient_id {
+                *leistungen = andere;
                 return Err(Report::new(RechnungFehler::KlientUnstimmig));
             }
 
             positionen.push(position_from_leistung(&leistung));
-            abgerechnet.push(leistung.mark_abgerechnet(rechnung_id.clone()));
+            andere.push(Leistung::Abgerechnet(leistung.mark_abgerechnet(rechnung_id.clone())));
         }
 
-        let rechnung = Self {
+        *leistungen = andere;
+
+        Ok(Self {
             id: rechnung_id,
             rechnungsnummer,
             klient_id,
             rechnungsdatum,
             positionen,
-            state: RechnungOffenMarker,
-        };
+            state: Offen,
+        })
+    }
+}
 
-        Ok((rechnung, abgerechnet))
+impl RechnungBezahlt {
+    pub fn bezahlt_datum(&self) -> NaiveDate {
+        self.state.bezahlt_datum
     }
 }
 
 impl Rechnung {
     pub fn from_parts(
         id: RechnungId,
-        rechnungsnummer: i64,
+        rechnungsnummer: u64,
         klient_id: KlientId,
         rechnungsdatum: NaiveDate,
         positionen: Vec<Rechnungsposition>,
-        bezahlt: bool,
+        bezahlt_datum: Option<NaiveDate>,
     ) -> Result<Self, RechnungFehler> {
         if positionen.is_empty() {
             return Err(RechnungFehler::KeineLeistungen);
         }
 
-        if bezahlt {
-            Ok(Self::Bezahlt(RechnungIn {
+        match bezahlt_datum {
+            Some(bezahlt_datum) => Ok(Self::Bezahlt(RechnungIn {
                 id,
                 rechnungsnummer,
                 klient_id,
                 rechnungsdatum,
                 positionen,
-                state: RechnungBezahltMarker,
-            }))
-        } else {
-            Ok(Self::Offen(RechnungIn {
+                state: Bezahlt { bezahlt_datum },
+            })),
+            None => Ok(Self::Offen(RechnungIn {
                 id,
                 rechnungsnummer,
                 klient_id,
                 rechnungsdatum,
                 positionen,
-                state: RechnungOffenMarker,
-            }))
+                state: Offen,
+            })),
         }
     }
 
@@ -241,7 +250,7 @@ impl Rechnung {
         }
     }
 
-    pub fn rechnungsnummer(&self) -> i64 {
+    pub fn rechnungsnummer(&self) -> u64 {
         match self {
             Self::Offen(r) => r.rechnungsnummer(),
             Self::Bezahlt(r) => r.rechnungsnummer(),
@@ -261,7 +270,7 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         LeistungQuelle::Produkt {
             einzelpreis, menge, ..
         } => (einzelpreis.clone(), *menge),
-        LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis } => {
+        LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis, .. } => {
             (preis.clone(), Decimal::ONE)
         }
     };
@@ -270,7 +279,7 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         leistung.beschreibung().to_string(),
         einzelpreis,
         stückzahl,
-        DEFAULT_MWST_PROZENTSATZ,
+        leistung.quelle().mwst_prozentsatz(),
         leistung.id().clone(),
     )
 }
@@ -281,6 +290,4 @@ pub enum RechnungFehler {
     KeineLeistungen,
     #[error("leistung gehört nicht zum klient")]
     KlientUnstimmig,
-    #[error("leistung ist nicht offen")]
-    LeistungNichtOffen,
 }

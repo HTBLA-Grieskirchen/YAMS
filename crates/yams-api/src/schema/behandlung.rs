@@ -11,6 +11,7 @@ pub struct Behandlung {
     pub name: String,
     pub beschreibung: String,
     pub standardpreis: String,
+    pub mwst_prozentsatz: String,
 }
 
 pub fn schema_behandlung_from_domain(behandlung: domain::Behandlung) -> Behandlung {
@@ -19,5 +20,6 @@ pub fn schema_behandlung_from_domain(behandlung: domain::Behandlung) -> Behandlu
         name: behandlung.name,
         beschreibung: behandlung.beschreibung,
         standardpreis: behandlung.standardpreis.value().to_string(),
+        mwst_prozentsatz: behandlung.mwst_prozentsatz.to_string(),
     }
 }

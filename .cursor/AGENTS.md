@@ -49,7 +49,8 @@ Domain language is **German** across the full stack — Rust types, SQLite table
 
 - **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names.
 - **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request).
-- **JSON** — German field names, `camelCase` serde (`vorName`, `strasseUndHausnummer`).
+- **JSON** — German field names, `camelCase` serde (`vorName`, `strasseUndHausnummer`). UTF-8 in source and JSON keys is fine (`ländercode`, `stückzahl`).
+- **Comments** — DDD/technical terms in English (`Aggregate`, `Value object`); domain ubiquitous language stays German (`Behandlung`, `Klient`).
 - **HTTP paths** — German (`/klient`, `/tagesabschluss`).
 - **Billing detail** — [`specs/abrechnung.md`](specs/abrechnung.md); trust code over stale English specs.
 
@@ -92,7 +93,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 **Error handling conventions:**
 - **`Report<E>` everywhere** — use cases, domain services (`RechnungOffen::aus_leistungen`), orchestration. Use `.change_context()` directly; avoid redundant `IntoReport::into_report`.
 - **Exception: newtype validation** — `EmailAdresse::new`, `Preis::new`, `Ländercode::from_str` return plain `Result<T, ValidationError>` — nothing cross-cutting can fail at construction.
-- **Preis arithmetic** — `add` / `multiply` preserve non-negative invariant; prefer over manual `Decimal` sums.
+- **Preis arithmetic** — implement `Add`; addition of two `Preis` values cannot fail. Use `multiply` for scaling.
 
 Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` with UoW + clock access.
 

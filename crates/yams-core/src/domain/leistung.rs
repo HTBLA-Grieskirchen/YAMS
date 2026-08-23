@@ -23,13 +23,16 @@ pub enum LeistungQuelle {
         produkt_id: ProduktId,
         menge: Decimal,
         einzelpreis: Preis,
+        mwst_prozentsatz: Decimal,
     },
     Behandlung {
         behandlung_id: BehandlungId,
         preis: Preis,
+        mwst_prozentsatz: Decimal,
     },
     Manuell {
         preis: Preis,
+        mwst_prozentsatz: Decimal,
     },
 }
 
@@ -43,7 +46,19 @@ impl LeistungQuelle {
             } => einzelpreis
                 .multiply(*menge)
                 .expect("produkt-betrag aus nicht-negativem preis und menge"),
-            Self::Behandlung { preis, .. } | Self::Manuell { preis } => preis.clone(),
+            Self::Behandlung { preis, .. } | Self::Manuell { preis, .. } => preis.clone(),
+        }
+    }
+
+    pub fn mwst_prozentsatz(&self) -> Decimal {
+        match self {
+            Self::Produkt {
+                mwst_prozentsatz, ..
+            } => *mwst_prozentsatz,
+            Self::Behandlung {
+                mwst_prozentsatz, ..
+            } => *mwst_prozentsatz,
+            Self::Manuell { mwst_prozentsatz, .. } => *mwst_prozentsatz,
         }
     }
 }
@@ -178,10 +193,4 @@ pub struct NeueLeistung {
     pub beschreibung: String,
     pub leistungsdatum: NaiveDate,
     pub quelle: LeistungQuelle,
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum LeistungFehler {
-    #[error("leistung ist bereits abgerechnet")]
-    BereitsAbgerechnet,
 }

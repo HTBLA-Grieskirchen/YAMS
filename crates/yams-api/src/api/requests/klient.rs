@@ -16,7 +16,7 @@ pub struct KlientErstellung {
     pub geburtstag: NaiveDate,
     pub email: String,
     pub mobilnummer: String,
-    pub kundennummer: i64,
+    pub kundennummer: u64,
     pub einwilligung: bool,
     pub adresse: Adresse,
 }

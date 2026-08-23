@@ -6,7 +6,7 @@ use crate::domain::{Adresse, EmailAdresse, Mobilnummer};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct KlientId(pub Uuid);
 
-/// Aggregat
+/// Aggregate
 #[derive(Debug, Clone)]
 pub struct Klient {
     pub id: KlientId,
@@ -15,7 +15,7 @@ pub struct Klient {
     pub geburtstag: NaiveDate,
     pub email: EmailAdresse,
     pub mobilnummer: Mobilnummer,
-    pub kundennummer: i64,
+    pub kundennummer: u64,
     pub einwilligung: bool,
     pub adresse: Adresse,
 }
@@ -26,7 +26,7 @@ pub struct NeuerKlient {
     pub geburtstag: NaiveDate,
     pub email: EmailAdresse,
     pub mobilnummer: Mobilnummer,
-    pub kundennummer: i64,
+    pub kundennummer: u64,
     pub einwilligung: bool,
     pub adresse: Adresse,
 }

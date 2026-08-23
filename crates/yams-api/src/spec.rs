@@ -149,11 +149,11 @@ impl YamsApiSpec {
     }
 
     #[oai(path = "/rechnung/:klient_id", method = "get")]
-    async fn rechnungen_fuer_klient(
+    async fn rechnungen_für_klient(
         &self,
         klient_id: Path<Uuid>,
     ) -> TypicalJsonResponse<Vec<Rechnung>> {
-        self.app_api.rechnungen_fuer_klient(klient_id.0).await.into()
+        self.app_api.rechnungen_für_klient(klient_id.0).await.into()
     }
 }
 

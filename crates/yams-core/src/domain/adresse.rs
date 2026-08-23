@@ -31,7 +31,7 @@ impl Ländercode {
     }
 }
 
-/// Wertobjekt für Adresse
+/// Value object for Adresse
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Adresse {
     pub postleitzahl: String,

@@ -23,7 +23,7 @@ pub struct SQLiteLeistungRepository {
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
 }
 
-const LEISTUNG_SELECT: &str = "SELECT id, klient_id, haustier_id, beschreibung, leistungsdatum, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, rechnung_id, _version FROM leistungen";
+const LEISTUNG_SELECT: &str = "SELECT id, klient_id, haustier_id, beschreibung, leistungsdatum, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst_prozentsatz, rechnung_id, _version FROM leistungen";
 
 fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
     let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
@@ -36,8 +36,9 @@ fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
     let quelle_menge: Option<String> = row.get(7).contextualize(RepositoryError::Data)?;
     let quelle_einzelpreis: Option<String> = row.get(8).contextualize(RepositoryError::Data)?;
     let quelle_preis: Option<String> = row.get(9).contextualize(RepositoryError::Data)?;
-    let rechnung_id_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
-    let version: u64 = row.get(11).contextualize(RepositoryError::Data)?;
+    let quelle_mwst: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
+    let rechnung_id_str: Option<String> = row.get(11).contextualize(RepositoryError::Data)?;
+    let version: u64 = row.get(12).contextualize(RepositoryError::Data)?;
 
     let uuid = parse_uuid(&id_raw)?;
     let klient_id = parse_klient_id(&klient_id_str)?;
@@ -52,6 +53,7 @@ fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
         quelle_menge,
         quelle_einzelpreis,
         quelle_preis,
+        quelle_mwst,
     )?;
     let rechnung_id = rechnung_id_str
         .map(|s| parse_rechnung_id(&s))
@@ -90,7 +92,7 @@ impl LeistungRepository for SQLiteLeistungRepository {
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
-            "INSERT INTO leistungen (id, klient_id, haustier_id, beschreibung, leistungsdatum, status, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, rechnung_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, 'offen', ?6, ?7, ?8, ?9, ?10, NULL, ?11)",
+            "INSERT INTO leistungen (id, klient_id, haustier_id, beschreibung, leistungsdatum, status, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst_prozentsatz, rechnung_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, 'offen', ?6, ?7, ?8, ?9, ?10, ?11, NULL, ?12)",
             libsql::params![
                 offen.id().0.to_string(),
                 offen.klient_id().0.to_string(),
@@ -102,6 +104,7 @@ impl LeistungRepository for SQLiteLeistungRepository {
                 db.menge,
                 db.einzelpreis,
                 db.preis,
+                db.mwst_prozentsatz,
                 versioned.v(),
             ],
         )

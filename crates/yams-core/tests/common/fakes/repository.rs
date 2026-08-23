@@ -351,6 +351,7 @@ impl ProduktRepository for FakeProdukteRepository {
             name: produkt.name,
             beschreibung: produkt.beschreibung,
             einzelpreis: produkt.einzelpreis,
+            mwst_prozentsatz: produkt.mwst_prozentsatz,
         });
         data.insert(versioned.id.0.clone(), versioned.clone());
         Ok(versioned)
@@ -382,6 +383,7 @@ impl BehandlungRepository for FakeBehandlungenRepository {
             name: behandlung.name,
             beschreibung: behandlung.beschreibung,
             standardpreis: behandlung.standardpreis,
+            mwst_prozentsatz: behandlung.mwst_prozentsatz,
         });
         data.insert(versioned.id.0.clone(), versioned.clone());
         Ok(versioned)
@@ -462,7 +464,7 @@ impl RechnungRepository for FakeRechnungenRepository {
         Ok(Versioned::init(rechnung))
     }
 
-    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64> {
+    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<u64> {
         let data = self.datastore.rechnungen.lock().unwrap();
         let max = data
             .values()

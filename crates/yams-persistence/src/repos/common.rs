@@ -33,7 +33,11 @@ pub fn quelle_from_row(
     quelle_menge: Option<String>,
     quelle_einzelpreis: Option<String>,
     quelle_preis: Option<String>,
+    quelle_mwst_prozentsatz: Option<String>,
 ) -> Result<LeistungQuelle, RepositoryError> {
+    let mwst_str = quelle_mwst_prozentsatz.ok_or(RepositoryError::Data)?;
+    let mwst_prozentsatz = parse_decimal(&mwst_str)?;
+
     match quelle_typ {
         "produkt" => {
             let id = quelle_id.ok_or(RepositoryError::Data)?;
@@ -46,6 +50,7 @@ pub fn quelle_from_row(
                 produkt_id: ProduktId(uuid),
                 menge,
                 einzelpreis,
+                mwst_prozentsatz,
             })
         }
         "behandlung" => {
@@ -56,12 +61,16 @@ pub fn quelle_from_row(
             Ok(LeistungQuelle::Behandlung {
                 behandlung_id: BehandlungId(uuid),
                 preis,
+                mwst_prozentsatz,
             })
         }
         "manuell" => {
             let preis_str = quelle_preis.ok_or(RepositoryError::Data)?;
             let preis = parse_preis(&preis_str)?;
-            Ok(LeistungQuelle::Manuell { preis })
+            Ok(LeistungQuelle::Manuell {
+                preis,
+                mwst_prozentsatz,
+            })
         }
         _ => Err(RepositoryError::Data),
     }
@@ -73,6 +82,7 @@ pub struct QuelleDbColumns {
     pub menge: Option<String>,
     pub einzelpreis: Option<String>,
     pub preis: Option<String>,
+    pub mwst_prozentsatz: String,
 }
 
 pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
@@ -81,29 +91,37 @@ pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
             produkt_id,
             menge,
             einzelpreis,
+            mwst_prozentsatz,
         } => QuelleDbColumns {
             typ: "produkt",
             id: Some(produkt_id.0.to_string()),
             menge: Some(decimal_to_str(menge)),
             einzelpreis: Some(preis_to_str(einzelpreis)),
             preis: None,
+            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
         },
         LeistungQuelle::Behandlung {
             behandlung_id,
             preis,
+            mwst_prozentsatz,
         } => QuelleDbColumns {
             typ: "behandlung",
             id: Some(behandlung_id.0.to_string()),
             menge: None,
             einzelpreis: None,
             preis: Some(preis_to_str(preis)),
+            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
         },
-        LeistungQuelle::Manuell { preis } => QuelleDbColumns {
+        LeistungQuelle::Manuell {
+            preis,
+            mwst_prozentsatz,
+        } => QuelleDbColumns {
             typ: "manuell",
             id: None,
             menge: None,
             einzelpreis: None,
             preis: Some(preis_to_str(preis)),
+            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
         },
     }
 }

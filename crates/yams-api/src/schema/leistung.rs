@@ -105,6 +105,7 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
             produkt_id,
             menge,
             einzelpreis,
+            ..
         } => LeistungQuelle::Produkt(LeistungQuelleProdukt {
             produkt_id: produkt_id.0,
             menge: menge.to_string(),
@@ -113,11 +114,12 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
         domain::LeistungQuelle::Behandlung {
             behandlung_id,
             preis,
+            ..
         } => LeistungQuelle::Behandlung(LeistungQuelleBehandlung {
             behandlung_id: behandlung_id.0,
             preis: preis.value().to_string(),
         }),
-        domain::LeistungQuelle::Manuell { preis } => {
+        domain::LeistungQuelle::Manuell { preis, .. } => {
             LeistungQuelle::Manuell(LeistungQuelleManuell {
                 preis: preis.value().to_string(),
             })

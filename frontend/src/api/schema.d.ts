@@ -38,7 +38,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/client": {
+    "/klient": {
         parameters: {
             query?: never;
             header?: never;
@@ -56,7 +56,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json; charset=utf-8": components["schemas"]["ClientCreation"];
+                    "application/json; charset=utf-8": components["schemas"]["KlientErstellung"];
                 };
             };
             responses: {
@@ -65,7 +65,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json; charset=utf-8": components["schemas"]["Client"];
+                        "application/json; charset=utf-8": components["schemas"]["Klient"];
                     };
                 };
                 500: {
@@ -92,7 +92,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/animal": {
+    "/haustier": {
         parameters: {
             query?: never;
             header?: never;
@@ -113,7 +113,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json; charset=utf-8": components["schemas"]["Animal"][];
+                        "application/json; charset=utf-8": components["schemas"]["Haustier"][];
                     };
                 };
                 500: {
@@ -144,7 +144,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json; charset=utf-8": components["schemas"]["AnimalCreation"];
+                    "application/json; charset=utf-8": components["schemas"]["HaustierErstellung"];
                 };
             };
             responses: {
@@ -153,7 +153,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json; charset=utf-8": components["schemas"]["Animal"];
+                        "application/json; charset=utf-8": components["schemas"]["Haustier"];
                     };
                 };
                 500: {
@@ -180,71 +180,718 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/haustier/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Haustier"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/produkt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["ProduktErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Produkt"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/behandlung": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["BehandlungErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Behandlung"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leistung/produkt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["LeistungAusProduktErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Leistung"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leistung/behandlung": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["LeistungAusBehandlungErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Leistung"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leistung/manuell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["LeistungManuelleErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Leistung"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tagesabschluss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["TagesabschlussErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Rechnung"][];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rechnung/{klient_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    klient_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Rechnung"][];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Address */
-        Address: {
-            postalCode: string;
-            city: string;
-            streetAndNumber: string;
-            countryCode: string;
+        /**
+         * Adresse
+         * @example {
+         *       "ländercode": "AT",
+         *       "postleitzahl": "4040",
+         *       "stadt": "Linz",
+         *       "straßeUndHausnummer": "Landesstraße 1"
+         *     }
+         */
+        Adresse: {
+            postleitzahl: string;
+            stadt: string;
+            "stra\u00DFeUndHausnummer": string;
+            "l\u00E4ndercode": string;
         };
-        /** Animal */
-        Animal: {
+        /** Behandlung */
+        Behandlung: {
             /** Format: uuid */
             id: string;
             name: string;
-            species: string;
-            /** Format: naive-date */
-            birthdate: string;
-            description: string;
+            beschreibung: string;
+            /** Format: decimal */
+            standardpreis: string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
         };
-        /** AnimalCreation */
-        AnimalCreation: {
+        /** BehandlungErstellung */
+        BehandlungErstellung: {
             name: string;
-            /** Format: naive-date */
-            birthdate: string;
-            animalSpecies: string;
-            description: string;
-            /** Format: uuid */
-            clientId: string;
+            beschreibung: string;
+            /** Format: decimal */
+            standardpreis: string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
         };
-        /** Client */
-        Client: {
+        /** Haustier */
+        Haustier: {
             /** Format: uuid */
             id: string;
-            firstName: string;
-            lastName: string;
+            /** Format: uuid */
+            klientId: string;
+            name: string;
+            tierart: string;
             /** Format: naive-date */
-            birthdate: string;
-            email: string;
-            mobileNumber: string;
-            /** Format: int64 */
-            customerNumber: number;
-            consent: boolean;
-            address: components["schemas"]["Address"];
-            animals: components["schemas"]["Animal"][];
+            geburtstag: string;
+            beschreibung: string;
         };
-        /** ClientCreation */
-        ClientCreation: {
-            firstName: string;
-            lastName: string;
+        /** HaustierErstellung */
+        HaustierErstellung: {
+            name: string;
             /** Format: naive-date */
-            birthdate: string;
+            geburtstag: string;
+            tierart: string;
+            beschreibung: string;
+            /** Format: uuid */
+            klientId: string;
+        };
+        /** Klient */
+        Klient: {
+            /** Format: uuid */
+            id: string;
+            vorname: string;
+            nachname: string;
+            /** Format: naive-date */
+            geburtstag: string;
+            /**
+             * E-Mail-Adresse
+             * @example test@example.com
+             */
             email: string;
-            mobileNumber: string;
-            /** Format: int64 */
-            customerNumber: number;
-            consent: boolean;
-            address: components["schemas"]["Address"];
+            /**
+             * Mobilnummer
+             * @example +43 699 12345678
+             */
+            mobilnummer: string;
+            /** Format: uint64 */
+            kundennummer: number;
+            einwilligung: boolean;
+            adresse: components["schemas"]["Adresse"];
+            haustiere: components["schemas"]["Haustier"][];
+        };
+        /** KlientErstellung */
+        KlientErstellung: {
+            vorname: string;
+            nachname: string;
+            /** Format: naive-date */
+            geburtstag: string;
+            email: string;
+            mobilnummer: string;
+            /** Format: uint64 */
+            kundennummer: number;
+            einwilligung: boolean;
+            adresse: components["schemas"]["Adresse"];
+        };
+        /** Leistung */
+        Leistung: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: uuid */
+            haustierId?: string;
+            beschreibung: string;
+            /** Format: decimal */
+            betrag: string;
+            /** Format: naive-date */
+            leistungsdatum: string;
+            status: components["schemas"]["LeistungStatus"];
+            quelle: components["schemas"]["LeistungQuelle"];
+            /** Format: uuid */
+            rechnungId?: string;
+        };
+        /** LeistungAusBehandlungErstellung */
+        LeistungAusBehandlungErstellung: {
+            /** Format: uuid */
+            behandlungId: string;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: uuid */
+            haustierId?: string;
+            /** Format: naive-date */
+            leistungsdatum: string;
+            /** Format: decimal */
+            preisOverride?: string;
+        };
+        /** LeistungAusProduktErstellung */
+        LeistungAusProduktErstellung: {
+            /** Format: uuid */
+            produktId: string;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: uuid */
+            haustierId?: string;
+            /** Format: decimal */
+            menge: string;
+            /** Format: naive-date */
+            leistungsdatum: string;
+        };
+        /** LeistungManuelleErstellung */
+        LeistungManuelleErstellung: {
+            /** Format: uuid */
+            klientId: string;
+            /** Format: uuid */
+            haustierId?: string;
+            beschreibung: string;
+            /** Format: decimal */
+            betrag: string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
+            /** Format: naive-date */
+            leistungsdatum: string;
+        };
+        LeistungQuelle: components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"] | components["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"] | components["schemas"]["LeistungQuelle_LeistungQuelleManuell"];
+        /** LeistungQuelleBehandlung */
+        LeistungQuelleBehandlung: {
+            /** Format: uuid */
+            behandlungId: string;
+            /** Format: decimal */
+            preis: string;
+        };
+        /** LeistungQuelleManuell */
+        LeistungQuelleManuell: {
+            /** Format: decimal */
+            preis: string;
+        };
+        /** LeistungQuelleProdukt */
+        LeistungQuelleProdukt: {
+            /** Format: uuid */
+            produktId: string;
+            /** Format: decimal */
+            menge: string;
+            /** Format: decimal */
+            einzelpreis: string;
+        };
+        LeistungQuelle_LeistungQuelleBehandlung: {
+            /**
+             * @example Behandlung
+             * @enum {string}
+             */
+            typ: "Behandlung";
+        } & components["schemas"]["LeistungQuelleBehandlung"] & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            typ: "Behandlung";
+        };
+        LeistungQuelle_LeistungQuelleManuell: {
+            /**
+             * @example Manuell
+             * @enum {string}
+             */
+            typ: "Manuell";
+        } & components["schemas"]["LeistungQuelleManuell"] & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            typ: "Manuell";
+        };
+        LeistungQuelle_LeistungQuelleProdukt: {
+            /**
+             * @example Produkt
+             * @enum {string}
+             */
+            typ: "Produkt";
+        } & components["schemas"]["LeistungQuelleProdukt"] & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            typ: "Produkt";
+        };
+        /** @enum {string} */
+        LeistungStatus: "Offen" | "Abgerechnet";
+        /** Produkt */
+        Produkt: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            beschreibung: string;
+            /** Format: decimal */
+            einzelpreis: string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
+        };
+        /** ProduktErstellung */
+        ProduktErstellung: {
+            name: string;
+            beschreibung: string;
+            /** Format: decimal */
+            einzelpreis: string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
+        };
+        /** Rechnung */
+        Rechnung: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uint64 */
+            rechnungsnummer: number;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: naive-date */
+            rechnungsdatum: string;
+            positionen: components["schemas"]["Rechnungsposition"][];
+            /** Format: decimal */
+            gesamtbetragBrutto: string;
+            status: components["schemas"]["RechnungStatus"];
+            /** Format: naive-date */
+            bezahltDatum?: string;
+        };
+        /** @enum {string} */
+        RechnungStatus: "Offen" | "Bezahlt";
+        /** Rechnungsposition */
+        Rechnungsposition: {
+            beschreibung: string;
+            /** Format: decimal */
+            einzelpreis: string;
+            /** Format: decimal */
+            "st\u00FCckzahl": string;
+            /** Format: decimal */
+            mwstProzentsatz: string;
+            /** Format: decimal */
+            gesamtpreisNetto: string;
+            /** Format: decimal */
+            gesamtpreisBrutto: string;
+            /** Format: uuid */
+            leistungId: string;
         };
         /** StructuredError */
         StructuredError: {
             message: string;
             attachments: string[];
             sources: components["schemas"]["StructuredError"][];
+        };
+        /** TagesabschlussErstellung */
+        TagesabschlussErstellung: {
+            /** Format: naive-date */
+            abschlussdatum?: string;
         };
     };
     responses: never;
@@ -254,4 +901,20 @@ export interface components {
     pathItems: never;
 }
 export type $defs = Record<string, never>;
+type FlattenedDeepRequired<T> = {
+    [K in keyof T]-?: FlattenedDeepRequired<T[K] extends unknown[] | undefined | null ? Extract<T[K], unknown[]>[number] : T[K]>;
+};
+type ReadonlyArray<T> = [
+    Exclude<T, undefined>
+] extends [
+    unknown[]
+] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
+export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
+export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
+export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
+export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
+export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
+export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
+export const leistungStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungStatus"]> = ["Offen", "Abgerechnet"];
+export const rechnungStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RechnungStatus"]> = ["Offen", "Bezahlt"];
 export type operations = Record<string, never>;

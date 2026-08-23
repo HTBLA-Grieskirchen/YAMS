@@ -38,7 +38,20 @@ fn main() {
             tauri_app.manage(_frontend_config);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![frontend_config])
+        .invoke_handler(tauri::generate_handler![
+            frontend_config,
+            commands::klient_erstellen,
+            commands::haustier_erstellen,
+            commands::alle_haustiere,
+            commands::haustier_by_id,
+            commands::produkt_erstellen,
+            commands::behandlung_erstellen,
+            commands::leistung_aus_produkt_buchen,
+            commands::leistung_aus_behandlung_buchen,
+            commands::leistung_manuell_erfassen,
+            commands::tagesabschluss_durchführen,
+            commands::rechnungen_für_klient,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

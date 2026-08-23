@@ -6011,6 +6011,7 @@ dependencies = [
  "tauri-plugin-shell",
  "thiserror 2.0.20",
  "url",
+ "uuid",
  "yams-api",
  "yams-core",
  "yams-persistence",

@@ -23,6 +23,7 @@ error-stack = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
+uuid = { workspace = true }
 
 tauri = { version = "2.10.2", features = [] }
 tauri-plugin-shell = "2.3.5"

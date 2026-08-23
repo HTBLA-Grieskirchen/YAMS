@@ -67,20 +67,20 @@ fn parse_position_from_row(row: &Row) -> RepositoryResult<Rechnungsposition> {
     let leistung_id_str: Option<String> = row.get(7).contextualize(RepositoryError::Data)?;
     let beschreibung: Option<String> = row.get(8).contextualize(RepositoryError::Data)?;
     let einzelpreis_str: Option<String> = row.get(9).contextualize(RepositoryError::Data)?;
-    let stueckzahl_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
+    let stückzahl_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
     let mwst_str: Option<String> = row.get(11).contextualize(RepositoryError::Data)?;
 
     let leistung_id_str = leistung_id_str.ok_or(RepositoryError::Data)?;
     let beschreibung = beschreibung.ok_or(RepositoryError::Data)?;
     let einzelpreis_str = einzelpreis_str.ok_or(RepositoryError::Data)?;
-    let stueckzahl_str = stueckzahl_str.ok_or(RepositoryError::Data)?;
+    let stückzahl_str = stückzahl_str.ok_or(RepositoryError::Data)?;
     let mwst_str = mwst_str.ok_or(RepositoryError::Data)?;
 
     let leistung_uuid = parse_uuid(&leistung_id_str)?;
     Ok(Rechnungsposition::neu(
         beschreibung,
         parse_preis(&einzelpreis_str)?,
-        parse_decimal(&stueckzahl_str)?,
+        parse_decimal(&stückzahl_str)?,
         parse_decimal(&mwst_str)?,
         LeistungId(leistung_uuid),
     ))
@@ -134,7 +134,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
 
         for position in rechnung.positionen() {
             tx.execute(
-                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, einzelpreis, stueckzahl, mwst_prozentsatz) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, einzelpreis, stückzahl, mwst_prozentsatz) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 libsql::params![
                     Uuid::new_v4().to_string(),
                     rechnung.id().0.to_string(),
@@ -152,7 +152,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
         Ok(versioned)
     }
 
-    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<u64> {
+    async fn nächste_rechnungsnummer(&self) -> RepositoryResult<u64> {
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
@@ -184,7 +184,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
         let klient_id_str = klient_id.0.to_string();
         let mut rows = tx
             .query(
-                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stueckzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stückzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
                 [klient_id_str],
             )
             .await

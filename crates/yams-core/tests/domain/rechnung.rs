@@ -18,7 +18,7 @@ fn rechnungsposition_berechnet_mwst_korrekt() {
 }
 
 #[test]
-fn rechnungsposition_mit_stueckzahl_multipliziert_netto() {
+fn rechnungsposition_mit_stückzahl_multipliziert_netto() {
     let position = Rechnungsposition::neu(
         "Futter".into(),
         Preis::new(Decimal::new(25, 0)).unwrap(),

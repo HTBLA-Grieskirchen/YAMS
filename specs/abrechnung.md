@@ -32,14 +32,14 @@ Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zust
 | `LeistungAusProduktBuchen` | Leistung mit Preis-Snapshot (Produkt × Menge) |
 | `LeistungAusBehandlungBuchen` | Leistung mit Standard- oder Override-Preis |
 | `LeistungManuellErfassen` | Sonstige Leistung mit manuellem Preis |
-| `TagesabschlussDurchfuehren` | Offene Leistungen eines Tages → Rechnungen pro Klient |
+| `TagesabschlussDurchführen` | Offene Leistungen eines Tages → Rechnungen pro Klient |
 
 ## Invarianten
 
 1. Nur `LeistungOffen` (`LeistungIn<Offen>`) fließt in Tagesabschluss ein.
 2. `RechnungOffen::aus_leistungen` markiert Leistungen in-place als `Abgerechnet` — kein separates Repository-`mark_abgerechnet`.
 3. Repositories sind dumb: `update` persistiert mutierte Domain-Entitäten.
-4. `Rechnung` v1 nur via `TagesabschlussDurchfuehren`.
+4. `Rechnung` v1 nur via `TagesabschlussDurchführen`.
 5. `Haustier.klient_id` Pflicht; keine `haustier_ids` auf `Klient`.
 
 ## Tagesabschluss-Ablauf

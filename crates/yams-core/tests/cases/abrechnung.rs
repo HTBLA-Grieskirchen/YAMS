@@ -6,7 +6,7 @@ use yams_core::domain::{Adresse, Klient, Ländercode, Preis};
 use yams_core::service::{
     BehandlungErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
     LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
-    TagesabschlussDurchfuehren,
+    TagesabschlussDurchführen,
 };
 
 use super::super::base_app_builder;
@@ -126,7 +126,7 @@ async fn test_tagesabschluss() {
 
     let rechnungen = setup
         .app
-        .execute(TagesabschlussDurchfuehren {
+        .execute(TagesabschlussDurchführen {
             abschlussdatum: Some(setup.abschlussdatum),
         })
         .await
@@ -166,7 +166,7 @@ async fn test_tagesabschluss_zweiter_lauf_ohne_offene_leistungen() {
 
     setup
         .app
-        .execute(TagesabschlussDurchfuehren {
+        .execute(TagesabschlussDurchführen {
             abschlussdatum: Some(setup.abschlussdatum),
         })
         .await
@@ -174,7 +174,7 @@ async fn test_tagesabschluss_zweiter_lauf_ohne_offene_leistungen() {
 
     let zweiter_abschluss = setup
         .app
-        .execute(TagesabschlussDurchfuehren {
+        .execute(TagesabschlussDurchführen {
             abschlussdatum: Some(setup.abschlussdatum),
         })
         .await

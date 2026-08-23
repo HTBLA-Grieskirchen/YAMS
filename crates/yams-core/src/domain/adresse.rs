@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 #[error("Ungültiger Ländercode: {0}")]
-pub struct LaendercodeValidierungsfehler(String);
+pub struct LändercodeValidierungsfehler(String);
 
 /// ISO 3166-1 alpha-2 (z. B. `DE`, `AT`, `CH`)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,12 +21,12 @@ impl Ländercode {
         }
     }
 
-    pub fn from_str(s: &str) -> Result<Self, LaendercodeValidierungsfehler> {
+    pub fn from_str(s: &str) -> Result<Self, LändercodeValidierungsfehler> {
         match s {
             "AT" => Ok(Self::AT),
             "DE" => Ok(Self::DE),
             "CH" => Ok(Self::CH),
-            _ => Err(LaendercodeValidierungsfehler(s.to_string())),
+            _ => Err(LändercodeValidierungsfehler(s.to_string())),
         }
     }
 }

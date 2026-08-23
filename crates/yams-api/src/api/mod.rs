@@ -11,7 +11,7 @@ use yams_core::{
     service::{
         BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
         LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
-        TagesabschlussDurchfuehren,
+        TagesabschlussDurchführen,
     },
     uow::Versioned,
 };
@@ -149,13 +149,13 @@ impl YamsAppApi {
         Ok(schema_leistung_from_domain(leistung))
     }
 
-    pub async fn tagesabschluss_durchfuehren(
+    pub async fn tagesabschluss_durchführen(
         &self,
         body: TagesabschlussErstellung,
     ) -> ResultReport<Vec<Rechnung>, ExecutionError> {
         let rechnungen = self
             .app
-            .execute(TagesabschlussDurchfuehren::from(body))
+            .execute(TagesabschlussDurchführen::from(body))
             .await?;
         Ok(rechnungen
             .into_iter()

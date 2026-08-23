@@ -10,6 +10,7 @@ use crate::SQLiteConnection;
 mod v0001_initial;
 mod v0002_deutsches_schema;
 mod v0003_mwst_und_bezahlt_datum;
+mod v0004_utf8_stueckzahl;
 
 type Registry = MigrationRegistry<dyn UpMigration<libsql::Transaction, libsql::Error>>;
 
@@ -18,6 +19,7 @@ pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
     registry.add(v0001_initial::Migration);
     registry.add(v0002_deutsches_schema::Migration);
     registry.add(v0003_mwst_und_bezahlt_datum::Migration);
+    registry.add(v0004_utf8_stueckzahl::Migration);
     registry
 });
 

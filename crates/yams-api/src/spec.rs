@@ -141,11 +141,11 @@ impl YamsApiSpec {
     }
 
     #[oai(path = "/tagesabschluss", method = "post")]
-    async fn tagesabschluss_durchfuehren(
+    async fn tagesabschluss_durchführen(
         &self,
         body: Json<TagesabschlussErstellung>,
     ) -> TypicalJsonResponse<Vec<Rechnung>> {
-        self.app_api.tagesabschluss_durchfuehren(body.0).await.into()
+        self.app_api.tagesabschluss_durchführen(body.0).await.into()
     }
 
     #[oai(path = "/rechnung/:klient_id", method = "get")]

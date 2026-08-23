@@ -8,7 +8,7 @@
 - **Geplant**: `Veranstaltung`, `Teilnahme`, `Beziehung`, `Rasse`, `Seminar`.
 - **Value Objects**: `Preis`, `EmailAdresse`, `Mobilnummer`, `Ländercode`, Status-Enums.
 - **Ports**: Repository pro Aggregate + `Clock`.
-- **Use Cases**: Ein Use Case pro Geschäftsvorgang (`KlientErstellen`, `TagesabschlussDurchfuehren`, …).
+- **Use Cases**: Ein Use Case pro Geschäftsvorgang (`KlientErstellen`, `TagesabschlussDurchführen`, …).
 - **App**: Composition Root; alle Mutationen via `App::execute`.
 - **Error Handling**: `thiserror` in Domain/Use Cases, `error_stack::Report` an Grenzen.
 

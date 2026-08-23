@@ -464,7 +464,7 @@ impl RechnungRepository for FakeRechnungenRepository {
         Ok(Versioned::init(rechnung))
     }
 
-    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<u64> {
+    async fn nächste_rechnungsnummer(&self) -> RepositoryResult<u64> {
         let data = self.datastore.rechnungen.lock().unwrap();
         let max = data
             .values()

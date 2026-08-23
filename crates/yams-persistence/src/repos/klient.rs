@@ -34,7 +34,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
     let postleitzahl: String = row.get(8).contextualize(RepositoryError::Data)?;
     let stadt: String = row.get(9).contextualize(RepositoryError::Data)?;
     let strasse_und_hausnummer: String = row.get(10).contextualize(RepositoryError::Data)?;
-    let laendercode_str: String = row.get(11).contextualize(RepositoryError::Data)?;
+    let ländercode_str: String = row.get(11).contextualize(RepositoryError::Data)?;
     let version: u64 = row.get(12).contextualize(RepositoryError::Data)?;
 
     let geburtstag = parse_naive_date(&geburtstag_str).contextualize(RepositoryError::Data)?;
@@ -53,7 +53,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
             postleitzahl,
             stadt,
             strasse_und_hausnummer,
-            ländercode: Ländercode::from_str(&laendercode_str).change_context(RepositoryError::Data)?,
+            ländercode: Ländercode::from_str(&ländercode_str).change_context(RepositoryError::Data)?,
         },
     };
     Ok(Versioned::new(version, klient))

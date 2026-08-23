@@ -47,7 +47,7 @@ Dependency rule: **inward only**. Core knows nothing about HTTP, SQLite, or Taur
 
 Domain language is **German** across the full stack — Rust types, SQLite tables/columns, API JSON keys (UTF-8, e.g. `Ländercode` → JSON `ländercode`). English legacy names are obsolete.
 
-- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names.
+- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names. Use proper UTF-8 in identifiers (`nächste_rechnungsnummer`, `ländercode`) — no `ae`/`oe`/`ue` transliteration.
 - **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request).
 - **JSON** — German field names, `camelCase` serde (`vorName`, `strasseUndHausnummer`). UTF-8 in source and JSON keys is fine (`ländercode`, `stückzahl`).
 - **Comments** — DDD/technical terms in English (`Aggregate`, `Value object`); domain ubiquitous language stays German (`Behandlung`, `Klient`).
@@ -119,13 +119,13 @@ pub trait UseCase<Output> {
 }
 ```
 
-One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `TagesabschlussDurchfuehren`, …).
+One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `TagesabschlussDurchführen`, …).
 
 ## yams-api — Public Interface
 
 Framework-agnostic API layer between driving adapters and core.
 
-- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchfuehren`, …). Translates domain → API schema DTOs.
+- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchführen`, …). Translates domain → API schema DTOs.
 - **`schema/`** — German DTOs, JSON `camelCase` (`vorName`, `ländercode`).
 - **`requests/`** — inbound request types with `TryFrom` into use-case inputs.
 - **`errors/`** — `Report<E>` → structured JSON error trees for HTTP responses.

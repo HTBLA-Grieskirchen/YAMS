@@ -98,7 +98,7 @@ pub enum LeistungAusProduktBuchenFehler {
     #[error("produkt nicht gefunden")]
     ProduktNichtGefunden,
     #[error("ungültiger betrag")]
-    UngueltigerBetrag,
+    UngültigerBetrag,
 }
 
 #[async_trait]
@@ -117,7 +117,7 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
         produkt
             .einzelpreis
             .multiply(self.menge)
-            .change_context(LeistungAusProduktBuchenFehler::UngueltigerBetrag)?;
+            .change_context(LeistungAusProduktBuchenFehler::UngültigerBetrag)?;
 
         uow.leistungen()
             .create(NeueLeistung {
@@ -231,12 +231,12 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
 }
 
 #[derive(Clone)]
-pub struct TagesabschlussDurchfuehren {
+pub struct TagesabschlussDurchführen {
     pub abschlussdatum: Option<NaiveDate>,
 }
 
 #[derive(thiserror::Error, Debug)]
-pub enum TagesabschlussDurchfuehrenFehler {
+pub enum TagesabschlussDurchführenFehler {
     #[error("persistenzfehler")]
     Persistenz,
     #[error("rechnung konnte nicht erstellt werden")]
@@ -244,8 +244,8 @@ pub enum TagesabschlussDurchfuehrenFehler {
 }
 
 #[async_trait]
-impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
-    type Error = Report<TagesabschlussDurchfuehrenFehler>;
+impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
+    type Error = Report<TagesabschlussDurchführenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<RechnungOffen>, Self::Error> {
         let abschlussdatum = match self.abschlussdatum {
@@ -258,7 +258,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
             .leistungen()
             .find_offene_by_datum(abschlussdatum)
             .await
-            .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
+            .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
         let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> =
             FxHashMap::default();
@@ -278,9 +278,9 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
 
             let rechnungsnummer = uow
                 .rechnungen()
-                .naechste_rechnungsnummer()
+                .nächste_rechnungsnummer()
                 .await
-                .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
+                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
             let rechnung = RechnungOffen::aus_leistungen(
                 klient_id,
@@ -288,13 +288,13 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
                 abschlussdatum,
                 &mut leistungen,
             )
-            .map_err(|report| report.change_context(TagesabschlussDurchfuehrenFehler::Rechnung))?;
+            .map_err(|report| report.change_context(TagesabschlussDurchführenFehler::Rechnung))?;
 
             let persisted = uow
                 .rechnungen()
                 .create(rechnung)
                 .await
-                .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
+                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
             for (original, leistung) in gruppen_leistungen.iter().zip(leistungen.iter()) {
                 let updated = match leistung {
@@ -308,12 +308,12 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
                 uow.leistungen()
                     .update(&mut versioned)
                     .await
-                    .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
+                    .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
             }
 
             uow.checkpoint()
                 .await
-                .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
+                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
             rechnungen.push(persisted.into_data());
         }

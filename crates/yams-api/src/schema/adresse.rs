@@ -49,7 +49,7 @@ impl From<domain::Adresse> for Adresse {
 }
 
 impl TryFrom<Adresse> for domain::Adresse {
-    type Error = domain::adresse::LaendercodeValidierungsfehler;
+    type Error = domain::adresse::LändercodeValidierungsfehler;
     fn try_from(value: Adresse) -> Result<Self, Self::Error> {
         Ok(Self {
             postleitzahl: value.postleitzahl,

@@ -7,7 +7,7 @@ use yams_core::{
     domain::{BehandlungId, KlientId, Preis, ProduktId},
     service::{
         BehandlungErstellen, LeistungAusBehandlungBuchen, LeistungAusProduktBuchen,
-        LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchfuehren,
+        LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchführen,
     },
 };
 
@@ -161,7 +161,7 @@ pub struct TagesabschlussErstellung {
     pub abschlussdatum: Option<NaiveDate>,
 }
 
-impl From<TagesabschlussErstellung> for TagesabschlussDurchfuehren {
+impl From<TagesabschlussErstellung> for TagesabschlussDurchführen {
     fn from(value: TagesabschlussErstellung) -> Self {
         Self {
             abschlussdatum: value.abschlussdatum,

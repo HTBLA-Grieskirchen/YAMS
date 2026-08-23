@@ -5,8 +5,8 @@ use chrono::NaiveDate;
 
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
-    Behandlung, BehandlungId, GeladeneLeistung, GeladeneRechnung, Haustier, HaustierId, Klient,
-    KlientId, LeistungOffen, Produkt, ProduktId, RechnungOffen,
+    Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungOffen,
+    Produkt, ProduktId, Rechnung, RechnungOffen,
     behandlung::NeueBehandlung,
     haustier::NeuesHaustier,
     klient::NeuerKlient,
@@ -56,7 +56,7 @@ pub trait LeistungRepository: Send + Sync {
         &self,
         datum: NaiveDate,
     ) -> RepositoryResult<Vec<Versioned<LeistungOffen>>>;
-    async fn update(&self, leistung: &mut Versioned<GeladeneLeistung>) -> RepositoryResult<()>;
+    async fn update(&self, leistung: &mut Versioned<Leistung>) -> RepositoryResult<()>;
 }
 
 #[async_trait]
@@ -66,7 +66,7 @@ pub trait RechnungRepository: Send + Sync {
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
-    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>>;
+    ) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
 }
 
 #[derive(thiserror::Error, Debug)]

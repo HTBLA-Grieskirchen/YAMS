@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     application::uow::Versioned,
     domain::{
-        Behandlung, BehandlungId, GeladeneLeistung, HaustierId, KlientId, LeistungOffen,
+        Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen,
         LeistungQuelle, Preis, Produkt, ProduktId, RechnungOffen, behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
@@ -296,7 +296,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
 
                 let mut versioned = Versioned::new(
                     original.v(),
-                    GeladeneLeistung::Abgerechnet(abgerechnet_leistung),
+                    Leistung::Abgerechnet(abgerechnet_leistung),
                 );
                 uow.leistungen()
                     .update(&mut versioned)

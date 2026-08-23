@@ -78,7 +78,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Newtypes for identity** — `KlientId(Uuid)`, `HaustierId(Uuid)` prevent ID mix-ups at compile time.
 - **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Preis` via `new()` / `TryFrom`. Invalid values cannot exist in the type system.
 - **Closed enums where closed** — `Ländercode` is an enum (`AT`, `DE`, `CH`), not a free-form string.
-- **Type-state aggregates** — `Leistung<Offen>` / `Leistung<Abgerechnet>`, `Rechnung<Offen>` / `Rechnung<Bezahlt>`. Only `LeistungOffen::mark_abgerechnet` transitions state. `GeladeneLeistung` / `GeladeneRechnung` enums reconstruct persisted state at repository boundary.
+- **Type-state aggregates** — `LeistungIn<Offen>` / `LeistungIn<Abgerechnet>` (aliases `LeistungOffen`, `LeistungAbgerechnet`), `RechnungIn<…>` likewise. Enum `Leistung` / `Rechnung` sums all valid states when compile-time state unknown.
 - **Separate creation types** — `NeuerKlient` / `NeuesHaustier` have no ID; persisted aggregates always do.
 - **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Repositories call `::neu` / `from_parts`, never construct invalid entities.
 - **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.

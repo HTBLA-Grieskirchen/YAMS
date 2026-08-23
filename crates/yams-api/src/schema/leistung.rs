@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use uuid::Uuid;
-use yams_core::domain::{self, GeladeneLeistung, LeistungOffen};
+use yams_core::domain::{self, Leistung as DomainLeistung, LeistungOffen};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Enum))]
@@ -69,12 +69,12 @@ pub struct Leistung {
 }
 
 pub fn schema_leistung_from_domain(leistung: LeistungOffen) -> Leistung {
-    schema_leistung_from_geladene(GeladeneLeistung::Offen(leistung))
+    schema_leistung_from_domain_leistung(DomainLeistung::Offen(leistung))
 }
 
-pub fn schema_leistung_from_geladene(leistung: GeladeneLeistung) -> Leistung {
+pub fn schema_leistung_from_domain_leistung(leistung: DomainLeistung) -> Leistung {
     match leistung {
-        GeladeneLeistung::Offen(leistung) => Leistung {
+        DomainLeistung::Offen(leistung) => Leistung {
             id: leistung.id().0,
             klient_id: leistung.klient_id().0,
             haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),
@@ -85,7 +85,7 @@ pub fn schema_leistung_from_geladene(leistung: GeladeneLeistung) -> Leistung {
             quelle: schema_quelle_from_domain(leistung.quelle()),
             rechnung_id: None,
         },
-        GeladeneLeistung::Abgerechnet(leistung) => Leistung {
+        DomainLeistung::Abgerechnet(leistung) => Leistung {
             id: leistung.id().0,
             klient_id: leistung.klient_id().0,
             haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),

@@ -26,7 +26,7 @@ use crate::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung,
         schema_behandlung_from_domain, schema_haustier_from_domain, schema_klient_from_domain,
         schema_leistung_from_domain, schema_produkt_from_domain, schema_rechnung_from_domain,
-        schema_rechnung_from_geladene,
+        schema_rechnung_from_domain_rechnung,
     },
 };
 
@@ -179,7 +179,7 @@ impl YamsAppApi {
             .into_iter()
             .map(Versioned::into_data);
         Ok(rechnungen
-            .map(schema_rechnung_from_geladene)
+            .map(schema_rechnung_from_domain_rechnung)
             .collect())
     }
 }

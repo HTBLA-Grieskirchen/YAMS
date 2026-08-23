@@ -49,7 +49,7 @@ impl LeistungQuelle {
 }
 
 #[derive(Debug, Clone)]
-pub struct Leistung<S> {
+pub struct LeistungIn<S> {
     id: LeistungId,
     klient_id: KlientId,
     haustier_id: Option<HaustierId>,
@@ -59,16 +59,16 @@ pub struct Leistung<S> {
     state: S,
 }
 
-pub type LeistungOffen = Leistung<Offen>;
-pub type LeistungAbgerechnet = Leistung<Abgerechnet>;
+pub type LeistungOffen = LeistungIn<Offen>;
+pub type LeistungAbgerechnet = LeistungIn<Abgerechnet>;
 
 #[derive(Debug, Clone)]
-pub enum GeladeneLeistung {
+pub enum Leistung {
     Offen(LeistungOffen),
     Abgerechnet(LeistungAbgerechnet),
 }
 
-impl GeladeneLeistung {
+impl Leistung {
     pub fn from_parts(
         id: LeistungId,
         klient_id: KlientId,
@@ -110,7 +110,7 @@ impl GeladeneLeistung {
     }
 }
 
-impl<S> Leistung<S> {
+impl<S> LeistungIn<S> {
     pub fn id(&self) -> &LeistungId {
         &self.id
     }

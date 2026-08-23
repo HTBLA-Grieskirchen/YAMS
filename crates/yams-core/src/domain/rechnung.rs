@@ -84,7 +84,7 @@ impl Rechnungsposition {
 }
 
 #[derive(Debug, Clone)]
-pub struct Rechnung<S> {
+pub struct RechnungIn<S> {
     id: RechnungId,
     rechnungsnummer: i64,
     klient_id: KlientId,
@@ -93,16 +93,16 @@ pub struct Rechnung<S> {
     state: S,
 }
 
-pub type RechnungOffen = Rechnung<RechnungOffenMarker>;
-pub type RechnungBezahlt = Rechnung<RechnungBezahltMarker>;
+pub type RechnungOffen = RechnungIn<RechnungOffenMarker>;
+pub type RechnungBezahlt = RechnungIn<RechnungBezahltMarker>;
 
 #[derive(Debug, Clone)]
-pub enum GeladeneRechnung {
+pub enum Rechnung {
     Offen(RechnungOffen),
     Bezahlt(RechnungBezahlt),
 }
 
-impl<S> Rechnung<S> {
+impl<S> RechnungIn<S> {
     pub fn id(&self) -> &RechnungId {
         &self.id
     }
@@ -200,7 +200,7 @@ impl RechnungOffen {
     }
 }
 
-impl GeladeneRechnung {
+impl Rechnung {
     pub fn from_parts(
         id: RechnungId,
         rechnungsnummer: i64,
@@ -214,7 +214,7 @@ impl GeladeneRechnung {
         }
 
         if bezahlt {
-            Ok(Self::Bezahlt(Rechnung {
+            Ok(Self::Bezahlt(RechnungIn {
                 id,
                 rechnungsnummer,
                 klient_id,
@@ -223,7 +223,7 @@ impl GeladeneRechnung {
                 state: RechnungBezahltMarker,
             }))
         } else {
-            Ok(Self::Offen(Rechnung {
+            Ok(Self::Offen(RechnungIn {
                 id,
                 rechnungsnummer,
                 klient_id,

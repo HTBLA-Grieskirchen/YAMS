@@ -6,11 +6,11 @@ Ubiquitous Language: **Deutsch** in Code, API-JSON und SQLite-Spalten (UTF-8, z.
 
 | Aggregate | Zustände | Beschreibung |
 |-----------|----------|--------------|
-| `Leistung<S>` | `Offen` → `Abgerechnet` | Offener Posten; nur `LeistungOffen::mark_abgerechnet` transitioniert |
-| `Rechnung<S>` | `Offen` → `Bezahlt` | Rechnung mit `Rechnungspositionen` |
+| `LeistungIn<S>` | `Offen` → `Abgerechnet` | Type-state; enum `Leistung` sums states |
+| `RechnungIn<S>` | `Offen` → `Bezahlt` | Type-state; enum `Rechnung` sums states |
 | `Klient`, `Haustier`, `Produkt`, `Behandlung` | — | Stammdaten / Katalog |
 
-Repository-Grenze: `GeladeneLeistung` / `GeladeneRechnung` rekonstruieren persistierten Zustand.
+Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zustand via `from_parts`.
 
 ## Wertobjekte
 
@@ -36,7 +36,7 @@ Repository-Grenze: `GeladeneLeistung` / `GeladeneRechnung` rekonstruieren persis
 
 ## Invarianten
 
-1. Nur `Leistung<Offen>` fließt in Tagesabschluss ein (type-state, kein Laufzeit-Status-Check).
+1. Nur `LeistungOffen` (`LeistungIn<Offen>`) fließt in Tagesabschluss ein.
 2. `RechnungOffen::aus_leistungen` markiert Leistungen in-place als `Abgerechnet` — kein separates Repository-`mark_abgerechnet`.
 3. Repositories sind dumb: `update` persistiert mutierte Domain-Entitäten.
 4. `Rechnung` v1 nur via `TagesabschlussDurchfuehren`.

@@ -6,7 +6,7 @@ use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
     domain::{
-        GeladeneRechnung, KlientId, LeistungId, RechnungId, RechnungOffen, Rechnungsposition,
+        Rechnung, KlientId, LeistungId, RechnungId, RechnungOffen, Rechnungsposition,
     },
     ports::{RechnungRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
@@ -82,10 +82,10 @@ fn parse_position_from_row(row: &Row) -> RepositoryResult<Rechnungsposition> {
 fn geladene_rechnung_from_parts(
     header: &RechnungRowData,
     positionen: Vec<Rechnungsposition>,
-) -> RepositoryResult<GeladeneRechnung> {
+) -> RepositoryResult<Rechnung> {
     let bezahlt = header.status == "bezahlt";
     Ok(
-        GeladeneRechnung::from_parts(
+        Rechnung::from_parts(
             header.id.clone(),
             header.rechnungsnummer,
             header.klient_id.clone(),
@@ -165,7 +165,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
-    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>> {
+    ) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
@@ -178,7 +178,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
 
-        let mut rechnungen: Vec<Versioned<GeladeneRechnung>> = Vec::new();
+        let mut rechnungen: Vec<Versioned<Rechnung>> = Vec::new();
         let mut current_header: Option<RechnungRowData> = None;
         let mut current_positionen: Vec<Rechnungsposition> = Vec::new();
 

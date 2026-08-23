@@ -6,7 +6,7 @@ use chrono::NaiveDate;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
-    domain::{GeladeneLeistung, LeistungId, LeistungOffen, leistung::NeueLeistung},
+    domain::{Leistung, LeistungId, LeistungOffen, leistung::NeueLeistung},
     ports::{LeistungRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
     ErrorReportExt,
@@ -25,7 +25,7 @@ pub struct SQLiteLeistungRepository {
 
 const LEISTUNG_SELECT: &str = "SELECT id, klient_id, haustier_id, beschreibung, leistungsdatum, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, rechnung_id, _version FROM leistungen";
 
-fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<GeladeneLeistung>> {
+fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
     let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
     let klient_id_str: String = row.get(1).contextualize(RepositoryError::Data)?;
     let haustier_id_str: Option<String> = row.get(2).contextualize(RepositoryError::Data)?;
@@ -57,7 +57,7 @@ fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<GeladeneLeistung>>
         .map(|s| parse_rechnung_id(&s))
         .transpose()?;
 
-    let leistung = GeladeneLeistung::from_parts(
+    let leistung = Leistung::from_parts(
         LeistungId(uuid),
         klient_id,
         haustier_id,
@@ -73,8 +73,8 @@ fn leistung_offen_from_row(row: &Row) -> RepositoryResult<Versioned<LeistungOffe
     let versioned = leistung_from_row(row)?;
     let version = versioned.v();
     match versioned.into_data() {
-        GeladeneLeistung::Offen(offen) => Ok(Versioned::new(version, offen)),
-        GeladeneLeistung::Abgerechnet(_) => Err(RepositoryError::Data)?,
+        Leistung::Offen(offen) => Ok(Versioned::new(version, offen)),
+        Leistung::Abgerechnet(_) => Err(RepositoryError::Data)?,
     }
 }
 
@@ -138,13 +138,13 @@ impl LeistungRepository for SQLiteLeistungRepository {
         Ok(leistungen)
     }
 
-    async fn update(&self, leistung: &mut Versioned<GeladeneLeistung>) -> RepositoryResult<()> {
+    async fn update(&self, leistung: &mut Versioned<Leistung>) -> RepositoryResult<()> {
         let id_str = leistung.id().0.to_string();
         let version = leistung.v();
 
         let (status, rechnung_id_str) = match &**leistung {
-            GeladeneLeistung::Offen(_) => ("offen", None),
-            GeladeneLeistung::Abgerechnet(abgerechnet) => {
+            Leistung::Offen(_) => ("offen", None),
+            Leistung::Abgerechnet(abgerechnet) => {
                 ("abgerechnet", Some(abgerechnet.rechnung_id().0.to_string()))
             }
         };

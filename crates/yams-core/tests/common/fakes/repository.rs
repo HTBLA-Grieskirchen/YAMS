@@ -9,7 +9,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
     domain::{
-        Behandlung, BehandlungId, GeladeneLeistung, GeladeneRechnung, Haustier, HaustierId, Klient,
+        Behandlung, BehandlungId, Leistung, Rechnung, Haustier, HaustierId, Klient,
         KlientId, LeistungId, LeistungOffen, Produkt, ProduktId, RechnungOffen,
         behandlung::NeueBehandlung,
         haustier::NeuesHaustier,
@@ -29,8 +29,8 @@ pub struct FakeDatastore {
     pub haustiere: Mutex<FxHashMap<Uuid, Versioned<Haustier>>>,
     pub produkte: Mutex<FxHashMap<Uuid, Versioned<Produkt>>>,
     pub behandlungen: Mutex<FxHashMap<Uuid, Versioned<Behandlung>>>,
-    pub leistungen: Mutex<FxHashMap<Uuid, Versioned<GeladeneLeistung>>>,
-    pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<GeladeneRechnung>>>,
+    pub leistungen: Mutex<FxHashMap<Uuid, Versioned<Leistung>>>,
+    pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<Rechnung>>>,
 }
 
 impl Clone for FakeDatastore {
@@ -404,7 +404,7 @@ impl LeistungRepository for FakeLeistungenRepository {
         let id = LeistungId(Uuid::new_v4());
         let mut data = self.datastore.leistungen.lock().unwrap();
         let offen = LeistungOffenType::neu(id, leistung);
-        let versioned = Versioned::init(GeladeneLeistung::Offen(offen.clone()));
+        let versioned = Versioned::init(Leistung::Offen(offen.clone()));
         data.insert(offen.id().0, versioned.clone());
         Ok(Versioned::new(versioned.v(), offen))
     }
@@ -417,7 +417,7 @@ impl LeistungRepository for FakeLeistungenRepository {
         Ok(data
             .values()
             .filter_map(|versioned| match &**versioned {
-                GeladeneLeistung::Offen(leistung) if leistung.leistungsdatum() == datum => {
+                Leistung::Offen(leistung) if leistung.leistungsdatum() == datum => {
                     Some(Versioned::new(versioned.v(), leistung.clone()))
                 }
                 _ => None,
@@ -425,7 +425,7 @@ impl LeistungRepository for FakeLeistungenRepository {
             .collect())
     }
 
-    async fn update(&self, leistung: &mut Versioned<GeladeneLeistung>) -> RepositoryResult<()> {
+    async fn update(&self, leistung: &mut Versioned<Leistung>) -> RepositoryResult<()> {
         let mut data = self.datastore.leistungen.lock().unwrap();
         let id = leistung.id().0;
         if let Some(existing) = data.get(&id) {
@@ -457,7 +457,7 @@ impl FakeRechnungenRepository {
 impl RechnungRepository for FakeRechnungenRepository {
     async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>> {
         let mut data = self.datastore.rechnungen.lock().unwrap();
-        let versioned = Versioned::init(GeladeneRechnung::Offen(rechnung.clone()));
+        let versioned = Versioned::init(Rechnung::Offen(rechnung.clone()));
         data.insert(rechnung.id().0, versioned);
         Ok(Versioned::init(rechnung))
     }
@@ -475,7 +475,7 @@ impl RechnungRepository for FakeRechnungenRepository {
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
-    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>> {
+    ) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
         let data = self.datastore.rechnungen.lock().unwrap();
         Ok(data
             .values()

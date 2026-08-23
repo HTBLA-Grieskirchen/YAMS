@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use uuid::Uuid;
-use yams_core::domain::{self, rechnung::Rechnung as DomainRechnung, GeladeneRechnung, RechnungOffen};
+use yams_core::domain::{self, Rechnung as DomainRechnung, RechnungIn, RechnungOffen};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Enum))]
@@ -43,19 +43,19 @@ pub struct Rechnung {
 }
 
 pub fn schema_rechnung_from_domain(rechnung: RechnungOffen) -> Rechnung {
-    schema_rechnung_from_geladene(GeladeneRechnung::Offen(rechnung))
+    schema_rechnung_from_domain_rechnung(DomainRechnung::Offen(rechnung))
 }
 
-pub fn schema_rechnung_from_geladene(rechnung: GeladeneRechnung) -> Rechnung {
+pub fn schema_rechnung_from_domain_rechnung(rechnung: DomainRechnung) -> Rechnung {
     match rechnung {
-        GeladeneRechnung::Offen(rechnung) => schema_rechnung_common(&rechnung, RechnungStatus::Offen),
-        GeladeneRechnung::Bezahlt(rechnung) => {
+        DomainRechnung::Offen(rechnung) => schema_rechnung_common(&rechnung, RechnungStatus::Offen),
+        DomainRechnung::Bezahlt(rechnung) => {
             schema_rechnung_common(&rechnung, RechnungStatus::Bezahlt)
         }
     }
 }
 
-fn schema_rechnung_common<S>(rechnung: &DomainRechnung<S>, status: RechnungStatus) -> Rechnung {
+fn schema_rechnung_common<S>(rechnung: &RechnungIn<S>, status: RechnungStatus) -> Rechnung {
     Rechnung {
         id: rechnung.id().0,
         rechnungsnummer: rechnung.rechnungsnummer(),

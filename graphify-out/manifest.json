@@ -294,9 +294,9 @@
     "semantic_hash": "99f2bea88b7e3f77f8e9b3f2caf67a1a"
   },
   "crates/yams-persistence/src/migrations/mod.rs": {
-    "mtime": 1787520888.7501376,
-    "seen": 1787520959.8890984,
-    "ast_hash": "de33bf194c53e9bb4f658aba812efcda",
+    "mtime": 1787521005.5106683,
+    "seen": 1787521024.5616026,
+    "ast_hash": "943d44e391dc01e9290e97e66a833562",
     "semantic_hash": ""
   },
   "crates/yams-persistence/src/migrations/v0001_initial.rs": {
@@ -1302,9 +1302,9 @@
     "semantic_hash": ""
   },
   "crates/yams-persistence/src/migrations/v0002_deutsches_schema.rs": {
-    "mtime": 1787520887.3323708,
-    "seen": 1787520959.8891373,
-    "ast_hash": "0a0c9e5850f4b3bd192f24cb06250e9f",
+    "mtime": 1787520998.1280346,
+    "seen": 1787521024.5616412,
+    "ast_hash": "a297989e5edf9f530d0ece460a8beb27",
     "semantic_hash": ""
   },
   "crates/yams-persistence/src/repos/behandlung.rs": {
@@ -1377,18 +1377,6 @@
     "mtime": 1787520664.612176,
     "seen": 1787520717.8664737,
     "ast_hash": "9e3cbbf49eb29f274021b9bea705605e",
-    "semantic_hash": ""
-  },
-  "crates/yams-persistence/src/migrations/v0003_mwst_und_bezahlt_datum.rs": {
-    "mtime": 1787519695.126747,
-    "seen": 1787520717.8666348,
-    "ast_hash": "d12b9daf3135c0af9f7ac45124beb8de",
-    "semantic_hash": ""
-  },
-  "crates/yams-persistence/src/migrations/v0004_utf8_st\u00fcckzahl.rs": {
-    "mtime": 1787520911.1193867,
-    "seen": 1787520959.8891795,
-    "ast_hash": "9ce8c4eb05271c47ab945d303286c358",
     "semantic_hash": ""
   }
 }

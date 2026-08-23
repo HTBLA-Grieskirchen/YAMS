@@ -13,5 +13,7 @@ pub async fn haustier_erstellen(
     erstellung: HaustierErstellung,
     ctx: State<'_, YamsAppApi>,
 ) -> Result<Haustier, String> {
-    ctx.haustier_erstellen(erstellung).await.map_err(|e| e.to_string())
+    ctx.haustier_erstellen(erstellung)
+        .await
+        .map_err(|e| e.to_string())
 }

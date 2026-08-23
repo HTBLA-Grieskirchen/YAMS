@@ -6,10 +6,10 @@ use chrono::NaiveDate;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
+    ErrorReportExt,
     domain::{Leistung, LeistungId, LeistungOffen, leistung::NeueLeistung},
     ports::{LeistungRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
-    ErrorReportExt,
 };
 
 use crate::errors::libsql_error_to_persistence_error;
@@ -55,9 +55,7 @@ fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
         quelle_preis,
         quelle_mwst,
     )?;
-    let rechnung_id = rechnung_id_str
-        .map(|s| parse_rechnung_id(&s))
-        .transpose()?;
+    let rechnung_id = rechnung_id_str.map(|s| parse_rechnung_id(&s)).transpose()?;
 
     let leistung = Leistung::from_parts(
         LeistungId(uuid),

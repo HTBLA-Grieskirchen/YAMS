@@ -6,12 +6,12 @@ use error_stack::ResultExt;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
+    ErrorReportExt,
     domain::{
         Adresse, EmailAdresse, Klient, KlientId, Ländercode, Mobilnummer, klient::NeuerKlient,
     },
     ports::{KlientRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
-    ErrorReportExt,
 };
 
 use crate::errors::libsql_error_to_persistence_error;
@@ -53,7 +53,8 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
             postleitzahl,
             stadt,
             straße_und_hausnummer,
-            ländercode: Ländercode::from_str(&ländercode_str).change_context(RepositoryError::Data)?,
+            ländercode: Ländercode::from_str(&ländercode_str)
+                .change_context(RepositoryError::Data)?,
         },
     };
     Ok(Versioned::new(version, klient))

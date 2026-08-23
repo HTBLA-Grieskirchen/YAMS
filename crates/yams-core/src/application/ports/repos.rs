@@ -6,12 +6,8 @@ use chrono::NaiveDate;
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungOffen,
-    Produkt, ProduktId, Rechnung, RechnungOffen,
-    behandlung::NeueBehandlung,
-    haustier::NeuesHaustier,
-    klient::NeuerKlient,
-    leistung::NeueLeistung,
-    produkt::NeuesProdukt,
+    Produkt, ProduktId, Rechnung, RechnungOffen, behandlung::NeueBehandlung,
+    haustier::NeuesHaustier, klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt,
 };
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
@@ -27,7 +23,10 @@ pub trait KlientRepository: Send + Sync {
 #[async_trait]
 pub trait HaustierRepository: Send + Sync {
     async fn find_by_id(&self, id: HaustierId) -> RepositoryResult<Versioned<Haustier>>;
-    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Haustier>>>;
+    async fn find_by_klient_id(
+        &self,
+        klient_id: KlientId,
+    ) -> RepositoryResult<Vec<Versioned<Haustier>>>;
     async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Haustier>>>;
     async fn create(&self, haustier: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>>;
     async fn update(&self, haustier: &mut Versioned<Haustier>) -> RepositoryResult<()>;
@@ -43,10 +42,7 @@ pub trait ProduktRepository: Send + Sync {
 #[async_trait]
 pub trait BehandlungRepository: Send + Sync {
     async fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>>;
-    async fn create(
-        &self,
-        behandlung: NeueBehandlung,
-    ) -> RepositoryResult<Versioned<Behandlung>>;
+    async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>>;
 }
 
 #[async_trait]

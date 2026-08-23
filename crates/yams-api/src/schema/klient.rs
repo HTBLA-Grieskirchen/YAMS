@@ -2,9 +2,7 @@ use chrono::NaiveDate;
 use uuid::Uuid;
 use yams_core::domain;
 
-use crate::schema::{
-    Adresse, EmailAdresse, Haustier, Mobilnummer, schema_haustier_from_domain,
-};
+use crate::schema::{Adresse, EmailAdresse, Haustier, Mobilnummer, schema_haustier_from_domain};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
@@ -38,6 +36,9 @@ pub fn schema_klient_from_domain(
         kundennummer: klient.kundennummer,
         einwilligung: klient.einwilligung,
         adresse: klient.adresse.into(),
-        haustiere: haustiere.into_iter().map(schema_haustier_from_domain).collect(),
+        haustiere: haustiere
+            .into_iter()
+            .map(schema_haustier_from_domain)
+            .collect(),
     }
 }

@@ -48,7 +48,9 @@ pub fn schema_rechnung_from_domain(rechnung: RechnungOffen) -> Rechnung {
 
 pub fn schema_rechnung_from_domain_rechnung(rechnung: DomainRechnung) -> Rechnung {
     match rechnung {
-        DomainRechnung::Offen(rechnung) => schema_rechnung_common(&rechnung, RechnungStatus::Offen, None),
+        DomainRechnung::Offen(rechnung) => {
+            schema_rechnung_common(&rechnung, RechnungStatus::Offen, None)
+        }
         DomainRechnung::Bezahlt(rechnung) => schema_rechnung_common(
             &rechnung,
             RechnungStatus::Bezahlt,

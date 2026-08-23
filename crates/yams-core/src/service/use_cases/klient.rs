@@ -4,9 +4,7 @@ use error_stack::{IntoReport, Report, ResultExt};
 
 use crate::{
     application::uow::Versioned,
-    domain::{
-        Adresse, EmailAdresse, Klient, Mobilnummer, klient::NeuerKlient,
-    },
+    domain::{Adresse, EmailAdresse, Klient, Mobilnummer, klient::NeuerKlient},
     service::{ExecutionContext, UseCase},
 };
 

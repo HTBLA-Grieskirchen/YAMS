@@ -8,8 +8,8 @@ use std::ops::DerefMut;
 use crate::{
     application::uow::Versioned,
     domain::{
-        Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen,
-        LeistungQuelle, Preis, Produkt, ProduktId, RechnungOffen, behandlung::NeueBehandlung,
+        Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen, LeistungQuelle,
+        Preis, Produkt, ProduktId, RechnungOffen, behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
     service::{ExecutionContext, UseCase},
@@ -261,8 +261,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             .await
             .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-        let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> =
-            FxHashMap::default();
+        let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> = FxHashMap::default();
         for leistung in leistungen {
             gruppen
                 .entry(leistung.klient_id().clone())
@@ -295,7 +294,9 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                     abschlussdatum,
                     &mut leistung_refs,
                 )
-                .map_err(|report| report.change_context(TagesabschlussDurchführenFehler::Rechnung))?
+                .map_err(|report| {
+                    report.change_context(TagesabschlussDurchführenFehler::Rechnung)
+                })?
             };
 
             let persisted = uow

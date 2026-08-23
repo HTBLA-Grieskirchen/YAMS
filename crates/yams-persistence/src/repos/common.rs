@@ -4,9 +4,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
-    domain::{
-        BehandlungId, HaustierId, KlientId, LeistungQuelle, Preis, ProduktId, RechnungId,
-    },
+    domain::{BehandlungId, HaustierId, KlientId, LeistungQuelle, Preis, ProduktId, RechnungId},
     ports::RepositoryError,
 };
 

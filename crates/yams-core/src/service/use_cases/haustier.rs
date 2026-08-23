@@ -35,7 +35,9 @@ impl UseCase<Haustier> for HaustierErstellen {
         uow.klienten()
             .find_by_id(self.klient_id.clone())
             .await
-            .change_context(HaustierErstellenFehler::KlientNichtGefunden(self.klient_id.clone()))?;
+            .change_context(HaustierErstellenFehler::KlientNichtGefunden(
+                self.klient_id.clone(),
+            ))?;
 
         let haustier = uow
             .haustiere()
@@ -75,7 +77,11 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
     ) -> ResultReport<Vec<Haustier>, <Self::Error as IntoReport>::Context> {
         let mut errors = Option::<Report<[HaustierErstellenFehler]>>::None;
         let mut haustiere = Vec::with_capacity(self.haustiere.len());
-        for fut in self.haustiere.into_iter().map(|h| h.perform(ctx.to_locked())) {
+        for fut in self
+            .haustiere
+            .into_iter()
+            .map(|h| h.perform(ctx.to_locked()))
+        {
             match fut.await {
                 Ok(haustier) => haustiere.push(haustier),
                 Err(e) => match &mut errors {

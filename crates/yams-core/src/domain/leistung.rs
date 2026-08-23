@@ -2,9 +2,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use uuid::Uuid;
 
-use crate::domain::{
-    BehandlungId, HaustierId, KlientId, Preis, ProduktId, RechnungId,
-};
+use crate::domain::{BehandlungId, HaustierId, KlientId, Preis, ProduktId, RechnungId};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct LeistungId(pub Uuid);
@@ -40,9 +38,7 @@ impl LeistungQuelle {
     pub fn betrag(&self) -> Preis {
         match self {
             Self::Produkt {
-                menge,
-                einzelpreis,
-                ..
+                menge, einzelpreis, ..
             } => einzelpreis
                 .multiply(*menge)
                 .expect("produkt-betrag aus nicht-negativem preis und menge"),
@@ -58,7 +54,9 @@ impl LeistungQuelle {
             Self::Behandlung {
                 mwst_prozentsatz, ..
             } => *mwst_prozentsatz,
-            Self::Manuell { mwst_prozentsatz, .. } => *mwst_prozentsatz,
+            Self::Manuell {
+                mwst_prozentsatz, ..
+            } => *mwst_prozentsatz,
         }
     }
 }

@@ -135,15 +135,15 @@ impl<S> RechnungIn<S> {
     }
 
     pub fn gesamtbetrag_netto(&self) -> Preis {
-        self.positionen
-            .iter()
-            .fold(Preis::zero(), |acc, position| acc + position.gesamtpreis_netto())
+        self.positionen.iter().fold(Preis::zero(), |acc, position| {
+            acc + position.gesamtpreis_netto()
+        })
     }
 
     pub fn gesamtbetrag_brutto(&self) -> Preis {
-        self.positionen
-            .iter()
-            .fold(Preis::zero(), |acc, position| acc + position.gesamtpreis_brutto())
+        self.positionen.iter().fold(Preis::zero(), |acc, position| {
+            acc + position.gesamtpreis_brutto()
+        })
     }
 }
 
@@ -193,8 +193,14 @@ impl RechnungOffen {
             }
         }
 
-        Self::neu(rechnung_id, rechnungsnummer, klient_id, rechnungsdatum, positionen)
-            .map_err(Report::new)
+        Self::neu(
+            rechnung_id,
+            rechnungsnummer,
+            klient_id,
+            rechnungsdatum,
+            positionen,
+        )
+        .map_err(Report::new)
     }
 }
 

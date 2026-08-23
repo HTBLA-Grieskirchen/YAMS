@@ -5,12 +5,10 @@ use async_trait::async_trait;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
-    domain::{
-        Rechnung, KlientId, LeistungId, RechnungId, RechnungOffen, Rechnungsposition,
-    },
+    ErrorReportExt,
+    domain::{KlientId, LeistungId, Rechnung, RechnungId, RechnungOffen, Rechnungsposition},
     ports::{RechnungRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
-    ErrorReportExt,
 };
 
 use crate::errors::libsql_error_to_persistence_error;
@@ -96,17 +94,15 @@ fn geladene_rechnung_from_parts(
         None
     };
 
-    Ok(
-        Rechnung::from_parts(
-            header.id.clone(),
-            header.rechnungsnummer,
-            header.klient_id.clone(),
-            header.rechnungsdatum,
-            positionen,
-            bezahlt_datum,
-        )
-        .map_err(|_| RepositoryError::Data)?,
+    Ok(Rechnung::from_parts(
+        header.id.clone(),
+        header.rechnungsnummer,
+        header.klient_id.clone(),
+        header.rechnungsdatum,
+        positionen,
+        bezahlt_datum,
     )
+    .map_err(|_| RepositoryError::Data)?)
 }
 
 #[async_trait]
@@ -200,15 +196,12 @@ impl RechnungRepository for SQLiteRechnungRepository {
             .contextualize_with(libsql_error_to_persistence_error)?
         {
             let header = parse_rechnung_header(&row)?;
-            let is_new_rechnung = current_header
-                .as_ref()
-                .is_none_or(|h| h.id != header.id);
+            let is_new_rechnung = current_header.as_ref().is_none_or(|h| h.id != header.id);
 
             if is_new_rechnung {
                 if let Some(prev_header) = current_header {
                     let version = prev_header.version;
-                    let geladen =
-                        geladene_rechnung_from_parts(&prev_header, current_positionen)?;
+                    let geladen = geladene_rechnung_from_parts(&prev_header, current_positionen)?;
                     rechnungen.push(Versioned::new(version, geladen));
                     current_positionen = Vec::new();
                 }

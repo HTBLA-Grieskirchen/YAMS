@@ -4,9 +4,8 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use yams_core::domain::{Adresse, Klient, Ländercode, Preis};
 use yams_core::service::{
-    BehandlungErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
-    LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
-    TagesabschlussDurchführen,
+    BehandlungErstellen, KlientErstellen, LeistungAusBehandlungBuchen, LeistungAusProduktBuchen,
+    LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchführen,
 };
 
 use super::super::base_app_builder;
@@ -155,7 +154,10 @@ async fn test_tagesabschluss() {
         rechnung_klient1.gesamtbetrag_brutto().value(),
         Decimal::new(119, 0)
     );
-    assert_eq!(rechnung_klient2.gesamtbetrag_netto().value(), Decimal::new(30, 0));
+    assert_eq!(
+        rechnung_klient2.gesamtbetrag_netto().value(),
+        Decimal::new(30, 0)
+    );
     assert_eq!(
         rechnung_klient2.gesamtbetrag_brutto().value(),
         Decimal::new(357, 1)

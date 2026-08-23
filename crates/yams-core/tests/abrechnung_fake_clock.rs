@@ -4,11 +4,11 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
+use yams_core::App;
 use yams_core::domain::{Adresse, Klient, Ländercode, Preis};
 use yams_core::service::{
     KlientErstellen, LeistungAusProduktBuchen, ProduktErstellen, TagesabschlussDurchführen,
 };
-use yams_core::App;
 
 use common::fakes::{FakeUnitOfWorkProvider, FixedClock};
 
@@ -89,7 +89,9 @@ async fn test_tagesabschluss_tage_nach_leistungen_mit_fake_clock() {
     .unwrap();
 
     let rechnungen_heute = app
-        .execute(TagesabschlussDurchführen { abschlussdatum: None })
+        .execute(TagesabschlussDurchführen {
+            abschlussdatum: None,
+        })
         .await
         .unwrap();
 

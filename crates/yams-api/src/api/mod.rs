@@ -19,13 +19,13 @@ use yams_core::{
 use crate::{
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
-        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung,
-        LeistungManuelleErstellung, ProduktErstellung, TagesabschlussErstellung,
+        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
+        ProduktErstellung, TagesabschlussErstellung,
     },
     schema::{
-        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung,
-        schema_behandlung_from_domain, schema_haustier_from_domain, schema_klient_from_domain,
-        schema_leistung_from_domain, schema_produkt_from_domain, schema_rechnung_from_domain,
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, schema_behandlung_from_domain,
+        schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
+        schema_produkt_from_domain, schema_rechnung_from_domain,
         schema_rechnung_from_domain_rechnung,
     },
 };
@@ -116,9 +116,7 @@ impl YamsAppApi {
     ) -> ResultReport<Leistung, ExecutionError> {
         let leistung = self
             .app
-            .execute(
-                LeistungAusProduktBuchen::try_from(body).change_context(ExecutionError)?,
-            )
+            .execute(LeistungAusProduktBuchen::try_from(body).change_context(ExecutionError)?)
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }
@@ -129,9 +127,7 @@ impl YamsAppApi {
     ) -> ResultReport<Leistung, ExecutionError> {
         let leistung = self
             .app
-            .execute(
-                LeistungAusBehandlungBuchen::try_from(body).change_context(ExecutionError)?,
-            )
+            .execute(LeistungAusBehandlungBuchen::try_from(body).change_context(ExecutionError)?)
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }
@@ -142,9 +138,7 @@ impl YamsAppApi {
     ) -> ResultReport<Leistung, ExecutionError> {
         let leistung = self
             .app
-            .execute(
-                LeistungManuellErfassen::try_from(body).change_context(ExecutionError)?,
-            )
+            .execute(LeistungManuellErfassen::try_from(body).change_context(ExecutionError)?)
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }

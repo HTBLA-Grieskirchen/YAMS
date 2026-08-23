@@ -121,7 +121,10 @@ impl YamsApiSpec {
         &self,
         body: Json<LeistungAusProduktErstellung>,
     ) -> TypicalJsonResponse<Leistung> {
-        self.app_api.leistung_aus_produkt_buchen(body.0).await.into()
+        self.app_api
+            .leistung_aus_produkt_buchen(body.0)
+            .await
+            .into()
     }
 
     #[oai(path = "/leistung/behandlung", method = "post")]
@@ -129,7 +132,10 @@ impl YamsApiSpec {
         &self,
         body: Json<LeistungAusBehandlungErstellung>,
     ) -> TypicalJsonResponse<Leistung> {
-        self.app_api.leistung_aus_behandlung_buchen(body.0).await.into()
+        self.app_api
+            .leistung_aus_behandlung_buchen(body.0)
+            .await
+            .into()
     }
 
     #[oai(path = "/leistung/manuell", method = "post")]

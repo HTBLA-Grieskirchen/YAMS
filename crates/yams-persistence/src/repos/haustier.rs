@@ -5,10 +5,10 @@ use async_trait::async_trait;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
+    ErrorReportExt,
     domain::{Haustier, HaustierId, KlientId, haustier::NeuesHaustier},
     ports::{HaustierRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
-    ErrorReportExt,
 };
 
 use crate::errors::libsql_error_to_persistence_error;

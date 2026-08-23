@@ -9,8 +9,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
     domain::{
-        Behandlung, BehandlungId, Leistung, Rechnung, Haustier, HaustierId, Klient,
-        KlientId, LeistungId, LeistungOffen, Produkt, ProduktId, RechnungOffen,
+        Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
+        LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen,
         behandlung::NeueBehandlung,
         haustier::NeuesHaustier,
         klient::NeuerKlient,
@@ -265,7 +265,10 @@ impl HaustierRepository for FakeHaustiereRepository {
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
-    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Haustier>>> {
+    async fn find_by_klient_id(
+        &self,
+        klient_id: KlientId,
+    ) -> RepositoryResult<Vec<Versioned<Haustier>>> {
         let data = self.datastore.haustiere.lock().unwrap();
         Ok(data
             .values()

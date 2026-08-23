@@ -18,7 +18,10 @@ fn preis_add_sums_values() {
 fn preis_multiply_scales_value() {
     let preis = Preis::new(Decimal::new(25, 0)).unwrap();
 
-    assert_eq!(preis.multiply(Decimal::new(2, 0)).unwrap().value(), Decimal::new(50, 0));
+    assert_eq!(
+        preis.multiply(Decimal::new(2, 0)).unwrap().value(),
+        Decimal::new(50, 0)
+    );
 }
 
 #[test]

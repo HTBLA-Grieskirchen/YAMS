@@ -18,6 +18,7 @@ async-trait = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 http = { workspace = true }
+rust_decimal = { workspace = true }
 
 poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }

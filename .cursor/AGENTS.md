@@ -43,16 +43,26 @@ yams/
 
 Dependency rule: **inward only**. Core knows nothing about HTTP, SQLite, or Tauri.
 
+## German Ubiquitous Language
+
+Domain language is **German** across the full stack — Rust types, SQLite tables/columns, API JSON keys (UTF-8, e.g. `Ländercode` → JSON `ländercode`). English legacy names are obsolete.
+
+- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names.
+- **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request).
+- **JSON** — German field names, `camelCase` serde (`vorName`, `strasseUndHausnummer`).
+- **HTTP paths** — German (`/klient`, `/tagesabschluss`).
+- **Billing detail** — [`specs/abrechnung.md`](specs/abrechnung.md); trust code over stale English specs.
+
 ## yams-core — The Heart
 
 Single bounded context, single subdomain (for now). Organized by **feature slices**, not technical layers:
 
 ```
 yams-core/src/
-├── domain/           # Aggregates & value objects (client.rs, animal.rs, contact.rs, …)
-├── service/          # Use cases (use_cases/client.rs, use_cases/animals.rs)
+├── domain/           # Aggregates & VOs (klient.rs, haustier.rs, leistung.rs, …)
+├── service/          # Use cases (use_cases/klient.rs, use_cases/abrechnung.rs, …)
 ├── application/
-│   ├── ports/        # Clock, ClientRepository, AnimalRepository
+│   ├── ports/        # Clock, KlientRepository, HaustierRepository, …
 │   ├── uow.rs        # UnitOfWork facade, Versioned<T>
 │   ├── context.rs    # ExecutionContext
 │   └── mod.rs        # App, orchestration (begin → execute → commit/rollback)
@@ -65,11 +75,12 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 
 **Make invalid state unrepresentable.** This is the guiding principle for domain modeling:
 
-- **Newtypes for identity** — `ClientId(Uuid)`, `AnimalId(Uuid)` prevent ID mix-ups at compile time.
-- **Validated value objects** — `EmailAddress`, `MobileNumber` can only be constructed through `new()` / `TryFrom` that enforces invariants. An `EmailAddress` in the type system *is* valid.
-- **Separate creation types** — `NewClient` / `NewAnimal` have no ID field; persisted aggregates (`Client`, `Animal`) always do. You cannot accidentally persist an entity that was never assigned an identity.
+- **Newtypes for identity** — `KlientId(Uuid)`, `HaustierId(Uuid)` prevent ID mix-ups at compile time.
+- **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Ländercode`, `Preis` can only be constructed through `new()` / `TryFrom`. Invalid values cannot exist in the type system.
+- **Separate creation types** — `NeuerKlient` / `NeuesHaustier` have no ID; persisted aggregates always do.
 - **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version. Updates require the expected version; stale writes are rejected at the type boundary.
-- **UoW access modes** — `locked()` (read-only, no checkpoint) vs `shared()` (checkpointable) encode transaction semantics in the API. For multi-step ops inside one transaction (e.g. `CreateManyAnimals`), sub-use-cases run via `ctx.to_locked()` and the outer UoW calls `checkpoint()` between steps. **Rollback after a checkpoint only reverts to the last checkpoint**, not the transaction start — do not checkpoint casually.
+- **UoW access modes** — `locked()` vs `shared()` encode transaction semantics. Multi-step ops (`VieleHaustiereErstellen`, `TagesabschlussDurchfuehren`) use `ctx.to_locked()` + `checkpoint()`. **Rollback after checkpoint only reverts to last checkpoint** — do not checkpoint casually.
+- **Single linkage** — `Haustier.klient_id` is the source of truth; no `haustier_ids` on `Klient`.
 
 Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` with UoW + clock access.
 
@@ -95,14 +106,14 @@ pub trait UseCase<Output> {
 }
 ```
 
-One use case per business operation (`CreateClient`, `CreateAnimal`, `CreateManyAnimals`, …).
+One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `TagesabschlussDurchfuehren`, …).
 
 ## yams-api — Public Interface
 
 Framework-agnostic API layer between driving adapters and core.
 
-- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`create_client`, `create_animal`, `get_all_animals`, …). Translates between domain types and API schema DTOs.
-- **`schema/`** — serializable DTOs with `camelCase` naming for frontend compatibility.
+- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchfuehren`, …). Translates domain → API schema DTOs.
+- **`schema/`** — German DTOs, JSON `camelCase` (`vorName`, `ländercode`).
 - **`requests/`** — inbound request types with `TryFrom` into use-case inputs.
 - **`errors/`** — `Report<E>` → structured JSON error trees for HTTP responses.
 
@@ -126,7 +137,7 @@ Single repository adapter (SQLite via libsql). Name may become more specific whe
 - **No ORM** — manual row parsing and saving. Lean, explicit, some boilerplate. DRY and AI assistance keep it manageable.
 - **`SQLiteInstance`** — factory: `local(path)`, `in_memory()`, `in_temp_dir()`
 - **`SQLiteUnitOfWork`** — implements `UnitOfWorkProvider` + `UnitOfWorkImpl`; checkpoint = commit + new deferred transaction
-- **`repos/`** — `SQLiteClientRepository`, `SQLiteAnimalRepository`
+- **`repos/`** — `SQLiteKlientRepository`, `SQLiteHaustierRepository`, …
 - **`migrations/`** — versioned SQL via `molting` framework (`v0001_initial.rs`, …)
 
 ## molting
@@ -174,7 +185,7 @@ Next.js app in `frontend/`. Tauri shell in `frontend/src-tauri/`. OpenAPI types 
 
 ## Conventions for Contributors
 
-1. **New feature?** Walk the vertical slice in order, all named by feature (`seminar.rs`, not `model.rs`):
+1. **New feature?** Walk the vertical slice in order, German feature names (`seminar.rs`, not `model.rs`):
    `domain/` → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → test case in `yams-core/tests/cases/` → `mise run build:openapi` (if API surface changed).
 2. **Domain changes stay in core.** API DTOs are a separate translation layer; never leak serde/openapi concerns into core.
 3. **All mutations through `App::execute`.** No direct repo calls from adapters.

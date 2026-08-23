@@ -1,42 +1,41 @@
 # YAMS Hexagonal Backend Specification
 
+> **Hinweis:** Domain-Sprache ist **Deutsch** (UTF-8). Dieses Dokument kann hinter dem Code liegen — Implementation in `crates/` und [`abrechnung.md`](abrechnung.md) ist maßgeblich.
+
 ## Core Domain (`yams-core`)
 
-- **Entities**: Client, Address, Animal, Race, Event, Seminar, Participation, Relation.
-- **Value Objects**: Email, PhoneNumber, Date, Price.
-- **Ports**:
-  - `Repository`: For each entity (e.g., `ClientRepository`).
-- **Services**: Domain services (e.g., `AddressService`) that depend on specific `Repository` ports.
-- **Context**: `YamsContext` holds all domain services and represents the unified entrypoint for ingoing adapters.
-- **Error Handling**: Uses `thiserror` for idiomatic error propagation and `Result<T>` alias.
+- **Entities**: `Klient`, `Haustier`, `Adresse`, `Produkt`, `Behandlung`, `Leistung`, `Rechnung` (siehe [`abrechnung.md`](abrechnung.md)).
+- **Geplant**: `Veranstaltung`, `Teilnahme`, `Beziehung`, `Rasse`, `Seminar`.
+- **Value Objects**: `Preis`, `EmailAdresse`, `Mobilnummer`, `Ländercode`, Status-Enums.
+- **Ports**: Repository pro Aggregate + `Clock`.
+- **Use Cases**: Ein Use Case pro Geschäftsvorgang (`KlientErstellen`, `TagesabschlussDurchfuehren`, …).
+- **App**: Composition Root; alle Mutationen via `App::execute`.
+- **Error Handling**: `thiserror` in Domain/Use Cases, `error_stack::Report` an Grenzen.
 
-## DTO Layer (`yams-dto`)
+## API Layer (`yams-api`)
 
-- **Purpose**: Defines shared `poem-openapi` models used by both `yams-server` and `yams-tauri`.
-- **Naming**: Uses `camelCase` for compatibility with the frontend.
-- **Spec Export**: Provides a binary `export_spec` to print the OpenAPI spec to stdout.
+- **Purpose**: `YamsAppApi`, schema DTOs, OpenAPI — framework-agnostisch.
+- **Naming**: Deutsche Feldnamen, JSON `camelCase` (z. B. `vorName`, `ländercode`).
+- **Spec Export**: Binary `export_spec` druckt OpenAPI nach stdout.
 
 ## Persistence (`yams-persistence`)
 
 - **Driver**: `libsql` (SQLite).
-- **Schema**: Replicate `setup.surql` in SQL. Use migrations via `libsql_migration`.
-- **Mappers**: Convert database rows to/from domain entities.
+- **Schema**: SQL-Migrationen via `molting` in `migrations/`.
+- **Mappers**: Manuelles Parsen/Speichern, kein ORM.
 
 ## Standalone Server (`yams-server`)
 
 - **Framework**: `poem-openapi`.
-- **Adapters**: REST controllers mapping OpenAPI requests to `yams-core` services.
-- **Injection**: Uses `YamsContext` and domain services for logic.
+- **Routes**: `/klient`, `/haustier`, `/produkt`, `/behandlung`, `/leistung`, `/rechnung`, `/tagesabschluss`.
 
-## Tauri Embedded (`yams-tauri`)
+## Tauri Embedded (`frontend/src-tauri`)
 
-- **Adapters**: Tauri commands in `frontend/src-tauri` mapping IPC messages to `yams-core` services.
-- **State**: Shared state holding `YamsContext` and domain services.
+- **Adapters**: Tauri commands → `YamsAppApi`.
+- **Features**: `yams-api` mit `serde` only (kein poem).
 
-## Communication Bridge
+## Communication Bridge (Frontend)
 
-- **Frontend Interface**: `BackendClient` interface in TypeScript.
-- **Implementations**:
-  - `HttpAdapter`: Uses `openapi-fetch` to talk to `yams-server`.
-  - `TauriAdapter`: Uses `invoke` to talk to `yams-tauri`.
-- **State Management**: TanStack Query hooks consuming `BackendClient`.
+- **BackendClient** in TypeScript.
+- **HttpAdapter** / **TauriAdapter**.
+- **TanStack Query** für State.

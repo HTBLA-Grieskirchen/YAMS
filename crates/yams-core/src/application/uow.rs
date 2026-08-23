@@ -5,7 +5,10 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 
 use crate::application::{ResultReport, ports::RepositoryError};
-use crate::ports::{AnimalRepository, ClientRepository, RepositoryResult};
+use crate::ports::{
+    BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
+    ProduktRepository, RechnungRepository, RepositoryResult,
+};
 
 pub struct UnitOfWork<'a> {
     implementation: Box<dyn UnitOfWorkImpl + 'a>,
@@ -48,12 +51,28 @@ impl UnitOfWork<'_> {
         }
     }
 
-    pub fn animals(&self) -> &dyn AnimalRepository {
-        self.implementation.animals()
+    pub fn klienten(&self) -> &dyn KlientRepository {
+        self.implementation.klienten()
     }
 
-    pub fn clients(&self) -> &dyn ClientRepository {
-        self.implementation.clients()
+    pub fn haustiere(&self) -> &dyn HaustierRepository {
+        self.implementation.haustiere()
+    }
+
+    pub fn produkte(&self) -> &dyn ProduktRepository {
+        self.implementation.produkte()
+    }
+
+    pub fn behandlungen(&self) -> &dyn BehandlungRepository {
+        self.implementation.behandlungen()
+    }
+
+    pub fn leistungen(&self) -> &dyn LeistungRepository {
+        self.implementation.leistungen()
+    }
+
+    pub fn rechnungen(&self) -> &dyn RechnungRepository {
+        self.implementation.rechnungen()
     }
 }
 
@@ -64,28 +83,39 @@ struct LockedUnitOfWorkImpl<'a> {
 #[async_trait]
 impl UnitOfWorkImpl for LockedUnitOfWorkImpl<'_> {
     async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        // Disabled for locked UoW, we cannot even due to borrow
         Ok(())
     }
 
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
-        // Impossible because we only borrowed the outer UoW
-        // No problem because only the outer one can be committed
         Ok(())
     }
 
     async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
-        // Impossible because we only borrowed the outer UoW
-        // No problem because only the outer one can be rolled back
         Ok(())
     }
 
-    fn clients(&self) -> &dyn ClientRepository {
-        self.inner.clients()
+    fn klienten(&self) -> &dyn KlientRepository {
+        self.inner.klienten()
     }
 
-    fn animals(&self) -> &dyn AnimalRepository {
-        self.inner.animals()
+    fn haustiere(&self) -> &dyn HaustierRepository {
+        self.inner.haustiere()
+    }
+
+    fn produkte(&self) -> &dyn ProduktRepository {
+        self.inner.produkte()
+    }
+
+    fn behandlungen(&self) -> &dyn BehandlungRepository {
+        self.inner.behandlungen()
+    }
+
+    fn leistungen(&self) -> &dyn LeistungRepository {
+        self.inner.leistungen()
+    }
+
+    fn rechnungen(&self) -> &dyn RechnungRepository {
+        self.inner.rechnungen()
     }
 }
 
@@ -107,35 +137,44 @@ impl UnitOfWorkImpl for SharedUnitOfWorkImpl<'_> {
         Ok(())
     }
 
-    fn clients(&self) -> &dyn ClientRepository {
-        self.inner.clients()
+    fn klienten(&self) -> &dyn KlientRepository {
+        self.inner.klienten()
     }
 
-    fn animals(&self) -> &dyn AnimalRepository {
-        self.inner.animals()
+    fn haustiere(&self) -> &dyn HaustierRepository {
+        self.inner.haustiere()
+    }
+
+    fn produkte(&self) -> &dyn ProduktRepository {
+        self.inner.produkte()
+    }
+
+    fn behandlungen(&self) -> &dyn BehandlungRepository {
+        self.inner.behandlungen()
+    }
+
+    fn leistungen(&self) -> &dyn LeistungRepository {
+        self.inner.leistungen()
+    }
+
+    fn rechnungen(&self) -> &dyn RechnungRepository {
+        self.inner.rechnungen()
     }
 }
 
 /// UoW Provider
 #[async_trait]
 pub trait UnitOfWorkImpl: Send + Sync {
-    /// Different from a commit, this allows further usage of this UoW afterwards. It guarantees that the changes are fully persisted, and can be read from anew upon full system restart.
-    /// Beware, rollback after a checkpoint will not revert the changes, and the system will be in an inconsistent state. Rollback will only revert changes up to the latest checkpoint.
-    /// Use sparingly, idealy for long running events such as batch pdf generation.
     async fn checkpoint(&mut self) -> RepositoryResult<()>;
-    /// Commit the changes to the database, publishing them for all other UoW/transactions to see.
-    /// This needs to ensure that upon success, the commit has already happened successfully.
-    /// This needs to ensure that upon failure, the commit has not happened at all, following ACID
-    /// rules.
     async fn commit(self: Box<Self>) -> RepositoryResult<()>;
-    /// Rollback the changes to the database, undoing them for all other UoW/transactions to see.
-    /// This needs to ensure that upon success, the rollback has already happened successfully.
-    /// This needs to ensure that upon failure, the rollback has not happened at all, following ACID
-    /// rules.
     async fn rollback(self: Box<Self>) -> RepositoryResult<()>;
 
-    fn clients(&self) -> &dyn ClientRepository;
-    fn animals(&self) -> &dyn AnimalRepository;
+    fn klienten(&self) -> &dyn KlientRepository;
+    fn haustiere(&self) -> &dyn HaustierRepository;
+    fn produkte(&self) -> &dyn ProduktRepository;
+    fn behandlungen(&self) -> &dyn BehandlungRepository;
+    fn leistungen(&self) -> &dyn LeistungRepository;
+    fn rechnungen(&self) -> &dyn RechnungRepository;
 }
 
 #[async_trait]

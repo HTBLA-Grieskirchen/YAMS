@@ -4,26 +4,46 @@ use std::{
 };
 
 use async_trait::async_trait;
+use chrono::NaiveDate;
 use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
-    domain::client::NewClient,
-    ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult},
+    domain::{
+        Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
+        LeistungStatus, Produkt, ProduktId, Rechnung, RechnungId,
+        behandlung::NeueBehandlung,
+        haustier::NeuesHaustier,
+        klient::NeuerKlient,
+        leistung::{NeueLeistung},
+        produkt::NeuesProdukt,
+    },
+    ports::{
+        BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
+        ProduktRepository, RechnungRepository, RepositoryError, RepositoryResult,
+    },
     uow::Versioned,
 };
 
-use yams_core::domain::{Animal, AnimalId, Client, ClientId, animal::NewAnimal};
-
 pub struct FakeDatastore {
-    pub clients: Mutex<FxHashMap<Uuid, Versioned<Client>>>,
-    pub animals: Mutex<FxHashMap<Uuid, Versioned<Animal>>>,
+    pub klienten: Mutex<FxHashMap<Uuid, Versioned<Klient>>>,
+    pub haustiere: Mutex<FxHashMap<Uuid, Versioned<Haustier>>>,
+    pub produkte: Mutex<FxHashMap<Uuid, Versioned<Produkt>>>,
+    pub behandlungen: Mutex<FxHashMap<Uuid, Versioned<Behandlung>>>,
+    pub leistungen: Mutex<FxHashMap<Uuid, Versioned<Leistung>>>,
+    pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<Rechnung>>>,
+    pub naechste_rechnungsnummer: Mutex<i64>,
 }
 
 impl Clone for FakeDatastore {
     fn clone(&self) -> Self {
         Self {
-            clients: Mutex::new(self.clients.lock().unwrap().clone()),
-            animals: Mutex::new(self.animals.lock().unwrap().clone()),
+            klienten: Mutex::new(self.klienten.lock().unwrap().clone()),
+            haustiere: Mutex::new(self.haustiere.lock().unwrap().clone()),
+            produkte: Mutex::new(self.produkte.lock().unwrap().clone()),
+            behandlungen: Mutex::new(self.behandlungen.lock().unwrap().clone()),
+            leistungen: Mutex::new(self.leistungen.lock().unwrap().clone()),
+            rechnungen: Mutex::new(self.rechnungen.lock().unwrap().clone()),
+            naechste_rechnungsnummer: Mutex::new(*self.naechste_rechnungsnummer.lock().unwrap()),
         }
     }
 }
@@ -31,14 +51,25 @@ impl Clone for FakeDatastore {
 impl FakeDatastore {
     pub fn new() -> Self {
         Self {
-            clients: Mutex::new(FxHashMap::default()),
-            animals: Mutex::new(FxHashMap::default()),
+            klienten: Mutex::new(FxHashMap::default()),
+            haustiere: Mutex::new(FxHashMap::default()),
+            produkte: Mutex::new(FxHashMap::default()),
+            behandlungen: Mutex::new(FxHashMap::default()),
+            leistungen: Mutex::new(FxHashMap::default()),
+            rechnungen: Mutex::new(FxHashMap::default()),
+            naechste_rechnungsnummer: Mutex::new(1),
         }
     }
 
     pub fn replace_with(&self, other: &FakeDatastore) {
-        *self.clients.lock().unwrap() = other.clients.lock().unwrap().clone();
-        *self.animals.lock().unwrap() = other.animals.lock().unwrap().clone();
+        *self.klienten.lock().unwrap() = other.klienten.lock().unwrap().clone();
+        *self.haustiere.lock().unwrap() = other.haustiere.lock().unwrap().clone();
+        *self.produkte.lock().unwrap() = other.produkte.lock().unwrap().clone();
+        *self.behandlungen.lock().unwrap() = other.behandlungen.lock().unwrap().clone();
+        *self.leistungen.lock().unwrap() = other.leistungen.lock().unwrap().clone();
+        *self.rechnungen.lock().unwrap() = other.rechnungen.lock().unwrap().clone();
+        *self.naechste_rechnungsnummer.lock().unwrap() =
+            *other.naechste_rechnungsnummer.lock().unwrap();
     }
 
     pub fn merge(
@@ -52,25 +83,55 @@ impl FakeDatastore {
             map.lock().map_err(|_| RepositoryError::OperationFailed)
         }
 
-        let (mut target_clients, mut target_animals) = (
-            acquire_map_lock(&target.clients)?,
-            acquire_map_lock(&target.animals)?,
-        );
+        let mut target_klienten = acquire_map_lock(&target.klienten)?;
+        let mut target_haustiere = acquire_map_lock(&target.haustiere)?;
+        let mut target_produkte = acquire_map_lock(&target.produkte)?;
+        let mut target_behandlungen = acquire_map_lock(&target.behandlungen)?;
+        let mut target_leistungen = acquire_map_lock(&target.leistungen)?;
+        let mut target_rechnungen = acquire_map_lock(&target.rechnungen)?;
 
         FakeDatastore::merge_single_aggregate(
-            target_clients.deref_mut(),
-            &*acquire_map_lock(&reference.clients)?,
-            &*acquire_map_lock(&tx.clients)?,
+            target_klienten.deref_mut(),
+            &*acquire_map_lock(&reference.klienten)?,
+            &*acquire_map_lock(&tx.klienten)?,
         )?;
         FakeDatastore::merge_single_aggregate(
-            target_animals.deref_mut(),
-            &*acquire_map_lock(&reference.animals)?,
-            &*acquire_map_lock(&tx.animals)?,
+            target_haustiere.deref_mut(),
+            &*acquire_map_lock(&reference.haustiere)?,
+            &*acquire_map_lock(&tx.haustiere)?,
         )?;
+        FakeDatastore::merge_single_aggregate(
+            target_produkte.deref_mut(),
+            &*acquire_map_lock(&reference.produkte)?,
+            &*acquire_map_lock(&tx.produkte)?,
+        )?;
+        FakeDatastore::merge_single_aggregate(
+            target_behandlungen.deref_mut(),
+            &*acquire_map_lock(&reference.behandlungen)?,
+            &*acquire_map_lock(&tx.behandlungen)?,
+        )?;
+        FakeDatastore::merge_single_aggregate(
+            target_leistungen.deref_mut(),
+            &*acquire_map_lock(&reference.leistungen)?,
+            &*acquire_map_lock(&tx.leistungen)?,
+        )?;
+        FakeDatastore::merge_single_aggregate(
+            target_rechnungen.deref_mut(),
+            &*acquire_map_lock(&reference.rechnungen)?,
+            &*acquire_map_lock(&tx.rechnungen)?,
+        )?;
+
+        *target.naechste_rechnungsnummer.lock().unwrap() =
+            *tx.naechste_rechnungsnummer.lock().unwrap();
 
         Ok(FakeDatastore {
-            clients: Mutex::new(target_clients.clone()),
-            animals: Mutex::new(target_animals.clone()),
+            klienten: Mutex::new(target_klienten.clone()),
+            haustiere: Mutex::new(target_haustiere.clone()),
+            produkte: Mutex::new(target_produkte.clone()),
+            behandlungen: Mutex::new(target_behandlungen.clone()),
+            leistungen: Mutex::new(target_leistungen.clone()),
+            rechnungen: Mutex::new(target_rechnungen.clone()),
+            naechste_rechnungsnummer: Mutex::new(*target.naechste_rechnungsnummer.lock().unwrap()),
         })
     }
 
@@ -91,9 +152,7 @@ impl FakeDatastore {
             let tx_versioned = tx.get(&id).cloned();
 
             match (reference_versioned, tx_versioned) {
-                // Retained same entity in both tx and reference
                 (Some(reference_versioned), Some(tx_versioned)) => {
-                    // We need to update the target version
                     if reference_versioned.v() != tx_versioned.v() {
                         let Some(target_versioned) = target_versioned else {
                             return Err(RepositoryError::Conflict);
@@ -108,7 +167,6 @@ impl FakeDatastore {
                     }
                 }
                 (Some(reference_versioned), None) => {
-                    // We want to delete the entity from the target
                     if let Some(target_v) = target_versioned
                         && target_v.v() > reference_versioned.v()
                     {
@@ -120,11 +178,9 @@ impl FakeDatastore {
                     target.remove(&id);
                 }
                 (None, Some(tx_versioned)) => {
-                    // We want to insert the entity from the tx
-                    if let Some(_target_v) = target_versioned {
+                    if target_versioned.is_some() {
                         return Err(RepositoryError::Conflict);
                     }
-
                     target.insert(id, tx_versioned);
                 }
                 _ => {}
@@ -134,140 +190,300 @@ impl FakeDatastore {
     }
 }
 
-pub struct FakeAnimalsRepository {
+pub struct FakeKlientenRepository {
     datastore: Arc<FakeDatastore>,
 }
 
-impl FakeAnimalsRepository {
+impl FakeKlientenRepository {
     pub fn new(datastore: Arc<FakeDatastore>) -> Self {
         Self { datastore }
     }
 }
 
 #[async_trait]
-impl AnimalRepository for FakeAnimalsRepository {
-    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>> {
-        let data = self.datastore.animals.lock().unwrap();
+impl KlientRepository for FakeKlientenRepository {
+    async fn find_by_id(&self, id: KlientId) -> RepositoryResult<Versioned<Klient>> {
+        let data = self.datastore.klienten.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
-    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Animal>>> {
-        let data = self.datastore.animals.lock().unwrap();
+    async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
+        let id = KlientId(Uuid::new_v4());
+        let mut data = self.datastore.klienten.lock().unwrap();
+        let versioned = Versioned::init(Klient {
+            id,
+            vorname: klient.vorname,
+            nachname: klient.nachname,
+            geburtstag: klient.geburtstag,
+            email: klient.email,
+            mobilnummer: klient.mobilnummer,
+            kundennummer: klient.kundennummer,
+            einwilligung: klient.einwilligung,
+            adresse: klient.adresse,
+        });
+        data.insert(versioned.id.0.clone(), versioned.clone());
+        Ok(versioned)
+    }
+
+    async fn update(&self, klient: &mut Versioned<Klient>) -> RepositoryResult<()> {
+        let mut data = self.datastore.klienten.lock().unwrap();
+        if let Some(existing) = data.get(&klient.id.0) {
+            if existing.v() != klient.v() {
+                Err(RepositoryError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: Some(klient.v()),
+                })?;
+            }
+            *klient = klient.clone().incremented();
+            data.insert(klient.id.0.clone(), klient.clone());
+            return Ok(());
+        }
+        Err(RepositoryError::NotFound)?
+    }
+
+    async fn delete(&self, klient: Versioned<Klient>) -> RepositoryResult<()> {
+        let mut data = self.datastore.klienten.lock().unwrap();
+        if let Some(existing) = data.get(&klient.id.0) {
+            if existing.v() != klient.v() {
+                Err(RepositoryError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: Some(klient.v()),
+                })?;
+            }
+            data.remove(&klient.id.0);
+            return Ok(());
+        }
+        Err(RepositoryError::NotFound)?
+    }
+}
+
+pub struct FakeHaustiereRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeHaustiereRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl HaustierRepository for FakeHaustiereRepository {
+    async fn find_by_id(&self, id: HaustierId) -> RepositoryResult<Versioned<Haustier>> {
+        let data = self.datastore.haustiere.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Haustier>>> {
+        let data = self.datastore.haustiere.lock().unwrap();
+        Ok(data
+            .values()
+            .filter(|h| h.klient_id == klient_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Haustier>>> {
+        let data = self.datastore.haustiere.lock().unwrap();
         Ok(data.values().cloned().collect())
     }
 
-    async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>> {
-        let id = AnimalId(Uuid::new_v4());
-        let mut data = self.datastore.animals.lock().unwrap();
-        let versioned = Versioned::init(Animal {
+    async fn create(&self, haustier: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>> {
+        let id = HaustierId(Uuid::new_v4());
+        let mut data = self.datastore.haustiere.lock().unwrap();
+        let versioned = Versioned::init(Haustier {
             id,
-            name: animal.name,
-            birthdate: animal.birthdate,
-            animal_species: animal.animal_species,
-            description: animal.description,
+            klient_id: haustier.klient_id,
+            name: haustier.name,
+            geburtstag: haustier.geburtstag,
+            tierart: haustier.tierart,
+            beschreibung: haustier.beschreibung,
         });
         data.insert(versioned.id.0.clone(), versioned.clone());
         Ok(versioned)
     }
 
-    async fn update(&self, animal: &mut Versioned<Animal>) -> RepositoryResult<()> {
-        let mut data = self.datastore.animals.lock().unwrap();
-        if let Some(existing) = data.get(&animal.id.0) {
-            if existing.v() != animal.v() {
+    async fn update(&self, haustier: &mut Versioned<Haustier>) -> RepositoryResult<()> {
+        let mut data = self.datastore.haustiere.lock().unwrap();
+        if let Some(existing) = data.get(&haustier.id.0) {
+            if existing.v() != haustier.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
-                    actual: Some(animal.v()),
+                    actual: Some(haustier.v()),
                 })?;
             }
-
-            *animal = animal.clone().incremented();
-            data.insert(animal.id.0.clone(), animal.clone());
+            *haustier = haustier.clone().incremented();
+            data.insert(haustier.id.0.clone(), haustier.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
     }
 
-    async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()> {
-        let mut data = self.datastore.animals.lock().unwrap();
-        if let Some(existing) = data.get(&animal.id.0) {
-            if existing.v() != animal.v() {
+    async fn delete(&self, haustier: Versioned<Haustier>) -> RepositoryResult<()> {
+        let mut data = self.datastore.haustiere.lock().unwrap();
+        if let Some(existing) = data.get(&haustier.id.0) {
+            if existing.v() != haustier.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
-                    actual: Some(animal.v()),
+                    actual: Some(haustier.v()),
                 })?;
             }
-            data.remove(&animal.id.0);
+            data.remove(&haustier.id.0);
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
     }
 }
 
-pub struct FakeClientsRepository {
+pub struct FakeProdukteRepository {
     datastore: Arc<FakeDatastore>,
 }
 
-impl FakeClientsRepository {
+impl FakeProdukteRepository {
     pub fn new(datastore: Arc<FakeDatastore>) -> Self {
         Self { datastore }
     }
 }
 
 #[async_trait]
-impl ClientRepository for FakeClientsRepository {
-    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>> {
-        let data = self.datastore.clients.lock().unwrap();
+impl ProduktRepository for FakeProdukteRepository {
+    async fn find_by_id(&self, id: ProduktId) -> RepositoryResult<Versioned<Produkt>> {
+        let data = self.datastore.produkte.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
-    async fn create(&self, client: NewClient) -> RepositoryResult<Versioned<Client>> {
-        let id = ClientId(Uuid::new_v4());
-        let mut data = self.datastore.clients.lock().unwrap();
-        let versioned = Versioned::init(Client {
+    async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
+        let id = ProduktId(Uuid::new_v4());
+        let mut data = self.datastore.produkte.lock().unwrap();
+        let versioned = Versioned::init(Produkt {
             id,
-            first_name: client.first_name,
-            last_name: client.last_name,
-            birthdate: client.birthdate,
-            email: client.email,
-            mobile_number: client.mobile_number,
-            customer_number: client.customer_number,
-            consent: client.consent,
-            address: client.address,
-            animal_ids: Vec::new(),
+            name: produkt.name,
+            beschreibung: produkt.beschreibung,
+            einzelpreis: produkt.einzelpreis,
         });
         data.insert(versioned.id.0.clone(), versioned.clone());
+        Ok(versioned)
+    }
+}
 
+pub struct FakeBehandlungenRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeBehandlungenRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl BehandlungRepository for FakeBehandlungenRepository {
+    async fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>> {
+        let data = self.datastore.behandlungen.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
+        let id = BehandlungId(Uuid::new_v4());
+        let mut data = self.datastore.behandlungen.lock().unwrap();
+        let versioned = Versioned::init(Behandlung {
+            id,
+            name: behandlung.name,
+            beschreibung: behandlung.beschreibung,
+            standardpreis: behandlung.standardpreis,
+        });
+        data.insert(versioned.id.0.clone(), versioned.clone());
+        Ok(versioned)
+    }
+}
+
+pub struct FakeLeistungenRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeLeistungenRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl LeistungRepository for FakeLeistungenRepository {
+    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<Leistung>> {
+        let id = LeistungId(Uuid::new_v4());
+        let mut data = self.datastore.leistungen.lock().unwrap();
+        let versioned = Versioned::init(Leistung {
+            id,
+            klient_id: leistung.klient_id,
+            haustier_id: leistung.haustier_id,
+            beschreibung: leistung.beschreibung,
+            betrag: leistung.betrag,
+            leistungsdatum: leistung.leistungsdatum,
+            status: LeistungStatus::Offen,
+            quelle: leistung.quelle,
+            rechnung_id: None,
+        });
+        data.insert(versioned.id.0.clone(), versioned.clone());
         Ok(versioned)
     }
 
-    async fn update(&self, client: &mut Versioned<Client>) -> RepositoryResult<()> {
-        let mut data = self.datastore.clients.lock().unwrap();
-        if let Some(existing) = data.get(&client.id.0) {
-            if existing.v() != client.v() {
-                Err(RepositoryError::VersionMismatch {
-                    expected: existing.v(),
-                    actual: Some(client.v()),
-                })?;
-            }
-            *client = client.clone().incremented();
-            data.insert(client.id.0.clone(), client.clone());
-            return Ok(());
-        }
-        Err(RepositoryError::NotFound)?
+    async fn find_offene_by_datum(&self, datum: NaiveDate) -> RepositoryResult<Vec<Versioned<Leistung>>> {
+        let data = self.datastore.leistungen.lock().unwrap();
+        Ok(data
+            .values()
+            .filter(|l| l.status == LeistungStatus::Offen && l.leistungsdatum == datum)
+            .cloned()
+            .collect())
     }
 
-    async fn delete(&self, client: Versioned<Client>) -> RepositoryResult<()> {
-        let mut data = self.datastore.clients.lock().unwrap();
-        if let Some(existing) = data.get(&client.id.0) {
-            if existing.v() != client.v() {
-                Err(RepositoryError::VersionMismatch {
-                    expected: existing.v(),
-                    actual: Some(client.v()),
-                })?;
-            }
-            data.remove(&client.id.0);
-            return Ok(());
-        }
-        Err(RepositoryError::NotFound)?
+    async fn mark_abgerechnet(
+        &self,
+        id: LeistungId,
+        rechnung_id: RechnungId,
+    ) -> RepositoryResult<Versioned<Leistung>> {
+        let mut data = self.datastore.leistungen.lock().unwrap();
+        let mut leistung = data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?;
+        leistung
+            .mark_abgerechnet(rechnung_id)
+            .map_err(|_| RepositoryError::Data)?;
+        leistung = leistung.incremented();
+        data.insert(id.0.clone(), leistung.clone());
+        Ok(leistung)
+    }
+}
+
+pub struct FakeRechnungenRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeRechnungenRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl RechnungRepository for FakeRechnungenRepository {
+    async fn create(&self, rechnung: Rechnung) -> RepositoryResult<Versioned<Rechnung>> {
+        let mut data = self.datastore.rechnungen.lock().unwrap();
+        let versioned = Versioned::init(rechnung);
+        data.insert(versioned.id.0.clone(), versioned.clone());
+        Ok(versioned)
+    }
+
+    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64> {
+        let mut counter = self.datastore.naechste_rechnungsnummer.lock().unwrap();
+        let nummer = *counter;
+        *counter += 1;
+        Ok(nummer)
+    }
+
+    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
+        let data = self.datastore.rechnungen.lock().unwrap();
+        Ok(data
+            .values()
+            .filter(|r| r.klient_id == klient_id)
+            .cloned()
+            .collect())
     }
 }

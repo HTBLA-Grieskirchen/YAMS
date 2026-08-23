@@ -7,14 +7,26 @@ use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
-    domain::AnimalId,
-    service::{CreateAnimal, CreateClient},
+    domain::{HaustierId, KlientId},
+    service::{
+        BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
+        LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
+        TagesabschlussDurchfuehren,
+    },
     uow::Versioned,
 };
 
 use crate::{
-    requests::{AnimalCreation, ClientCreation},
-    schema::{Animal, Client, schema_animal_from_domain, schema_client_from_domain},
+    requests::{
+        BehandlungErstellung, HaustierErstellung, KlientErstellung,
+        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung,
+        LeistungManuelleErstellung, ProduktErstellung, TagesabschlussErstellung,
+    },
+    schema::{
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung,
+        schema_behandlung_from_domain, schema_haustier_from_domain, schema_klient_from_domain,
+        schema_leistung_from_domain, schema_produkt_from_domain, schema_rechnung_from_domain,
+    },
 };
 
 #[derive(Clone)]
@@ -33,41 +45,138 @@ impl YamsAppApi {
 }
 
 impl YamsAppApi {
-    pub async fn create_client(
+    pub async fn klient_erstellen(
         &self,
-        body: ClientCreation,
-    ) -> ResultReport<Client, ExecutionError> {
-        let client = self
+        body: KlientErstellung,
+    ) -> ResultReport<Klient, ExecutionError> {
+        let klient = self
             .app
-            .execute(CreateClient::try_from(body).change_context(ExecutionError)?)
+            .execute(KlientErstellen::try_from(body).change_context(ExecutionError)?)
             .await?;
-        Ok(schema_client_from_domain(client, vec![]))
+        Ok(schema_klient_from_domain(klient, vec![]))
     }
 
-    pub async fn create_animal(
+    pub async fn haustier_erstellen(
         &self,
-        body: AnimalCreation,
-    ) -> ResultReport<Animal, ExecutionError> {
-        let animal = self.app.execute(CreateAnimal::from(body)).await?;
-        Ok(schema_animal_from_domain(animal))
+        body: HaustierErstellung,
+    ) -> ResultReport<Haustier, ExecutionError> {
+        let use_case = match HaustierErstellen::try_from(body) {
+            Ok(use_case) => use_case,
+            Err(error) => match error {},
+        };
+        let haustier = self.app.execute(use_case).await?;
+        Ok(schema_haustier_from_domain(haustier))
     }
 
-    pub async fn get_all_animals(&self) -> ResultReport<Vec<Animal>, ExecutionError> {
-        let animals = self
+    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, ExecutionError> {
+        let haustiere = self
             .app
-            .execute_fn(async |ctx| ctx.uow.animals().find_all().await)
+            .execute_fn(async |ctx| ctx.uow.haustiere().find_all().await)
             .await?
             .into_iter()
             .map(Versioned::into_data);
-        Ok(animals.map(schema_animal_from_domain).collect())
+        Ok(haustiere.map(schema_haustier_from_domain).collect())
     }
 
-    pub async fn get_animal(&self, id: Uuid) -> ResultReport<Animal, ExecutionError> {
-        let animal = self
+    pub async fn haustier_by_id(&self, id: Uuid) -> ResultReport<Haustier, ExecutionError> {
+        let haustier = self
             .app
-            .execute_fn(async |ctx| ctx.uow.animals().find_by_id(AnimalId(id)).await)
+            .execute_fn(async |ctx| ctx.uow.haustiere().find_by_id(HaustierId(id)).await)
             .await?
             .into_data();
-        Ok(schema_animal_from_domain(animal))
+        Ok(schema_haustier_from_domain(haustier))
+    }
+
+    pub async fn produkt_erstellen(
+        &self,
+        body: ProduktErstellung,
+    ) -> ResultReport<Produkt, ExecutionError> {
+        let produkt = self
+            .app
+            .execute(ProduktErstellen::try_from(body).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_produkt_from_domain(produkt))
+    }
+
+    pub async fn behandlung_erstellen(
+        &self,
+        body: BehandlungErstellung,
+    ) -> ResultReport<Behandlung, ExecutionError> {
+        let behandlung = self
+            .app
+            .execute(BehandlungErstellen::try_from(body).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_behandlung_from_domain(behandlung))
+    }
+
+    pub async fn leistung_aus_produkt_buchen(
+        &self,
+        body: LeistungAusProduktErstellung,
+    ) -> ResultReport<Leistung, ExecutionError> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungAusProduktBuchen::try_from(body).change_context(ExecutionError)?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn leistung_aus_behandlung_buchen(
+        &self,
+        body: LeistungAusBehandlungErstellung,
+    ) -> ResultReport<Leistung, ExecutionError> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungAusBehandlungBuchen::try_from(body).change_context(ExecutionError)?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn leistung_manuell_erfassen(
+        &self,
+        body: LeistungManuelleErstellung,
+    ) -> ResultReport<Leistung, ExecutionError> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungManuellErfassen::try_from(body).change_context(ExecutionError)?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn tagesabschluss_durchfuehren(
+        &self,
+        body: TagesabschlussErstellung,
+    ) -> ResultReport<Vec<Rechnung>, ExecutionError> {
+        let rechnungen = self
+            .app
+            .execute(TagesabschlussDurchfuehren::from(body))
+            .await?;
+        Ok(rechnungen
+            .into_iter()
+            .map(schema_rechnung_from_domain)
+            .collect())
+    }
+
+    pub async fn rechnungen_fuer_klient(
+        &self,
+        klient_id: Uuid,
+    ) -> ResultReport<Vec<Rechnung>, ExecutionError> {
+        let rechnungen = self
+            .app
+            .execute_fn(async |ctx| {
+                ctx.uow
+                    .rechnungen()
+                    .find_by_klient_id(KlientId(klient_id))
+                    .await
+            })
+            .await?
+            .into_iter()
+            .map(Versioned::into_data);
+        Ok(rechnungen.map(schema_rechnung_from_domain).collect())
     }
 }

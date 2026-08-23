@@ -12,8 +12,12 @@ use yams_core::{App, ThreadSafeError};
 use crate::{
     api::YamsAppApi,
     errors::{InternalServerError, StructuredError},
-    requests::{AnimalCreation, ClientCreation},
-    schema::{Animal, Client},
+    requests::{
+        BehandlungErstellung, HaustierErstellung, KlientErstellung,
+        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
+        ProduktErstellung, TagesabschlussErstellung,
+    },
+    schema::{Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung},
 };
 
 pub struct YamsApiSpec {
@@ -53,7 +57,6 @@ impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonRe
         match result {
             Ok(value) => TypicalJsonResponse::Ok(Json(value)),
             Err(error) => {
-                // extract StatusCode from error, default to 400
                 let status = error
                     .request_value::<StatusCode>()
                     .next()
@@ -74,24 +77,83 @@ impl YamsApiSpec {
         Json("OK".to_string())
     }
 
-    #[oai(path = "/client", method = "post")]
-    async fn create_client(&self, body: Json<ClientCreation>) -> TypicalJsonResponse<Client> {
-        self.app_api.create_client(body.0).await.into()
+    #[oai(path = "/klient", method = "post")]
+    async fn klient_erstellen(&self, body: Json<KlientErstellung>) -> TypicalJsonResponse<Klient> {
+        self.app_api.klient_erstellen(body.0).await.into()
     }
 
-    #[oai(path = "/animal", method = "post")]
-    async fn create_animal(&self, body: Json<AnimalCreation>) -> TypicalJsonResponse<Animal> {
-        self.app_api.create_animal(body.0).await.into()
+    #[oai(path = "/haustier", method = "post")]
+    async fn haustier_erstellen(
+        &self,
+        body: Json<HaustierErstellung>,
+    ) -> TypicalJsonResponse<Haustier> {
+        self.app_api.haustier_erstellen(body.0).await.into()
     }
 
-    #[oai(path = "/animal", method = "get")]
-    async fn get_animals(&self) -> TypicalJsonResponse<Vec<Animal>> {
-        self.app_api.get_all_animals().await.into()
+    #[oai(path = "/haustier", method = "get")]
+    async fn alle_haustiere(&self) -> TypicalJsonResponse<Vec<Haustier>> {
+        self.app_api.alle_haustiere().await.into()
     }
 
-    #[oai(path = "/animal/:id", method = "get")]
-    async fn get_animal(&self, id: Path<Uuid>) -> TypicalJsonResponse<Animal> {
-        self.app_api.get_animal(id.0).await.into()
+    #[oai(path = "/haustier/:id", method = "get")]
+    async fn haustier_by_id(&self, id: Path<Uuid>) -> TypicalJsonResponse<Haustier> {
+        self.app_api.haustier_by_id(id.0).await.into()
+    }
+
+    #[oai(path = "/produkt", method = "post")]
+    async fn produkt_erstellen(
+        &self,
+        body: Json<ProduktErstellung>,
+    ) -> TypicalJsonResponse<Produkt> {
+        self.app_api.produkt_erstellen(body.0).await.into()
+    }
+
+    #[oai(path = "/behandlung", method = "post")]
+    async fn behandlung_erstellen(
+        &self,
+        body: Json<BehandlungErstellung>,
+    ) -> TypicalJsonResponse<Behandlung> {
+        self.app_api.behandlung_erstellen(body.0).await.into()
+    }
+
+    #[oai(path = "/leistung/produkt", method = "post")]
+    async fn leistung_aus_produkt_buchen(
+        &self,
+        body: Json<LeistungAusProduktErstellung>,
+    ) -> TypicalJsonResponse<Leistung> {
+        self.app_api.leistung_aus_produkt_buchen(body.0).await.into()
+    }
+
+    #[oai(path = "/leistung/behandlung", method = "post")]
+    async fn leistung_aus_behandlung_buchen(
+        &self,
+        body: Json<LeistungAusBehandlungErstellung>,
+    ) -> TypicalJsonResponse<Leistung> {
+        self.app_api.leistung_aus_behandlung_buchen(body.0).await.into()
+    }
+
+    #[oai(path = "/leistung/manuell", method = "post")]
+    async fn leistung_manuell_erfassen(
+        &self,
+        body: Json<LeistungManuelleErstellung>,
+    ) -> TypicalJsonResponse<Leistung> {
+        self.app_api.leistung_manuell_erfassen(body.0).await.into()
+    }
+
+    #[oai(path = "/tagesabschluss", method = "post")]
+    async fn tagesabschluss_durchfuehren(
+        &self,
+        body: Json<TagesabschlussErstellung>,
+    ) -> TypicalJsonResponse<Vec<Rechnung>> {
+        self.app_api.tagesabschluss_durchfuehren(body.0).await.into()
+    }
+
+    #[oai(path = "/rechnung/:klient_id", method = "get")]
+    async fn rechnungen_fuer_klient(
+        &self,
+        klient_id: Path<Uuid>,
+    ) -> TypicalJsonResponse<Vec<Rechnung>> {
+        self.app_api.rechnungen_fuer_klient(klient_id.0).await.into()
     }
 }
 

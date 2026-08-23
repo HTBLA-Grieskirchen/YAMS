@@ -1,11 +1,15 @@
 use std::sync::{Arc, Mutex};
 
 use crate::common::fakes::repository::{
-    FakeAnimalsRepository, FakeClientsRepository, FakeDatastore,
+    FakeBehandlungenRepository, FakeDatastore, FakeHaustiereRepository, FakeKlientenRepository,
+    FakeLeistungenRepository, FakeProdukteRepository, FakeRechnungenRepository,
 };
 use async_trait::async_trait;
 use yams_core::{
-    ports::{AnimalRepository, ClientRepository, RepositoryResult},
+    ports::{
+        BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
+        ProduktRepository, RechnungRepository, RepositoryResult,
+    },
     uow::{UnitOfWorkImpl, UnitOfWorkProvider},
 };
 
@@ -43,8 +47,12 @@ pub struct FakeUnitOfWork {
     backing_datastore: Arc<FakeDatastore>,
     snapshotted_datastore: FakeDatastore,
     transaction_datastore: Arc<FakeDatastore>,
-    animals: FakeAnimalsRepository,
-    clients: FakeClientsRepository,
+    klienten: FakeKlientenRepository,
+    haustiere: FakeHaustiereRepository,
+    produkte: FakeProdukteRepository,
+    behandlungen: FakeBehandlungenRepository,
+    leistungen: FakeLeistungenRepository,
+    rechnungen: FakeRechnungenRepository,
 }
 
 impl FakeUnitOfWork {
@@ -55,8 +63,12 @@ impl FakeUnitOfWork {
 
         Self {
             log,
-            animals: FakeAnimalsRepository::new(Arc::clone(&transaction_datastore)),
-            clients: FakeClientsRepository::new(Arc::clone(&transaction_datastore)),
+            klienten: FakeKlientenRepository::new(Arc::clone(&transaction_datastore)),
+            haustiere: FakeHaustiereRepository::new(Arc::clone(&transaction_datastore)),
+            produkte: FakeProdukteRepository::new(Arc::clone(&transaction_datastore)),
+            behandlungen: FakeBehandlungenRepository::new(Arc::clone(&transaction_datastore)),
+            leistungen: FakeLeistungenRepository::new(Arc::clone(&transaction_datastore)),
+            rechnungen: FakeRechnungenRepository::new(Arc::clone(&transaction_datastore)),
             backing_datastore,
             snapshotted_datastore,
             transaction_datastore,
@@ -112,12 +124,28 @@ impl UnitOfWorkImpl for FakeUnitOfWork {
         Ok(())
     }
 
-    fn animals(&self) -> &dyn AnimalRepository {
-        &self.animals
+    fn klienten(&self) -> &dyn KlientRepository {
+        &self.klienten
     }
 
-    fn clients(&self) -> &dyn ClientRepository {
-        &self.clients
+    fn haustiere(&self) -> &dyn HaustierRepository {
+        &self.haustiere
+    }
+
+    fn produkte(&self) -> &dyn ProduktRepository {
+        &self.produkte
+    }
+
+    fn behandlungen(&self) -> &dyn BehandlungRepository {
+        &self.behandlungen
+    }
+
+    fn leistungen(&self) -> &dyn LeistungRepository {
+        &self.leistungen
+    }
+
+    fn rechnungen(&self) -> &dyn RechnungRepository {
+        &self.rechnungen
     }
 }
 

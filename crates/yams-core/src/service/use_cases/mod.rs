@@ -1,5 +1,7 @@
-mod animals;
-mod client;
+mod abrechnung;
+mod haustier;
+mod klient;
 
-pub use animals::*;
-pub use client::*;
+pub use abrechnung::*;
+pub use haustier::*;
+pub use klient::*;

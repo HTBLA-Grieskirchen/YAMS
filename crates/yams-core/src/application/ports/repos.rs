@@ -1,27 +1,70 @@
 use std::fmt::Debug;
 
 use async_trait::async_trait;
+use chrono::NaiveDate;
 
 use crate::application::{ResultReport, uow::Versioned};
-use crate::domain::{Animal, AnimalId, Client, ClientId, animal::NewAnimal, client::NewClient};
+use crate::domain::{
+    Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
+    Produkt, ProduktId, Rechnung, RechnungId,
+    behandlung::NeueBehandlung,
+    haustier::NeuesHaustier,
+    klient::NeuerKlient,
+    leistung::NeueLeistung,
+    produkt::NeuesProdukt,
+};
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
 
 #[async_trait]
-pub trait ClientRepository: Send + Sync {
-    async fn find_by_id(&self, id: ClientId) -> RepositoryResult<Versioned<Client>>;
-    async fn create(&self, client: NewClient) -> RepositoryResult<Versioned<Client>>;
-    async fn update(&self, client: &mut Versioned<Client>) -> RepositoryResult<()>;
-    async fn delete(&self, client: Versioned<Client>) -> RepositoryResult<()>;
+pub trait KlientRepository: Send + Sync {
+    async fn find_by_id(&self, id: KlientId) -> RepositoryResult<Versioned<Klient>>;
+    async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>>;
+    async fn update(&self, klient: &mut Versioned<Klient>) -> RepositoryResult<()>;
+    async fn delete(&self, klient: Versioned<Klient>) -> RepositoryResult<()>;
 }
 
 #[async_trait]
-pub trait AnimalRepository: Send + Sync {
-    async fn find_by_id(&self, id: AnimalId) -> RepositoryResult<Versioned<Animal>>;
-    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Animal>>>;
-    async fn create(&self, animal: NewAnimal) -> RepositoryResult<Versioned<Animal>>;
-    async fn update(&self, animal: &mut Versioned<Animal>) -> RepositoryResult<()>;
-    async fn delete(&self, animal: Versioned<Animal>) -> RepositoryResult<()>;
+pub trait HaustierRepository: Send + Sync {
+    async fn find_by_id(&self, id: HaustierId) -> RepositoryResult<Versioned<Haustier>>;
+    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Haustier>>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Haustier>>>;
+    async fn create(&self, haustier: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>>;
+    async fn update(&self, haustier: &mut Versioned<Haustier>) -> RepositoryResult<()>;
+    async fn delete(&self, haustier: Versioned<Haustier>) -> RepositoryResult<()>;
+}
+
+#[async_trait]
+pub trait ProduktRepository: Send + Sync {
+    async fn find_by_id(&self, id: ProduktId) -> RepositoryResult<Versioned<Produkt>>;
+    async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>>;
+}
+
+#[async_trait]
+pub trait BehandlungRepository: Send + Sync {
+    async fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>>;
+    async fn create(
+        &self,
+        behandlung: NeueBehandlung,
+    ) -> RepositoryResult<Versioned<Behandlung>>;
+}
+
+#[async_trait]
+pub trait LeistungRepository: Send + Sync {
+    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<Leistung>>;
+    async fn find_offene_by_datum(&self, datum: NaiveDate) -> RepositoryResult<Vec<Versioned<Leistung>>>;
+    async fn mark_abgerechnet(
+        &self,
+        id: LeistungId,
+        rechnung_id: RechnungId,
+    ) -> RepositoryResult<Versioned<Leistung>>;
+}
+
+#[async_trait]
+pub trait RechnungRepository: Send + Sync {
+    async fn create(&self, rechnung: Rechnung) -> RepositoryResult<Versioned<Rechnung>>;
+    async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64>;
+    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
 }
 
 #[derive(thiserror::Error, Debug)]

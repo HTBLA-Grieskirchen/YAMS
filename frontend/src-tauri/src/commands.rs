@@ -1,17 +1,17 @@
 use tauri::State;
 use yams_api::YamsAppApi;
-use yams_api::requests::AnimalCreation;
-use yams_api::schema::Animal;
+use yams_api::requests::HaustierErstellung;
+use yams_api::schema::Haustier;
 
 #[tauri::command]
-pub async fn get_animals(ctx: State<'_, YamsAppApi>) -> Result<Vec<Animal>, String> {
-    ctx.get_all_animals().await.map_err(|e| e.to_string())
+pub async fn alle_haustiere(ctx: State<'_, YamsAppApi>) -> Result<Vec<Haustier>, String> {
+    ctx.alle_haustiere().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn create_animal(
-    creation: AnimalCreation,
+pub async fn haustier_erstellen(
+    erstellung: HaustierErstellung,
     ctx: State<'_, YamsAppApi>,
-) -> Result<Animal, String> {
-    ctx.create_animal(creation).await.map_err(|e| e.to_string())
+) -> Result<Haustier, String> {
+    ctx.haustier_erstellen(erstellung).await.map_err(|e| e.to_string())
 }

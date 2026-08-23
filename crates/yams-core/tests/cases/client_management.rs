@@ -1,39 +1,37 @@
 use std::sync::Arc;
 
 use super::super::base_app_builder;
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
-use yams_core::domain::Address;
+use chrono::Utc;
+use yams_core::domain::{Adresse, Ländercode};
 use yams_core::ports::RepositoryError;
-use yams_core::service::CreateClient;
+use yams_core::service::KlientErstellen;
 
 #[pollster::test]
-async fn test_client() {
+async fn test_klient() {
     let app = base_app_builder().await.build();
     let app = Arc::new(app);
 
-    let case = CreateClient {
-        first_name: "Testname".into(),
-        last_name: "Testname Last".into(),
-        birthdate: Utc::now().date_naive(),
+    let case = KlientErstellen {
+        vorname: "Testname".into(),
+        nachname: "Testname Last".into(),
+        geburtstag: Utc::now().date_naive(),
         email: "test@test.com".try_into().unwrap(),
-        mobile_number: "1234567890".try_into().unwrap(),
-        customer_number: 1234567890,
-        consent: false,
-        address: Address {
-            postal_code: "12345".into(),
-            city: "Testcity".into(),
-            street_and_number: "Teststreet 12".into(),
-            country_code: "DE".into(),
+        mobilnummer: "1234567890".try_into().unwrap(),
+        kundennummer: 1234567890,
+        einwilligung: false,
+        adresse: Adresse {
+            postleitzahl: "12345".into(),
+            stadt: "Testcity".into(),
+            strasse_und_hausnummer: "Teststreet 12".into(),
+            ländercode: Ländercode::new("DE").unwrap(),
         },
     };
 
-    // Execute the case 100 times in parallel using threads
     let handles: Vec<_> = (0..100)
         .map(|i| {
             let app_clone = app.clone();
             let mut case_clone = case.clone();
-            case_clone.customer_number = 1000 + i;
+            case_clone.kundennummer = 1000 + i;
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(1));
                 pollster::block_on(async move { app_clone.execute(case_clone).await.unwrap() })
@@ -42,7 +40,6 @@ async fn test_client() {
         .collect();
 
     let result = app.execute(case).await.unwrap();
-    // Wait for all threads to complete and collect results
     let parallel_results: Vec<_> = handles
         .into_iter()
         .map(|handle| handle.join().unwrap())
@@ -50,18 +47,16 @@ async fn test_client() {
 
     assert_eq!(parallel_results.len(), 100);
 
-    println!("{:?}", result);
-
-    let clients = app
+    let klienten = app
         .execute_fn::<_, _, RepositoryError>(async |ctx| {
-            let mut clients = vec![ctx.uow.clients().find_by_id(result.id).await?];
+            let mut klienten = vec![ctx.uow.klienten().find_by_id(result.id).await?];
             for res in parallel_results {
-                clients.push(ctx.uow.clients().find_by_id(res.id).await?);
+                klienten.push(ctx.uow.klienten().find_by_id(res.id).await?);
             }
-            Ok(clients)
+            Ok(klienten)
         })
         .await
         .unwrap();
-    assert_eq!(clients.len(), 101);
-    assert_eq!(clients[0].first_name, "Testname");
+    assert_eq!(klienten.len(), 101);
+    assert_eq!(klienten[0].vorname, "Testname");
 }

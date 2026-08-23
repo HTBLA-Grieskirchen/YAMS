@@ -5,22 +5,32 @@ use async_trait::async_trait;
 use libsql::Transaction;
 use yams_core::{
     ErrorReportExt, ResultReport,
-    ports::{AnimalRepository, ClientRepository, RepositoryError, RepositoryResult},
+    ports::{
+        BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
+        ProduktRepository, RechnungRepository, RepositoryError, RepositoryResult,
+    },
     uow::{UnitOfWorkImpl, UnitOfWorkProvider},
 };
 
 use crate::{
     SQLiteConnection, SQLiteInstance,
     errors::libsql_error_to_persistence_error,
-    repos::{SQLiteAnimalRepository, SQLiteClientRepository},
+    repos::{
+        SQLiteBehandlungRepository, SQLiteHaustierRepository, SQLiteKlientRepository,
+        SQLiteLeistungRepository, SQLiteProduktRepository, SQLiteRechnungRepository,
+    },
 };
 
 pub struct SQLiteUnitOfWork {
     /// Held for the whole UoW; ensures only one transaction on the connection. Dropped on commit/rollback.
     connection: SQLiteConnection,
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
-    pub(crate) client_repo: SQLiteClientRepository,
-    pub(crate) animal_repo: SQLiteAnimalRepository,
+    pub(crate) klient_repo: SQLiteKlientRepository,
+    pub(crate) haustier_repo: SQLiteHaustierRepository,
+    pub(crate) produkt_repo: SQLiteProduktRepository,
+    pub(crate) behandlung_repo: SQLiteBehandlungRepository,
+    pub(crate) leistung_repo: SQLiteLeistungRepository,
+    pub(crate) rechnung_repo: SQLiteRechnungRepository,
 }
 
 #[async_trait]
@@ -34,8 +44,12 @@ impl UnitOfWorkProvider for SQLiteInstance {
         let tx = Arc::new(Mutex::new(Some(tx)));
         Ok(Box::new(SQLiteUnitOfWork {
             connection,
-            client_repo: SQLiteClientRepository { tx: tx.clone() },
-            animal_repo: SQLiteAnimalRepository { tx: tx.clone() },
+            klient_repo: SQLiteKlientRepository { tx: tx.clone() },
+            haustier_repo: SQLiteHaustierRepository { tx: tx.clone() },
+            produkt_repo: SQLiteProduktRepository { tx: tx.clone() },
+            behandlung_repo: SQLiteBehandlungRepository { tx: tx.clone() },
+            leistung_repo: SQLiteLeistungRepository { tx: tx.clone() },
+            rechnung_repo: SQLiteRechnungRepository { tx: tx.clone() },
             tx,
         }))
     }
@@ -78,11 +92,27 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
             .contextualize_with(libsql_error_to_persistence_error)
     }
 
-    fn clients(&self) -> &dyn ClientRepository {
-        &self.client_repo
+    fn klienten(&self) -> &dyn KlientRepository {
+        &self.klient_repo
     }
 
-    fn animals(&self) -> &dyn AnimalRepository {
-        &self.animal_repo
+    fn haustiere(&self) -> &dyn HaustierRepository {
+        &self.haustier_repo
+    }
+
+    fn produkte(&self) -> &dyn ProduktRepository {
+        &self.produkt_repo
+    }
+
+    fn behandlungen(&self) -> &dyn BehandlungRepository {
+        &self.behandlung_repo
+    }
+
+    fn leistungen(&self) -> &dyn LeistungRepository {
+        &self.leistung_repo
+    }
+
+    fn rechnungen(&self) -> &dyn RechnungRepository {
+        &self.rechnung_repo
     }
 }

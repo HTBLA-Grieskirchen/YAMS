@@ -4,6 +4,8 @@ jobs = 1
 
 [tools]
 node = "22"
+"pipx:graphifyy" = "latest"
+"npm:diffx-cli" = "latest"
 
 [env]
 FRONTEND_DIR = "frontend"

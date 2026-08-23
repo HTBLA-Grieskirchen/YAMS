@@ -83,6 +83,18 @@ pub enum Leistung {
     Abgerechnet(LeistungAbgerechnet),
 }
 
+impl From<LeistungOffen> for Leistung {
+    fn from(value: LeistungOffen) -> Self {
+        Self::Offen(value)
+    }
+}
+
+impl From<LeistungAbgerechnet> for Leistung {
+    fn from(value: LeistungAbgerechnet) -> Self {
+        Self::Abgerechnet(value)
+    }
+}
+
 impl Leistung {
     pub fn from_parts(
         id: LeistungId,
@@ -105,8 +117,8 @@ impl Leistung {
         );
 
         match rechnung_id {
-            Some(rechnung_id) => Self::Abgerechnet(offen.mark_abgerechnet(rechnung_id)),
-            None => Self::Offen(offen),
+            Some(rechnung_id) => Self::from(offen.mark_abgerechnet(rechnung_id)),
+            None => Self::from(offen),
         }
     }
 

@@ -101,6 +101,18 @@ pub enum Rechnung {
     Bezahlt(RechnungBezahlt),
 }
 
+impl From<RechnungOffen> for Rechnung {
+    fn from(value: RechnungOffen) -> Self {
+        Self::Offen(value)
+    }
+}
+
+impl From<RechnungBezahlt> for Rechnung {
+    fn from(value: RechnungBezahlt) -> Self {
+        Self::Bezahlt(value)
+    }
+}
+
 impl<S> RechnungIn<S> {
     pub fn id(&self) -> &RechnungId {
         &self.id
@@ -161,46 +173,28 @@ impl RechnungOffen {
         klient_id: KlientId,
         rechnungsnummer: u64,
         rechnungsdatum: NaiveDate,
-        leistungen: &mut Vec<Leistung>,
+        leistungen: &mut [&mut Leistung],
     ) -> ResultReport<Self, RechnungFehler> {
-        let mut offene = Vec::new();
-        let mut andere = Vec::new();
-
-        for leistung in leistungen.drain(..) {
-            match leistung {
-                Leistung::Offen(o) => offene.push(o),
-                other => andere.push(other),
-            }
-        }
-
-        if offene.is_empty() {
-            *leistungen = andere;
-            return Err(Report::new(RechnungFehler::KeineLeistungen));
-        }
-
         let rechnung_id = RechnungId(Uuid::new_v4());
-        let mut positionen = Vec::with_capacity(offene.len());
+        let mut positionen = Vec::new();
 
-        for leistung in offene {
-            if leistung.klient_id() != &klient_id {
-                *leistungen = andere;
-                return Err(Report::new(RechnungFehler::KlientUnstimmig));
+        for leistung in leistungen.iter_mut() {
+            match &mut **leistung {
+                Leistung::Offen(offen) => {
+                    if offen.klient_id() != &klient_id {
+                        return Err(Report::new(RechnungFehler::KlientUnstimmig));
+                    }
+
+                    positionen.push(position_from_leistung(offen));
+                    let abgerechnet = offen.clone().mark_abgerechnet(rechnung_id.clone());
+                    **leistung = Leistung::from(abgerechnet);
+                }
+                Leistung::Abgerechnet(_) => {}
             }
-
-            positionen.push(position_from_leistung(&leistung));
-            andere.push(Leistung::Abgerechnet(leistung.mark_abgerechnet(rechnung_id.clone())));
         }
 
-        *leistungen = andere;
-
-        Ok(Self {
-            id: rechnung_id,
-            rechnungsnummer,
-            klient_id,
-            rechnungsdatum,
-            positionen,
-            state: Offen,
-        })
+        Self::neu(rechnung_id, rechnungsnummer, klient_id, rechnungsdatum, positionen)
+            .map_err(Report::new)
     }
 }
 

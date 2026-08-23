@@ -81,8 +81,10 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
 
     let abschlussdatum = NaiveDate::from_ymd_opt(2026, 8, 23).unwrap();
 
+    let produkt_id = produkt.id.clone();
+
     app.execute(LeistungAusProduktBuchen {
-        produkt_id: produkt.id,
+        produkt_id,
         klient_id: klient1.id.clone(),
         haustier_id: None,
         menge: Decimal::new(2, 0),

@@ -3,6 +3,7 @@ use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
 use rust_decimal::Decimal;
 use rustc_hash::FxHashMap;
+use std::ops::DerefMut;
 
 use crate::{
     application::uow::Versioned,
@@ -271,9 +272,9 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
 
         let mut rechnungen = Vec::new();
         for (klient_id, gruppen_leistungen) in gruppen {
-            let mut leistungen: Vec<Leistung> = gruppen_leistungen
-                .iter()
-                .map(|l| Leistung::Offen(l.cloned_data()))
+            let mut versioned_leistungen: Vec<Versioned<Leistung>> = gruppen_leistungen
+                .into_iter()
+                .map(|l| Versioned::new(l.v(), Leistung::from(l.cloned_data())))
                 .collect();
 
             let rechnungsnummer = uow
@@ -282,13 +283,20 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 .await
                 .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-            let rechnung = RechnungOffen::aus_leistungen(
-                klient_id,
-                rechnungsnummer,
-                abschlussdatum,
-                &mut leistungen,
-            )
-            .map_err(|report| report.change_context(TagesabschlussDurchführenFehler::Rechnung))?;
+            let rechnung = {
+                let mut leistung_refs: Vec<&mut Leistung> = versioned_leistungen
+                    .iter_mut()
+                    .map(DerefMut::deref_mut)
+                    .collect();
+
+                RechnungOffen::aus_leistungen(
+                    klient_id,
+                    rechnungsnummer,
+                    abschlussdatum,
+                    &mut leistung_refs,
+                )
+                .map_err(|report| report.change_context(TagesabschlussDurchführenFehler::Rechnung))?
+            };
 
             let persisted = uow
                 .rechnungen()
@@ -296,19 +304,13 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 .await
                 .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-            for (original, leistung) in gruppen_leistungen.iter().zip(leistungen.iter()) {
-                let updated = match leistung {
-                    Leistung::Abgerechnet(abgerechnet) => {
-                        Leistung::Abgerechnet(abgerechnet.clone())
-                    }
-                    Leistung::Offen(_) => continue,
-                };
-
-                let mut versioned = Versioned::new(original.v(), updated);
-                uow.leistungen()
-                    .update(&mut versioned)
-                    .await
-                    .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+            for mut versioned in versioned_leistungen {
+                if matches!(*versioned, Leistung::Abgerechnet(_)) {
+                    uow.leistungen()
+                        .update(&mut versioned)
+                        .await
+                        .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+                }
             }
 
             uow.checkpoint()

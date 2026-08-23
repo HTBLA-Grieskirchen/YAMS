@@ -966,9 +966,9 @@
     "semantic_hash": "6ae5e60c331b128c77adee2c3139093b"
   },
   ".cursor/AGENTS.md": {
-    "mtime": 1787520925.5416129,
-    "seen": 1787520959.8931172,
-    "ast_hash": "5761cb549583c494ca426af948dbb2a0",
+    "mtime": 1787521105.5178583,
+    "seen": 1787526127.7811635,
+    "ast_hash": "71eef90516f3723f401208f10ad04d23",
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
@@ -1260,9 +1260,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/leistung.rs": {
-    "mtime": 1787501784.300162,
-    "seen": 1787520717.866217,
-    "ast_hash": "100ff287b4539711a3a5e94001ea2ee7",
+    "mtime": 1787525891.6351256,
+    "seen": 1787526127.7744489,
+    "ast_hash": "aa8325db92300ab052a64b4502f29aab",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/preis.rs": {
@@ -1278,15 +1278,15 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/rechnung.rs": {
-    "mtime": 1787501817.8643174,
-    "seen": 1787520717.8662229,
-    "ast_hash": "075eb687f5a53ea138ec52eba8265e87",
+    "mtime": 1787525974.94718,
+    "seen": 1787526127.7745764,
+    "ast_hash": "28b0abf0366bf268557163826dd4da48",
     "semantic_hash": ""
   },
   "crates/yams-core/src/service/use_cases/abrechnung.rs": {
-    "mtime": 1787520664.596284,
-    "seen": 1787520717.8662972,
-    "ast_hash": "52ff86b1181b4fc09d5ef6e306f87e85",
+    "mtime": 1787525978.9518502,
+    "seen": 1787526127.774663,
+    "ast_hash": "549a026a950ccc8c45844b26e27fd56f",
     "semantic_hash": ""
   },
   "crates/yams-core/src/service/use_cases/haustier.rs": {
@@ -1356,9 +1356,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/tests/cases/abrechnung.rs": {
-    "mtime": 1787520894.7625878,
-    "seen": 1787520959.888671,
-    "ast_hash": "717ea7e7ef63273e3736bc16b999fab0",
+    "mtime": 1787526078.7576842,
+    "seen": 1787526127.774939,
+    "ast_hash": "6a0813fe94c272a86ef4153cf7d41d49",
     "semantic_hash": ""
   },
   "crates/yams-core/tests/domain/mod.rs": {
@@ -1377,6 +1377,12 @@
     "mtime": 1787520664.612176,
     "seen": 1787520717.8664737,
     "ast_hash": "9e3cbbf49eb29f274021b9bea705605e",
+    "semantic_hash": ""
+  },
+  "crates/yams-core/tests/abrechnung_fake_clock.rs": {
+    "mtime": 1787526094.204794,
+    "seen": 1787526127.7748907,
+    "ast_hash": "cba37ea4d3e6f1095a11948d9076bb45",
     "semantic_hash": ""
   }
 }

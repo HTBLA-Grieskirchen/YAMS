@@ -1,9 +1,5 @@
 use std::sync::{Arc, Mutex};
 
-use crate::common::fakes::repository::{
-    FakeBehandlungenRepository, FakeDatastore, FakeHaustiereRepository, FakeKlientenRepository,
-    FakeLeistungenRepository, FakeProdukteRepository, FakeRechnungenRepository,
-};
 use async_trait::async_trait;
 use yams_core::{
     ports::{
@@ -11,6 +7,11 @@ use yams_core::{
         ProduktRepository, RechnungRepository, RepositoryResult,
     },
     uow::{UnitOfWorkImpl, UnitOfWorkProvider},
+};
+
+use crate::repository::{
+    FakeBehandlungenRepository, FakeDatastore, FakeHaustiereRepository, FakeKlientenRepository,
+    FakeLeistungenRepository, FakeProdukteRepository, FakeRechnungenRepository,
 };
 
 pub struct FakeUnitOfWorkProvider {

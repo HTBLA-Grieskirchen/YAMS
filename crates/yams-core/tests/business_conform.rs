@@ -1,13 +1,11 @@
 mod cases;
-mod common;
 mod domain;
 
 use yams_core::{
     App,
     application::{AppBuilder, SetUowProvider},
 };
-
-use crate::common::fakes::FakeUnitOfWorkProvider;
+use yams_fakes::FakeUnitOfWorkProvider;
 
 pub async fn base_app_builder() -> AppBuilder<SetUowProvider> {
     let uow_provider = FakeUnitOfWorkProvider::empty();

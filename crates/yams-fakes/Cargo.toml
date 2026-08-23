@@ -1,0 +1,16 @@
+[package]
+name = "yams-fakes"
+description = "In-memory fake adapters, clocks, and factories for tests, scripts, and seeding"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+[dependencies]
+yams-core = { path = "../yams-core" }
+
+async-trait = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+rustc-hash = { workspace = true }

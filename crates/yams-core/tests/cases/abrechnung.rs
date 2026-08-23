@@ -9,7 +9,7 @@ use yams_core::service::{
 };
 
 use super::super::base_app_builder;
-use super::super::common::fakes::FixedClock;
+use yams_fakes::FixedClock;
 
 struct AbrechnungSetup {
     app: Arc<yams_core::App>,

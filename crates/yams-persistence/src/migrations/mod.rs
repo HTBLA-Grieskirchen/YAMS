@@ -42,8 +42,9 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteConnection {
             // Get the latest version based on the most recent application time
             let mut rows = tx
                 .query(
-                    "SELECT version FROM _migration_history ORDER BY applied_at DESC LIMIT 1",
+                    "SELECT version FROM _migration_history ORDER BY applied_at DESC, version DESC LIMIT 1",
                     (),
+               
                 )
                 .await?;
 

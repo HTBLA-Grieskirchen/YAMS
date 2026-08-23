@@ -10,6 +10,7 @@ yams/
 │   ├── yams-core/          # Domain, use cases, port definitions
 │   ├── yams-api/           # Public API surface (DTOs, YamsAppApi, OpenAPI)
 │   ├── yams-persistence/   # SQLite/libsql repository adapter
+│   ├── yams-fakes/         # In-memory adapters, FixedClock, future factories/seeding
 │   └── molting/            # Generic async migration framework
 ├── backend/server/         # Standalone HTTP server (yams-server)
 ├── frontend/
@@ -192,15 +193,19 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 | Layer              | Where                          | What                                      |
 |--------------------|--------------------------------|-------------------------------------------|
 | Domain unit        | `yams-core/tests/domain/`      | Isolated VO/aggregate math (Preis, MwSt, validation) |
-| Business conform   | `yams-core/tests/cases/`       | Full use-case flows with fake adapters    |
+| Business conform   | `yams-core/tests/cases/`       | Full use-case flows with `yams-fakes`     |
 | Adapter conformance| `yams-persistence/tests/`      | Same cases as core, real SQLite UoW        |
 | E2E / API          | `yams-api`                     | Invoke API methods, lightweight persistence |
 
+### yams-fakes
+
+`crates/yams-fakes/` — shared fake adapters, not buried in test trees: `FakeUnitOfWorkProvider`, `FakeDatastore`, per-entity `Fake*Repository`, `FixedClock`. Dev-dep of test crates today; also intended for scripts and data seeding (factory-style builders later).
+
 ### Shared Conformance Pattern
 
-`base_app_builder()` in `yams-core/tests/business_conform.rs` returns an `AppBuilder` wired with `FakeUnitOfWorkProvider`. Test cases live in `yams-core/tests/cases/` and are shared via `#[path]` include in `yams-persistence/tests/business_conform.rs`, which overrides `base_app_builder()` to use `SQLiteInstance::in_temp_dir()`.
+`base_app_builder()` in `yams-core/tests/business_conform.rs` wires `yams_fakes::FakeUnitOfWorkProvider`. Cases live in `yams-core/tests/cases/` and are shared via `#[path]` in `yams-persistence/tests/business_conform.rs`, which overrides `base_app_builder()` to `SQLiteInstance::in_temp_dir()`. Tests that need a fixed date use `yams_fakes::FixedClock` on either builder.
 
-Unit tests inject `FakeAdapters` through this partial app builder. Persistence adapters prove conformance by running the full core test suite against their `UnitOfWorkProvider`.
+Persistence proves adapter conformance by running the same case suite against real SQLite.
 
 ## Tooling
 

@@ -33,7 +33,7 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
             adresse: Adresse {
                 postleitzahl: "4711".into(),
                 stadt: "Grieskirchen".into(),
-                strasse_und_hausnummer: "Hauptstraße 1".into(),
+                straße_und_hausnummer: "Hauptstraße 1".into(),
                 ländercode: Ländercode::from_str("DE").unwrap(),
             },
         })
@@ -52,7 +52,7 @@ async fn setup_abrechnung_fixture() -> AbrechnungSetup {
             adresse: Adresse {
                 postleitzahl: "4712".into(),
                 stadt: "Grieskirchen".into(),
-                strasse_und_hausnummer: "Nebenstraße 2".into(),
+                straße_und_hausnummer: "Nebenstraße 2".into(),
                 ländercode: Ländercode::from_str("AT").unwrap(),
             },
         })

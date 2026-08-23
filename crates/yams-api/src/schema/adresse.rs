@@ -14,7 +14,7 @@ pub struct Ländercode(pub String);
 pub struct Adresse {
     pub postleitzahl: String,
     pub stadt: String,
-    pub strasse_und_hausnummer: String,
+    pub straße_und_hausnummer: String,
     pub ländercode: Ländercode,
 }
 
@@ -31,7 +31,7 @@ impl poem_openapi::types::Example for Adresse {
         Self {
             postleitzahl: "4040".to_string(),
             stadt: "Linz".to_string(),
-            strasse_und_hausnummer: "Landesstraße 1".to_string(),
+            straße_und_hausnummer: "Landesstraße 1".to_string(),
             ländercode: Ländercode("AT".to_string()),
         }
     }
@@ -42,7 +42,7 @@ impl From<domain::Adresse> for Adresse {
         Self {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
-            strasse_und_hausnummer: value.strasse_und_hausnummer,
+            straße_und_hausnummer: value.straße_und_hausnummer,
             ländercode: Ländercode(value.ländercode.as_str().to_string()),
         }
     }
@@ -54,7 +54,7 @@ impl TryFrom<Adresse> for domain::Adresse {
         Ok(Self {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
-            strasse_und_hausnummer: value.strasse_und_hausnummer,
+            straße_und_hausnummer: value.straße_und_hausnummer,
             ländercode: domain::Ländercode::from_str(&value.ländercode.0)?,
         })
     }

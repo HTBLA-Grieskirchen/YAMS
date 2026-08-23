@@ -47,9 +47,9 @@ Dependency rule: **inward only**. Core knows nothing about HTTP, SQLite, or Taur
 
 Domain language is **German** across the full stack — Rust types, SQLite tables/columns, API JSON keys (UTF-8, e.g. `Ländercode` → JSON `ländercode`). English legacy names are obsolete.
 
-- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names. Use proper UTF-8 in identifiers (`nächste_rechnungsnummer`, `ländercode`) — no `ae`/`oe`/`ue` transliteration.
+- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names. **UTF-8 everywhere** — Rust identifiers, SQL columns, migration filenames (`straße_und_hausnummer`, `stückzahl`, `nächste_rechnungsnummer`). Never use `ae`/`oe`/`ue` transliteration.
 - **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request).
-- **JSON** — German field names, `camelCase` serde (`vorName`, `strasseUndHausnummer`). UTF-8 in source and JSON keys is fine (`ländercode`, `stückzahl`).
+- **JSON** — German field names, `camelCase` serde (`vorName`, `straßeUndHausnummer`). UTF-8 in source and JSON keys (`ländercode`, `stückzahl`).
 - **Comments** — DDD/technical terms in English (`Aggregate`, `Value object`); domain ubiquitous language stays German (`Behandlung`, `Klient`).
 - **HTTP paths** — German (`/klient`, `/tagesabschluss`).
 - **Billing detail** — [`specs/abrechnung.md`](specs/abrechnung.md); trust code over stale English specs.

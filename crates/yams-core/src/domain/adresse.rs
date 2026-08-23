@@ -36,6 +36,6 @@ impl Ländercode {
 pub struct Adresse {
     pub postleitzahl: String,
     pub stadt: String,
-    pub strasse_und_hausnummer: String,
+    pub straße_und_hausnummer: String,
     pub ländercode: Ländercode,
 }

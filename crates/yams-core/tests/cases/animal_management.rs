@@ -23,7 +23,7 @@ async fn test_haustier() {
         adresse: Adresse {
             postleitzahl: "12345".into(),
             stadt: "Testcity".into(),
-            strasse_und_hausnummer: "Teststreet 12".into(),
+            straße_und_hausnummer: "Teststreet 12".into(),
             ländercode: Ländercode::from_str("DE").unwrap(),
         },
     };

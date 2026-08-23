@@ -28,7 +28,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 einwilligung INTEGER NOT NULL,
                 postleitzahl TEXT NOT NULL,
                 stadt TEXT NOT NULL,
-                strasse_und_hausnummer TEXT NOT NULL,
+                \"straße_und_hausnummer\" TEXT NOT NULL,
                 \"ländercode\" TEXT NOT NULL,
                 _version INTEGER NOT NULL DEFAULT 0
             );
@@ -96,7 +96,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 leistung_id TEXT NOT NULL,
                 beschreibung TEXT NOT NULL,
                 einzelpreis TEXT NOT NULL,
-                stueckzahl TEXT NOT NULL,
+                stückzahl TEXT NOT NULL,
                 mwst_prozentsatz TEXT NOT NULL,
                 FOREIGN KEY (rechnung_id) REFERENCES rechnungen(id),
                 FOREIGN KEY (leistung_id) REFERENCES leistungen(id)
@@ -109,7 +109,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
         if has_clients {
             transaction
                 .execute(
-                    "INSERT INTO klienten (id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, strasse_und_hausnummer, \"ländercode\", _version) SELECT id, first_name, last_name, birthdate, email, mobile_number, customer_number, consent, postal_code, city, street_and_number, country_code, _version FROM clients",
+                    "INSERT INTO klienten (id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", _version) SELECT id, first_name, last_name, birthdate, email, mobile_number, customer_number, consent, postal_code, city, street_and_number, country_code, _version FROM clients",
                     (),
                 )
                 .await?;

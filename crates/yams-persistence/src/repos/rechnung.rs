@@ -134,7 +134,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
 
         for position in rechnung.positionen() {
             tx.execute(
-                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, einzelpreis, stückzahl, mwst_prozentsatz) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, einzelpreis, \"stückzahl\", mwst_prozentsatz) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 libsql::params![
                     Uuid::new_v4().to_string(),
                     rechnung.id().0.to_string(),
@@ -184,7 +184,7 @@ impl RechnungRepository for SQLiteRechnungRepository {
         let klient_id_str = klient_id.0.to_string();
         let mut rows = tx
             .query(
-                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stückzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.\"stückzahl\", p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
                 [klient_id_str],
             )
             .await

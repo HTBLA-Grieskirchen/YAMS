@@ -33,7 +33,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
     let einwilligung: bool = row.get::<i64>(7).contextualize(RepositoryError::Data)? != 0;
     let postleitzahl: String = row.get(8).contextualize(RepositoryError::Data)?;
     let stadt: String = row.get(9).contextualize(RepositoryError::Data)?;
-    let strasse_und_hausnummer: String = row.get(10).contextualize(RepositoryError::Data)?;
+    let straße_und_hausnummer: String = row.get(10).contextualize(RepositoryError::Data)?;
     let ländercode_str: String = row.get(11).contextualize(RepositoryError::Data)?;
     let version: u64 = row.get(12).contextualize(RepositoryError::Data)?;
 
@@ -52,7 +52,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
         adresse: Adresse {
             postleitzahl,
             stadt,
-            strasse_und_hausnummer,
+            straße_und_hausnummer,
             ländercode: Ländercode::from_str(&ländercode_str).change_context(RepositoryError::Data)?,
         },
     };
@@ -68,7 +68,7 @@ impl KlientRepository for SQLiteKlientRepository {
         let id_str = id.0.to_string();
         let mut rows = tx
             .query(
-                "SELECT id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, strasse_und_hausnummer, \"ländercode\", _version FROM klienten WHERE id = ?1",
+                "SELECT id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", _version FROM klienten WHERE id = ?1",
                 [id_str],
             )
             .await
@@ -102,7 +102,7 @@ impl KlientRepository for SQLiteKlientRepository {
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
-            "INSERT INTO klienten (id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, strasse_und_hausnummer, \"ländercode\", _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+            "INSERT INTO klienten (id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
             libsql::params![
                 klient.id.0.to_string(),
                 klient.vorname.clone(),
@@ -114,7 +114,7 @@ impl KlientRepository for SQLiteKlientRepository {
                 if klient.einwilligung { 1i64 } else { 0i64 },
                 klient.adresse.postleitzahl.clone(),
                 klient.adresse.stadt.clone(),
-                klient.adresse.strasse_und_hausnummer.clone(),
+                klient.adresse.straße_und_hausnummer.clone(),
                 klient.adresse.ländercode.as_str(),
                 klient.v(),
             ],
@@ -134,7 +134,7 @@ impl KlientRepository for SQLiteKlientRepository {
 
         let result = tx
             .execute(
-                "UPDATE klienten SET vorname = ?1, nachname = ?2, geburtstag = ?3, email = ?4, mobilnummer = ?5, kundennummer = ?6, einwilligung = ?7, postleitzahl = ?8, stadt = ?9, strasse_und_hausnummer = ?10, \"ländercode\" = ?11, _version = _version + 1 WHERE id = ?12 AND _version = ?13",
+                "UPDATE klienten SET vorname = ?1, nachname = ?2, geburtstag = ?3, email = ?4, mobilnummer = ?5, kundennummer = ?6, einwilligung = ?7, postleitzahl = ?8, stadt = ?9, \"straße_und_hausnummer\" = ?10, \"ländercode\" = ?11, _version = _version + 1 WHERE id = ?12 AND _version = ?13",
                 libsql::params![
                     klient.vorname.clone(),
                     klient.nachname.clone(),
@@ -145,7 +145,7 @@ impl KlientRepository for SQLiteKlientRepository {
                     if klient.einwilligung { 1i64 } else { 0i64 },
                     klient.adresse.postleitzahl.clone(),
                     klient.adresse.stadt.clone(),
-                    klient.adresse.strasse_und_hausnummer.clone(),
+                    klient.adresse.straße_und_hausnummer.clone(),
                     klient.adresse.ländercode.as_str(),
                     id_str,
                     version,

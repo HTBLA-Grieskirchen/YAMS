@@ -43,16 +43,33 @@ yams/
 
 Dependency rule: **inward only**. Core knows nothing about HTTP, SQLite, or Tauri.
 
-## German Ubiquitous Language
+## Language & Naming
 
-Domain language is **German** across the full stack — Rust types, SQLite tables/columns, API JSON keys (UTF-8, e.g. `Ländercode` → JSON `ländercode`). English legacy names are obsolete.
+Two rules apply everywhere in this repo.
 
-- **Types & files** — German feature-slice names (`klient.rs`, `KlientErstellen`), not English technical names. **UTF-8 everywhere** — Rust identifiers, SQL columns, migration filenames (`straße_und_hausnummer`, `stückzahl`, `nächste_rechnungsnummer`). Never use `ae`/`oe`/`ue` transliteration.
-- **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request).
-- **JSON** — German field names, `camelCase` serde (`vorName`, `straßeUndHausnummer`). UTF-8 in source and JSON keys (`ländercode`, `stückzahl`).
-- **Comments** — DDD/technical terms in English (`Aggregate`, `Value object`); domain ubiquitous language stays German (`Behandlung`, `Klient`).
-- **HTTP paths** — German (`/klient`, `/tagesabschluss`).
-- **Billing detail** — [`specs/abrechnung.md`](specs/abrechnung.md); trust code over stale English specs.
+### English everywhere (except Ubiquitous Language)
+
+**Docs, comments, commit messages, and non-domain source** are **English** — `AGENTS.md`, architecture notes, `///` and `//` comments, DDD/technical terms (`Aggregate`, `Value object`, `Repository`, `Use case`), technical error context.
+
+**German is reserved for Ubiquitous Language only** — domain concepts that belong in the veterinary-practice vocabulary:
+
+- Rust types and modules: `Klient`, `Behandlung`, `Leistung`, `Tagesabschluss`, `KlientErstellen`
+- Persisted names: SQLite tables/columns for domain fields (`klienten`, `leistungen`, `straße_und_hausnummer`)
+- API surface for domain: HTTP paths (`/klient`, `/tagesabschluss`), JSON keys (`vorName`, `straßeUndHausnummer`, `ländercode`)
+- Domain specs ([`specs/abrechnung.md`](specs/abrechnung.md)) — trust code over stale English specs
+
+**Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request). German feature-slice file names (`klient.rs`, `abrechnung.rs`), not English technical names (`client.rs`, `billing.rs`).
+
+### UTF-8, not ASCII escapes
+
+Use **proper UTF-8** in identifiers and persisted names. Never transliterate umlauts to `ae`/`oe`/`ue` (no `naechste`, `strasse`, `laendercode`, `stueckzahl`).
+
+- **Rust** — `nächste_rechnungsnummer`, `straße_und_hausnummer`, `Ländercode`, `TagesabschlussDurchführen`
+- **SQLite** — quote when needed: `"straße_und_hausnummer"`, `"stückzahl"`, `"ländercode"`
+- **JSON** — UTF-8 keys via `camelCase` serde (`straßeUndHausnummer`, `stückzahl`); prefer UTF-8 field names in schema types over ASCII fields + `serde(rename)` workarounds
+- **Migrations** — final schema in `v0002` (feature dev); squash incremental alters while pre-deploy
+
+Tooling handles UTF-8 in source files — use it.
 
 ## yams-core — The Heart
 
@@ -203,5 +220,6 @@ Next.js app in `frontend/`. Tauri shell in `frontend/src-tauri/`. OpenAPI types 
 2. **Domain changes stay in core.** API DTOs are a separate translation layer; never leak serde/openapi concerns into core.
 3. **All mutations through `App::execute`.** No direct repo calls from adapters.
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.
-5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers.
-6. **Tests: add cases to `yams-core/tests/cases/`.** Persistence conformance follows automatically.
+5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers. English for technical messages; German only in domain/user-facing UL strings where appropriate.
+6. **Language** — English docs/comments/technical code; German UL for domain names; UTF-8 identifiers, no `ae`/`oe`/`ue` transliteration (see Language & Naming).
+7. **Tests: add cases to `yams-core/tests/cases/`.** Persistence conformance follows automatically.

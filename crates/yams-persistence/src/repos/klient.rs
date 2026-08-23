@@ -53,7 +53,7 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
             postleitzahl,
             stadt,
             strasse_und_hausnummer,
-            ländercode: Ländercode::new(laendercode_str).change_context(RepositoryError::Data)?,
+            ländercode: Ländercode::from_str(&laendercode_str).change_context(RepositoryError::Data)?,
         },
     };
     Ok(Versioned::new(version, klient))
@@ -115,7 +115,7 @@ impl KlientRepository for SQLiteKlientRepository {
                 klient.adresse.postleitzahl.clone(),
                 klient.adresse.stadt.clone(),
                 klient.adresse.strasse_und_hausnummer.clone(),
-                klient.adresse.ländercode.as_ref(),
+                klient.adresse.ländercode.as_str(),
                 klient.v(),
             ],
         )
@@ -146,7 +146,7 @@ impl KlientRepository for SQLiteKlientRepository {
                     klient.adresse.postleitzahl.clone(),
                     klient.adresse.stadt.clone(),
                     klient.adresse.strasse_und_hausnummer.clone(),
-                    klient.adresse.ländercode.as_ref(),
+                    klient.adresse.ländercode.as_str(),
                     id_str,
                     version,
                 ],

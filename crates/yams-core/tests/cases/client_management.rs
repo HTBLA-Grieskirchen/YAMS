@@ -23,7 +23,7 @@ async fn test_klient() {
             postleitzahl: "12345".into(),
             stadt: "Testcity".into(),
             strasse_und_hausnummer: "Teststreet 12".into(),
-            ländercode: Ländercode::new("DE").unwrap(),
+            ländercode: Ländercode::from_str("DE").unwrap(),
         },
     };
 

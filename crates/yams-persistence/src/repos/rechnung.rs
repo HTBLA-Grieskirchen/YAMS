@@ -6,7 +6,7 @@ use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
     domain::{
-        KlientId, LeistungId, Rechnung, RechnungId, rechnung::Rechnungsposition,
+        GeladeneRechnung, KlientId, LeistungId, RechnungId, RechnungOffen, Rechnungsposition,
     },
     ports::{RechnungRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
@@ -16,113 +16,128 @@ use yams_core::{
 use crate::errors::libsql_error_to_persistence_error;
 
 use super::common::{
-    format_naive_date, parse_klient_id, parse_naive_date, parse_preis, parse_uuid, preis_to_str,
-    rechnung_status_from_str, rechnung_status_to_str,
+    decimal_to_str, format_naive_date, parse_decimal, parse_klient_id, parse_naive_date,
+    parse_preis, parse_uuid, preis_to_str,
 };
 
 pub struct SQLiteRechnungRepository {
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
 }
 
-async fn load_positionen(
-    tx: &mut libsql::Transaction,
-    rechnung_id: &str,
-) -> RepositoryResult<Vec<Rechnungsposition>> {
-    let mut rows = tx
-        .query(
-            "SELECT leistung_id, beschreibung, betrag FROM rechnungspositionen WHERE rechnung_id = ?1",
-            [rechnung_id],
-        )
-        .await
-        .contextualize_with(libsql_error_to_persistence_error)?;
-
-    let mut positionen = Vec::new();
-    while let Some(row) = rows
-        .next()
-        .await
-        .contextualize_with(libsql_error_to_persistence_error)?
-    {
-        let leistung_id_str: String = row.get(0).contextualize(RepositoryError::Data)?;
-        let beschreibung: String = row.get(1).contextualize(RepositoryError::Data)?;
-        let betrag_str: String = row.get(2).contextualize(RepositoryError::Data)?;
-
-        let leistung_uuid = parse_uuid(&leistung_id_str).contextualize(RepositoryError::Data)?;
-        positionen.push(Rechnungsposition {
-            leistung_id: LeistungId(leistung_uuid),
-            beschreibung,
-            betrag: parse_preis(&betrag_str)?,
-        });
-    }
-    Ok(positionen)
+struct RechnungRowData {
+    id: RechnungId,
+    rechnungsnummer: i64,
+    klient_id: KlientId,
+    rechnungsdatum: chrono::NaiveDate,
+    status: String,
+    version: u64,
 }
 
-fn rechnung_from_row(row: &Row, positionen: Vec<Rechnungsposition>) -> RepositoryResult<Versioned<Rechnung>> {
+fn parse_rechnung_header(row: &Row) -> RepositoryResult<RechnungRowData> {
     let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
     let rechnungsnummer: i64 = row.get(1).contextualize(RepositoryError::Data)?;
     let klient_id_str: String = row.get(2).contextualize(RepositoryError::Data)?;
     let rechnungsdatum_str: String = row.get(3).contextualize(RepositoryError::Data)?;
-    let gesamtbetrag_str: String = row.get(4).contextualize(RepositoryError::Data)?;
-    let status_str: String = row.get(5).contextualize(RepositoryError::Data)?;
-    let version: u64 = row.get(6).contextualize(RepositoryError::Data)?;
+    let status: String = row.get(4).contextualize(RepositoryError::Data)?;
+    let version: u64 = row.get(5).contextualize(RepositoryError::Data)?;
 
-    let uuid = parse_uuid(&id_raw).contextualize(RepositoryError::Data)?;
+    let uuid = parse_uuid(&id_raw)?;
     let klient_id = parse_klient_id(&klient_id_str)?;
     let rechnungsdatum =
         parse_naive_date(&rechnungsdatum_str).contextualize(RepositoryError::Data)?;
-    let gesamtbetrag = parse_preis(&gesamtbetrag_str)?;
-    let status = rechnung_status_from_str(&status_str)?;
 
-    let rechnung = Rechnung {
+    Ok(RechnungRowData {
         id: RechnungId(uuid),
         rechnungsnummer,
         klient_id,
         rechnungsdatum,
-        positionen,
-        gesamtbetrag,
         status,
-    };
-    Ok(Versioned::new(version, rechnung))
+        version,
+    })
+}
+
+fn parse_position_from_row(row: &Row) -> RepositoryResult<Rechnungsposition> {
+    let leistung_id_str: Option<String> = row.get(6).contextualize(RepositoryError::Data)?;
+    let beschreibung: Option<String> = row.get(7).contextualize(RepositoryError::Data)?;
+    let einzelpreis_str: Option<String> = row.get(8).contextualize(RepositoryError::Data)?;
+    let stueckzahl_str: Option<String> = row.get(9).contextualize(RepositoryError::Data)?;
+    let mwst_str: Option<String> = row.get(10).contextualize(RepositoryError::Data)?;
+
+    let leistung_id_str = leistung_id_str.ok_or(RepositoryError::Data)?;
+    let beschreibung = beschreibung.ok_or(RepositoryError::Data)?;
+    let einzelpreis_str = einzelpreis_str.ok_or(RepositoryError::Data)?;
+    let stueckzahl_str = stueckzahl_str.ok_or(RepositoryError::Data)?;
+    let mwst_str = mwst_str.ok_or(RepositoryError::Data)?;
+
+    let leistung_uuid = parse_uuid(&leistung_id_str)?;
+    Ok(Rechnungsposition::neu(
+        beschreibung,
+        parse_preis(&einzelpreis_str)?,
+        parse_decimal(&stueckzahl_str)?,
+        parse_decimal(&mwst_str)?,
+        LeistungId(leistung_uuid),
+    ))
+}
+
+fn geladene_rechnung_from_parts(
+    header: &RechnungRowData,
+    positionen: Vec<Rechnungsposition>,
+) -> RepositoryResult<GeladeneRechnung> {
+    let bezahlt = header.status == "bezahlt";
+    Ok(
+        GeladeneRechnung::from_parts(
+            header.id.clone(),
+            header.rechnungsnummer,
+            header.klient_id.clone(),
+            header.rechnungsdatum,
+            positionen,
+            bezahlt,
+        )
+        .map_err(|_| RepositoryError::Data)?,
+    )
 }
 
 #[async_trait]
 impl RechnungRepository for SQLiteRechnungRepository {
-    async fn create(&self, rechnung: Rechnung) -> RepositoryResult<Versioned<Rechnung>> {
-        let rechnung = Versioned::init(rechnung);
+    async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>> {
+        let versioned = Versioned::init(rechnung.clone());
+        let gesamtbetrag = preis_to_str(&rechnung.gesamtbetrag_brutto());
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
-            "INSERT INTO rechnungen (id, rechnungsnummer, klient_id, rechnungsdatum, gesamtbetrag, status, _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            "INSERT INTO rechnungen (id, rechnungsnummer, klient_id, rechnungsdatum, gesamtbetrag, status, _version) VALUES (?1, ?2, ?3, ?4, ?5, 'offen', ?6)",
             libsql::params![
-                rechnung.id.0.to_string(),
-                rechnung.rechnungsnummer,
-                rechnung.klient_id.0.to_string(),
-                format_naive_date(rechnung.rechnungsdatum),
-                preis_to_str(&rechnung.gesamtbetrag),
-                rechnung_status_to_str(&rechnung.status),
-                rechnung.v(),
+                rechnung.id().0.to_string(),
+                rechnung.rechnungsnummer(),
+                rechnung.klient_id().0.to_string(),
+                format_naive_date(rechnung.rechnungsdatum()),
+                gesamtbetrag,
+                versioned.v(),
             ],
         )
         .await
         .contextualize_with(libsql_error_to_persistence_error)?;
 
-        for position in &rechnung.positionen {
+        for position in rechnung.positionen() {
             tx.execute(
-                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, betrag) VALUES (?1, ?2, ?3, ?4, ?5)",
+                "INSERT INTO rechnungspositionen (id, rechnung_id, leistung_id, beschreibung, einzelpreis, stueckzahl, mwst_prozentsatz) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 libsql::params![
                     Uuid::new_v4().to_string(),
-                    rechnung.id.0.to_string(),
-                    position.leistung_id.0.to_string(),
-                    position.beschreibung.clone(),
-                    preis_to_str(&position.betrag),
+                    rechnung.id().0.to_string(),
+                    position.leistung_id().0.to_string(),
+                    position.beschreibung(),
+                    preis_to_str(position.einzelpreis()),
+                    decimal_to_str(&position.stückzahl()),
+                    decimal_to_str(&position.mwst_prozentsatz()),
                 ],
             )
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
         }
 
-        Ok(rechnung)
+        Ok(versioned)
     }
 
     async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64> {
@@ -150,29 +165,55 @@ impl RechnungRepository for SQLiteRechnungRepository {
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
-    ) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
+    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>> {
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         let klient_id_str = klient_id.0.to_string();
         let mut rows = tx
             .query(
-                "SELECT id, rechnungsnummer, klient_id, rechnungsdatum, gesamtbetrag, status, _version FROM rechnungen WHERE klient_id = ?1",
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.stueckzahl, p.mwst_prozentsatz FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.klient_id = ?1 ORDER BY r.rechnungsnummer, p.id",
                 [klient_id_str],
             )
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
 
-        let mut rechnungen = Vec::new();
+        let mut rechnungen: Vec<Versioned<GeladeneRechnung>> = Vec::new();
+        let mut current_header: Option<RechnungRowData> = None;
+        let mut current_positionen: Vec<Rechnungsposition> = Vec::new();
+
         while let Some(row) = rows
             .next()
             .await
             .contextualize_with(libsql_error_to_persistence_error)?
         {
-            let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
-            let positionen = load_positionen(tx, &id_raw).await?;
-            rechnungen.push(rechnung_from_row(&row, positionen)?);
+            let header = parse_rechnung_header(&row)?;
+            let is_new_rechnung = current_header
+                .as_ref()
+                .is_none_or(|h| h.id != header.id);
+
+            if is_new_rechnung {
+                if let Some(prev_header) = current_header {
+                    let version = prev_header.version;
+                    let geladen =
+                        geladene_rechnung_from_parts(&prev_header, current_positionen)?;
+                    rechnungen.push(Versioned::new(version, geladen));
+                    current_positionen = Vec::new();
+                }
+                current_header = Some(header);
+            }
+
+            if let Ok(position) = parse_position_from_row(&row) {
+                current_positionen.push(position);
+            }
         }
+
+        if let Some(header) = current_header {
+            let version = header.version;
+            let geladen = geladene_rechnung_from_parts(&header, current_positionen)?;
+            rechnungen.push(Versioned::new(version, geladen));
+        }
+
         Ok(rechnungen)
     }
 }

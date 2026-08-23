@@ -73,14 +73,26 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 
 ### Design Principles
 
-**Make invalid state unrepresentable.** This is the guiding principle for domain modeling:
+**Make invalid state unrepresentable.** Guiding principle for domain modeling:
 
 - **Newtypes for identity** — `KlientId(Uuid)`, `HaustierId(Uuid)` prevent ID mix-ups at compile time.
-- **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Ländercode`, `Preis` can only be constructed through `new()` / `TryFrom`. Invalid values cannot exist in the type system.
+- **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Preis` via `new()` / `TryFrom`. Invalid values cannot exist in the type system.
+- **Closed enums where closed** — `Ländercode` is an enum (`AT`, `DE`, `CH`), not a free-form string.
+- **Type-state aggregates** — `Leistung<Offen>` / `Leistung<Abgerechnet>`, `Rechnung<Offen>` / `Rechnung<Bezahlt>`. Only `LeistungOffen::mark_abgerechnet` transitions state. `GeladeneLeistung` / `GeladeneRechnung` enums reconstruct persisted state at repository boundary.
 - **Separate creation types** — `NeuerKlient` / `NeuesHaustier` have no ID; persisted aggregates always do.
-- **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version. Updates require the expected version; stale writes are rejected at the type boundary.
-- **UoW access modes** — `locked()` vs `shared()` encode transaction semantics. Multi-step ops (`VieleHaustiereErstellen`, `TagesabschlussDurchfuehren`) use `ctx.to_locked()` + `checkpoint()`. **Rollback after checkpoint only reverts to last checkpoint** — do not checkpoint casually.
-- **Single linkage** — `Haustier.klient_id` is the source of truth; no `haustier_ids` on `Klient`.
+- **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Repositories call `::neu` / `from_parts`, never construct invalid entities.
+- **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.
+- **Price snapshots on Leistung** — `LeistungQuelle` stores booked prices (`einzelpreis`, `menge`, `preis`) so Tagesabschluss uses historical values, not current catalog prices.
+- **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version.
+- **UoW access modes** — `locked()` vs `shared()`. Multi-step ops use `ctx.to_locked()` + `checkpoint()`. **Rollback after checkpoint only reverts to last checkpoint.**
+- **Single linkage** — `Haustier.klient_id` is source of truth; no `haustier_ids` on `Klient`.
+
+**Repositories are dumb.** Ports persist and load domain types — no business logic (no `mark_abgerechnet` on repository). State transitions happen in domain/use cases; repos `update` the mutated entity.
+
+**Error handling conventions:**
+- **`Report<E>` everywhere** — use cases, domain services (`RechnungOffen::aus_leistungen`), orchestration. Use `.change_context()` directly; avoid redundant `IntoReport::into_report`.
+- **Exception: newtype validation** — `EmailAdresse::new`, `Preis::new`, `Ländercode::from_str` return plain `Result<T, ValidationError>` — nothing cross-cutting can fail at construction.
+- **Preis arithmetic** — `add` / `multiply` preserve non-negative invariant; prefer over manual `Decimal` sums.
 
 Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` with UoW + clock access.
 
@@ -161,10 +173,10 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 
 | Layer              | Where                          | What                                      |
 |--------------------|--------------------------------|-------------------------------------------|
-| Unit (conceptual)  | `yams-core` tests              | Pure business logic with fake adapters    |
-| Adapter conformance| `yams-persistence/tests/`      | Same test cases as core, real SQLite UoW  |
+| Domain unit        | `yams-core/tests/domain/`      | Isolated VO/aggregate math (Preis, MwSt, validation) |
+| Business conform   | `yams-core/tests/cases/`       | Full use-case flows with fake adapters    |
+| Adapter conformance| `yams-persistence/tests/`      | Same cases as core, real SQLite UoW        |
 | E2E / API          | `yams-api`                     | Invoke API methods, lightweight persistence |
-| Integration        | Adapter crates (future)        | Adapter-specific validity                 |
 
 ### Shared Conformance Pattern
 

@@ -1,15 +1,15 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
-use error_stack::{IntoReport, Report, ResultExt};
+use error_stack::{Report, ResultExt};
 use rust_decimal::Decimal;
 use rustc_hash::FxHashMap;
 
 use crate::{
     application::uow::Versioned,
     domain::{
-        Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungQuelle, Preis, Produkt,
-        ProduktId, Rechnung, behandlung::NeueBehandlung, leistung::NeueLeistung,
-        produkt::NeuesProdukt, rechnung::RechnungFehler,
+        Behandlung, BehandlungId, GeladeneLeistung, HaustierId, KlientId, LeistungOffen,
+        LeistungQuelle, Preis, Produkt, ProduktId, RechnungOffen, behandlung::NeueBehandlung,
+        leistung::NeueLeistung, produkt::NeuesProdukt,
     },
     service::{ExecutionContext, UseCase},
 };
@@ -42,7 +42,6 @@ impl UseCase<Produkt> for ProduktErstellen {
             })
             .await
             .map(Versioned::into_data)
-            .map_err(IntoReport::into_report)
             .change_context(ProduktErstellenFehler::Erstellung)
     }
 }
@@ -75,7 +74,6 @@ impl UseCase<Behandlung> for BehandlungErstellen {
             })
             .await
             .map(Versioned::into_data)
-            .map_err(IntoReport::into_report)
             .change_context(BehandlungErstellenFehler::Erstellung)
     }
 }
@@ -100,10 +98,10 @@ pub enum LeistungAusProduktBuchenFehler {
 }
 
 #[async_trait]
-impl UseCase<Leistung> for LeistungAusProduktBuchen {
+impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
     type Error = Report<LeistungAusProduktBuchenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Leistung, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<LeistungOffen, Self::Error> {
         let ExecutionContext { uow, .. } = ctx;
 
         let produkt = uow
@@ -112,7 +110,7 @@ impl UseCase<Leistung> for LeistungAusProduktBuchen {
             .await
             .change_context(LeistungAusProduktBuchenFehler::ProduktNichtGefunden)?;
 
-        let betrag = produkt
+        produkt
             .einzelpreis
             .multiply(self.menge)
             .change_context(LeistungAusProduktBuchenFehler::UngueltigerBetrag)?;
@@ -122,13 +120,15 @@ impl UseCase<Leistung> for LeistungAusProduktBuchen {
                 klient_id: self.klient_id,
                 haustier_id: self.haustier_id,
                 beschreibung: produkt.name.clone(),
-                betrag,
                 leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Produkt(self.produkt_id),
+                quelle: LeistungQuelle::Produkt {
+                    produkt_id: self.produkt_id,
+                    menge: self.menge,
+                    einzelpreis: produkt.einzelpreis.clone(),
+                },
             })
             .await
             .map(Versioned::into_data)
-            .map_err(IntoReport::into_report)
             .change_context(LeistungAusProduktBuchenFehler::Persistenz)
     }
 }
@@ -139,6 +139,7 @@ pub struct LeistungAusBehandlungBuchen {
     pub klient_id: KlientId,
     pub haustier_id: Option<HaustierId>,
     pub leistungsdatum: NaiveDate,
+    pub preis_override: Option<Preis>,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -150,10 +151,10 @@ pub enum LeistungAusBehandlungBuchenFehler {
 }
 
 #[async_trait]
-impl UseCase<Leistung> for LeistungAusBehandlungBuchen {
+impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
     type Error = Report<LeistungAusBehandlungBuchenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Leistung, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<LeistungOffen, Self::Error> {
         let ExecutionContext { uow, .. } = ctx;
 
         let behandlung = uow
@@ -162,18 +163,23 @@ impl UseCase<Leistung> for LeistungAusBehandlungBuchen {
             .await
             .change_context(LeistungAusBehandlungBuchenFehler::BehandlungNichtGefunden)?;
 
+        let preis = self
+            .preis_override
+            .unwrap_or_else(|| behandlung.standardpreis.clone());
+
         uow.leistungen()
             .create(NeueLeistung {
                 klient_id: self.klient_id,
                 haustier_id: self.haustier_id,
                 beschreibung: behandlung.name.clone(),
-                betrag: behandlung.standardpreis.clone(),
                 leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Behandlung(self.behandlung_id),
+                quelle: LeistungQuelle::Behandlung {
+                    behandlung_id: self.behandlung_id,
+                    preis,
+                },
             })
             .await
             .map(Versioned::into_data)
-            .map_err(IntoReport::into_report)
             .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)
     }
 }
@@ -194,10 +200,10 @@ pub enum LeistungManuellErfassenFehler {
 }
 
 #[async_trait]
-impl UseCase<Leistung> for LeistungManuellErfassen {
+impl UseCase<LeistungOffen> for LeistungManuellErfassen {
     type Error = Report<LeistungManuellErfassenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Leistung, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<LeistungOffen, Self::Error> {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.leistungen()
@@ -205,13 +211,13 @@ impl UseCase<Leistung> for LeistungManuellErfassen {
                 klient_id: self.klient_id,
                 haustier_id: self.haustier_id,
                 beschreibung: self.beschreibung,
-                betrag: self.betrag,
                 leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Manuell,
+                quelle: LeistungQuelle::Manuell {
+                    preis: self.betrag,
+                },
             })
             .await
             .map(Versioned::into_data)
-            .map_err(IntoReport::into_report)
             .change_context(LeistungManuellErfassenFehler::Persistenz)
     }
 }
@@ -226,14 +232,14 @@ pub enum TagesabschlussDurchfuehrenFehler {
     #[error("persistenzfehler")]
     Persistenz,
     #[error("rechnung konnte nicht erstellt werden")]
-    RechnungErstellung(RechnungFehler),
+    Rechnung,
 }
 
 #[async_trait]
-impl UseCase<Vec<Rechnung>> for TagesabschlussDurchfuehren {
+impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchfuehren {
     type Error = Report<TagesabschlussDurchfuehrenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<Rechnung>, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<RechnungOffen>, Self::Error> {
         let abschlussdatum = match self.abschlussdatum {
             Some(datum) => datum,
             None => ctx.clock().today(),
@@ -246,17 +252,18 @@ impl UseCase<Vec<Rechnung>> for TagesabschlussDurchfuehren {
             .await
             .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
 
-        let mut gruppen: FxHashMap<KlientId, Vec<Versioned<Leistung>>> = FxHashMap::default();
+        let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> =
+            FxHashMap::default();
         for leistung in leistungen {
             gruppen
-                .entry(leistung.klient_id.clone())
+                .entry(leistung.klient_id().clone())
                 .or_default()
                 .push(leistung);
         }
 
         let mut rechnungen = Vec::new();
         for (klient_id, gruppen_leistungen) in gruppen {
-            let leistung_daten = gruppen_leistungen
+            let mut leistung_daten = gruppen_leistungen
                 .iter()
                 .map(|l| l.cloned_data())
                 .collect::<Vec<_>>();
@@ -267,13 +274,13 @@ impl UseCase<Vec<Rechnung>> for TagesabschlussDurchfuehren {
                 .await
                 .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
 
-            let rechnung = Rechnung::aus_leistungen(
+            let (rechnung, abgerechnet) = RechnungOffen::aus_leistungen(
                 klient_id,
                 rechnungsnummer,
                 abschlussdatum,
-                leistung_daten,
+                &mut leistung_daten,
             )
-            .map_err(|e| Report::new(TagesabschlussDurchfuehrenFehler::RechnungErstellung(e)))?;
+            .map_err(|report| report.change_context(TagesabschlussDurchfuehrenFehler::Rechnung))?;
 
             let persisted = uow
                 .rechnungen()
@@ -281,9 +288,18 @@ impl UseCase<Vec<Rechnung>> for TagesabschlussDurchfuehren {
                 .await
                 .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
 
-            for leistung in gruppen_leistungen {
+            for abgerechnet_leistung in abgerechnet {
+                let original = gruppen_leistungen
+                    .iter()
+                    .find(|l| l.id() == abgerechnet_leistung.id())
+                    .expect("abgerechnete leistung stammt aus geladener gruppe");
+
+                let mut versioned = Versioned::new(
+                    original.v(),
+                    GeladeneLeistung::Abgerechnet(abgerechnet_leistung),
+                );
                 uow.leistungen()
-                    .mark_abgerechnet(leistung.id.clone(), persisted.id.clone())
+                    .update(&mut versioned)
                     .await
                     .change_context(TagesabschlussDurchfuehrenFehler::Persistenz)?;
             }

@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -7,37 +5,29 @@ use thiserror::Error;
 pub struct LaendercodeValidierungsfehler(String);
 
 /// ISO 3166-1 alpha-2 (z. B. `DE`, `AT`, `CH`)
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Ländercode(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Ländercode {
+    AT,
+    DE,
+    CH,
+}
 
 impl Ländercode {
-    pub fn new<S: AsRef<str>>(s: S) -> Result<Self, LaendercodeValidierungsfehler> {
-        let s_ref = s.as_ref();
-        if s_ref.len() == 2 && s_ref.chars().all(|c| c.is_ascii_uppercase()) {
-            Ok(Self(s_ref.to_string()))
-        } else {
-            Err(LaendercodeValidierungsfehler(s_ref.to_string()))
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::AT => "AT",
+            Self::DE => "DE",
+            Self::CH => "CH",
         }
     }
-}
 
-impl TryFrom<String> for Ländercode {
-    type Error = LaendercodeValidierungsfehler;
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        Ländercode::new(s)
-    }
-}
-
-impl TryFrom<&str> for Ländercode {
-    type Error = LaendercodeValidierungsfehler;
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Ländercode::new(s)
-    }
-}
-
-impl AsRef<str> for Ländercode {
-    fn as_ref(&self) -> &str {
-        &self.0
+    pub fn from_str(s: &str) -> Result<Self, LaendercodeValidierungsfehler> {
+        match s {
+            "AT" => Ok(Self::AT),
+            "DE" => Ok(Self::DE),
+            "CH" => Ok(Self::CH),
+            _ => Err(LaendercodeValidierungsfehler(s.to_string())),
+        }
     }
 }
 

@@ -9,12 +9,12 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 use yams_core::{
     domain::{
-        Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-        LeistungStatus, Produkt, ProduktId, Rechnung, RechnungId,
+        Behandlung, BehandlungId, GeladeneLeistung, GeladeneRechnung, Haustier, HaustierId, Klient,
+        KlientId, LeistungId, LeistungOffen, Produkt, ProduktId, RechnungOffen,
         behandlung::NeueBehandlung,
         haustier::NeuesHaustier,
         klient::NeuerKlient,
-        leistung::{NeueLeistung},
+        leistung::{LeistungOffen as LeistungOffenType, NeueLeistung},
         produkt::NeuesProdukt,
     },
     ports::{
@@ -29,9 +29,8 @@ pub struct FakeDatastore {
     pub haustiere: Mutex<FxHashMap<Uuid, Versioned<Haustier>>>,
     pub produkte: Mutex<FxHashMap<Uuid, Versioned<Produkt>>>,
     pub behandlungen: Mutex<FxHashMap<Uuid, Versioned<Behandlung>>>,
-    pub leistungen: Mutex<FxHashMap<Uuid, Versioned<Leistung>>>,
-    pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<Rechnung>>>,
-    pub naechste_rechnungsnummer: Mutex<i64>,
+    pub leistungen: Mutex<FxHashMap<Uuid, Versioned<GeladeneLeistung>>>,
+    pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<GeladeneRechnung>>>,
 }
 
 impl Clone for FakeDatastore {
@@ -43,7 +42,6 @@ impl Clone for FakeDatastore {
             behandlungen: Mutex::new(self.behandlungen.lock().unwrap().clone()),
             leistungen: Mutex::new(self.leistungen.lock().unwrap().clone()),
             rechnungen: Mutex::new(self.rechnungen.lock().unwrap().clone()),
-            naechste_rechnungsnummer: Mutex::new(*self.naechste_rechnungsnummer.lock().unwrap()),
         }
     }
 }
@@ -57,7 +55,6 @@ impl FakeDatastore {
             behandlungen: Mutex::new(FxHashMap::default()),
             leistungen: Mutex::new(FxHashMap::default()),
             rechnungen: Mutex::new(FxHashMap::default()),
-            naechste_rechnungsnummer: Mutex::new(1),
         }
     }
 
@@ -68,8 +65,6 @@ impl FakeDatastore {
         *self.behandlungen.lock().unwrap() = other.behandlungen.lock().unwrap().clone();
         *self.leistungen.lock().unwrap() = other.leistungen.lock().unwrap().clone();
         *self.rechnungen.lock().unwrap() = other.rechnungen.lock().unwrap().clone();
-        *self.naechste_rechnungsnummer.lock().unwrap() =
-            *other.naechste_rechnungsnummer.lock().unwrap();
     }
 
     pub fn merge(
@@ -121,9 +116,6 @@ impl FakeDatastore {
             &*acquire_map_lock(&tx.rechnungen)?,
         )?;
 
-        *target.naechste_rechnungsnummer.lock().unwrap() =
-            *tx.naechste_rechnungsnummer.lock().unwrap();
-
         Ok(FakeDatastore {
             klienten: Mutex::new(target_klienten.clone()),
             haustiere: Mutex::new(target_haustiere.clone()),
@@ -131,7 +123,6 @@ impl FakeDatastore {
             behandlungen: Mutex::new(target_behandlungen.clone()),
             leistungen: Mutex::new(target_leistungen.clone()),
             rechnungen: Mutex::new(target_rechnungen.clone()),
-            naechste_rechnungsnummer: Mutex::new(*target.naechste_rechnungsnummer.lock().unwrap()),
         })
     }
 
@@ -409,46 +400,46 @@ impl FakeLeistungenRepository {
 
 #[async_trait]
 impl LeistungRepository for FakeLeistungenRepository {
-    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<Leistung>> {
+    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>> {
         let id = LeistungId(Uuid::new_v4());
         let mut data = self.datastore.leistungen.lock().unwrap();
-        let versioned = Versioned::init(Leistung {
-            id,
-            klient_id: leistung.klient_id,
-            haustier_id: leistung.haustier_id,
-            beschreibung: leistung.beschreibung,
-            betrag: leistung.betrag,
-            leistungsdatum: leistung.leistungsdatum,
-            status: LeistungStatus::Offen,
-            quelle: leistung.quelle,
-            rechnung_id: None,
-        });
-        data.insert(versioned.id.0.clone(), versioned.clone());
-        Ok(versioned)
+        let offen = LeistungOffenType::neu(id, leistung);
+        let versioned = Versioned::init(GeladeneLeistung::Offen(offen.clone()));
+        data.insert(offen.id().0, versioned.clone());
+        Ok(Versioned::new(versioned.v(), offen))
     }
 
-    async fn find_offene_by_datum(&self, datum: NaiveDate) -> RepositoryResult<Vec<Versioned<Leistung>>> {
+    async fn find_offene_by_datum(
+        &self,
+        datum: NaiveDate,
+    ) -> RepositoryResult<Vec<Versioned<LeistungOffen>>> {
         let data = self.datastore.leistungen.lock().unwrap();
         Ok(data
             .values()
-            .filter(|l| l.status == LeistungStatus::Offen && l.leistungsdatum == datum)
-            .cloned()
+            .filter_map(|versioned| match &**versioned {
+                GeladeneLeistung::Offen(leistung) if leistung.leistungsdatum() == datum => {
+                    Some(Versioned::new(versioned.v(), leistung.clone()))
+                }
+                _ => None,
+            })
             .collect())
     }
 
-    async fn mark_abgerechnet(
-        &self,
-        id: LeistungId,
-        rechnung_id: RechnungId,
-    ) -> RepositoryResult<Versioned<Leistung>> {
+    async fn update(&self, leistung: &mut Versioned<GeladeneLeistung>) -> RepositoryResult<()> {
         let mut data = self.datastore.leistungen.lock().unwrap();
-        let mut leistung = data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?;
-        leistung
-            .mark_abgerechnet(rechnung_id)
-            .map_err(|_| RepositoryError::Data)?;
-        leistung = leistung.incremented();
-        data.insert(id.0.clone(), leistung.clone());
-        Ok(leistung)
+        let id = leistung.id().0;
+        if let Some(existing) = data.get(&id) {
+            if existing.v() != leistung.v() {
+                Err(RepositoryError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: Some(leistung.v()),
+                })?;
+            }
+            *leistung = leistung.clone().incremented();
+            data.insert(id, leistung.clone());
+            return Ok(());
+        }
+        Err(RepositoryError::NotFound)?
     }
 }
 
@@ -464,25 +455,31 @@ impl FakeRechnungenRepository {
 
 #[async_trait]
 impl RechnungRepository for FakeRechnungenRepository {
-    async fn create(&self, rechnung: Rechnung) -> RepositoryResult<Versioned<Rechnung>> {
+    async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>> {
         let mut data = self.datastore.rechnungen.lock().unwrap();
-        let versioned = Versioned::init(rechnung);
-        data.insert(versioned.id.0.clone(), versioned.clone());
-        Ok(versioned)
+        let versioned = Versioned::init(GeladeneRechnung::Offen(rechnung.clone()));
+        data.insert(rechnung.id().0, versioned);
+        Ok(Versioned::init(rechnung))
     }
 
     async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64> {
-        let mut counter = self.datastore.naechste_rechnungsnummer.lock().unwrap();
-        let nummer = *counter;
-        *counter += 1;
-        Ok(nummer)
+        let data = self.datastore.rechnungen.lock().unwrap();
+        let max = data
+            .values()
+            .map(|rechnung| rechnung.rechnungsnummer())
+            .max()
+            .unwrap_or(0);
+        Ok(max + 1)
     }
 
-    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
+    async fn find_by_klient_id(
+        &self,
+        klient_id: KlientId,
+    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>> {
         let data = self.datastore.rechnungen.lock().unwrap();
         Ok(data
             .values()
-            .filter(|r| r.klient_id == klient_id)
+            .filter(|r| r.klient_id() == &klient_id)
             .cloned()
             .collect())
     }

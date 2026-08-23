@@ -5,8 +5,8 @@ use chrono::NaiveDate;
 
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
-    Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-    Produkt, ProduktId, Rechnung, RechnungId,
+    Behandlung, BehandlungId, GeladeneLeistung, GeladeneRechnung, Haustier, HaustierId, Klient,
+    KlientId, LeistungOffen, Produkt, ProduktId, RechnungOffen,
     behandlung::NeueBehandlung,
     haustier::NeuesHaustier,
     klient::NeuerKlient,
@@ -51,20 +51,22 @@ pub trait BehandlungRepository: Send + Sync {
 
 #[async_trait]
 pub trait LeistungRepository: Send + Sync {
-    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<Leistung>>;
-    async fn find_offene_by_datum(&self, datum: NaiveDate) -> RepositoryResult<Vec<Versioned<Leistung>>>;
-    async fn mark_abgerechnet(
+    async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>>;
+    async fn find_offene_by_datum(
         &self,
-        id: LeistungId,
-        rechnung_id: RechnungId,
-    ) -> RepositoryResult<Versioned<Leistung>>;
+        datum: NaiveDate,
+    ) -> RepositoryResult<Vec<Versioned<LeistungOffen>>>;
+    async fn update(&self, leistung: &mut Versioned<GeladeneLeistung>) -> RepositoryResult<()>;
 }
 
 #[async_trait]
 pub trait RechnungRepository: Send + Sync {
-    async fn create(&self, rechnung: Rechnung) -> RepositoryResult<Versioned<Rechnung>>;
+    async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>>;
     async fn naechste_rechnungsnummer(&self) -> RepositoryResult<i64>;
-    async fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
+    async fn find_by_klient_id(
+        &self,
+        klient_id: KlientId,
+    ) -> RepositoryResult<Vec<Versioned<GeladeneRechnung>>>;
 }
 
 #[derive(thiserror::Error, Debug)]

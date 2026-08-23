@@ -17,8 +17,16 @@ impl Preis {
         }
     }
 
+    pub fn zero() -> Self {
+        Self(Decimal::ZERO)
+    }
+
     pub fn value(&self) -> Decimal {
         self.0
+    }
+
+    pub fn add(&self, other: &Preis) -> Result<Self, PreisFehler> {
+        Self::new(self.0 + other.0)
     }
 
     pub fn multiply(&self, factor: Decimal) -> Result<Self, PreisFehler> {

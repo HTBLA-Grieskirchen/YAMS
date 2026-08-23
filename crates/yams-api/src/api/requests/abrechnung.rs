@@ -96,16 +96,22 @@ pub struct LeistungAusBehandlungErstellung {
     pub klient_id: Uuid,
     pub haustier_id: Option<Uuid>,
     pub leistungsdatum: NaiveDate,
+    pub preis_override: Option<String>,
 }
 
 impl TryFrom<LeistungAusBehandlungErstellung> for LeistungAusBehandlungBuchen {
     type Error = Report<ValidationError>;
     fn try_from(value: LeistungAusBehandlungErstellung) -> Result<Self, Self::Error> {
+        let preis_override = match value.preis_override {
+            Some(preis) => Some(parse_preis(&preis)?),
+            None => None,
+        };
         Ok(Self {
             behandlung_id: BehandlungId(value.behandlung_id),
             klient_id: KlientId(value.klient_id),
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
             leistungsdatum: value.leistungsdatum,
+            preis_override,
         })
     }
 }

@@ -38,7 +38,7 @@ impl From<domain::Adresse> for Adresse {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
             strasse_und_hausnummer: value.strasse_und_hausnummer,
-            laendercode: Laendercode(value.ländercode.as_ref().to_string()),
+            laendercode: Laendercode(value.ländercode.as_str().to_string()),
         }
     }
 }
@@ -50,7 +50,7 @@ impl TryFrom<Adresse> for domain::Adresse {
             postleitzahl: value.postleitzahl,
             stadt: value.stadt,
             strasse_und_hausnummer: value.strasse_und_hausnummer,
-            ländercode: domain::Ländercode::new(value.laendercode.0)?,
+            ländercode: domain::Ländercode::from_str(&value.laendercode.0)?,
         })
     }
 }

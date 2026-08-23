@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use uuid::Uuid;
-use yams_core::domain;
+use yams_core::domain::{self, GeladeneLeistung, LeistungOffen};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Enum))]
@@ -17,6 +17,8 @@ pub enum LeistungStatus {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct LeistungQuelleProdukt {
     pub produkt_id: Uuid,
+    pub menge: String,
+    pub einzelpreis: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,12 +28,17 @@ pub struct LeistungQuelleProdukt {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct LeistungQuelleBehandlung {
     pub behandlung_id: Uuid,
+    pub preis: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct LeistungQuelleManuell {}
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct LeistungQuelleManuell {
+    pub preis: String,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Union))]
@@ -61,29 +68,59 @@ pub struct Leistung {
     pub rechnung_id: Option<Uuid>,
 }
 
-pub fn schema_leistung_from_domain(leistung: domain::Leistung) -> Leistung {
-    Leistung {
-        id: leistung.id.0,
-        klient_id: leistung.klient_id.0,
-        haustier_id: leistung.haustier_id.map(|id| id.0),
-        beschreibung: leistung.beschreibung,
-        betrag: leistung.betrag.value().to_string(),
-        leistungsdatum: leistung.leistungsdatum,
-        status: match leistung.status {
-            domain::LeistungStatus::Offen => LeistungStatus::Offen,
-            domain::LeistungStatus::Abgerechnet => LeistungStatus::Abgerechnet,
+pub fn schema_leistung_from_domain(leistung: LeistungOffen) -> Leistung {
+    schema_leistung_from_geladene(GeladeneLeistung::Offen(leistung))
+}
+
+pub fn schema_leistung_from_geladene(leistung: GeladeneLeistung) -> Leistung {
+    match leistung {
+        GeladeneLeistung::Offen(leistung) => Leistung {
+            id: leistung.id().0,
+            klient_id: leistung.klient_id().0,
+            haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),
+            beschreibung: leistung.beschreibung().to_string(),
+            betrag: leistung.betrag().value().to_string(),
+            leistungsdatum: leistung.leistungsdatum(),
+            status: LeistungStatus::Offen,
+            quelle: schema_quelle_from_domain(leistung.quelle()),
+            rechnung_id: None,
         },
-        quelle: match leistung.quelle {
-            domain::LeistungQuelle::Produkt(id) => LeistungQuelle::Produkt(LeistungQuelleProdukt {
-                produkt_id: id.0,
-            }),
-            domain::LeistungQuelle::Behandlung(id) => {
-                LeistungQuelle::Behandlung(LeistungQuelleBehandlung {
-                    behandlung_id: id.0,
-                })
-            }
-            domain::LeistungQuelle::Manuell => LeistungQuelle::Manuell(LeistungQuelleManuell {}),
+        GeladeneLeistung::Abgerechnet(leistung) => Leistung {
+            id: leistung.id().0,
+            klient_id: leistung.klient_id().0,
+            haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),
+            beschreibung: leistung.beschreibung().to_string(),
+            betrag: leistung.betrag().value().to_string(),
+            leistungsdatum: leistung.leistungsdatum(),
+            status: LeistungStatus::Abgerechnet,
+            quelle: schema_quelle_from_domain(leistung.quelle()),
+            rechnung_id: Some(leistung.rechnung_id().0),
         },
-        rechnung_id: leistung.rechnung_id.map(|id| id.0),
+    }
+}
+
+fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle {
+    match quelle {
+        domain::LeistungQuelle::Produkt {
+            produkt_id,
+            menge,
+            einzelpreis,
+        } => LeistungQuelle::Produkt(LeistungQuelleProdukt {
+            produkt_id: produkt_id.0,
+            menge: menge.to_string(),
+            einzelpreis: einzelpreis.value().to_string(),
+        }),
+        domain::LeistungQuelle::Behandlung {
+            behandlung_id,
+            preis,
+        } => LeistungQuelle::Behandlung(LeistungQuelleBehandlung {
+            behandlung_id: behandlung_id.0,
+            preis: preis.value().to_string(),
+        }),
+        domain::LeistungQuelle::Manuell { preis } => {
+            LeistungQuelle::Manuell(LeistungQuelleManuell {
+                preis: preis.value().to_string(),
+            })
+        }
     }
 }

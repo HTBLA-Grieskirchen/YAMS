@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use yams_core::domain::{Adresse, Ländercode, Preis};
+use yams_core::domain::{Adresse, Klient, Ländercode, Preis};
 use yams_core::service::{
     BehandlungErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
     LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
@@ -11,8 +11,14 @@ use yams_core::service::{
 
 use super::super::base_app_builder;
 
-#[pollster::test]
-async fn test_tagesabschluss() {
+struct AbrechnungSetup {
+    app: Arc<yams_core::App>,
+    klient1: Klient,
+    klient2: Klient,
+    abschlussdatum: NaiveDate,
+}
+
+async fn setup_abrechnung_fixture() -> AbrechnungSetup {
     let app = Arc::new(base_app_builder().await.build());
 
     let klient1 = app
@@ -28,7 +34,7 @@ async fn test_tagesabschluss() {
                 postleitzahl: "4711".into(),
                 stadt: "Grieskirchen".into(),
                 strasse_und_hausnummer: "Hauptstraße 1".into(),
-                ländercode: Ländercode::new("DE").unwrap(),
+                ländercode: Ländercode::from_str("DE").unwrap(),
             },
         })
         .await
@@ -47,7 +53,7 @@ async fn test_tagesabschluss() {
                 postleitzahl: "4712".into(),
                 stadt: "Grieskirchen".into(),
                 strasse_und_hausnummer: "Nebenstraße 2".into(),
-                ländercode: Ländercode::new("AT").unwrap(),
+                ländercode: Ländercode::from_str("AT").unwrap(),
             },
         })
         .await
@@ -73,41 +79,52 @@ async fn test_tagesabschluss() {
 
     let abschlussdatum = NaiveDate::from_ymd_opt(2026, 8, 23).unwrap();
 
-    let klient1_id = klient1.id.clone();
-    let klient2_id = klient2.id.clone();
-
     app.execute(LeistungAusProduktBuchen {
         produkt_id: produkt.id,
-        klient_id: klient1_id.clone(),
+        klient_id: klient1.id.clone(),
         haustier_id: None,
         menge: Decimal::new(2, 0),
         leistungsdatum: abschlussdatum,
     })
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     app.execute(LeistungAusBehandlungBuchen {
         behandlung_id: behandlung.id,
-        klient_id: klient1_id.clone(),
+        klient_id: klient1.id.clone(),
         haustier_id: None,
         leistungsdatum: abschlussdatum,
+        preis_override: None,
     })
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     app.execute(LeistungManuellErfassen {
-        klient_id: klient2_id.clone(),
+        klient_id: klient2.id.clone(),
         haustier_id: None,
         beschreibung: "Beratung".into(),
         betrag: Preis::new(Decimal::new(30, 0)).unwrap(),
         leistungsdatum: abschlussdatum,
     })
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
-    let rechnungen = app
+    AbrechnungSetup {
+        app,
+        klient1,
+        klient2,
+        abschlussdatum,
+    }
+}
+
+#[pollster::test]
+async fn test_tagesabschluss() {
+    let setup = setup_abrechnung_fixture().await;
+
+    let rechnungen = setup
+        .app
         .execute(TagesabschlussDurchfuehren {
-            abschlussdatum: Some(abschlussdatum),
+            abschlussdatum: Some(setup.abschlussdatum),
         })
         .await
         .unwrap();
@@ -116,27 +133,49 @@ async fn test_tagesabschluss() {
 
     let rechnung_klient1 = rechnungen
         .iter()
-        .find(|r| r.klient_id == klient1_id)
+        .find(|r| r.klient_id() == &setup.klient1.id)
         .expect("rechnung for klient1");
     let rechnung_klient2 = rechnungen
         .iter()
-        .find(|r| r.klient_id == klient2_id)
+        .find(|r| r.klient_id() == &setup.klient2.id)
         .expect("rechnung for klient2");
 
-    assert_eq!(rechnung_klient1.positionen.len(), 2);
-    assert_eq!(rechnung_klient2.positionen.len(), 1);
+    assert_eq!(rechnung_klient1.positionen().len(), 2);
+    assert_eq!(rechnung_klient2.positionen().len(), 1);
     assert_eq!(
-        rechnung_klient1.gesamtbetrag.value(),
+        rechnung_klient1.gesamtbetrag_netto().value(),
         Decimal::new(100, 0) // 2×25 + 50
     );
-    assert_eq!(rechnung_klient2.gesamtbetrag.value(), Decimal::new(30, 0));
+    assert_eq!(
+        rechnung_klient1.gesamtbetrag_brutto().value(),
+        Decimal::new(119, 0)
+    );
+    assert_eq!(rechnung_klient2.gesamtbetrag_netto().value(), Decimal::new(30, 0));
+    assert_eq!(
+        rechnung_klient2.gesamtbetrag_brutto().value(),
+        Decimal::new(357, 1)
+    );
+}
 
-    // Second Tagesabschluss should produce no new rechnungen
-    let zweiter_abschluss = app
+#[pollster::test]
+async fn test_tagesabschluss_zweiter_lauf_ohne_offene_leistungen() {
+    let setup = setup_abrechnung_fixture().await;
+
+    setup
+        .app
         .execute(TagesabschlussDurchfuehren {
-            abschlussdatum: Some(abschlussdatum),
+            abschlussdatum: Some(setup.abschlussdatum),
         })
         .await
         .unwrap();
+
+    let zweiter_abschluss = setup
+        .app
+        .execute(TagesabschlussDurchfuehren {
+            abschlussdatum: Some(setup.abschlussdatum),
+        })
+        .await
+        .unwrap();
+
     assert!(zweiter_abschluss.is_empty());
 }

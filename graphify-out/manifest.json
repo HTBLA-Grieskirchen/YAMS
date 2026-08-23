@@ -66,9 +66,9 @@
     "semantic_hash": "36e3621a9ad4f50c7df8b03ddc755868"
   },
   "crates/yams-api/Cargo.toml": {
-    "mtime": 1787499574.5837393,
-    "seen": 1787520717.8656259,
-    "ast_hash": "bc71a1ce11a207d279e0c267e8c2f626",
+    "mtime": 1787526344.7332845,
+    "seen": 1787526424.5122657,
+    "ast_hash": "928d8ab95d28f00e0e1945a529a6ba0c",
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/mod.rs": {
@@ -1164,9 +1164,9 @@
     "semantic_hash": "728ac0f9b75f41db2035c12296a49fe8"
   },
   "crates/yams-api/src/api/requests/abrechnung.rs": {
-    "mtime": 1787520664.5644996,
-    "seen": 1787520717.8656332,
-    "ast_hash": "92409ea0a73f1cbc634bbb0dff4f752c",
+    "mtime": 1787526394.6653845,
+    "seen": 1787526424.512325,
+    "ast_hash": "05ac9d3b8fe1a216d0ad15c8d41e0713",
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/requests/haustier.rs": {
@@ -1188,9 +1188,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/schema/behandlung.rs": {
-    "mtime": 1787519836.4155447,
-    "seen": 1787520717.8658648,
-    "ast_hash": "c570717efc7abb7cab1dd7625a6c4eb8",
+    "mtime": 1787526361.0111926,
+    "seen": 1787526424.5128305,
+    "ast_hash": "21cf99d1e294c9175737b07c383b2d91",
     "semantic_hash": ""
   },
   "crates/yams-api/src/schema/haustier.rs": {
@@ -1212,21 +1212,21 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/schema/leistung.rs": {
-    "mtime": 1787519904.5564535,
-    "seen": 1787520717.865871,
-    "ast_hash": "71b8b8e181f5fbe06189d5a5060b5a01",
+    "mtime": 1787526331.2468824,
+    "seen": 1787526424.5129642,
+    "ast_hash": "902b0d5db621bc8692db30925d65c287",
     "semantic_hash": ""
   },
   "crates/yams-api/src/schema/produkt.rs": {
-    "mtime": 1787519827.9796832,
-    "seen": 1787520717.8658733,
-    "ast_hash": "3e70fda74b1c95c43e80ed76d8aabe08",
+    "mtime": 1787526355.6591802,
+    "seen": 1787526424.5130103,
+    "ast_hash": "b05c9086572454903840fbc29919133b",
     "semantic_hash": ""
   },
   "crates/yams-api/src/schema/rechnung.rs": {
-    "mtime": 1787519824.8242047,
-    "seen": 1787520717.865875,
-    "ast_hash": "47b4b9449908d79de2a4a0ca0a83117e",
+    "mtime": 1787526349.7261295,
+    "seen": 1787526424.5130124,
+    "ast_hash": "2b3590d29fa7e9db1aaed7e1e44d2711",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/adresse.rs": {

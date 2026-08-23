@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use yams_core::domain;
 
 #[derive(Debug, Clone)]
@@ -9,8 +10,8 @@ pub struct Produkt {
     pub id: uuid::Uuid,
     pub name: String,
     pub beschreibung: String,
-    pub einzelpreis: String,
-    pub mwst_prozentsatz: String,
+    pub einzelpreis: Decimal,
+    pub mwst_prozentsatz: Decimal,
 }
 
 pub fn schema_produkt_from_domain(produkt: domain::Produkt) -> Produkt {
@@ -18,7 +19,7 @@ pub fn schema_produkt_from_domain(produkt: domain::Produkt) -> Produkt {
         id: produkt.id.0,
         name: produkt.name,
         beschreibung: produkt.beschreibung,
-        einzelpreis: produkt.einzelpreis.value().to_string(),
-        mwst_prozentsatz: produkt.mwst_prozentsatz.to_string(),
+        einzelpreis: produkt.einzelpreis.value(),
+        mwst_prozentsatz: produkt.mwst_prozentsatz,
     }
 }

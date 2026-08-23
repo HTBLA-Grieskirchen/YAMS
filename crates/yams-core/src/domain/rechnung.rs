@@ -179,7 +179,7 @@ impl RechnungOffen {
         let mut positionen = Vec::new();
 
         for leistung in leistungen.iter_mut() {
-            match &mut **leistung {
+            match &*leistung {
                 Leistung::Offen(offen) => {
                     if offen.klient_id() != &klient_id {
                         return Err(Report::new(RechnungFehler::KlientUnstimmig));

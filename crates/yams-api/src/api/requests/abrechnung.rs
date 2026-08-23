@@ -21,20 +21,19 @@ use crate::errors::ValidationError;
 pub struct ProduktErstellung {
     pub name: String,
     pub beschreibung: String,
-    pub einzelpreis: String,
-    pub mwst_prozentsatz: String,
+    pub einzelpreis: Decimal,
+    pub mwst_prozentsatz: Decimal,
 }
 
 impl TryFrom<ProduktErstellung> for ProduktErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: ProduktErstellung) -> Result<Self, Self::Error> {
-        let einzelpreis = parse_preis(&value.einzelpreis)?;
-        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
+        let einzelpreis = parse_preis(value.einzelpreis)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
             einzelpreis,
-            mwst_prozentsatz,
+            mwst_prozentsatz: value.mwst_prozentsatz,
         })
     }
 }
@@ -47,20 +46,19 @@ impl TryFrom<ProduktErstellung> for ProduktErstellen {
 pub struct BehandlungErstellung {
     pub name: String,
     pub beschreibung: String,
-    pub standardpreis: String,
-    pub mwst_prozentsatz: String,
+    pub standardpreis: Decimal,
+    pub mwst_prozentsatz: Decimal,
 }
 
 impl TryFrom<BehandlungErstellung> for BehandlungErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: BehandlungErstellung) -> Result<Self, Self::Error> {
-        let standardpreis = parse_preis(&value.standardpreis)?;
-        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
+        let standardpreis = parse_preis(value.standardpreis)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
             standardpreis,
-            mwst_prozentsatz,
+            mwst_prozentsatz: value.mwst_prozentsatz,
         })
     }
 }
@@ -74,19 +72,18 @@ pub struct LeistungAusProduktErstellung {
     pub produkt_id: Uuid,
     pub klient_id: Uuid,
     pub haustier_id: Option<Uuid>,
-    pub menge: String,
+    pub menge: Decimal,
     pub leistungsdatum: NaiveDate,
 }
 
 impl TryFrom<LeistungAusProduktErstellung> for LeistungAusProduktBuchen {
     type Error = Report<ValidationError>;
     fn try_from(value: LeistungAusProduktErstellung) -> Result<Self, Self::Error> {
-        let menge = parse_decimal(&value.menge)?;
         Ok(Self {
             produkt_id: ProduktId(value.produkt_id),
             klient_id: KlientId(value.klient_id),
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
-            menge,
+            menge: value.menge,
             leistungsdatum: value.leistungsdatum,
         })
     }
@@ -102,14 +99,14 @@ pub struct LeistungAusBehandlungErstellung {
     pub klient_id: Uuid,
     pub haustier_id: Option<Uuid>,
     pub leistungsdatum: NaiveDate,
-    pub preis_override: Option<String>,
+    pub preis_override: Option<Decimal>,
 }
 
 impl TryFrom<LeistungAusBehandlungErstellung> for LeistungAusBehandlungBuchen {
     type Error = Report<ValidationError>;
     fn try_from(value: LeistungAusBehandlungErstellung) -> Result<Self, Self::Error> {
         let preis_override = match value.preis_override {
-            Some(preis) => Some(parse_preis(&preis)?),
+            Some(preis) => Some(parse_preis(preis)?),
             None => None,
         };
         Ok(Self {
@@ -131,22 +128,21 @@ pub struct LeistungManuelleErstellung {
     pub klient_id: Uuid,
     pub haustier_id: Option<Uuid>,
     pub beschreibung: String,
-    pub betrag: String,
-    pub mwst_prozentsatz: String,
+    pub betrag: Decimal,
+    pub mwst_prozentsatz: Decimal,
     pub leistungsdatum: NaiveDate,
 }
 
 impl TryFrom<LeistungManuelleErstellung> for LeistungManuellErfassen {
     type Error = Report<ValidationError>;
     fn try_from(value: LeistungManuelleErstellung) -> Result<Self, Self::Error> {
-        let betrag = parse_preis(&value.betrag)?;
-        let mwst_prozentsatz = parse_decimal(&value.mwst_prozentsatz)?;
+        let betrag = parse_preis(value.betrag)?;
         Ok(Self {
             klient_id: KlientId(value.klient_id),
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
             beschreibung: value.beschreibung,
             betrag,
-            mwst_prozentsatz,
+            mwst_prozentsatz: value.mwst_prozentsatz,
             leistungsdatum: value.leistungsdatum,
         })
     }
@@ -169,16 +165,8 @@ impl From<TagesabschlussErstellung> for TagesabschlussDurchführen {
     }
 }
 
-fn parse_preis(value: &str) -> Result<Preis, Report<ValidationError>> {
-  let decimal = parse_decimal(value)?;
-  Preis::new(decimal)
-    .change_context(ValidationError)
-    .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)
-}
-
-fn parse_decimal(value: &str) -> Result<Decimal, Report<ValidationError>> {
-  value
-    .parse()
-    .change_context(ValidationError)
-    .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)
+fn parse_preis(decimal: Decimal) -> Result<Preis, Report<ValidationError>> {
+    Preis::new(decimal)
+        .change_context(ValidationError)
+        .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)
 }

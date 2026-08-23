@@ -1,4 +1,5 @@
 use chrono::NaiveDate;
+use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::domain::{self, Leistung as DomainLeistung, LeistungOffen};
 
@@ -17,8 +18,8 @@ pub enum LeistungStatus {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct LeistungQuelleProdukt {
     pub produkt_id: Uuid,
-    pub menge: String,
-    pub einzelpreis: String,
+    pub menge: Decimal,
+    pub einzelpreis: Decimal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,7 +29,7 @@ pub struct LeistungQuelleProdukt {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct LeistungQuelleBehandlung {
     pub behandlung_id: Uuid,
-    pub preis: String,
+    pub preis: Decimal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,7 +38,7 @@ pub struct LeistungQuelleBehandlung {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct LeistungQuelleManuell {
-    pub preis: String,
+    pub preis: Decimal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,7 +62,7 @@ pub struct Leistung {
     pub klient_id: Uuid,
     pub haustier_id: Option<Uuid>,
     pub beschreibung: String,
-    pub betrag: String,
+    pub betrag: Decimal,
     pub leistungsdatum: NaiveDate,
     pub status: LeistungStatus,
     pub quelle: LeistungQuelle,
@@ -79,7 +80,7 @@ pub fn schema_leistung_from_domain_leistung(leistung: DomainLeistung) -> Leistun
             klient_id: leistung.klient_id().0,
             haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),
             beschreibung: leistung.beschreibung().to_string(),
-            betrag: leistung.betrag().value().to_string(),
+            betrag: leistung.betrag().value(),
             leistungsdatum: leistung.leistungsdatum(),
             status: LeistungStatus::Offen,
             quelle: schema_quelle_from_domain(leistung.quelle()),
@@ -90,7 +91,7 @@ pub fn schema_leistung_from_domain_leistung(leistung: DomainLeistung) -> Leistun
             klient_id: leistung.klient_id().0,
             haustier_id: leistung.haustier_id().as_ref().map(|id| id.0),
             beschreibung: leistung.beschreibung().to_string(),
-            betrag: leistung.betrag().value().to_string(),
+            betrag: leistung.betrag().value(),
             leistungsdatum: leistung.leistungsdatum(),
             status: LeistungStatus::Abgerechnet,
             quelle: schema_quelle_from_domain(leistung.quelle()),
@@ -108,8 +109,8 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
             ..
         } => LeistungQuelle::Produkt(LeistungQuelleProdukt {
             produkt_id: produkt_id.0,
-            menge: menge.to_string(),
-            einzelpreis: einzelpreis.value().to_string(),
+            menge: *menge,
+            einzelpreis: einzelpreis.value(),
         }),
         domain::LeistungQuelle::Behandlung {
             behandlung_id,
@@ -117,11 +118,11 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
             ..
         } => LeistungQuelle::Behandlung(LeistungQuelleBehandlung {
             behandlung_id: behandlung_id.0,
-            preis: preis.value().to_string(),
+            preis: preis.value(),
         }),
         domain::LeistungQuelle::Manuell { preis, .. } => {
             LeistungQuelle::Manuell(LeistungQuelleManuell {
-                preis: preis.value().to_string(),
+                preis: preis.value(),
             })
         }
     }

@@ -1,6 +1,7 @@
 use chrono::NaiveDate;
+use rust_decimal::Decimal;
 use uuid::Uuid;
-use yams_core::domain::{self, Rechnung as DomainRechnung, RechnungBezahlt, RechnungIn, RechnungOffen};
+use yams_core::domain::{self, Rechnung as DomainRechnung, RechnungIn, RechnungOffen};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Enum))]
@@ -17,11 +18,11 @@ pub enum RechnungStatus {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Rechnungsposition {
     pub beschreibung: String,
-    pub einzelpreis: String,
-    pub stückzahl: String,
-    pub mwst_prozentsatz: String,
-    pub gesamtpreis_netto: String,
-    pub gesamtpreis_brutto: String,
+    pub einzelpreis: Decimal,
+    pub stückzahl: Decimal,
+    pub mwst_prozentsatz: Decimal,
+    pub gesamtpreis_netto: Decimal,
+    pub gesamtpreis_brutto: Decimal,
     pub leistung_id: Uuid,
 }
 
@@ -36,7 +37,7 @@ pub struct Rechnung {
     pub klient_id: Uuid,
     pub rechnungsdatum: NaiveDate,
     pub positionen: Vec<Rechnungsposition>,
-    pub gesamtbetrag_brutto: String,
+    pub gesamtbetrag_brutto: Decimal,
     pub status: RechnungStatus,
     pub bezahlt_datum: Option<NaiveDate>,
 }
@@ -71,7 +72,7 @@ fn schema_rechnung_common<S>(
             .iter()
             .map(schema_position_from_domain)
             .collect(),
-        gesamtbetrag_brutto: rechnung.gesamtbetrag_brutto().value().to_string(),
+        gesamtbetrag_brutto: rechnung.gesamtbetrag_brutto().value(),
         status,
         bezahlt_datum,
     }
@@ -80,11 +81,11 @@ fn schema_rechnung_common<S>(
 fn schema_position_from_domain(position: &domain::Rechnungsposition) -> Rechnungsposition {
     Rechnungsposition {
         beschreibung: position.beschreibung().to_string(),
-        einzelpreis: position.einzelpreis().value().to_string(),
-        stückzahl: position.stückzahl().to_string(),
-        mwst_prozentsatz: position.mwst_prozentsatz().to_string(),
-        gesamtpreis_netto: position.gesamtpreis_netto().value().to_string(),
-        gesamtpreis_brutto: position.gesamtpreis_brutto().value().to_string(),
+        einzelpreis: position.einzelpreis().value(),
+        stückzahl: position.stückzahl(),
+        mwst_prozentsatz: position.mwst_prozentsatz(),
+        gesamtpreis_netto: position.gesamtpreis_netto().value(),
+        gesamtpreis_brutto: position.gesamtpreis_brutto().value(),
         leistung_id: position.leistung_id().0,
     }
 }

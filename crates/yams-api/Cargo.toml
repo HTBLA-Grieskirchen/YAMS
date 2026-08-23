@@ -20,13 +20,13 @@ chrono = { workspace = true }
 http = { workspace = true }
 rust_decimal = { workspace = true }
 
-poem-openapi = { workspace = true, features = ["uuid", "chrono"], optional = true }
+poem-openapi = { workspace = true, features = ["uuid", "chrono", "rust_decimal"], optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]
 default = ["serde", "openapi"]
 openapi = ["dep:poem-openapi"]
-serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde"]
+serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde", "rust_decimal/serde"]
 
 [[bin]]
 name = "export_spec"

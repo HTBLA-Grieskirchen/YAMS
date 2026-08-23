@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::domain;
 
@@ -10,8 +11,8 @@ pub struct Behandlung {
     pub id: Uuid,
     pub name: String,
     pub beschreibung: String,
-    pub standardpreis: String,
-    pub mwst_prozentsatz: String,
+    pub standardpreis: Decimal,
+    pub mwst_prozentsatz: Decimal,
 }
 
 pub fn schema_behandlung_from_domain(behandlung: domain::Behandlung) -> Behandlung {
@@ -19,7 +20,7 @@ pub fn schema_behandlung_from_domain(behandlung: domain::Behandlung) -> Behandlu
         id: behandlung.id.0,
         name: behandlung.name,
         beschreibung: behandlung.beschreibung,
-        standardpreis: behandlung.standardpreis.value().to_string(),
-        mwst_prozentsatz: behandlung.mwst_prozentsatz.to_string(),
+        standardpreis: behandlung.standardpreis.value(),
+        mwst_prozentsatz: behandlung.mwst_prozentsatz,
     }
 }

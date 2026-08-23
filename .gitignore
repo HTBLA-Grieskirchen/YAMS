@@ -4,3 +4,8 @@ history.txt
 
 target/
 *.local/
+
+
+graphify-out/cost.json
+graphify-out/cache/
+graphify-out/*/

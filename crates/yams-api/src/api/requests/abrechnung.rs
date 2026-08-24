@@ -1,10 +1,9 @@
 use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
-use http::StatusCode;
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
-    domain::{BehandlungId, KlientId, Preis, ProduktId},
+    domain::{BehandlungId, KlientId, Menge, Preis, ProduktId, Ratio},
     service::{
         BehandlungErstellen, LeistungAusBehandlungBuchen, LeistungAusProduktBuchen,
         LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchführen,
@@ -22,18 +21,17 @@ pub struct ProduktErstellung {
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: Decimal,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Decimal,
 }
 
 impl TryFrom<ProduktErstellung> for ProduktErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: ProduktErstellung) -> Result<Self, Self::Error> {
-        let einzelpreis = parse_preis(value.einzelpreis)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
-            einzelpreis,
-            mwst_prozentsatz: value.mwst_prozentsatz,
+            einzelpreis: parse_preis(value.einzelpreis)?,
+            mwst: parse_ratio(value.mwst)?,
         })
     }
 }
@@ -47,18 +45,17 @@ pub struct BehandlungErstellung {
     pub name: String,
     pub beschreibung: String,
     pub standardpreis: Decimal,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Decimal,
 }
 
 impl TryFrom<BehandlungErstellung> for BehandlungErstellen {
     type Error = Report<ValidationError>;
     fn try_from(value: BehandlungErstellung) -> Result<Self, Self::Error> {
-        let standardpreis = parse_preis(value.standardpreis)?;
         Ok(Self {
             name: value.name,
             beschreibung: value.beschreibung,
-            standardpreis,
-            mwst_prozentsatz: value.mwst_prozentsatz,
+            standardpreis: parse_preis(value.standardpreis)?,
+            mwst: parse_ratio(value.mwst)?,
         })
     }
 }
@@ -83,7 +80,7 @@ impl TryFrom<LeistungAusProduktErstellung> for LeistungAusProduktBuchen {
             produkt_id: ProduktId(value.produkt_id),
             klient_id: KlientId(value.klient_id),
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
-            menge: value.menge,
+            menge: parse_menge(value.menge)?,
             leistungsdatum: value.leistungsdatum,
         })
     }
@@ -129,7 +126,7 @@ pub struct LeistungManuelleErstellung {
     pub haustier_id: Option<Uuid>,
     pub beschreibung: String,
     pub betrag: Decimal,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Decimal,
     pub leistungsdatum: NaiveDate,
 }
 
@@ -142,7 +139,7 @@ impl TryFrom<LeistungManuelleErstellung> for LeistungManuellErfassen {
             haustier_id: value.haustier_id.map(yams_core::domain::HaustierId),
             beschreibung: value.beschreibung,
             betrag,
-            mwst_prozentsatz: value.mwst_prozentsatz,
+            mwst: parse_ratio(value.mwst)?,
             leistungsdatum: value.leistungsdatum,
         })
     }
@@ -166,7 +163,13 @@ impl From<TagesabschlussErstellung> for TagesabschlussDurchführen {
 }
 
 fn parse_preis(decimal: Decimal) -> Result<Preis, Report<ValidationError>> {
-    Preis::new(decimal)
-        .change_context(ValidationError)
-        .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)
+    Preis::new(decimal).change_context(ValidationError)
+}
+
+fn parse_ratio(decimal: Decimal) -> Result<Ratio, Report<ValidationError>> {
+    Ratio::new(decimal).change_context(ValidationError)
+}
+
+fn parse_menge(decimal: Decimal) -> Result<Menge, Report<ValidationError>> {
+    Menge::new(decimal).change_context(ValidationError)
 }

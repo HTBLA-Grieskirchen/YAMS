@@ -201,24 +201,14 @@ impl KlientRepository for FakeKlientenRepository {
     async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
         let mut data = self.datastore.klienten.lock().unwrap();
-        let versioned = Versioned::init(Klient {
-            id,
-            vorname: klient.vorname,
-            nachname: klient.nachname,
-            geburtstag: klient.geburtstag,
-            email: klient.email,
-            mobilnummer: klient.mobilnummer,
-            kundennummer: klient.kundennummer,
-            einwilligung: klient.einwilligung,
-            adresse: klient.adresse,
-        });
-        data.insert(versioned.id.0.clone(), versioned.clone());
+        let versioned = Versioned::init(Klient::neu(id, klient));
+        data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
 
     async fn update(&self, klient: &mut Versioned<Klient>) -> RepositoryResult<()> {
         let mut data = self.datastore.klienten.lock().unwrap();
-        if let Some(existing) = data.get(&klient.id.0) {
+        if let Some(existing) = data.get(&klient.id().0) {
             if existing.v() != klient.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
@@ -226,7 +216,7 @@ impl KlientRepository for FakeKlientenRepository {
                 })?;
             }
             *klient = klient.clone().incremented();
-            data.insert(klient.id.0.clone(), klient.clone());
+            data.insert(klient.id().0.clone(), klient.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -234,14 +224,14 @@ impl KlientRepository for FakeKlientenRepository {
 
     async fn delete(&self, klient: Versioned<Klient>) -> RepositoryResult<()> {
         let mut data = self.datastore.klienten.lock().unwrap();
-        if let Some(existing) = data.get(&klient.id.0) {
+        if let Some(existing) = data.get(&klient.id().0) {
             if existing.v() != klient.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(klient.v()),
                 })?;
             }
-            data.remove(&klient.id.0);
+            data.remove(&klient.id().0);
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -272,7 +262,7 @@ impl HaustierRepository for FakeHaustiereRepository {
         let data = self.datastore.haustiere.lock().unwrap();
         Ok(data
             .values()
-            .filter(|h| h.klient_id == klient_id)
+            .filter(|h| h.klient_id() == &klient_id)
             .cloned()
             .collect())
     }
@@ -285,21 +275,14 @@ impl HaustierRepository for FakeHaustiereRepository {
     async fn create(&self, haustier: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>> {
         let id = HaustierId(Uuid::new_v4());
         let mut data = self.datastore.haustiere.lock().unwrap();
-        let versioned = Versioned::init(Haustier {
-            id,
-            klient_id: haustier.klient_id,
-            name: haustier.name,
-            geburtstag: haustier.geburtstag,
-            tierart: haustier.tierart,
-            beschreibung: haustier.beschreibung,
-        });
-        data.insert(versioned.id.0.clone(), versioned.clone());
+        let versioned = Versioned::init(Haustier::neu(id, haustier));
+        data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
 
     async fn update(&self, haustier: &mut Versioned<Haustier>) -> RepositoryResult<()> {
         let mut data = self.datastore.haustiere.lock().unwrap();
-        if let Some(existing) = data.get(&haustier.id.0) {
+        if let Some(existing) = data.get(&haustier.id().0) {
             if existing.v() != haustier.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
@@ -307,7 +290,7 @@ impl HaustierRepository for FakeHaustiereRepository {
                 })?;
             }
             *haustier = haustier.clone().incremented();
-            data.insert(haustier.id.0.clone(), haustier.clone());
+            data.insert(haustier.id().0.clone(), haustier.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -315,14 +298,14 @@ impl HaustierRepository for FakeHaustiereRepository {
 
     async fn delete(&self, haustier: Versioned<Haustier>) -> RepositoryResult<()> {
         let mut data = self.datastore.haustiere.lock().unwrap();
-        if let Some(existing) = data.get(&haustier.id.0) {
+        if let Some(existing) = data.get(&haustier.id().0) {
             if existing.v() != haustier.v() {
                 Err(RepositoryError::VersionMismatch {
                     expected: existing.v(),
                     actual: Some(haustier.v()),
                 })?;
             }
-            data.remove(&haustier.id.0);
+            data.remove(&haustier.id().0);
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -349,14 +332,8 @@ impl ProduktRepository for FakeProdukteRepository {
     async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
         let id = ProduktId(Uuid::new_v4());
         let mut data = self.datastore.produkte.lock().unwrap();
-        let versioned = Versioned::init(Produkt {
-            id,
-            name: produkt.name,
-            beschreibung: produkt.beschreibung,
-            einzelpreis: produkt.einzelpreis,
-            mwst_prozentsatz: produkt.mwst_prozentsatz,
-        });
-        data.insert(versioned.id.0.clone(), versioned.clone());
+        let versioned = Versioned::init(Produkt::neu(id, produkt));
+        data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
 }
@@ -381,14 +358,8 @@ impl BehandlungRepository for FakeBehandlungenRepository {
     async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
         let id = BehandlungId(Uuid::new_v4());
         let mut data = self.datastore.behandlungen.lock().unwrap();
-        let versioned = Versioned::init(Behandlung {
-            id,
-            name: behandlung.name,
-            beschreibung: behandlung.beschreibung,
-            standardpreis: behandlung.standardpreis,
-            mwst_prozentsatz: behandlung.mwst_prozentsatz,
-        });
-        data.insert(versioned.id.0.clone(), versioned.clone());
+        let versioned = Versioned::init(Behandlung::neu(id, behandlung));
+        data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
 }

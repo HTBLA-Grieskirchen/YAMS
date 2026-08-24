@@ -1,123 +1,167 @@
-use chrono::NaiveDate;
-use rust_decimal::Decimal;
+use serde_json::json;
 
-use super::support::{api, klient_erstellung};
-use yams_api::{
-    requests::{
-        BehandlungErstellung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung,
-        LeistungManuelleErstellung, ProduktErstellung, TagesabschlussErstellung,
-    },
-    schema::RechnungStatus,
-};
+use super::support::{Api, assert_decimal_eq, assert_ok, assert_rejected, klient_body};
 
 #[pollster::test]
 async fn produkt_erstellen_rejects_negative_preis() {
-    let api = api().await;
+    let api = Api::new().await;
 
-    let err = api
-        .produkt_erstellen(ProduktErstellung {
-            name: "Futter".into(),
-            beschreibung: "Premium Futter".into(),
-            einzelpreis: Decimal::new(-1, 0),
-            mwst_prozentsatz: Decimal::new(19, 0),
-        })
+    let (status, _) = api
+        .post_json(
+            "/api/produkt",
+            json!({
+                "name": "Futter",
+                "beschreibung": "Premium Futter",
+                "einzelpreis": "-1.00",
+                "mwst": "0.19",
+            }),
+        )
         .await;
 
-    assert!(err.is_err());
+    assert_rejected(status);
 }
 
 #[pollster::test]
-async fn tagesabschluss_returns_rechnungen_through_api() {
-    let api = api().await;
-    let abschlussdatum = NaiveDate::from_ymd_opt(2026, 8, 23).unwrap();
+async fn produkt_erstellen_rejects_mwst_greater_than_one() {
+    let api = Api::new().await;
 
-    let klient1 = api.klient_erstellen(klient_erstellung(3001)).await.unwrap();
-    let mut klient2_body = klient_erstellung(3002);
-    klient2_body.vorname = "Bernd".into();
-    klient2_body.nachname = "Test".into();
-    klient2_body.email = "bernd@test.de".into();
-    klient2_body.mobilnummer = "0987654321".into();
-    let klient2 = api.klient_erstellen(klient2_body).await.unwrap();
+    let (status, _) = api
+        .post_json(
+            "/api/produkt",
+            json!({
+                "name": "Futter",
+                "beschreibung": "Premium Futter",
+                "einzelpreis": "25.00",
+                "mwst": "1.01",
+            }),
+        )
+        .await;
 
-    let produkt = api
-        .produkt_erstellen(ProduktErstellung {
-            name: "Futter".into(),
-            beschreibung: "Premium Futter".into(),
-            einzelpreis: Decimal::new(25, 0),
-            mwst_prozentsatz: Decimal::new(19, 0),
-        })
-        .await
-        .unwrap();
-    let behandlung = api
-        .behandlung_erstellen(BehandlungErstellung {
-            name: "Untersuchung".into(),
-            beschreibung: "Allgemeine Untersuchung".into(),
-            standardpreis: Decimal::new(50, 0),
-            mwst_prozentsatz: Decimal::new(19, 0),
-        })
-        .await
-        .unwrap();
+    assert_rejected(status);
+}
 
-    let leistung_produkt = api
-        .leistung_aus_produkt_buchen(LeistungAusProduktErstellung {
-            produkt_id: produkt.id,
-            klient_id: klient1.id,
-            haustier_id: None,
-            menge: Decimal::new(2, 0),
-            leistungsdatum: abschlussdatum,
-        })
-        .await
-        .unwrap();
-    assert_eq!(leistung_produkt.betrag, Decimal::new(50, 0));
+#[pollster::test]
+async fn tagesabschluss_returns_rechnungen_as_json() {
+    let api = Api::new().await;
+    let abschlussdatum = "2026-08-23";
 
-    let leistung_behandlung = api
-        .leistung_aus_behandlung_buchen(LeistungAusBehandlungErstellung {
-            behandlung_id: behandlung.id,
-            klient_id: klient1.id,
-            haustier_id: None,
-            leistungsdatum: abschlussdatum,
-            preis_override: None,
-        })
-        .await
-        .unwrap();
-    assert_eq!(leistung_behandlung.betrag, Decimal::new(50, 0));
+    let (status, klient1) = api.post_json("/api/klient", klient_body(3001)).await;
+    assert_ok(status);
+    let mut klient2_body = klient_body(3002);
+    klient2_body["vorname"] = json!("Bernd");
+    klient2_body["nachname"] = json!("Test");
+    klient2_body["email"] = json!("bernd@test.de");
+    klient2_body["mobilnummer"] = json!("0987654321");
+    let (status, klient2) = api.post_json("/api/klient", klient2_body).await;
+    assert_ok(status);
 
-    api.leistung_manuell_erfassen(LeistungManuelleErstellung {
-        klient_id: klient2.id,
-        haustier_id: None,
-        beschreibung: "Beratung".into(),
-        betrag: Decimal::new(30, 0),
-        mwst_prozentsatz: Decimal::new(19, 0),
-        leistungsdatum: abschlussdatum,
-    })
-    .await
-    .unwrap();
+    let (status, produkt) = api
+        .post_json(
+            "/api/produkt",
+            json!({
+                "name": "Futter",
+                "beschreibung": "Premium Futter",
+                "einzelpreis": "25.00",
+                "mwst": "0.19",
+            }),
+        )
+        .await;
+    assert_ok(status);
+    assert_decimal_eq(&produkt["mwst"], "0.19");
 
-    let rechnungen = api
-        .tagesabschluss_durchführen(TagesabschlussErstellung {
-            abschlussdatum: Some(abschlussdatum),
-        })
-        .await
-        .unwrap();
+    let (status, behandlung) = api
+        .post_json(
+            "/api/behandlung",
+            json!({
+                "name": "Untersuchung",
+                "beschreibung": "Allgemeine Untersuchung",
+                "standardpreis": "50.00",
+                "mwst": "0.19",
+            }),
+        )
+        .await;
+    assert_ok(status);
 
-    assert_eq!(rechnungen.len(), 2);
+    let (status, leistung_produkt) = api
+        .post_json(
+            "/api/leistung/produkt",
+            json!({
+                "produktId": produkt["id"],
+                "klientId": klient1["id"],
+                "haustierId": null,
+                "menge": "2",
+                "leistungsdatum": abschlussdatum,
+            }),
+        )
+        .await;
+    assert_ok(status);
+    assert_decimal_eq(&leistung_produkt["betrag"], "50");
+
+    let (status, leistung_behandlung) = api
+        .post_json(
+            "/api/leistung/behandlung",
+            json!({
+                "behandlungId": behandlung["id"],
+                "klientId": klient1["id"],
+                "haustierId": null,
+                "leistungsdatum": abschlussdatum,
+                "preisOverride": null,
+            }),
+        )
+        .await;
+    assert_ok(status);
+    assert_decimal_eq(&leistung_behandlung["betrag"], "50");
+
+    let (status, _) = api
+        .post_json(
+            "/api/leistung/manuell",
+            json!({
+                "klientId": klient2["id"],
+                "haustierId": null,
+                "beschreibung": "Beratung",
+                "betrag": "30.00",
+                "mwst": "0.19",
+                "leistungsdatum": abschlussdatum,
+            }),
+        )
+        .await;
+    assert_ok(status);
+
+    let (status, rechnungen) = api
+        .post_json(
+            "/api/tagesabschluss",
+            json!({ "abschlussdatum": abschlussdatum }),
+        )
+        .await;
+    assert_ok(status);
+    assert_eq!(rechnungen.as_array().unwrap().len(), 2);
 
     let rechnung_klient1 = rechnungen
+        .as_array()
+        .unwrap()
         .iter()
-        .find(|r| r.klient_id == klient1.id)
+        .find(|rechnung| rechnung["klientId"] == klient1["id"])
         .expect("rechnung for klient1");
     let rechnung_klient2 = rechnungen
+        .as_array()
+        .unwrap()
         .iter()
-        .find(|r| r.klient_id == klient2.id)
+        .find(|rechnung| rechnung["klientId"] == klient2["id"])
         .expect("rechnung for klient2");
 
-    assert_eq!(rechnung_klient1.positionen.len(), 2);
-    assert_eq!(rechnung_klient1.gesamtbetrag_brutto, Decimal::new(119, 0));
-    assert_eq!(rechnung_klient1.status, RechnungStatus::Offen);
-    assert_eq!(rechnung_klient2.positionen.len(), 1);
-    assert_eq!(rechnung_klient2.gesamtbetrag_brutto, Decimal::new(357, 1));
+    assert_eq!(rechnung_klient1["positionen"].as_array().unwrap().len(), 2);
+    assert_decimal_eq(&rechnung_klient1["gesamtbetragBrutto"], "119");
+    assert_eq!(rechnung_klient1["status"], "Offen");
+    assert!(rechnung_klient1.get("mwstProzentsatz").is_none());
+    assert_decimal_eq(&rechnung_klient1["positionen"][0]["mwst"], "0.19");
+    assert!(rechnung_klient1["positionen"][0].get("stückzahl").is_some());
 
-    let fetched = api.rechnungen_für_klient(klient1.id).await.unwrap();
-    assert_eq!(fetched.len(), 1);
-    assert_eq!(fetched[0].id, rechnung_klient1.id);
+    assert_eq!(rechnung_klient2["positionen"].as_array().unwrap().len(), 1);
+    assert_decimal_eq(&rechnung_klient2["gesamtbetragBrutto"], "35.7");
+
+    let klient1_id = klient1["id"].as_str().unwrap();
+    let (status, fetched) = api.get_json(&format!("/api/rechnung/{klient1_id}")).await;
+    assert_ok(status);
+    assert_eq!(fetched.as_array().unwrap().len(), 1);
+    assert_eq!(fetched[0]["id"], rechnung_klient1["id"]);
 }

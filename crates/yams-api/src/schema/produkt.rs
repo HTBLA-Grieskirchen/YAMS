@@ -11,15 +11,15 @@ pub struct Produkt {
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: Decimal,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Decimal,
 }
 
 pub fn schema_produkt_from_domain(produkt: domain::Produkt) -> Produkt {
     Produkt {
-        id: produkt.id.0,
-        name: produkt.name,
-        beschreibung: produkt.beschreibung,
-        einzelpreis: produkt.einzelpreis.value(),
-        mwst_prozentsatz: produkt.mwst_prozentsatz,
+        id: produkt.id().0,
+        name: produkt.name().to_string(),
+        beschreibung: produkt.beschreibung().to_string(),
+        einzelpreis: produkt.einzelpreis().value(),
+        mwst: produkt.mwst().value(),
     }
 }

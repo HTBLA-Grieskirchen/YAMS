@@ -18,11 +18,11 @@ pub struct Haustier {
 
 pub fn schema_haustier_from_domain(haustier: domain::Haustier) -> Haustier {
     Haustier {
-        id: haustier.id.0,
-        klient_id: haustier.klient_id.0,
-        name: haustier.name,
-        tierart: haustier.tierart,
-        geburtstag: haustier.geburtstag,
-        beschreibung: haustier.beschreibung,
+        id: haustier.id().0,
+        klient_id: haustier.klient_id().0,
+        name: haustier.name().to_string(),
+        tierart: haustier.tierart().to_string(),
+        geburtstag: haustier.geburtstag(),
+        beschreibung: haustier.beschreibung().to_string(),
     }
 }

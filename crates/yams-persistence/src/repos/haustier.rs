@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use async_lock::Mutex;
 use async_trait::async_trait;
+use error_stack::ResultExt;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
@@ -32,14 +33,15 @@ fn haustier_from_row(row: &Row) -> RepositoryResult<Versioned<Haustier>> {
     let uuid = parse_uuid(&id_raw).contextualize(RepositoryError::Data)?;
     let klient_id = parse_klient_id(&klient_id_str)?;
 
-    let haustier = Haustier {
-        id: HaustierId(uuid),
+    let haustier = Haustier::from_parts(
+        HaustierId(uuid),
         klient_id,
         name,
         geburtstag,
         tierart,
         beschreibung,
-    };
+    )
+    .change_context(RepositoryError::Data)?;
     Ok(Versioned::new(version, haustier))
 }
 
@@ -117,15 +119,7 @@ impl HaustierRepository for SQLiteHaustierRepository {
 
     async fn create(&self, new: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>> {
         let id = HaustierId(Uuid::new_v4());
-        let haustier = Haustier {
-            id,
-            klient_id: new.klient_id,
-            name: new.name,
-            geburtstag: new.geburtstag,
-            tierart: new.tierart,
-            beschreibung: new.beschreibung,
-        };
-        let haustier = Versioned::init(haustier);
+        let haustier = Versioned::init(Haustier::neu(id, new));
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
@@ -133,12 +127,12 @@ impl HaustierRepository for SQLiteHaustierRepository {
         tx.execute(
             "INSERT INTO haustiere (id, name, geburtstag, tierart, beschreibung, klient_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             libsql::params![
-                haustier.id.0.to_string(),
-                haustier.name.clone(),
-                format_naive_date(haustier.geburtstag),
-                haustier.tierart.clone(),
-                haustier.beschreibung.clone(),
-                haustier.klient_id.0.to_string(),
+                haustier.id().0.to_string(),
+                haustier.name(),
+                format_naive_date(haustier.geburtstag()),
+                haustier.tierart(),
+                haustier.beschreibung(),
+                haustier.klient_id().0.to_string(),
                 haustier.v(),
             ],
         )
@@ -149,7 +143,7 @@ impl HaustierRepository for SQLiteHaustierRepository {
     }
 
     async fn update(&self, haustier: &mut Versioned<Haustier>) -> RepositoryResult<()> {
-        let id_str = haustier.id.0.to_string();
+        let id_str = haustier.id().0.to_string();
         let version = haustier.v();
 
         let mut guard = self.tx.lock().await;
@@ -159,11 +153,11 @@ impl HaustierRepository for SQLiteHaustierRepository {
             .execute(
                 "UPDATE haustiere SET name = ?1, geburtstag = ?2, tierart = ?3, beschreibung = ?4, klient_id = ?5, _version = _version + 1 WHERE id = ?6 AND _version = ?7",
                 libsql::params![
-                    haustier.name.clone(),
-                    format_naive_date(haustier.geburtstag),
-                    haustier.tierart.clone(),
-                    haustier.beschreibung.clone(),
-                    haustier.klient_id.0.to_string(),
+                    haustier.name(),
+                    format_naive_date(haustier.geburtstag()),
+                    haustier.tierart(),
+                    haustier.beschreibung(),
+                    haustier.klient_id().0.to_string(),
                     id_str,
                     version,
                 ],
@@ -183,7 +177,7 @@ impl HaustierRepository for SQLiteHaustierRepository {
     }
 
     async fn delete(&self, haustier: Versioned<Haustier>) -> RepositoryResult<()> {
-        let id_str = haustier.id.0.to_string();
+        let id_str = haustier.id().0.to_string();
         let version = haustier.v();
 
         let mut guard = self.tx.lock().await;

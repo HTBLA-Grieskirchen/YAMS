@@ -1,7 +1,9 @@
-use std::ops::Add;
+use std::ops::{Add, Mul};
 
 use rust_decimal::Decimal;
 use thiserror::Error;
+
+use super::{Menge, Ratio};
 
 #[derive(Debug, Error)]
 #[error("Preis darf nicht negativ sein: {0}")]
@@ -25,10 +27,6 @@ impl Preis {
 
     pub fn value(&self) -> Decimal {
         self.0
-    }
-
-    pub fn multiply(&self, factor: Decimal) -> Result<Self, PreisFehler> {
-        Self::new(self.0 * factor)
     }
 }
 
@@ -56,6 +54,22 @@ impl Add<Preis> for &Preis {
     }
 }
 
+impl Mul<&Menge> for &Preis {
+    type Output = Preis;
+
+    fn mul(self, rhs: &Menge) -> Self::Output {
+        Preis(self.0 * rhs.value())
+    }
+}
+
+impl Mul<&Ratio> for &Preis {
+    type Output = Preis;
+
+    fn mul(self, rhs: &Ratio) -> Self::Output {
+        Preis(self.0 * rhs.value())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,13 +88,19 @@ mod tests {
     }
 
     #[test]
-    fn preis_multiply_scales_value() {
+    fn preis_times_menge_scales_value() {
         let preis = Preis::new(Decimal::new(25, 0)).unwrap();
+        let menge = Menge::new(Decimal::new(2, 0)).unwrap();
 
-        assert_eq!(
-            preis.multiply(Decimal::new(2, 0)).unwrap().value(),
-            Decimal::new(50, 0)
-        );
+        assert_eq!((&preis * &menge).value(), Decimal::new(50, 0));
+    }
+
+    #[test]
+    fn preis_times_ratio_scales_value() {
+        let preis = Preis::new(Decimal::new(100, 0)).unwrap();
+        let mwst = Ratio::new(Decimal::new(20, 2)).unwrap();
+
+        assert_eq!((&preis * &mwst).value(), Decimal::new(20, 0));
     }
 
     #[test]

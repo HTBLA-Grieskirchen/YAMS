@@ -34,7 +34,7 @@ async fn test_haustier() {
     let results: Vec<_> = (0..haustier_amount)
         .map(|i| {
             let app_clone = app.clone();
-            let klient_id = klient.id.clone();
+            let klient_id = klient.id().clone();
             std::thread::spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(1));
                 pollster::block_on(async move {
@@ -57,7 +57,7 @@ async fn test_haustier() {
     let cmd = VieleHaustiereErstellen {
         haustiere: (0..haustier_amount)
             .map(|i| HaustierErstellen {
-                klient_id: klient.id.clone(),
+                klient_id: klient.id().clone(),
                 name: format!("Testhaustier {}", i).into(),
                 geburtstag: Utc::now().date_naive(),
                 tierart: "Testspecies".into(),
@@ -70,7 +70,7 @@ async fn test_haustier() {
     assert_eq!(batch_results.len(), 10);
 
     let haustiere = app
-        .execute_fn(async |ctx| ctx.uow.haustiere().find_by_klient_id(klient.id).await)
+        .execute_fn(async |ctx| ctx.uow.haustiere().find_by_klient_id(klient.id().clone()).await)
         .await
         .unwrap();
     assert_eq!(haustiere.len(), haustier_amount * 2);

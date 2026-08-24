@@ -49,7 +49,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 name TEXT NOT NULL,
                 beschreibung TEXT NOT NULL,
                 einzelpreis TEXT NOT NULL,
-                mwst_prozentsatz TEXT NOT NULL,
+                mwst TEXT NOT NULL,
                 _version INTEGER NOT NULL DEFAULT 0
             );
 
@@ -58,7 +58,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 name TEXT NOT NULL,
                 beschreibung TEXT NOT NULL,
                 standardpreis TEXT NOT NULL,
-                mwst_prozentsatz TEXT NOT NULL,
+                mwst TEXT NOT NULL,
                 _version INTEGER NOT NULL DEFAULT 0
             );
 
@@ -86,7 +86,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 quelle_menge TEXT,
                 quelle_einzelpreis TEXT,
                 quelle_preis TEXT,
-                quelle_mwst_prozentsatz TEXT NOT NULL,
+                quelle_mwst TEXT NOT NULL,
                 rechnung_id TEXT,
                 _version INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (klient_id) REFERENCES klienten(id),
@@ -101,7 +101,7 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
                 beschreibung TEXT NOT NULL,
                 einzelpreis TEXT NOT NULL,
                 \"stückzahl\" TEXT NOT NULL,
-                mwst_prozentsatz TEXT NOT NULL,
+                mwst TEXT NOT NULL,
                 FOREIGN KEY (rechnung_id) REFERENCES rechnungen(id),
                 FOREIGN KEY (leistung_id) REFERENCES leistungen(id)
             );

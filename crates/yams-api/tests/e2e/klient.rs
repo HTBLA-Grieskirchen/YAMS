@@ -1,43 +1,50 @@
-use super::support::{api, klient_erstellung};
-use yams_api::schema::Ländercode;
+use serde_json::json;
+
+use super::support::{Api, assert_ok, assert_rejected, klient_body};
 
 #[pollster::test]
-async fn klient_erstellen_returns_schema_fields() {
-    let api = api().await;
+async fn klient_erstellen_returns_camelcase_utf8_json() {
+    let api = Api::new().await;
 
-    let klient = api.klient_erstellen(klient_erstellung(1001)).await.unwrap();
+    let (status, body) = api.post_json("/api/klient", klient_body(1001)).await;
 
-    assert_eq!(klient.vorname, "Anna");
-    assert_eq!(klient.nachname, "Muster");
-    assert_eq!(klient.kundennummer, 1001);
-    assert_eq!(klient.adresse.postleitzahl, "4711");
-    assert_eq!(klient.adresse.ländercode.0, "DE");
-    assert!(klient.haustiere.is_empty());
+    assert_ok(status);
+    assert_eq!(body["vorname"], "Anna");
+    assert_eq!(body["nachname"], "Muster");
+    assert_eq!(body["kundennummer"], 1001);
+    assert_eq!(body["adresse"]["postleitzahl"], "4711");
+    assert_eq!(body["adresse"]["ländercode"], "DE");
+    assert_eq!(body["adresse"]["straßeUndHausnummer"], "Hauptstraße 1");
+    assert!(body["haustiere"].as_array().unwrap().is_empty());
+    assert!(body.get("straßeUndHausnummer").is_none());
 }
 
 #[pollster::test]
 async fn klient_erstellen_rejects_invalid_email() {
-    let api = api().await;
-    let mut body = klient_erstellung(1001);
-    body.email = "not-an-email".into();
+    let api = Api::new().await;
+    let mut body = klient_body(1001);
+    body["email"] = json!("not-an-email");
 
-    assert!(api.klient_erstellen(body).await.is_err());
+    let (status, _) = api.post_json("/api/klient", body).await;
+    assert_rejected(status);
 }
 
 #[pollster::test]
-async fn klient_erstellen_rejects_invalid_mobilnummer() {
-    let api = api().await;
-    let mut body = klient_erstellung(1001);
-    body.mobilnummer = "123".into();
+async fn klient_erstellen_rejects_empty_name() {
+    let api = Api::new().await;
+    let mut body = klient_body(1001);
+    body["vorname"] = json!("");
 
-    assert!(api.klient_erstellen(body).await.is_err());
+    let (status, _) = api.post_json("/api/klient", body).await;
+    assert_rejected(status);
 }
 
 #[pollster::test]
 async fn klient_erstellen_rejects_invalid_ländercode() {
-    let api = api().await;
-    let mut body = klient_erstellung(1001);
-    body.adresse.ländercode = Ländercode("US".into());
+    let api = Api::new().await;
+    let mut body = klient_body(1001);
+    body["adresse"]["ländercode"] = json!("US");
 
-    assert!(api.klient_erstellen(body).await.is_err());
+    let (status, _) = api.post_json("/api/klient", body).await;
+    assert_rejected(status);
 }

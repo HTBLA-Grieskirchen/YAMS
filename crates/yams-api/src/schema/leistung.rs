@@ -109,7 +109,7 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
             ..
         } => LeistungQuelle::Produkt(LeistungQuelleProdukt {
             produkt_id: produkt_id.0,
-            menge: *menge,
+            menge: menge.value(),
             einzelpreis: einzelpreis.value(),
         }),
         domain::LeistungQuelle::Behandlung {

@@ -7,9 +7,7 @@ use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
     ErrorReportExt,
-    domain::{
-        Adresse, EmailAdresse, Klient, KlientId, Ländercode, Mobilnummer, klient::NeuerKlient,
-    },
+    domain::{Adresse, Klient, KlientId, Ländercode, klient::NeuerKlient},
     ports::{KlientRepository, RepositoryError, RepositoryResult},
     uow::Versioned,
 };
@@ -40,23 +38,24 @@ fn klient_from_row(row: &Row) -> RepositoryResult<Versioned<Klient>> {
     let geburtstag = parse_naive_date(&geburtstag_str).contextualize(RepositoryError::Data)?;
     let uuid = parse_uuid(&id_raw).contextualize(RepositoryError::Data)?;
 
-    let klient = Klient {
-        id: KlientId(uuid),
+    let klient = Klient::from_parts(
+        KlientId(uuid),
         vorname,
         nachname,
         geburtstag,
-        email: EmailAdresse::new(email_str).change_context(RepositoryError::Data)?,
-        mobilnummer: Mobilnummer::new(mobilnummer_str).change_context(RepositoryError::Data)?,
-        kundennummer: kundennummer as u64,
+        email_str,
+        mobilnummer_str,
+        kundennummer as u64,
         einwilligung,
-        adresse: Adresse {
+        Adresse {
             postleitzahl,
             stadt,
             straße_und_hausnummer,
             ländercode: Ländercode::from_str(&ländercode_str)
                 .change_context(RepositoryError::Data)?,
         },
-    };
+    )
+    .change_context(RepositoryError::Data)?;
     Ok(Versioned::new(version, klient))
 }
 
@@ -86,18 +85,7 @@ impl KlientRepository for SQLiteKlientRepository {
 
     async fn create(&self, new: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
-        let klient = Klient {
-            id,
-            vorname: new.vorname,
-            nachname: new.nachname,
-            geburtstag: new.geburtstag,
-            email: new.email,
-            mobilnummer: new.mobilnummer,
-            kundennummer: new.kundennummer,
-            einwilligung: new.einwilligung,
-            adresse: new.adresse,
-        };
-        let klient = Versioned::init(klient);
+        let klient = Versioned::init(Klient::neu(id, new));
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
@@ -105,18 +93,18 @@ impl KlientRepository for SQLiteKlientRepository {
         tx.execute(
             "INSERT INTO klienten (id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", _version) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
             libsql::params![
-                klient.id.0.to_string(),
-                klient.vorname.clone(),
-                klient.nachname.clone(),
-                format_naive_date(klient.geburtstag),
-                klient.email.as_ref(),
-                klient.mobilnummer.as_ref(),
-                klient.kundennummer,
-                if klient.einwilligung { 1i64 } else { 0i64 },
-                klient.adresse.postleitzahl.clone(),
-                klient.adresse.stadt.clone(),
-                klient.adresse.straße_und_hausnummer.clone(),
-                klient.adresse.ländercode.as_str(),
+                klient.id().0.to_string(),
+                klient.vorname(),
+                klient.nachname(),
+                format_naive_date(klient.geburtstag()),
+                klient.email().as_ref(),
+                klient.mobilnummer().as_ref(),
+                klient.kundennummer(),
+                if klient.einwilligung() { 1i64 } else { 0i64 },
+                klient.adresse().postleitzahl.clone(),
+                klient.adresse().stadt.clone(),
+                klient.adresse().straße_und_hausnummer.clone(),
+                klient.adresse().ländercode.as_str(),
                 klient.v(),
             ],
         )
@@ -127,7 +115,7 @@ impl KlientRepository for SQLiteKlientRepository {
     }
 
     async fn update(&self, klient: &mut Versioned<Klient>) -> RepositoryResult<()> {
-        let id_str = klient.id.0.to_string();
+        let id_str = klient.id().0.to_string();
         let version = klient.v();
 
         let mut guard = self.tx.lock().await;
@@ -137,17 +125,17 @@ impl KlientRepository for SQLiteKlientRepository {
             .execute(
                 "UPDATE klienten SET vorname = ?1, nachname = ?2, geburtstag = ?3, email = ?4, mobilnummer = ?5, kundennummer = ?6, einwilligung = ?7, postleitzahl = ?8, stadt = ?9, \"straße_und_hausnummer\" = ?10, \"ländercode\" = ?11, _version = _version + 1 WHERE id = ?12 AND _version = ?13",
                 libsql::params![
-                    klient.vorname.clone(),
-                    klient.nachname.clone(),
-                    format_naive_date(klient.geburtstag),
-                    klient.email.as_ref(),
-                    klient.mobilnummer.as_ref(),
-                    klient.kundennummer,
-                    if klient.einwilligung { 1i64 } else { 0i64 },
-                    klient.adresse.postleitzahl.clone(),
-                    klient.adresse.stadt.clone(),
-                    klient.adresse.straße_und_hausnummer.clone(),
-                    klient.adresse.ländercode.as_str(),
+                    klient.vorname(),
+                    klient.nachname(),
+                    format_naive_date(klient.geburtstag()),
+                    klient.email().as_ref(),
+                    klient.mobilnummer().as_ref(),
+                    klient.kundennummer(),
+                    if klient.einwilligung() { 1i64 } else { 0i64 },
+                    klient.adresse().postleitzahl.clone(),
+                    klient.adresse().stadt.clone(),
+                    klient.adresse().straße_und_hausnummer.clone(),
+                    klient.adresse().ländercode.as_str(),
                     id_str,
                     version,
                 ],
@@ -167,7 +155,7 @@ impl KlientRepository for SQLiteKlientRepository {
     }
 
     async fn delete(&self, klient: Versioned<Klient>) -> RepositoryResult<()> {
-        let id_str = klient.id.0.to_string();
+        let id_str = klient.id().0.to_string();
         let version = klient.v();
 
         let mut guard = self.tx.lock().await;

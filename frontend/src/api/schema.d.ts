@@ -636,7 +636,7 @@ export interface components {
             /** Format: decimal */
             standardpreis: string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
         };
         /** BehandlungErstellung */
         BehandlungErstellung: {
@@ -645,7 +645,7 @@ export interface components {
             /** Format: decimal */
             standardpreis: string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
         };
         /** Haustier */
         Haustier: {
@@ -760,7 +760,7 @@ export interface components {
             /** Format: decimal */
             betrag: string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
             /** Format: naive-date */
             leistungsdatum: string;
         };
@@ -836,7 +836,7 @@ export interface components {
             /** Format: decimal */
             einzelpreis: string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
         };
         /** ProduktErstellung */
         ProduktErstellung: {
@@ -845,7 +845,7 @@ export interface components {
             /** Format: decimal */
             einzelpreis: string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
         };
         /** Rechnung */
         Rechnung: {
@@ -874,7 +874,7 @@ export interface components {
             /** Format: decimal */
             "st\u00FCckzahl": string;
             /** Format: decimal */
-            mwstProzentsatz: string;
+            mwst: string;
             /** Format: decimal */
             gesamtpreisNetto: string;
             /** Format: decimal */
@@ -901,20 +901,17 @@ export interface components {
     pathItems: never;
 }
 export type $defs = Record<string, never>;
-type FlattenedDeepRequired<T> = {
-    [K in keyof T]-?: FlattenedDeepRequired<T[K] extends unknown[] | undefined | null ? Extract<T[K], unknown[]>[number] : T[K]>;
-};
 type ReadonlyArray<T> = [
     Exclude<T, undefined>
 ] extends [
     unknown[]
 ] ? Readonly<Exclude<T, undefined>> : Readonly<Exclude<T, undefined>[]>;
-export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
-export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
-export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
-export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
-export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
-export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
-export const leistungStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LeistungStatus"]> = ["Offen", "Abgerechnet"];
-export const rechnungStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RechnungStatus"]> = ["Offen", "Bezahlt"];
+export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
+export const leistungQuelle_LeistungQuelleBehandlungTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"]["typ"]> = ["Behandlung"];
+export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
+export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
+export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
+export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
+export const leistungStatusValues: ReadonlyArray<components["schemas"]["LeistungStatus"]> = ["Offen", "Abgerechnet"];
+export const rechnungStatusValues: ReadonlyArray<components["schemas"]["RechnungStatus"]> = ["Offen", "Bezahlt"];
 export type operations = Record<string, never>;

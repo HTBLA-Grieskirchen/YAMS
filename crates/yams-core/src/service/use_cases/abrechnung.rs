@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
-use rust_decimal::Decimal;
 use rustc_hash::FxHashMap;
 use std::ops::DerefMut;
 
@@ -9,7 +8,7 @@ use crate::{
     application::uow::Versioned,
     domain::{
         Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen, LeistungQuelle,
-        Preis, Produkt, ProduktId, RechnungOffen, behandlung::NeueBehandlung,
+        Menge, Preis, Produkt, ProduktId, Ratio, RechnungOffen, behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
     service::{ExecutionContext, UseCase},
@@ -20,7 +19,7 @@ pub struct ProduktErstellen {
     pub name: String,
     pub beschreibung: String,
     pub einzelpreis: Preis,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Ratio,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -37,12 +36,10 @@ impl UseCase<Produkt> for ProduktErstellen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.produkte()
-            .create(NeuesProdukt {
-                name: self.name,
-                beschreibung: self.beschreibung,
-                einzelpreis: self.einzelpreis,
-                mwst_prozentsatz: self.mwst_prozentsatz,
-            })
+            .create(
+                NeuesProdukt::neu(self.name, self.beschreibung, self.einzelpreis, self.mwst)
+                    .change_context(ProduktErstellenFehler::Erstellung)?,
+            )
             .await
             .map(Versioned::into_data)
             .change_context(ProduktErstellenFehler::Erstellung)
@@ -54,7 +51,7 @@ pub struct BehandlungErstellen {
     pub name: String,
     pub beschreibung: String,
     pub standardpreis: Preis,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Ratio,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -71,12 +68,10 @@ impl UseCase<Behandlung> for BehandlungErstellen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.behandlungen()
-            .create(NeueBehandlung {
-                name: self.name,
-                beschreibung: self.beschreibung,
-                standardpreis: self.standardpreis,
-                mwst_prozentsatz: self.mwst_prozentsatz,
-            })
+            .create(
+                NeueBehandlung::neu(self.name, self.beschreibung, self.standardpreis, self.mwst)
+                    .change_context(BehandlungErstellenFehler::Erstellung)?,
+            )
             .await
             .map(Versioned::into_data)
             .change_context(BehandlungErstellenFehler::Erstellung)
@@ -88,7 +83,7 @@ pub struct LeistungAusProduktBuchen {
     pub produkt_id: ProduktId,
     pub klient_id: KlientId,
     pub haustier_id: Option<HaustierId>,
-    pub menge: Decimal,
+    pub menge: Menge,
     pub leistungsdatum: NaiveDate,
 }
 
@@ -98,8 +93,8 @@ pub enum LeistungAusProduktBuchenFehler {
     Persistenz,
     #[error("produkt nicht gefunden")]
     ProduktNichtGefunden,
-    #[error("ungültiger betrag")]
-    UngültigerBetrag,
+    #[error("leistung konnte nicht erzeugt werden")]
+    Konstruktion,
 }
 
 #[async_trait]
@@ -115,24 +110,22 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
             .await
             .change_context(LeistungAusProduktBuchenFehler::ProduktNichtGefunden)?;
 
-        produkt
-            .einzelpreis
-            .multiply(self.menge)
-            .change_context(LeistungAusProduktBuchenFehler::UngültigerBetrag)?;
-
         uow.leistungen()
-            .create(NeueLeistung {
-                klient_id: self.klient_id,
-                haustier_id: self.haustier_id,
-                beschreibung: produkt.name.clone(),
-                leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Produkt {
-                    produkt_id: self.produkt_id,
-                    menge: self.menge,
-                    einzelpreis: produkt.einzelpreis.clone(),
-                    mwst_prozentsatz: produkt.mwst_prozentsatz,
-                },
-            })
+            .create(
+                NeueLeistung::neu(
+                    self.klient_id,
+                    self.haustier_id,
+                    produkt.name(),
+                    self.leistungsdatum,
+                    LeistungQuelle::Produkt {
+                        produkt_id: self.produkt_id,
+                        menge: self.menge,
+                        einzelpreis: produkt.einzelpreis().clone(),
+                        mwst: produkt.mwst().clone(),
+                    },
+                )
+                .change_context(LeistungAusProduktBuchenFehler::Konstruktion)?,
+            )
             .await
             .map(Versioned::into_data)
             .change_context(LeistungAusProduktBuchenFehler::Persistenz)
@@ -154,6 +147,8 @@ pub enum LeistungAusBehandlungBuchenFehler {
     Persistenz,
     #[error("behandlung nicht gefunden")]
     BehandlungNichtGefunden,
+    #[error("leistung konnte nicht erzeugt werden")]
+    Konstruktion,
 }
 
 #[async_trait]
@@ -171,20 +166,23 @@ impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
 
         let preis = self
             .preis_override
-            .unwrap_or_else(|| behandlung.standardpreis.clone());
+            .unwrap_or_else(|| behandlung.standardpreis().clone());
 
         uow.leistungen()
-            .create(NeueLeistung {
-                klient_id: self.klient_id,
-                haustier_id: self.haustier_id,
-                beschreibung: behandlung.name.clone(),
-                leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Behandlung {
-                    behandlung_id: self.behandlung_id,
-                    preis,
-                    mwst_prozentsatz: behandlung.mwst_prozentsatz,
-                },
-            })
+            .create(
+                NeueLeistung::neu(
+                    self.klient_id,
+                    self.haustier_id,
+                    behandlung.name(),
+                    self.leistungsdatum,
+                    LeistungQuelle::Behandlung {
+                        behandlung_id: self.behandlung_id,
+                        preis,
+                        mwst: behandlung.mwst().clone(),
+                    },
+                )
+                .change_context(LeistungAusBehandlungBuchenFehler::Konstruktion)?,
+            )
             .await
             .map(Versioned::into_data)
             .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)
@@ -197,7 +195,7 @@ pub struct LeistungManuellErfassen {
     pub haustier_id: Option<HaustierId>,
     pub beschreibung: String,
     pub betrag: Preis,
-    pub mwst_prozentsatz: Decimal,
+    pub mwst: Ratio,
     pub leistungsdatum: NaiveDate,
 }
 
@@ -205,6 +203,8 @@ pub struct LeistungManuellErfassen {
 pub enum LeistungManuellErfassenFehler {
     #[error("persistenzfehler")]
     Persistenz,
+    #[error("leistung konnte nicht erzeugt werden")]
+    Konstruktion,
 }
 
 #[async_trait]
@@ -215,16 +215,19 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.leistungen()
-            .create(NeueLeistung {
-                klient_id: self.klient_id,
-                haustier_id: self.haustier_id,
-                beschreibung: self.beschreibung,
-                leistungsdatum: self.leistungsdatum,
-                quelle: LeistungQuelle::Manuell {
-                    preis: self.betrag,
-                    mwst_prozentsatz: self.mwst_prozentsatz,
-                },
-            })
+            .create(
+                NeueLeistung::neu(
+                    self.klient_id,
+                    self.haustier_id,
+                    self.beschreibung,
+                    self.leistungsdatum,
+                    LeistungQuelle::Manuell {
+                        preis: self.betrag,
+                        mwst: self.mwst,
+                    },
+                )
+                .change_context(LeistungManuellErfassenFehler::Konstruktion)?,
+            )
             .await
             .map(Versioned::into_data)
             .change_context(LeistungManuellErfassenFehler::Persistenz)

@@ -4,7 +4,10 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
-    domain::{BehandlungId, HaustierId, KlientId, LeistungQuelle, Preis, ProduktId, RechnungId},
+    domain::{
+        BehandlungId, HaustierId, KlientId, LeistungQuelle, Menge, Preis, ProduktId, Ratio,
+        RechnungId,
+    },
     ports::RepositoryError,
 };
 
@@ -21,6 +24,16 @@ pub fn parse_preis(s: &str) -> Result<Preis, RepositoryError> {
     Preis::new(decimal).map_err(|_| RepositoryError::Data)
 }
 
+pub fn parse_ratio(s: &str) -> Result<Ratio, RepositoryError> {
+    let decimal = parse_decimal(s)?;
+    Ratio::new(decimal).map_err(|_| RepositoryError::Data)
+}
+
+pub fn parse_menge(s: &str) -> Result<Menge, RepositoryError> {
+    let decimal = parse_decimal(s)?;
+    Menge::new(decimal).map_err(|_| RepositoryError::Data)
+}
+
 pub fn parse_decimal(s: &str) -> Result<Decimal, RepositoryError> {
     Decimal::from_str(s).map_err(|_| RepositoryError::Data)
 }
@@ -31,24 +44,24 @@ pub fn quelle_from_row(
     quelle_menge: Option<String>,
     quelle_einzelpreis: Option<String>,
     quelle_preis: Option<String>,
-    quelle_mwst_prozentsatz: Option<String>,
+    quelle_mwst: Option<String>,
 ) -> Result<LeistungQuelle, RepositoryError> {
-    let mwst_str = quelle_mwst_prozentsatz.ok_or(RepositoryError::Data)?;
-    let mwst_prozentsatz = parse_decimal(&mwst_str)?;
+    let mwst_str = quelle_mwst.ok_or(RepositoryError::Data)?;
+    let mwst = parse_ratio(&mwst_str)?;
 
     match quelle_typ {
         "produkt" => {
             let id = quelle_id.ok_or(RepositoryError::Data)?;
             let uuid = parse_uuid(&id)?;
             let menge_str = quelle_menge.ok_or(RepositoryError::Data)?;
-            let menge = parse_decimal(&menge_str)?;
+            let menge = parse_menge(&menge_str)?;
             let einzelpreis_str = quelle_einzelpreis.ok_or(RepositoryError::Data)?;
             let einzelpreis = parse_preis(&einzelpreis_str)?;
             Ok(LeistungQuelle::Produkt {
                 produkt_id: ProduktId(uuid),
                 menge,
                 einzelpreis,
-                mwst_prozentsatz,
+                mwst,
             })
         }
         "behandlung" => {
@@ -59,16 +72,13 @@ pub fn quelle_from_row(
             Ok(LeistungQuelle::Behandlung {
                 behandlung_id: BehandlungId(uuid),
                 preis,
-                mwst_prozentsatz,
+                mwst,
             })
         }
         "manuell" => {
             let preis_str = quelle_preis.ok_or(RepositoryError::Data)?;
             let preis = parse_preis(&preis_str)?;
-            Ok(LeistungQuelle::Manuell {
-                preis,
-                mwst_prozentsatz,
-            })
+            Ok(LeistungQuelle::Manuell { preis, mwst })
         }
         _ => Err(RepositoryError::Data),
     }
@@ -80,7 +90,7 @@ pub struct QuelleDbColumns {
     pub menge: Option<String>,
     pub einzelpreis: Option<String>,
     pub preis: Option<String>,
-    pub mwst_prozentsatz: String,
+    pub mwst: String,
 }
 
 pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
@@ -89,37 +99,34 @@ pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
             produkt_id,
             menge,
             einzelpreis,
-            mwst_prozentsatz,
+            mwst,
         } => QuelleDbColumns {
             typ: "produkt",
             id: Some(produkt_id.0.to_string()),
-            menge: Some(decimal_to_str(menge)),
+            menge: Some(menge_to_str(menge)),
             einzelpreis: Some(preis_to_str(einzelpreis)),
             preis: None,
-            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
+            mwst: ratio_to_str(mwst),
         },
         LeistungQuelle::Behandlung {
             behandlung_id,
             preis,
-            mwst_prozentsatz,
+            mwst,
         } => QuelleDbColumns {
             typ: "behandlung",
             id: Some(behandlung_id.0.to_string()),
             menge: None,
             einzelpreis: None,
             preis: Some(preis_to_str(preis)),
-            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
+            mwst: ratio_to_str(mwst),
         },
-        LeistungQuelle::Manuell {
-            preis,
-            mwst_prozentsatz,
-        } => QuelleDbColumns {
+        LeistungQuelle::Manuell { preis, mwst } => QuelleDbColumns {
             typ: "manuell",
             id: None,
             menge: None,
             einzelpreis: None,
             preis: Some(preis_to_str(preis)),
-            mwst_prozentsatz: decimal_to_str(mwst_prozentsatz),
+            mwst: ratio_to_str(mwst),
         },
     }
 }
@@ -128,8 +135,12 @@ pub fn preis_to_str(preis: &Preis) -> String {
     preis.value().to_string()
 }
 
-pub fn decimal_to_str(decimal: &Decimal) -> String {
-    decimal.to_string()
+pub fn ratio_to_str(ratio: &Ratio) -> String {
+    ratio.value().to_string()
+}
+
+pub fn menge_to_str(menge: &Menge) -> String {
+    menge.value().to_string()
 }
 
 pub fn format_naive_date(date: NaiveDate) -> String {

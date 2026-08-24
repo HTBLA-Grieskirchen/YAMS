@@ -35,14 +35,14 @@ const defaultProdukt: ProduktErstellung = {
   name: "Hundefutter Premium",
   beschreibung: "5 kg Trockenfutter",
   einzelpreis: "24.99",
-  mwstProzentsatz: "20.00",
+  mwst: "0.20",
 };
 
 const defaultBehandlung: BehandlungErstellung = {
   name: "Kastration",
   beschreibung: "Routine-OP",
   standardpreis: "180.00",
-  mwstProzentsatz: "20.00",
+  mwst: "0.20",
 };
 
 export function KatalogForm({
@@ -122,13 +122,13 @@ export function KatalogForm({
                     required
                   />
                 </Field>
-                <Field label="MwSt %" hint="Dezimal als String, z. B. 20.00">
+                <Field label="MwSt" hint="Anteil 0–1 als String, z. B. 0.20 für 20%">
                   <Input
-                    value={produktForm.mwstProzentsatz}
+                    value={produktForm.mwst}
                     onChange={(e) =>
                       setProduktForm((p) => ({
                         ...p,
-                        mwstProzentsatz: e.target.value,
+                        mwst: e.target.value,
                       }))
                     }
                     required
@@ -190,13 +190,13 @@ export function KatalogForm({
                     required
                   />
                 </Field>
-                <Field label="MwSt %">
+                <Field label="MwSt" hint="Anteil 0–1 als String, z. B. 0.20">
                   <Input
-                    value={behandlungForm.mwstProzentsatz}
+                    value={behandlungForm.mwst}
                     onChange={(e) =>
                       setBehandlungForm((b) => ({
                         ...b,
-                        mwstProzentsatz: e.target.value,
+                        mwst: e.target.value,
                       }))
                     }
                     required

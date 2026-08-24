@@ -1,11 +1,10 @@
 use chrono::NaiveDate;
 use error_stack::Report;
-use rust_decimal::Decimal;
 use uuid::Uuid;
 
 use crate::{
     ResultReport,
-    domain::{KlientId, Leistung, LeistungId, LeistungOffen, LeistungQuelle, Preis},
+    domain::{KlientId, Leistung, LeistungId, LeistungOffen, LeistungQuelle, Menge, Preis, Ratio},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -23,8 +22,8 @@ pub struct Bezahlt {
 pub struct Rechnungsposition {
     beschreibung: String,
     einzelpreis: Preis,
-    stückzahl: Decimal,
-    mwst_prozentsatz: Decimal,
+    stückzahl: Menge,
+    mwst: Ratio,
     leistung_id: LeistungId,
 }
 
@@ -32,15 +31,15 @@ impl Rechnungsposition {
     pub fn neu(
         beschreibung: String,
         einzelpreis: Preis,
-        stückzahl: Decimal,
-        mwst_prozentsatz: Decimal,
+        stückzahl: Menge,
+        mwst: Ratio,
         leistung_id: LeistungId,
     ) -> Self {
         Self {
             beschreibung,
             einzelpreis,
             stückzahl,
-            mwst_prozentsatz,
+            mwst,
             leistung_id,
         }
     }
@@ -53,12 +52,12 @@ impl Rechnungsposition {
         &self.einzelpreis
     }
 
-    pub fn stückzahl(&self) -> Decimal {
-        self.stückzahl
+    pub fn stückzahl(&self) -> &Menge {
+        &self.stückzahl
     }
 
-    pub fn mwst_prozentsatz(&self) -> Decimal {
-        self.mwst_prozentsatz
+    pub fn mwst(&self) -> &Ratio {
+        &self.mwst
     }
 
     pub fn leistung_id(&self) -> &LeistungId {
@@ -66,15 +65,11 @@ impl Rechnungsposition {
     }
 
     pub fn gesamtpreis_netto(&self) -> Preis {
-        self.einzelpreis
-            .multiply(self.stückzahl)
-            .expect("nettopreis aus nicht-negativem einzelpreis und stückzahl")
+        &self.einzelpreis * &self.stückzahl
     }
 
     pub fn mwst_betrag(&self) -> Preis {
-        let netto = self.gesamtpreis_netto().value();
-        let mwst = netto * self.mwst_prozentsatz / Decimal::from(100);
-        Preis::new(mwst).expect("mwst-betrag aus nicht-negativem netto")
+        &self.gesamtpreis_netto() * &self.mwst
     }
 
     pub fn gesamtpreis_brutto(&self) -> Preis {
@@ -269,9 +264,9 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
     let (einzelpreis, stückzahl) = match leistung.quelle() {
         LeistungQuelle::Produkt {
             einzelpreis, menge, ..
-        } => (einzelpreis.clone(), *menge),
+        } => (einzelpreis.clone(), menge.clone()),
         LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis, .. } => {
-            (preis.clone(), Decimal::ONE)
+            (preis.clone(), Menge::one())
         }
     };
 
@@ -279,7 +274,7 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         leistung.beschreibung().to_string(),
         einzelpreis,
         stückzahl,
-        leistung.quelle().mwst_prozentsatz(),
+        leistung.quelle().mwst().clone(),
         leistung.id().clone(),
     )
 }
@@ -294,15 +289,41 @@ pub enum RechnungFehler {
 
 #[cfg(test)]
 mod tests {
+    use rust_decimal::Decimal;
+
     use super::*;
+    use crate::domain::leistung::NeueLeistung;
+
+    fn mwst_19() -> Ratio {
+        Ratio::new(Decimal::new(19, 2)).unwrap()
+    }
 
     fn position(beschreibung: &str, einzelpreis: i64, stückzahl: i64) -> Rechnungsposition {
         Rechnungsposition::neu(
             beschreibung.into(),
             Preis::new(Decimal::new(einzelpreis, 0)).unwrap(),
-            Decimal::new(stückzahl, 0),
-            Decimal::new(19, 0),
+            Menge::new(Decimal::new(stückzahl, 0)).unwrap(),
+            mwst_19(),
             LeistungId(Uuid::new_v4()),
+        )
+    }
+
+    fn leistung_offen(klient_id: KlientId, beschreibung: &str, preis: i64) -> Leistung {
+        Leistung::from(
+            LeistungOffen::neu(
+                LeistungId(Uuid::new_v4()),
+                NeueLeistung::neu(
+                    klient_id,
+                    None,
+                    beschreibung,
+                    NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+                    LeistungQuelle::Manuell {
+                        preis: Preis::new(Decimal::new(preis, 0)).unwrap(),
+                        mwst: mwst_19(),
+                    },
+                )
+                .unwrap(),
+            ),
         )
     }
 
@@ -325,6 +346,21 @@ mod tests {
     }
 
     #[test]
+    fn rechnungsposition_zero_mwst_brutto_equals_netto() {
+        let position = Rechnungsposition::neu(
+            "Netto".into(),
+            Preis::new(Decimal::new(40, 0)).unwrap(),
+            Menge::one(),
+            Ratio::zero(),
+            LeistungId(Uuid::new_v4()),
+        );
+        assert_eq!(
+            position.gesamtpreis_brutto().value(),
+            position.gesamtpreis_netto().value()
+        );
+    }
+
+    #[test]
     fn rechnung_offen_rejects_empty_positionen() {
         let err = RechnungOffen::neu(
             RechnungId(Uuid::new_v4()),
@@ -336,5 +372,47 @@ mod tests {
         .unwrap_err();
 
         assert!(matches!(err, RechnungFehler::KeineLeistungen));
+    }
+
+    #[test]
+    fn aus_leistungen_rejects_klient_mismatch() {
+        let klient = KlientId(Uuid::new_v4());
+        let other = KlientId(Uuid::new_v4());
+        let mut fremd = leistung_offen(other, "Fremd", 10);
+        let mut leistungen = vec![&mut fremd];
+
+        let err = RechnungOffen::aus_leistungen(
+            klient,
+            1,
+            NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+            &mut leistungen,
+        )
+        .unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            RechnungFehler::KlientUnstimmig
+        ));
+    }
+
+    #[test]
+    fn aus_leistungen_skips_already_abgerechnet() {
+        let klient = KlientId(Uuid::new_v4());
+        let mut billed = leistung_offen(klient.clone(), "Alt", 10);
+        if let Leistung::Offen(offen) = billed {
+            billed = Leistung::from(offen.mark_abgerechnet(RechnungId(Uuid::new_v4())));
+        }
+        let mut leistungen = vec![&mut billed];
+
+        let err = RechnungOffen::aus_leistungen(
+            klient,
+            1,
+            NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+            &mut leistungen,
+        )
+        .unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            RechnungFehler::KeineLeistungen
+        ));
     }
 }

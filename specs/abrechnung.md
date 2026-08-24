@@ -16,11 +16,13 @@ Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zust
 
 | Typ | Invarianten |
 |-----|-------------|
-| `Preis` | `rust_decimal`, nicht negativ; `add` / `multiply` erhalten Invariante |
+| `Preis` | `rust_decimal`, nicht negativ; `Add` und `&Preis * &Menge` / `&Preis * &Ratio` erhalten die Invariante |
+| `Ratio` | `0..=1` (100% = `1`); MwSt-Anteil, nicht Prozent |
+| `Menge` | nicht negativ, einheitenlos; Produktmenge und Rechnungs-`stückzahl` |
 | `EmailAdresse`, `Mobilnummer` | Validierung bei Konstruktion (`Result`, kein `Report`) |
 | `Ländercode` | Enum `AT` \| `DE` \| `CH` |
-| `LeistungQuelle` | `Produkt { produkt_id, menge, einzelpreis }` \| `Behandlung { behandlung_id, preis }` \| `Manuell { preis }` — Preis-Snapshot zum Buchungszeitpunkt |
-| `Rechnungsposition` | `einzelpreis`, `stückzahl`, `mwst_prozentsatz` → Getter `gesamtpreis_netto`, `mwst_betrag`, `gesamtpreis_brutto` |
+| `LeistungQuelle` | `Produkt { produkt_id, menge, einzelpreis, mwst }` \| `Behandlung { behandlung_id, preis, mwst }` \| `Manuell { preis, mwst }` — Preis-Snapshot zum Buchungszeitpunkt |
+| `Rechnungsposition` | `einzelpreis`, `stückzahl`, `mwst` (`Ratio`) → Getter `gesamtpreis_netto`, `mwst_betrag`, `gesamtpreis_brutto` |
 
 `Leistung::betrag()` und `Rechnung::gesamtbetrag_brutto()` sind berechnete Getter, keine gespeicherten Felder.
 

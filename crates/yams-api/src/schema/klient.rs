@@ -27,15 +27,15 @@ pub fn schema_klient_from_domain(
     haustiere: Vec<domain::Haustier>,
 ) -> Klient {
     Klient {
-        id: klient.id.0,
-        vorname: klient.vorname,
-        nachname: klient.nachname,
-        geburtstag: klient.geburtstag,
-        email: klient.email.into(),
-        mobilnummer: klient.mobilnummer.into(),
-        kundennummer: klient.kundennummer,
-        einwilligung: klient.einwilligung,
-        adresse: klient.adresse.into(),
+        id: klient.id().0,
+        vorname: klient.vorname().to_string(),
+        nachname: klient.nachname().to_string(),
+        geburtstag: klient.geburtstag(),
+        email: klient.email().clone().into(),
+        mobilnummer: klient.mobilnummer().clone().into(),
+        kundennummer: klient.kundennummer(),
+        einwilligung: klient.einwilligung(),
+        adresse: klient.adresse().clone().into(),
         haustiere: haustiere
             .into_iter()
             .map(schema_haustier_from_domain)

@@ -1,6 +1,5 @@
 use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
-use http::StatusCode;
 use yams_core::service::KlientErstellen;
 
 use crate::{errors::ValidationError, schema::Adresse};
@@ -28,23 +27,14 @@ impl TryFrom<KlientErstellung> for KlientErstellen {
             vorname: value.vorname,
             nachname: value.nachname,
             geburtstag: value.geburtstag,
-            email: value
-                .email
-                .try_into()
-                .change_context(ValidationError)
-                .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)?,
+            email: value.email.try_into().change_context(ValidationError)?,
             mobilnummer: value
                 .mobilnummer
                 .try_into()
-                .change_context(ValidationError)
-                .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)?,
+                .change_context(ValidationError)?,
             kundennummer: value.kundennummer,
             einwilligung: value.einwilligung,
-            adresse: value
-                .adresse
-                .try_into()
-                .change_context(ValidationError)
-                .attach_opaque(StatusCode::UNPROCESSABLE_ENTITY)?,
+            adresse: value.adresse.try_into().change_context(ValidationError)?,
         })
     }
 }

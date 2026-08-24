@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use async_lock::Mutex;
 use async_trait::async_trait;
+use error_stack::ResultExt;
 use chrono::NaiveDate;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
@@ -23,7 +24,7 @@ pub struct SQLiteLeistungRepository {
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
 }
 
-const LEISTUNG_SELECT: &str = "SELECT id, klient_id, haustier_id, beschreibung, leistungsdatum, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst_prozentsatz, rechnung_id, _version FROM leistungen";
+const LEISTUNG_SELECT: &str = "SELECT id, klient_id, haustier_id, beschreibung, leistungsdatum, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst, rechnung_id, _version FROM leistungen";
 
 fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
     let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
@@ -65,7 +66,8 @@ fn leistung_from_row(row: &Row) -> RepositoryResult<Versioned<Leistung>> {
         leistungsdatum,
         quelle,
         rechnung_id,
-    );
+    )
+    .change_context(RepositoryError::Data)?;
     Ok(Versioned::new(version, leistung))
 }
 
@@ -90,7 +92,7 @@ impl LeistungRepository for SQLiteLeistungRepository {
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
 
         tx.execute(
-            "INSERT INTO leistungen (id, klient_id, haustier_id, beschreibung, leistungsdatum, status, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst_prozentsatz, rechnung_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, 'offen', ?6, ?7, ?8, ?9, ?10, ?11, NULL, ?12)",
+            "INSERT INTO leistungen (id, klient_id, haustier_id, beschreibung, leistungsdatum, status, quelle_typ, quelle_id, quelle_menge, quelle_einzelpreis, quelle_preis, quelle_mwst, rechnung_id, _version) VALUES (?1, ?2, ?3, ?4, ?5, 'offen', ?6, ?7, ?8, ?9, ?10, ?11, NULL, ?12)",
             libsql::params![
                 offen.id().0.to_string(),
                 offen.klient_id().0.to_string(),
@@ -102,7 +104,7 @@ impl LeistungRepository for SQLiteLeistungRepository {
                 db.menge,
                 db.einzelpreis,
                 db.preis,
-                db.mwst_prozentsatz,
+                db.mwst,
                 versioned.v(),
             ],
         )

@@ -56,7 +56,7 @@ Two rules apply everywhere in this repo.
 
 - Rust types and modules: `Klient`, `Behandlung`, `Leistung`, `Tagesabschluss`, `KlientErstellen`
 - Persisted names: SQLite tables/columns for domain fields (`klienten`, `leistungen`, `straße_und_hausnummer`)
-- API surface for domain: HTTP paths (`/klient`, `/tagesabschluss`), JSON keys (`vorName`, `straßeUndHausnummer`, `ländercode`)
+- API surface for domain: HTTP paths (`/klient`, `/tagesabschluss`), JSON keys (`vorname`, `straßeUndHausnummer`, `ländercode`, `mwst`)
 - Domain specs ([`specs/abrechnung.md`](specs/abrechnung.md)) — trust code over stale English specs
 
 **Naming ladder** — `NeuerKlient` (domain) → `KlientErstellen` (use case) → `KlientErstellung` (API request). German feature-slice file names (`klient.rs`, `abrechnung.rs`), not English technical names (`client.rs`, `billing.rs`).
@@ -67,7 +67,7 @@ Use **proper UTF-8** in identifiers and persisted names. Never transliterate uml
 
 - **Rust** — `nächste_rechnungsnummer`, `straße_und_hausnummer`, `Ländercode`, `TagesabschlussDurchführen`
 - **SQLite** — quote when needed: `"straße_und_hausnummer"`, `"stückzahl"`, `"ländercode"`
-- **JSON** — UTF-8 keys via `camelCase` serde (`straßeUndHausnummer`, `stückzahl`); prefer UTF-8 field names in schema types over ASCII fields + `serde(rename)` workarounds
+- JSON — UTF-8 keys via `camelCase` serde (`straßeUndHausnummer`, `stückzahl`, `mwst`); prefer UTF-8 field names in schema types over ASCII fields + `serde(rename)` workarounds
 - **Migrations** — final schema in `v0002` (feature dev); squash incremental alters while pre-deploy
 
 Tooling handles UTF-8 in source files — use it.
@@ -95,11 +95,11 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 **Make invalid state unrepresentable.** Guiding principle for domain modeling:
 
 - **Newtypes for identity** — `KlientId(Uuid)`, `HaustierId(Uuid)` prevent ID mix-ups at compile time.
-- **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Preis` via `new()` / `TryFrom`. Invalid values cannot exist in the type system.
+- **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Preis`, `Ratio` (`0..=1`; 100% = `1`), `Menge` (non-negative, unitless) via `new()` / `TryFrom`. Invalid values cannot exist in the type system.
 - **Closed enums where closed** — `Ländercode` is an enum (`AT`, `DE`, `CH`), not a free-form string.
 - **Type-state aggregates** — `LeistungIn<Offen>` / `LeistungIn<Abgerechnet>` (aliases `LeistungOffen`, `LeistungAbgerechnet`), `RechnungIn<…>` likewise. Enum `Leistung` / `Rechnung` sums all valid states when compile-time state unknown.
 - **Separate creation types** — `NeuerKlient` / `NeuesHaustier` have no ID; persisted aggregates always do.
-- **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Repositories call `::neu` / `from_parts`, never construct invalid entities.
+- **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Repositories and request DTOs never assemble an invalid entity: `::neu` / `from_parts` are the only construction paths. Construction `Report`s `.attach("while constructing klient")` (and the analogous haustier/produkt/behandlung/leistung strings) so the site is visible in the report.
 - **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.
 - **Price snapshots on Leistung** — `LeistungQuelle` stores booked prices (`einzelpreis`, `menge`, `preis`) so Tagesabschluss uses historical values, not current catalog prices.
 - **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version.
@@ -111,7 +111,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 **Error handling conventions:**
 - **`Report<E>` everywhere** — use cases, domain services (`RechnungOffen::aus_leistungen`), orchestration. Use `.change_context()` directly; avoid redundant `IntoReport::into_report`.
 - **Exception: newtype validation** — `EmailAdresse::new`, `Preis::new`, `Ländercode::from_str` return plain `Result<T, ValidationError>` — nothing cross-cutting can fail at construction.
-- **Preis arithmetic** — implement `Add`; addition of two `Preis` values cannot fail. Use `multiply` for scaling.
+- **Preis arithmetic** — implement `Add`; addition of two `Preis` values cannot fail. Scaling is infallible `Mul`: `&Preis * &Menge` and `&Preis * &Ratio` (MwSt is a ratio, so `netto * 0.19`, never `/100`).
 
 Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` with UoW + clock access.
 
@@ -144,9 +144,9 @@ One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `Ta
 Framework-agnostic API layer between driving adapters and core.
 
 - **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchführen`, …). Translates domain → API schema DTOs.
-- **`schema/`** — German DTOs, JSON `camelCase` (`vorName`, `ländercode`).
-- **`requests/`** — inbound request types with `TryFrom` into use-case inputs.
-- **`errors/`** — `Report<E>` → structured JSON error trees for HTTP responses.
+- **`schema/`** — German DTOs, JSON `camelCase` (`vorname`, `ländercode`, `mwst` as a `0..=1` ratio, e.g. `"0.20"` not `"20"`).
+- **`requests/`** — inbound request types with `TryFrom` into use-case inputs. Domain validation is `change_context(ValidationError)` only; HTTP status codes are **not** attached yet (no 422 mapping).
+- **`errors/`** — `Report<E>` → structured JSON error trees for HTTP responses. Without a `StatusCode` on the report, `TypicalJsonResponse` currently falls back to 500.
 
 ### Feature Flags
 
@@ -195,7 +195,7 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 | Domain unit        | `#[cfg(test)]` in the domain source file   | Isolated VO/aggregate math (Preis, MwSt, contact validation) |
 | Business conform   | `yams-core/tests/cases/` (integration)     | Full use-case flows with `yams-fakes`     |
 | Adapter conformance| `yams-persistence/tests/`                  | Same cases as core, real SQLite UoW        |
-| E2E / API          | `yams-api/tests/e2e/`                      | Invoke `YamsAppApi` with request/schema DTOs, real SQLite |
+| E2E / API          | `yams-api/tests/e2e/`                      | Poem `TestClient` JSON dicts nested at `/api` (same as `yams-server`), real SQLite |
 
 ### yams-fakes
 
@@ -257,5 +257,5 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.
 5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers. English for technical messages; German only in domain/user-facing UL strings where appropriate.
 6. **Language** — English docs/comments/technical code; German UL for domain names; UTF-8 identifiers, no `ae`/`oe`/`ue` transliteration (see Language & Naming).
-7. **Tests:** domain units live in a `#[cfg(test)]` module in the source file; use-case flows go in `yams-core/tests/cases/` (persistence conformance follows automatically); API-surface coverage goes in `yams-api/tests/e2e/` (`main.rs` is only the crate entrypoint).
+7. **Tests:** domain units live in a `#[cfg(test)]` module in the source file; use-case flows go in `yams-core/tests/cases/` (persistence conformance follows automatically); API e2e uses Poem `TestClient` JSON in `yams-api/tests/e2e/` (`main.rs` is only the crate entrypoint).
 8. **Frontend data** — add TanStack Query hooks in `frontend/src/api/hooks/`; never fetch from components directly (see Frontend → TanStack Query).

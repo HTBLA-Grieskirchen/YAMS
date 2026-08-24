@@ -1,8 +1,11 @@
 use chrono::NaiveDate;
-use rust_decimal::Decimal;
+use error_stack::Report;
 use uuid::Uuid;
 
-use crate::domain::{BehandlungId, HaustierId, KlientId, Preis, ProduktId, RechnungId};
+use crate::{
+    ResultReport,
+    domain::{BehandlungId, HaustierId, KlientId, Menge, Preis, ProduktId, Ratio, RechnungId},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct LeistungId(pub Uuid);
@@ -15,22 +18,30 @@ pub struct Abgerechnet {
     rechnung_id: RechnungId,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, thiserror::Error)]
+pub enum LeistungFehler {
+    #[error("beschreibung darf nicht leer sein")]
+    BeschreibungLeer,
+}
+
+const CONSTRUCTING: &str = "while constructing leistung";
+
+#[derive(Debug, Clone)]
 pub enum LeistungQuelle {
     Produkt {
         produkt_id: ProduktId,
-        menge: Decimal,
+        menge: Menge,
         einzelpreis: Preis,
-        mwst_prozentsatz: Decimal,
+        mwst: Ratio,
     },
     Behandlung {
         behandlung_id: BehandlungId,
         preis: Preis,
-        mwst_prozentsatz: Decimal,
+        mwst: Ratio,
     },
     Manuell {
         preis: Preis,
-        mwst_prozentsatz: Decimal,
+        mwst: Ratio,
     },
 }
 
@@ -39,24 +50,16 @@ impl LeistungQuelle {
         match self {
             Self::Produkt {
                 menge, einzelpreis, ..
-            } => einzelpreis
-                .multiply(*menge)
-                .expect("produkt-betrag aus nicht-negativem preis und menge"),
+            } => einzelpreis * menge,
             Self::Behandlung { preis, .. } | Self::Manuell { preis, .. } => preis.clone(),
         }
     }
 
-    pub fn mwst_prozentsatz(&self) -> Decimal {
+    pub fn mwst(&self) -> &Ratio {
         match self {
-            Self::Produkt {
-                mwst_prozentsatz, ..
-            } => *mwst_prozentsatz,
-            Self::Behandlung {
-                mwst_prozentsatz, ..
-            } => *mwst_prozentsatz,
-            Self::Manuell {
-                mwst_prozentsatz, ..
-            } => *mwst_prozentsatz,
+            Self::Produkt { mwst, .. } => mwst,
+            Self::Behandlung { mwst, .. } => mwst,
+            Self::Manuell { mwst, .. } => mwst,
         }
     }
 }
@@ -102,22 +105,22 @@ impl Leistung {
         leistungsdatum: NaiveDate,
         quelle: LeistungQuelle,
         rechnung_id: Option<RechnungId>,
-    ) -> Self {
+    ) -> ResultReport<Self, LeistungFehler> {
         let offen = LeistungOffen::neu(
             id,
-            NeueLeistung {
+            NeueLeistung::neu(
                 klient_id,
                 haustier_id,
                 beschreibung,
                 leistungsdatum,
                 quelle,
-            },
+            )?,
         );
 
-        match rechnung_id {
+        Ok(match rechnung_id {
             Some(rechnung_id) => Self::from(offen.mark_abgerechnet(rechnung_id)),
             None => Self::from(offen),
-        }
+        })
     }
 
     pub fn id(&self) -> &LeistungId {
@@ -197,25 +200,50 @@ impl LeistungAbgerechnet {
     }
 }
 
+#[derive(Debug)]
 pub struct NeueLeistung {
-    pub klient_id: KlientId,
-    pub haustier_id: Option<HaustierId>,
-    pub beschreibung: String,
-    pub leistungsdatum: NaiveDate,
-    pub quelle: LeistungQuelle,
+    klient_id: KlientId,
+    haustier_id: Option<HaustierId>,
+    beschreibung: String,
+    leistungsdatum: NaiveDate,
+    quelle: LeistungQuelle,
+}
+
+impl NeueLeistung {
+    pub fn neu(
+        klient_id: KlientId,
+        haustier_id: Option<HaustierId>,
+        beschreibung: impl Into<String>,
+        leistungsdatum: NaiveDate,
+        quelle: LeistungQuelle,
+    ) -> ResultReport<Self, LeistungFehler> {
+        let beschreibung = beschreibung.into();
+        if beschreibung.trim().is_empty() {
+            return Err(Report::new(LeistungFehler::BeschreibungLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
+            klient_id,
+            haustier_id,
+            beschreibung,
+            leistungsdatum,
+            quelle,
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use rust_decimal::Decimal;
+
     use super::*;
 
     #[test]
     fn produkt_betrag_multiplies_menge() {
         let quelle = LeistungQuelle::Produkt {
             produkt_id: ProduktId(Uuid::new_v4()),
-            menge: Decimal::new(2, 0),
+            menge: Menge::new(Decimal::new(2, 0)).unwrap(),
             einzelpreis: Preis::new(Decimal::new(25, 0)).unwrap(),
-            mwst_prozentsatz: Decimal::new(19, 0),
+            mwst: Ratio::new(Decimal::new(20, 2)).unwrap(),
         };
 
         assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
@@ -226,9 +254,50 @@ mod tests {
         let quelle = LeistungQuelle::Behandlung {
             behandlung_id: BehandlungId(Uuid::new_v4()),
             preis: Preis::new(Decimal::new(50, 0)).unwrap(),
-            mwst_prozentsatz: Decimal::new(19, 0),
+            mwst: Ratio::new(Decimal::new(20, 2)).unwrap(),
         };
 
         assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
+    }
+
+    #[test]
+    fn menge_negative_cannot_exist() {
+        assert!(Menge::new(Decimal::new(-1, 0)).is_err());
+    }
+
+    #[test]
+    fn mark_abgerechnet_sets_rechnung_id() {
+        let rechnung_id = RechnungId(Uuid::new_v4());
+        let offen = LeistungOffen::neu(
+            LeistungId(Uuid::new_v4()),
+            NeueLeistung::neu(
+                KlientId(Uuid::new_v4()),
+                None,
+                "Untersuchung",
+                NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+                LeistungQuelle::Manuell {
+                    preis: Preis::new(Decimal::new(30, 0)).unwrap(),
+                    mwst: Ratio::zero(),
+                },
+            )
+            .unwrap(),
+        );
+        let abgerechnet = offen.mark_abgerechnet(rechnung_id.clone());
+        assert_eq!(abgerechnet.rechnung_id(), &rechnung_id);
+
+        let reconstructed = Leistung::from_parts(
+            abgerechnet.id().clone(),
+            abgerechnet.klient_id().clone(),
+            abgerechnet.haustier_id().clone(),
+            abgerechnet.beschreibung().to_string(),
+            abgerechnet.leistungsdatum(),
+            abgerechnet.quelle().clone(),
+            Some(rechnung_id.clone()),
+        )
+        .unwrap();
+        match reconstructed {
+            Leistung::Abgerechnet(l) => assert_eq!(l.rechnung_id(), &rechnung_id),
+            Leistung::Offen(_) => panic!("expected abgerechnet"),
+        }
     }
 }

@@ -190,12 +190,12 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 
 ## Testing Strategy
 
-| Layer              | Where                          | What                                      |
-|--------------------|--------------------------------|-------------------------------------------|
-| Domain unit        | `yams-core/tests/domain/`      | Isolated VO/aggregate math (Preis, MwSt, validation) |
-| Business conform   | `yams-core/tests/cases/`       | Full use-case flows with `yams-fakes`     |
-| Adapter conformance| `yams-persistence/tests/`      | Same cases as core, real SQLite UoW        |
-| E2E / API          | `yams-api`                     | Invoke API methods, lightweight persistence |
+| Layer              | Where                                      | What                                      |
+|--------------------|--------------------------------------------|-------------------------------------------|
+| Domain unit        | `#[cfg(test)]` in the domain source file   | Isolated VO/aggregate math (Preis, MwSt, contact validation) |
+| Business conform   | `yams-core/tests/cases/` (integration)     | Full use-case flows with `yams-fakes`     |
+| Adapter conformance| `yams-persistence/tests/`                  | Same cases as core, real SQLite UoW        |
+| E2E / API          | `yams-api/tests/e2e.rs`                    | Invoke `YamsAppApi` with request/schema DTOs, `yams-fakes` |
 
 ### yams-fakes
 
@@ -251,11 +251,11 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 ## Conventions for Contributors
 
 1. **New feature?** Walk the vertical slice in order, German feature names (`seminar.rs`, not `model.rs`):
-   `domain/` → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → test case in `yams-core/tests/cases/` → `mise run build:openapi` (if API surface changed).
+   `domain/` (unit tests in the same file) → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → use-case case in `yams-core/tests/cases/` → API e2e in `yams-api/tests/e2e.rs` when the public surface changed → `mise run build:openapi` (if API surface changed).
 2. **Domain changes stay in core.** API DTOs are a separate translation layer; never leak serde/openapi concerns into core.
 3. **All mutations through `App::execute`.** No direct repo calls from adapters.
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.
 5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers. English for technical messages; German only in domain/user-facing UL strings where appropriate.
 6. **Language** — English docs/comments/technical code; German UL for domain names; UTF-8 identifiers, no `ae`/`oe`/`ue` transliteration (see Language & Naming).
-7. **Tests: add cases to `yams-core/tests/cases/`.** Persistence conformance follows automatically.
+7. **Tests:** domain units live in a `#[cfg(test)]` module in the source file; use-case flows go in `yams-core/tests/cases/` (persistence conformance follows automatically); API-surface coverage goes in `yams-api/tests/e2e.rs`.
 8. **Frontend data** — add TanStack Query hooks in `frontend/src/api/hooks/`; never fetch from components directly (see Frontend → TanStack Query).

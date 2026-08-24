@@ -18,9 +18,9 @@
     "semantic_hash": "0cf9cbabbcbde56ad7654d185383a1ac"
   },
   "backend/server/src/main.rs": {
-    "mtime": 1787564712.5825744,
-    "seen": 1787565080.6170106,
-    "ast_hash": "2fc62c45484ad1b96dee17ab34566b1f",
+    "mtime": 1787566250.1823554,
+    "seen": 1787566412.6620212,
+    "ast_hash": "5b5337caabbe39be146b40185f8d5815",
     "semantic_hash": ""
   },
   "crates/molting/Cargo.toml": {
@@ -66,9 +66,9 @@
     "semantic_hash": "36e3621a9ad4f50c7df8b03ddc755868"
   },
   "crates/yams-api/Cargo.toml": {
-    "mtime": 1787554050.8623106,
-    "seen": 1787561207.3134775,
-    "ast_hash": "928d8ab95d28f00e0e1945a529a6ba0c",
+    "mtime": 1787566200.1103556,
+    "seen": 1787566412.6624732,
+    "ast_hash": "7c675f8736e296c972a981bdc1909a53",
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/mod.rs": {
@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/tests/business_conform.rs": {
-    "mtime": 1787554080.800247,
-    "seen": 1787561207.316563,
-    "ast_hash": "e8519ef705bd2ef55401b8ebe3e684cc",
+    "mtime": 1787566125.0543869,
+    "seen": 1787566412.6651454,
+    "ast_hash": "78fb9a25af6a50e0b226b300ee9d33d2",
     "semantic_hash": ""
   },
   "crates/yams-core/tests/cases/animal_management.rs": {
@@ -864,9 +864,9 @@
     "semantic_hash": "1be34a5c61c2c35365de3dab14298f0b"
   },
   "frontend/src-tauri/src/commands.rs": {
-    "mtime": 1787560946.5791047,
-    "seen": 1787561207.328487,
-    "ast_hash": "76f8db095f987eb6c4d43544c33e42d9",
+    "mtime": 1787566250.2663555,
+    "seen": 1787566412.6728735,
+    "ast_hash": "b139d55aa0cdb422a53479520c6ff82a",
     "semantic_hash": ""
   },
   "frontend/src-tauri/src/config.rs": {
@@ -900,9 +900,9 @@
     "semantic_hash": ""
   },
   "frontend/src/app/page.tsx": {
-    "mtime": 1787565048.8705332,
-    "seen": 1787565080.6272945,
-    "ast_hash": "b1443bacdfb02654a66ff8d48e951bf1",
+    "mtime": 1787565093.5784945,
+    "seen": 1787566412.673815,
+    "ast_hash": "d7973c91852549bf7d8a5bf81ce4524f",
     "semantic_hash": ""
   },
   "frontend/tsconfig.json": {
@@ -936,9 +936,9 @@
     "semantic_hash": "6ae5e60c331b128c77adee2c3139093b"
   },
   ".cursor/AGENTS.md": {
-    "mtime": 1787564093.330633,
-    "seen": 1787565080.6276157,
-    "ast_hash": "d22a2747f52909a91b6bd52f26875203",
+    "mtime": 1787566210.7143524,
+    "seen": 1787566412.674942,
+    "ast_hash": "e31dd3095227af223cc82f81dc85c2c1",
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
@@ -1200,9 +1200,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/adresse.rs": {
-    "mtime": 1787554018.3046923,
-    "seen": 1787561207.3158867,
-    "ast_hash": "cfe2fe7268cd4ec1c82b6336c9b3ce8a",
+    "mtime": 1787566093.46639,
+    "seen": 1787566412.664472,
+    "ast_hash": "276b8223b4d1a35061045d9f1f97bec5",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/behandlung.rs": {
@@ -1224,21 +1224,21 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/kontakt.rs": {
-    "mtime": 1787499574.5917008,
-    "seen": 1787520717.866216,
-    "ast_hash": "6f4c90389cbcbb4df80a2e116a59d026",
+    "mtime": 1787566088.922389,
+    "seen": 1787566412.6646657,
+    "ast_hash": "ed1521c01b5736589214578d234d9b54",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/leistung.rs": {
-    "mtime": 1787554080.800247,
-    "seen": 1787561207.3161182,
-    "ast_hash": "5604d0adacfdc60fe4ea8d40ec6f47e9",
+    "mtime": 1787566097.8543901,
+    "seen": 1787566412.664668,
+    "ast_hash": "998c6101325146d4911355dd196b1884",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/preis.rs": {
-    "mtime": 1787554018.3046923,
-    "seen": 1787561207.3161256,
-    "ast_hash": "093c7c13eb59aab422ed832af3df1ce9",
+    "mtime": 1787566043.518368,
+    "seen": 1787566412.664729,
+    "ast_hash": "6f5d5129c6af8ed39b185bc3569a5df0",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/produkt.rs": {
@@ -1248,9 +1248,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/rechnung.rs": {
-    "mtime": 1787554080.800247,
-    "seen": 1787561207.316131,
-    "ast_hash": "297411dedd2242675bfbc00d36a6e50c",
+    "mtime": 1787566322.2863615,
+    "seen": 1787566412.664787,
+    "ast_hash": "54b0c10f39ae0c686f8cf4c3a051dcac",
     "semantic_hash": ""
   },
   "crates/yams-core/src/service/use_cases/abrechnung.rs": {
@@ -1326,27 +1326,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/tests/cases/abrechnung.rs": {
-    "mtime": 1787554080.800247,
-    "seen": 1787561207.3165672,
-    "ast_hash": "e82274ce0e689bc4a89348b2bcb313ba",
-    "semantic_hash": ""
-  },
-  "crates/yams-core/tests/domain/mod.rs": {
-    "mtime": 1787554005.5010283,
-    "seen": 1787561207.3166983,
-    "ast_hash": "3ff1fe4e7fc71041716d15c149dfe0fb",
-    "semantic_hash": ""
-  },
-  "crates/yams-core/tests/domain/preis.rs": {
-    "mtime": 1787554080.804274,
-    "seen": 1787561207.3167021,
-    "ast_hash": "d1032823745798675d4f40f7a76011a8",
-    "semantic_hash": ""
-  },
-  "crates/yams-core/tests/domain/rechnung.rs": {
-    "mtime": 1787554018.3046923,
-    "seen": 1787561207.3167064,
-    "ast_hash": "9e3cbbf49eb29f274021b9bea705605e",
+    "mtime": 1787566250.2343554,
+    "seen": 1787566412.6651475,
+    "ast_hash": "2015c0d50d83162f0d0284906f39cd3b",
     "semantic_hash": ""
   },
   "crates/yams-fakes/Cargo.toml": {
@@ -1494,9 +1476,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/label.tsx": {
-    "mtime": 1787564914.9426584,
-    "seen": 1787565080.6273074,
-    "ast_hash": "3bcd62be0e78d447dd4387715e7a96cf",
+    "mtime": 1787565093.1424966,
+    "seen": 1787566412.674231,
+    "ast_hash": "a68c864a64453af7d1c34ffcd9862683",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/select.tsx": {
@@ -1506,15 +1488,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/deployment-status.tsx": {
-    "mtime": 1787564942.6306539,
-    "seen": 1787565080.6273103,
-    "ast_hash": "84f650a72872ba4e5a27ba6c240f9227",
+    "mtime": 1787565093.5624948,
+    "seen": 1787566412.6742835,
+    "ast_hash": "83c916d2ff43024e4a1cde856a43827f",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/haustier-form.tsx": {
-    "mtime": 1787565048.8705332,
-    "seen": 1787565080.627312,
-    "ast_hash": "2aff44770b7978431b7e9e5454486599",
+    "mtime": 1787565105.0101385,
+    "seen": 1787566412.674286,
+    "ast_hash": "afbb97a2a87059a5e30f7ce527940a9a",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/katalog-form.tsx": {
@@ -1524,9 +1506,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/klient-form.tsx": {
-    "mtime": 1787564962.0066504,
-    "seen": 1787565080.6273148,
-    "ast_hash": "88d5118733e23bd45b6cc342b5cdb6e9",
+    "mtime": 1787565093.5944946,
+    "seen": 1787566412.6743422,
+    "ast_hash": "f6adee6f489ce7989a9f81baff9dcf9b",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/leistung-form.tsx": {
@@ -1569,6 +1551,12 @@
     "mtime": 1787563215.314794,
     "seen": 1787565080.6273246,
     "ast_hash": "2f9a3836145e0dfea8dfbc5f5d6c5f33",
+    "semantic_hash": ""
+  },
+  "crates/yams-api/tests/e2e.rs": {
+    "mtime": 1787566250.2143555,
+    "seen": 1787566412.6637876,
+    "ast_hash": "a37a15c107032bc923fcb0958690ac9c",
     "semantic_hash": ""
   }
 }

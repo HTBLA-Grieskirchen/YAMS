@@ -291,3 +291,50 @@ pub enum RechnungFehler {
     #[error("leistung gehört nicht zum klient")]
     KlientUnstimmig,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn position(beschreibung: &str, einzelpreis: i64, stückzahl: i64) -> Rechnungsposition {
+        Rechnungsposition::neu(
+            beschreibung.into(),
+            Preis::new(Decimal::new(einzelpreis, 0)).unwrap(),
+            Decimal::new(stückzahl, 0),
+            Decimal::new(19, 0),
+            LeistungId(Uuid::new_v4()),
+        )
+    }
+
+    #[test]
+    fn rechnungsposition_berechnet_mwst_korrekt() {
+        let position = position("Untersuchung", 100, 1);
+
+        assert_eq!(position.gesamtpreis_netto().value(), Decimal::new(100, 0));
+        assert_eq!(position.mwst_betrag().value(), Decimal::new(19, 0));
+        assert_eq!(position.gesamtpreis_brutto().value(), Decimal::new(119, 0));
+    }
+
+    #[test]
+    fn rechnungsposition_mit_stückzahl_multipliziert_netto() {
+        let position = position("Futter", 25, 2);
+
+        assert_eq!(position.gesamtpreis_netto().value(), Decimal::new(50, 0));
+        assert_eq!(position.mwst_betrag().value(), Decimal::new(95, 1));
+        assert_eq!(position.gesamtpreis_brutto().value(), Decimal::new(595, 1));
+    }
+
+    #[test]
+    fn rechnung_offen_rejects_empty_positionen() {
+        let err = RechnungOffen::neu(
+            RechnungId(Uuid::new_v4()),
+            1,
+            KlientId(Uuid::new_v4()),
+            NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+            vec![],
+        )
+        .unwrap_err();
+
+        assert!(matches!(err, RechnungFehler::KeineLeistungen));
+    }
+}

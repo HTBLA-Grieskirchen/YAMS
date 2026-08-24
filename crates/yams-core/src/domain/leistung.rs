@@ -204,3 +204,31 @@ pub struct NeueLeistung {
     pub leistungsdatum: NaiveDate,
     pub quelle: LeistungQuelle,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn produkt_betrag_multiplies_menge() {
+        let quelle = LeistungQuelle::Produkt {
+            produkt_id: ProduktId(Uuid::new_v4()),
+            menge: Decimal::new(2, 0),
+            einzelpreis: Preis::new(Decimal::new(25, 0)).unwrap(),
+            mwst_prozentsatz: Decimal::new(19, 0),
+        };
+
+        assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
+    }
+
+    #[test]
+    fn behandlung_betrag_uses_snapshot_preis() {
+        let quelle = LeistungQuelle::Behandlung {
+            behandlung_id: BehandlungId(Uuid::new_v4()),
+            preis: Preis::new(Decimal::new(50, 0)).unwrap(),
+            mwst_prozentsatz: Decimal::new(19, 0),
+        };
+
+        assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
+    }
+}

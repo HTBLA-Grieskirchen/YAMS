@@ -28,6 +28,10 @@ default = ["serde", "openapi"]
 openapi = ["dep:poem-openapi"]
 serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde", "rust_decimal/serde"]
 
+[dev-dependencies]
+pollster = { version = "0.4.0", features = ["macro"] }
+yams-fakes = { path = "../yams-fakes" }
+
 [[bin]]
 name = "export_spec"
 required-features = ["openapi"]

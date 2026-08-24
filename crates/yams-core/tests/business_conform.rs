@@ -1,5 +1,4 @@
 mod cases;
-mod domain;
 
 use yams_core::{
     App,

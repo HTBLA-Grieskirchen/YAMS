@@ -2,6 +2,7 @@ use clap::Parser;
 use error_stack::{Report, ResultExt};
 use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
+use poem::middleware::Cors;
 use thiserror::Error;
 use yams_api::openapi_service;
 use yams_core::App;
@@ -60,6 +61,14 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     // TODO: add dynamic version loading
     let api_service = openapi_service(app, [api_url.clone()]);
 
+    let cors = Cors::new().allow_origins_fn(|origin| {
+        origin.starts_with("http://localhost:")
+            || origin.starts_with("http://127.0.0.1:")
+            || origin.starts_with("https://localhost:")
+            || origin.starts_with("https://127.0.0.1:")
+            || origin == "tauri://localhost"
+    });
+
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())
         .nest("/redoc", api_service.redoc())
@@ -73,7 +82,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
                 })
             }),
         )
-        .nest("/api", api_service);
+        .nest("/api", api_service)
+        .with(cors);
 
     println!("Server started at {}", api_url);
     Server::new(TcpListener::bind(format!(

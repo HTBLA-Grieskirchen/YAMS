@@ -1,13 +1,19 @@
 #:schema https://mise.jdx.dev/schema/mise-task.json
 
 ["dev:server"]
-description = "Start backend dev server"
+description = "Start backend dev server (default :3000/api)"
 run = "cargo run -p yams-server"
 
 ["dev:frontend"]
 description = "Start Next.js dev server"
 dir = "{{env.FRONTEND_DIR}}"
 run = "npm run dev"
+
+["dev:frontend-remote"]
+hide = true
+description = "Next.js on :3001 (pair with dev:server on :3000)"
+dir = "{{env.FRONTEND_DIR}}"
+run = "npm run dev -- --port 3001"
 
 ["dev:tauri_"]
 hide = true
@@ -30,8 +36,8 @@ depends = ["tmp:print-env"]
 
 ["dev:frontend+server"]
 description = "Start Next.js dev server with standalone backend dev server"
-env.YAMS_DEV = "1"
-depends = ["tmp:print-env"]
+depends = ["dev:server", "dev:frontend"]
+env.NEXT_PUBLIC_YAMS_API_URL = "http://127.0.0.1:3000/api"
 
 ["dev:tauri+embedded"]
 description = "Start Tauri dev with embedded backend"

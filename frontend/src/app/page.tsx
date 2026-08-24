@@ -1,73 +1,124 @@
 "use client";
 
-import { useAlleHaustiereQuery, useHealthQuery } from "@/api/hooks";
-import { useYamsApi } from "@/api/provider";
+import { useState } from "react";
+
+import type {
+  Behandlung,
+  Haustier,
+  Klient,
+  Leistung,
+  Produkt,
+  Rechnung,
+} from "@/api/types";
+import { DeploymentStatus } from "@/components/workflow/deployment-status";
+import { HaustierForm } from "@/components/workflow/haustier-form";
+import { KatalogForm } from "@/components/workflow/katalog-form";
+import { KlientForm } from "@/components/workflow/klient-form";
+import { LeistungForm } from "@/components/workflow/leistung-form";
+import { RechnungenPanel } from "@/components/workflow/rechnungen-panel";
+import { TagesabschlussForm } from "@/components/workflow/tagesabschluss-form";
+import { WorkflowSteps } from "@/components/workflow/workflow-steps";
+
+function deriveCurrentStep(
+  klient: Klient | null,
+  produkt: Produkt | null,
+  behandlung: Behandlung | null,
+  lastLeistung: Leistung | null,
+  rechnungen: Rechnung[],
+): string {
+  if (!klient) return "klient";
+  if (!produkt && !behandlung) return "katalog";
+  if (!lastLeistung) return "leistung";
+  if (rechnungen.length === 0) return "abschluss";
+  return "rechnungen";
+}
 
 export default function Home() {
-  const { mode, remoteApiBaseUrl, loading: apiBootstrapping, error: apiBootstrapError } =
-    useYamsApi();
+  const [klient, setKlient] = useState<Klient | null>(null);
+  const [haustier, setHaustier] = useState<Haustier | null>(null);
+  const [produkt, setProdukt] = useState<Produkt | null>(null);
+  const [behandlung, setBehandlung] = useState<Behandlung | null>(null);
+  const [lastLeistung, setLastLeistung] = useState<Leistung | null>(null);
+  const [rechnungen, setRechnungen] = useState<Rechnung[]>([]);
 
-  const health = useHealthQuery();
-  const haustiere = useAlleHaustiereQuery();
+  const currentStep = deriveCurrentStep(
+    klient,
+    produkt,
+    behandlung,
+    lastLeistung,
+    rechnungen,
+  );
 
-  const dataLoading = apiBootstrapping || health.isPending || haustiere.isPending;
-  const dataError =
-    apiBootstrapError ??
-    (health.error ? String(health.error) : null) ??
-    (haustiere.error ? String(haustiere.error) : null);
+  const steps = [
+    { id: "klient", label: "Klient", done: klient !== null },
+    {
+      id: "haustier",
+      label: "Haustier",
+      done: haustier !== null,
+      optional: true,
+    },
+    {
+      id: "katalog",
+      label: "Katalog",
+      done: produkt !== null || behandlung !== null,
+    },
+    { id: "leistung", label: "Leistung", done: lastLeistung !== null },
+    {
+      id: "abschluss",
+      label: "Abschluss",
+      done: rechnungen.length > 0,
+    },
+    {
+      id: "rechnungen",
+      label: "Rechnungen",
+      done: rechnungen.length > 0,
+    },
+  ];
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 p-8 font-sans">
-      <header className="space-y-2">
+    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 p-6 font-sans sm:p-8">
+      <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">YAMS</h1>
         <p className="text-zinc-600 dark:text-zinc-400">
-          Server state via TanStack Query — transport via OpenAPI HTTP or Tauri
-          commands depending on deployment mode.
+          Abrechnungs-Workflow: Klient → Haustier → Katalog → Leistung →
+          Tagesabschluss → Rechnungen.
         </p>
+        <WorkflowSteps steps={steps} currentStepId={currentStep} />
       </header>
 
-      <section className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="text-lg font-medium">Deployment</h2>
-        {apiBootstrapping ? (
-          <p className="mt-2 text-sm text-zinc-500">Resolving adapter…</p>
-        ) : apiBootstrapError ? (
-          <p className="mt-2 text-sm text-red-600">{apiBootstrapError}</p>
-        ) : (
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex gap-2">
-              <dt className="font-medium">Mode</dt>
-              <dd>{mode}</dd>
-            </div>
-            {remoteApiBaseUrl ? (
-              <div className="flex gap-2">
-                <dt className="font-medium">API base</dt>
-                <dd className="font-mono">{remoteApiBaseUrl}</dd>
-              </div>
-            ) : null}
-            <div className="flex gap-2">
-              <dt className="font-medium">Health</dt>
-              <dd>{health.data ?? "—"}</dd>
-            </div>
-          </dl>
-        )}
-      </section>
+      <DeploymentStatus />
 
-      <section className="rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="text-lg font-medium">Haustiere</h2>
-        {dataLoading ? (
-          <p className="mt-2 text-sm text-zinc-500">Loading…</p>
-        ) : dataError ? (
-          <p className="mt-2 text-sm text-red-600">{dataError}</p>
-        ) : (
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            {haustiere.data?.length === 0
-              ? "No animals loaded yet."
-              : `${haustiere.data?.length} Haustier(e): ${haustiere.data
-                  ?.map((h) => h.name)
-                  .join(", ")}`}
-          </p>
-        )}
-      </section>
+      <KlientForm klient={klient} onCreated={setKlient} />
+
+      <HaustierForm
+        klientId={klient?.id}
+        haustier={haustier}
+        onCreated={setHaustier}
+      />
+
+      <KatalogForm
+        produkt={produkt}
+        behandlung={behandlung}
+        onProduktCreated={setProdukt}
+        onBehandlungCreated={setBehandlung}
+      />
+
+      <LeistungForm
+        klient={klient}
+        haustier={haustier}
+        produkt={produkt}
+        behandlung={behandlung}
+        lastLeistung={lastLeistung}
+        onBooked={setLastLeistung}
+      />
+
+      <TagesabschlussForm
+        lastLeistung={lastLeistung}
+        rechnungen={rechnungen}
+        onCompleted={setRechnungen}
+      />
+
+      <RechnungenPanel klient={klient} localRechnungen={rechnungen} />
     </main>
   );
 }

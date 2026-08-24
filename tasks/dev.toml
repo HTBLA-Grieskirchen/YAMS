@@ -35,8 +35,8 @@ env.YAMS_DEV = "1"
 depends = ["tmp:print-env"]
 
 ["dev:frontend+server"]
-description = "Start Next.js dev server with standalone backend dev server"
-depends = ["dev:server", "dev:frontend"]
+description = "Next.js (:3001) + yams-server (:3000/api)"
+depends = ["dev:server", "dev:frontend-remote"]
 env.NEXT_PUBLIC_YAMS_API_URL = "http://127.0.0.1:3000/api"
 
 ["dev:tauri+embedded"]

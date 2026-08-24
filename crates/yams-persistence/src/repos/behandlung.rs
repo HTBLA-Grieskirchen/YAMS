@@ -64,7 +64,8 @@ impl BehandlungRepository for SQLiteBehandlungRepository {
 
     async fn create(&self, new: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
         let id = BehandlungId(Uuid::new_v4());
-        let behandlung = Versioned::init(Behandlung::neu(id, new));
+        let behandlung =
+            Versioned::init(Behandlung::neu(id, new).change_context(RepositoryError::Data)?);
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;

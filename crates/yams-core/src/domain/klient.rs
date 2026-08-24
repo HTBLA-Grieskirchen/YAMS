@@ -35,8 +35,11 @@ pub struct Klient {
 }
 
 impl Klient {
-    pub fn neu(id: KlientId, neu: NeuerKlient) -> Self {
-        Self {
+    pub fn neu(id: KlientId, neu: NeuerKlient) -> ResultReport<Self, KlientFehler> {
+        if neu.vorname.trim().is_empty() || neu.nachname.trim().is_empty() {
+            return Err(Report::new(KlientFehler::NameLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
             id,
             vorname: neu.vorname,
             nachname: neu.nachname,
@@ -46,7 +49,7 @@ impl Klient {
             kundennummer: neu.kundennummer,
             einwilligung: neu.einwilligung,
             adresse: neu.adresse,
-        }
+        })
     }
 
     pub fn from_parts(
@@ -60,7 +63,13 @@ impl Klient {
         einwilligung: bool,
         adresse: Adresse,
     ) -> ResultReport<Self, KlientFehler> {
-        Ok(Self::neu(
+        let email = EmailAdresse::new(email)
+            .change_context(KlientFehler::Konstruktion)
+            .attach(CONSTRUCTING)?;
+        let mobilnummer = Mobilnummer::new(mobilnummer)
+            .change_context(KlientFehler::Konstruktion)
+            .attach(CONSTRUCTING)?;
+        Self::neu(
             id,
             NeuerKlient::neu(
                 vorname,
@@ -71,8 +80,8 @@ impl Klient {
                 kundennummer,
                 einwilligung,
                 adresse,
-            )?,
-        ))
+            ),
+        )
     }
 
     pub fn id(&self) -> &KlientId {
@@ -129,35 +138,22 @@ impl NeuerKlient {
         vorname: impl Into<String>,
         nachname: impl Into<String>,
         geburtstag: NaiveDate,
-        email: impl AsRef<str>,
-        mobilnummer: impl AsRef<str>,
+        email: EmailAdresse,
+        mobilnummer: Mobilnummer,
         kundennummer: u64,
         einwilligung: bool,
         adresse: Adresse,
-    ) -> ResultReport<Self, KlientFehler> {
-        let vorname = vorname.into();
-        let nachname = nachname.into();
-        if vorname.trim().is_empty() || nachname.trim().is_empty() {
-            return Err(Report::new(KlientFehler::NameLeer).attach(CONSTRUCTING));
-        }
-
-        let email = EmailAdresse::new(email)
-            .change_context(KlientFehler::Konstruktion)
-            .attach(CONSTRUCTING)?;
-        let mobilnummer = Mobilnummer::new(mobilnummer)
-            .change_context(KlientFehler::Konstruktion)
-            .attach(CONSTRUCTING)?;
-
-        Ok(Self {
-            vorname,
-            nachname,
+    ) -> Self {
+        Self {
+            vorname: vorname.into(),
+            nachname: nachname.into(),
             geburtstag,
             email,
             mobilnummer,
             kundennummer,
             einwilligung,
             adresse,
-        })
+        }
     }
 
     pub fn vorname(&self) -> &str {
@@ -207,36 +203,72 @@ mod tests {
         }
     }
 
-    fn neu_ok(vorname: &str, nachname: &str, email: &str, mobil: &str) -> ResultReport<NeuerKlient, KlientFehler> {
-        NeuerKlient::neu(
-            vorname,
-            nachname,
-            NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
-            email,
-            mobil,
-            1001,
-            true,
-            valid_adresse(),
+    fn neu(
+        vorname: &str,
+        nachname: &str,
+        email: EmailAdresse,
+        mobil: Mobilnummer,
+    ) -> ResultReport<Klient, KlientFehler> {
+        Klient::neu(
+            KlientId(Uuid::new_v4()),
+            NeuerKlient::neu(
+                vorname,
+                nachname,
+                NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+                email,
+                mobil,
+                1001,
+                true,
+                valid_adresse(),
+            ),
         )
     }
 
     #[test]
     fn klient_rejects_empty_vorname() {
-        let err = neu_ok("", "Muster", "anna@muster.de", "1234567890").unwrap_err();
+        let err = neu(
+            "",
+            "Muster",
+            "anna@muster.de".try_into().unwrap(),
+            "1234567890".try_into().unwrap(),
+        )
+        .unwrap_err();
         assert!(matches!(err.current_context(), KlientFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
     #[test]
     fn klient_rejects_invalid_email_with_attach() {
-        let err = neu_ok("Anna", "Muster", "not-an-email", "1234567890").unwrap_err();
+        let err = Klient::from_parts(
+            KlientId(Uuid::new_v4()),
+            "Anna".into(),
+            "Muster".into(),
+            NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+            "not-an-email",
+            "1234567890",
+            1001,
+            true,
+            valid_adresse(),
+        )
+        .unwrap_err();
         assert!(matches!(err.current_context(), KlientFehler::Konstruktion));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
     #[test]
     fn klient_rejects_invalid_mobilnummer_with_attach() {
-        let err = neu_ok("Anna", "Muster", "anna@muster.de", "123").unwrap_err();
+        let err = Klient::from_parts(
+            KlientId(Uuid::new_v4()),
+            "Anna".into(),
+            "Muster".into(),
+            NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
+            "anna@muster.de",
+            "123",
+            1001,
+            true,
+            valid_adresse(),
+        )
+        .unwrap_err();
         assert!(matches!(err.current_context(), KlientFehler::Konstruktion));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }

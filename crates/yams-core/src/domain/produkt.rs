@@ -13,8 +13,6 @@ pub struct ProduktId(pub Uuid);
 pub enum ProduktFehler {
     #[error("name darf nicht leer sein")]
     NameLeer,
-    #[error("produkt konnte nicht erzeugt werden")]
-    Konstruktion,
 }
 
 const CONSTRUCTING: &str = "while constructing produkt";
@@ -30,14 +28,17 @@ pub struct Produkt {
 }
 
 impl Produkt {
-    pub fn neu(id: ProduktId, neu: NeuesProdukt) -> Self {
-        Self {
+    pub fn neu(id: ProduktId, neu: NeuesProdukt) -> ResultReport<Self, ProduktFehler> {
+        if neu.name.trim().is_empty() {
+            return Err(Report::new(ProduktFehler::NameLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
             id,
             name: neu.name,
             beschreibung: neu.beschreibung,
             einzelpreis: neu.einzelpreis,
             mwst: neu.mwst,
-        }
+        })
     }
 
     pub fn from_parts(
@@ -47,10 +48,7 @@ impl Produkt {
         einzelpreis: Preis,
         mwst: Ratio,
     ) -> ResultReport<Self, ProduktFehler> {
-        Ok(Self::neu(
-            id,
-            NeuesProdukt::neu(name, beschreibung, einzelpreis, mwst)?,
-        ))
+        Self::neu(id, NeuesProdukt::neu(name, beschreibung, einzelpreis, mwst))
     }
 
     pub fn id(&self) -> &ProduktId {
@@ -88,21 +86,15 @@ impl NeuesProdukt {
         beschreibung: impl Into<String>,
         einzelpreis: Preis,
         mwst: Ratio,
-    ) -> ResultReport<Self, ProduktFehler> {
-        let name = name.into();
-        if name.trim().is_empty() {
-            return Err(Report::new(ProduktFehler::NameLeer).attach(CONSTRUCTING));
-        }
-        Ok(Self {
-            name,
+    ) -> Self {
+        Self {
+            name: name.into(),
             beschreibung: beschreibung.into(),
             einzelpreis,
             mwst,
-        })
+        }
     }
-}
 
-impl NeuesProdukt {
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -122,7 +114,6 @@ impl NeuesProdukt {
 
 #[cfg(test)]
 mod tests {
-    use error_stack::ResultExt;
     use rust_decimal::Decimal;
 
     use super::*;
@@ -131,25 +122,28 @@ mod tests {
         Preis::new(Decimal::new(25, 0)).unwrap()
     }
 
+    fn produkt(name: &str, mwst: Ratio) -> ResultReport<Produkt, ProduktFehler> {
+        Produkt::neu(
+            ProduktId(Uuid::new_v4()),
+            NeuesProdukt::neu(name, "Premium", preis(), mwst),
+        )
+    }
+
     #[test]
     fn produkt_rejects_empty_name() {
-        let err = NeuesProdukt::neu("", "Futter", preis(), Ratio::zero()).unwrap_err();
+        let err = produkt("", Ratio::zero()).unwrap_err();
         assert!(matches!(err.current_context(), ProduktFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
     #[test]
     fn produkt_accepts_zero_mwst() {
-        let produkt = NeuesProdukt::neu("Futter", "Premium", preis(), Ratio::zero()).unwrap();
+        let produkt = produkt("Futter", Ratio::zero()).unwrap();
         assert_eq!(produkt.mwst().value(), Decimal::ZERO);
     }
 
     #[test]
     fn produkt_ratio_greater_than_one_cannot_exist() {
         assert!(Ratio::new(Decimal::new(101, 2)).is_err());
-        let mwst = Ratio::new(Decimal::new(101, 2))
-            .change_context(ProduktFehler::Konstruktion)
-            .attach(CONSTRUCTING);
-        assert!(mwst.is_err());
     }
 }

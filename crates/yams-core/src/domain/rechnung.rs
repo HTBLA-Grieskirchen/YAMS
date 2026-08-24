@@ -321,9 +321,9 @@ mod tests {
                         preis: Preis::new(Decimal::new(preis, 0)).unwrap(),
                         mwst: mwst_19(),
                     },
-                )
-                .unwrap(),
-            ),
+                ),
+            )
+            .unwrap(),
         )
     }
 

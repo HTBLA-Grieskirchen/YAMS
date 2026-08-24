@@ -27,15 +27,18 @@ pub struct Haustier {
 }
 
 impl Haustier {
-    pub fn neu(id: HaustierId, neu: NeuesHaustier) -> Self {
-        Self {
+    pub fn neu(id: HaustierId, neu: NeuesHaustier) -> ResultReport<Self, HaustierFehler> {
+        if neu.name.trim().is_empty() {
+            return Err(Report::new(HaustierFehler::NameLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
             id,
             klient_id: neu.klient_id,
             name: neu.name,
             geburtstag: neu.geburtstag,
             tierart: neu.tierart,
             beschreibung: neu.beschreibung,
-        }
+        })
     }
 
     pub fn from_parts(
@@ -46,10 +49,10 @@ impl Haustier {
         tierart: String,
         beschreibung: String,
     ) -> ResultReport<Self, HaustierFehler> {
-        Ok(Self::neu(
+        Self::neu(
             id,
-            NeuesHaustier::neu(klient_id, name, geburtstag, tierart, beschreibung)?,
-        ))
+            NeuesHaustier::neu(klient_id, name, geburtstag, tierart, beschreibung),
+        )
     }
 
     pub fn id(&self) -> &HaustierId {
@@ -93,18 +96,14 @@ impl NeuesHaustier {
         geburtstag: NaiveDate,
         tierart: impl Into<String>,
         beschreibung: impl Into<String>,
-    ) -> ResultReport<Self, HaustierFehler> {
-        let name = name.into();
-        if name.trim().is_empty() {
-            return Err(Report::new(HaustierFehler::NameLeer).attach(CONSTRUCTING));
-        }
-        Ok(Self {
+    ) -> Self {
+        Self {
             klient_id,
-            name,
+            name: name.into(),
             geburtstag,
             tierart: tierart.into(),
             beschreibung: beschreibung.into(),
-        })
+        }
     }
 
     pub fn klient_id(&self) -> &KlientId {
@@ -132,16 +131,23 @@ impl NeuesHaustier {
 mod tests {
     use super::*;
 
-    #[test]
-    fn haustier_rejects_empty_name() {
-        let err = NeuesHaustier::neu(
-            KlientId(Uuid::new_v4()),
-            "",
+    fn neues(
+        name: &str,
+        klient_id: KlientId,
+    ) -> NeuesHaustier {
+        NeuesHaustier::neu(
+            klient_id,
+            name,
             NaiveDate::from_ymd_opt(2020, 1, 1).unwrap(),
             "Hund",
             "Mischling",
         )
-        .unwrap_err();
+    }
+
+    #[test]
+    fn haustier_rejects_empty_name() {
+        let err = Haustier::neu(HaustierId(Uuid::new_v4()), neues("", KlientId(Uuid::new_v4())))
+            .unwrap_err();
         assert!(matches!(err.current_context(), HaustierFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
@@ -149,16 +155,10 @@ mod tests {
     #[test]
     fn haustier_neu_keeps_klient_id() {
         let klient_id = KlientId(Uuid::new_v4());
-        let neu = NeuesHaustier::neu(
-            klient_id.clone(),
-            "Bello",
-            NaiveDate::from_ymd_opt(2020, 1, 1).unwrap(),
-            "Hund",
-            "Mischling",
-        )
-        .unwrap();
-        assert_eq!(neu.klient_id(), &klient_id);
-        assert_eq!(neu.name(), "Bello");
+        let haustier = Haustier::neu(HaustierId(Uuid::new_v4()), neues("Bello", klient_id.clone()))
+            .unwrap();
+        assert_eq!(haustier.klient_id(), &klient_id);
+        assert_eq!(haustier.name(), "Bello");
     }
 
     #[test]

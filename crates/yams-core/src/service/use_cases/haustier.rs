@@ -23,8 +23,6 @@ pub enum HaustierErstellenFehler {
     Persistenz,
     #[error("klient mit id `{0:?}` nicht gefunden")]
     KlientNichtGefunden(KlientId),
-    #[error("haustier konnte nicht erzeugt werden")]
-    Konstruktion,
 }
 
 #[async_trait]
@@ -43,16 +41,13 @@ impl UseCase<Haustier> for HaustierErstellen {
 
         let haustier = uow
             .haustiere()
-            .create(
-                NeuesHaustier::neu(
-                    self.klient_id,
-                    self.name,
-                    self.geburtstag,
-                    self.tierart,
-                    self.beschreibung,
-                )
-                .change_context(HaustierErstellenFehler::Konstruktion)?,
-            )
+            .create(NeuesHaustier::neu(
+                self.klient_id,
+                self.name,
+                self.geburtstag,
+                self.tierart,
+                self.beschreibung,
+            ))
             .await
             .change_context(HaustierErstellenFehler::Persistenz)?;
 

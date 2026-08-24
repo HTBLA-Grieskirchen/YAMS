@@ -98,8 +98,8 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Validated value objects** — `EmailAdresse`, `Mobilnummer`, `Preis`, `Ratio` (`0..=1`; 100% = `1`), `Menge` (non-negative, unitless) via `new()` / `TryFrom`. Invalid values cannot exist in the type system.
 - **Closed enums where closed** — `Ländercode` is an enum (`AT`, `DE`, `CH`), not a free-form string.
 - **Type-state aggregates** — `LeistungIn<Offen>` / `LeistungIn<Abgerechnet>` (aliases `LeistungOffen`, `LeistungAbgerechnet`), `RechnungIn<…>` likewise. Enum `Leistung` / `Rechnung` sums all valid states when compile-time state unknown.
-- **Separate creation types** — `NeuerKlient` / `NeuesHaustier` have no ID; persisted aggregates always do.
-- **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Repositories and request DTOs never assemble an invalid entity: `::neu` / `from_parts` are the only construction paths. Construction `Report`s `.attach("while constructing klient")` (and the analogous haustier/produkt/behandlung/leistung strings) so the site is visible in the report.
+- **Separate creation types** — `NeuerKlient` / `NeuesHaustier` (and the other `Neue*` builders) have no ID and do **not** validate; they are input records. Repositories call `Haustier::neu` / `Klient::neu` (and `from_parts` when loading), which own empty-name and construction invariants.
+- **Encapsulation over `pub`** — aggregate fields private; expose accessors and mutation through domain methods (`neu`, `mark_abgerechnet`, `aus_leistungen`). Request DTOs and `Neue*` builders never assemble a valid aggregate. Repositories invoke `::neu` on create and `from_parts` on load. Construction `Report`s `.attach("while constructing klient")` (and the analogous haustier/produkt/behandlung/leistung strings) so the site is visible in the report.
 - **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.
 - **Price snapshots on Leistung** — `LeistungQuelle` stores booked prices (`einzelpreis`, `menge`, `preis`) so Tagesabschluss uses historical values, not current catalog prices.
 - **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version.
@@ -195,7 +195,7 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 | Domain unit        | `#[cfg(test)]` in the domain source file   | Isolated VO/aggregate math (Preis, MwSt, contact validation) |
 | Business conform   | `yams-core/tests/cases/` (integration)     | Full use-case flows with `yams-fakes`     |
 | Adapter conformance| `yams-persistence/tests/`                  | Same cases as core, real SQLite UoW        |
-| E2E / API          | `yams-api/tests/e2e/`                      | Poem `TestClient` JSON dicts nested at `/api` (same as `yams-server`), real SQLite |
+| E2E / API          | `yams-api/tests/e2e/`                      | Poem `YamsApiTestClient` JSON nested at `/api`; `base_app_builder()` (SQLite, overridable adapters) |
 
 ### yams-fakes
 
@@ -257,5 +257,5 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.
 5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers. English for technical messages; German only in domain/user-facing UL strings where appropriate.
 6. **Language** — English docs/comments/technical code; German UL for domain names; UTF-8 identifiers, no `ae`/`oe`/`ue` transliteration (see Language & Naming).
-7. **Tests:** domain units live in a `#[cfg(test)]` module in the source file; use-case flows go in `yams-core/tests/cases/` (persistence conformance follows automatically); API e2e uses Poem `TestClient` JSON in `yams-api/tests/e2e/` (`main.rs` is only the crate entrypoint).
+7. **Tests:** domain units live in a `#[cfg(test)]` module in the source file; use-case flows go in `yams-core/tests/cases/` (persistence conformance follows automatically); API e2e uses Poem `YamsApiTestClient` in `yams-api/tests/e2e/` (`main.rs` holds the client, `base_app_builder()`, and JSON helpers).
 8. **Frontend data** — add TanStack Query hooks in `frontend/src/api/hooks/`; never fetch from components directly (see Frontend → TanStack Query).

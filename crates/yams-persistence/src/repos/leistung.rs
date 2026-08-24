@@ -84,7 +84,7 @@ fn leistung_offen_from_row(row: &Row) -> RepositoryResult<Versioned<LeistungOffe
 impl LeistungRepository for SQLiteLeistungRepository {
     async fn create(&self, new: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>> {
         let id = LeistungId(Uuid::new_v4());
-        let offen = LeistungOffen::neu(id, new);
+        let offen = LeistungOffen::neu(id, new).change_context(RepositoryError::Data)?;
         let versioned = Versioned::init(offen.clone());
         let db = quelle_to_db(offen.quelle());
 

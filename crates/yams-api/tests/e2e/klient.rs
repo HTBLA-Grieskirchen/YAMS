@@ -1,14 +1,32 @@
-use serde_json::json;
+use serde_json::{Value, json};
 
-use super::support::{Api, assert_ok, assert_rejected, klient_body};
+use super::{YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder};
+
+fn klient_body(kundennummer: u64) -> Value {
+    json!({
+        "vorname": "Anna",
+        "nachname": "Muster",
+        "geburtstag": "1990-01-01",
+        "email": "anna@muster.de",
+        "mobilnummer": "1234567890",
+        "kundennummer": kundennummer,
+        "einwilligung": true,
+        "adresse": {
+            "postleitzahl": "4711",
+            "stadt": "Grieskirchen",
+            "straßeUndHausnummer": "Hauptstraße 1",
+            "ländercode": "DE"
+        }
+    })
+}
 
 #[pollster::test]
 async fn klient_erstellen_returns_camelcase_utf8_json() {
-    let api = Api::new().await;
+    let api = YamsApiTestClient::new(base_app_builder().await.build());
 
     let (status, body) = api.post_json("/api/klient", klient_body(1001)).await;
 
-    assert_ok(status);
+    assert_status_ok(status);
     assert_eq!(body["vorname"], "Anna");
     assert_eq!(body["nachname"], "Muster");
     assert_eq!(body["kundennummer"], 1001);
@@ -21,30 +39,30 @@ async fn klient_erstellen_returns_camelcase_utf8_json() {
 
 #[pollster::test]
 async fn klient_erstellen_rejects_invalid_email() {
-    let api = Api::new().await;
+    let api = YamsApiTestClient::new(base_app_builder().await.build());
     let mut body = klient_body(1001);
     body["email"] = json!("not-an-email");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_rejected(status);
+    assert_status_rejected(status);
 }
 
 #[pollster::test]
 async fn klient_erstellen_rejects_empty_name() {
-    let api = Api::new().await;
+    let api = YamsApiTestClient::new(base_app_builder().await.build());
     let mut body = klient_body(1001);
     body["vorname"] = json!("");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_rejected(status);
+    assert_status_rejected(status);
 }
 
 #[pollster::test]
 async fn klient_erstellen_rejects_invalid_ländercode() {
-    let api = Api::new().await;
+    let api = YamsApiTestClient::new(base_app_builder().await.build());
     let mut body = klient_body(1001);
     body["adresse"]["ländercode"] = json!("US");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_rejected(status);
+    assert_status_rejected(status);
 }

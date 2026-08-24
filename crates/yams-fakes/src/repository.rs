@@ -201,7 +201,9 @@ impl KlientRepository for FakeKlientenRepository {
     async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
         let mut data = self.datastore.klienten.lock().unwrap();
-        let versioned = Versioned::init(Klient::neu(id, klient));
+        let versioned = Versioned::init(
+            Klient::neu(id, klient).map_err(|err| err.change_context(RepositoryError::Data))?,
+        );
         data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
@@ -275,7 +277,9 @@ impl HaustierRepository for FakeHaustiereRepository {
     async fn create(&self, haustier: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>> {
         let id = HaustierId(Uuid::new_v4());
         let mut data = self.datastore.haustiere.lock().unwrap();
-        let versioned = Versioned::init(Haustier::neu(id, haustier));
+        let versioned = Versioned::init(
+            Haustier::neu(id, haustier).map_err(|err| err.change_context(RepositoryError::Data))?,
+        );
         data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
@@ -332,7 +336,9 @@ impl ProduktRepository for FakeProdukteRepository {
     async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
         let id = ProduktId(Uuid::new_v4());
         let mut data = self.datastore.produkte.lock().unwrap();
-        let versioned = Versioned::init(Produkt::neu(id, produkt));
+        let versioned = Versioned::init(
+            Produkt::neu(id, produkt).map_err(|err| err.change_context(RepositoryError::Data))?,
+        );
         data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
@@ -358,7 +364,10 @@ impl BehandlungRepository for FakeBehandlungenRepository {
     async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
         let id = BehandlungId(Uuid::new_v4());
         let mut data = self.datastore.behandlungen.lock().unwrap();
-        let versioned = Versioned::init(Behandlung::neu(id, behandlung));
+        let versioned = Versioned::init(
+            Behandlung::neu(id, behandlung)
+                .map_err(|err| err.change_context(RepositoryError::Data))?,
+        );
         data.insert(versioned.id().0.clone(), versioned.clone());
         Ok(versioned)
     }
@@ -379,7 +388,8 @@ impl LeistungRepository for FakeLeistungenRepository {
     async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>> {
         let id = LeistungId(Uuid::new_v4());
         let mut data = self.datastore.leistungen.lock().unwrap();
-        let offen = LeistungOffenType::neu(id, leistung);
+        let offen = LeistungOffenType::neu(id, leistung)
+            .map_err(|err| err.change_context(RepositoryError::Data))?;
         let versioned = Versioned::init(Leistung::Offen(offen.clone()));
         data.insert(offen.id().0, versioned.clone());
         Ok(Versioned::new(versioned.v(), offen))

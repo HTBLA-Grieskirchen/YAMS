@@ -28,14 +28,17 @@ pub struct Behandlung {
 }
 
 impl Behandlung {
-    pub fn neu(id: BehandlungId, neu: NeueBehandlung) -> Self {
-        Self {
+    pub fn neu(id: BehandlungId, neu: NeueBehandlung) -> ResultReport<Self, BehandlungFehler> {
+        if neu.name.trim().is_empty() {
+            return Err(Report::new(BehandlungFehler::NameLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
             id,
             name: neu.name,
             beschreibung: neu.beschreibung,
             standardpreis: neu.standardpreis,
             mwst: neu.mwst,
-        }
+        })
     }
 
     pub fn from_parts(
@@ -45,10 +48,10 @@ impl Behandlung {
         standardpreis: Preis,
         mwst: Ratio,
     ) -> ResultReport<Self, BehandlungFehler> {
-        Ok(Self::neu(
+        Self::neu(
             id,
-            NeueBehandlung::neu(name, beschreibung, standardpreis, mwst)?,
-        ))
+            NeueBehandlung::neu(name, beschreibung, standardpreis, mwst),
+        )
     }
 
     pub fn id(&self) -> &BehandlungId {
@@ -86,17 +89,13 @@ impl NeueBehandlung {
         beschreibung: impl Into<String>,
         standardpreis: Preis,
         mwst: Ratio,
-    ) -> ResultReport<Self, BehandlungFehler> {
-        let name = name.into();
-        if name.trim().is_empty() {
-            return Err(Report::new(BehandlungFehler::NameLeer).attach(CONSTRUCTING));
-        }
-        Ok(Self {
-            name,
+    ) -> Self {
+        Self {
+            name: name.into(),
             beschreibung: beschreibung.into(),
             standardpreis,
             mwst,
-        })
+        }
     }
 
     pub fn name(&self) -> &str {
@@ -126,24 +125,29 @@ mod tests {
         Preis::new(Decimal::new(50, 0)).unwrap()
     }
 
+    fn behandlung(name: &str, mwst: Ratio) -> ResultReport<Behandlung, BehandlungFehler> {
+        Behandlung::neu(
+            BehandlungId(Uuid::new_v4()),
+            NeueBehandlung::neu(name, "Allgemein", preis(), mwst),
+        )
+    }
+
     #[test]
     fn behandlung_rejects_empty_name() {
-        let err = NeueBehandlung::neu("", "Untersuchung", preis(), Ratio::one()).unwrap_err();
+        let err = behandlung("", Ratio::one()).unwrap_err();
         assert!(matches!(err.current_context(), BehandlungFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
     #[test]
     fn behandlung_accepts_zero_mwst() {
-        let behandlung = NeueBehandlung::neu("Untersuchung", "Allgemein", preis(), Ratio::zero())
-            .unwrap();
+        let behandlung = behandlung("Untersuchung", Ratio::zero()).unwrap();
         assert_eq!(behandlung.mwst().value(), Decimal::ZERO);
     }
 
     #[test]
     fn behandlung_accepts_full_mwst() {
-        let behandlung =
-            NeueBehandlung::neu("Untersuchung", "Allgemein", preis(), Ratio::one()).unwrap();
+        let behandlung = behandlung("Untersuchung", Ratio::one()).unwrap();
         assert_eq!(behandlung.mwst().value(), Decimal::ONE);
     }
 }

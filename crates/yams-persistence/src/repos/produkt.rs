@@ -63,7 +63,7 @@ impl ProduktRepository for SQLiteProduktRepository {
 
     async fn create(&self, new: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
         let id = ProduktId(Uuid::new_v4());
-        let produkt = Versioned::init(Produkt::neu(id, new));
+        let produkt = Versioned::init(Produkt::neu(id, new).change_context(RepositoryError::Data)?);
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;

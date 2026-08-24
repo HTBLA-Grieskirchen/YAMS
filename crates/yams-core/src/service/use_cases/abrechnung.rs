@@ -36,10 +36,12 @@ impl UseCase<Produkt> for ProduktErstellen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.produkte()
-            .create(
-                NeuesProdukt::neu(self.name, self.beschreibung, self.einzelpreis, self.mwst)
-                    .change_context(ProduktErstellenFehler::Erstellung)?,
-            )
+            .create(NeuesProdukt::neu(
+                self.name,
+                self.beschreibung,
+                self.einzelpreis,
+                self.mwst,
+            ))
             .await
             .map(Versioned::into_data)
             .change_context(ProduktErstellenFehler::Erstellung)
@@ -68,10 +70,12 @@ impl UseCase<Behandlung> for BehandlungErstellen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.behandlungen()
-            .create(
-                NeueBehandlung::neu(self.name, self.beschreibung, self.standardpreis, self.mwst)
-                    .change_context(BehandlungErstellenFehler::Erstellung)?,
-            )
+            .create(NeueBehandlung::neu(
+                self.name,
+                self.beschreibung,
+                self.standardpreis,
+                self.mwst,
+            ))
             .await
             .map(Versioned::into_data)
             .change_context(BehandlungErstellenFehler::Erstellung)
@@ -93,8 +97,6 @@ pub enum LeistungAusProduktBuchenFehler {
     Persistenz,
     #[error("produkt nicht gefunden")]
     ProduktNichtGefunden,
-    #[error("leistung konnte nicht erzeugt werden")]
-    Konstruktion,
 }
 
 #[async_trait]
@@ -111,21 +113,18 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
             .change_context(LeistungAusProduktBuchenFehler::ProduktNichtGefunden)?;
 
         uow.leistungen()
-            .create(
-                NeueLeistung::neu(
-                    self.klient_id,
-                    self.haustier_id,
-                    produkt.name(),
-                    self.leistungsdatum,
-                    LeistungQuelle::Produkt {
-                        produkt_id: self.produkt_id,
-                        menge: self.menge,
-                        einzelpreis: produkt.einzelpreis().clone(),
-                        mwst: produkt.mwst().clone(),
-                    },
-                )
-                .change_context(LeistungAusProduktBuchenFehler::Konstruktion)?,
-            )
+            .create(NeueLeistung::neu(
+                self.klient_id,
+                self.haustier_id,
+                produkt.name(),
+                self.leistungsdatum,
+                LeistungQuelle::Produkt {
+                    produkt_id: self.produkt_id,
+                    menge: self.menge,
+                    einzelpreis: produkt.einzelpreis().clone(),
+                    mwst: produkt.mwst().clone(),
+                },
+            ))
             .await
             .map(Versioned::into_data)
             .change_context(LeistungAusProduktBuchenFehler::Persistenz)
@@ -147,8 +146,6 @@ pub enum LeistungAusBehandlungBuchenFehler {
     Persistenz,
     #[error("behandlung nicht gefunden")]
     BehandlungNichtGefunden,
-    #[error("leistung konnte nicht erzeugt werden")]
-    Konstruktion,
 }
 
 #[async_trait]
@@ -169,20 +166,17 @@ impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
             .unwrap_or_else(|| behandlung.standardpreis().clone());
 
         uow.leistungen()
-            .create(
-                NeueLeistung::neu(
-                    self.klient_id,
-                    self.haustier_id,
-                    behandlung.name(),
-                    self.leistungsdatum,
-                    LeistungQuelle::Behandlung {
-                        behandlung_id: self.behandlung_id,
-                        preis,
-                        mwst: behandlung.mwst().clone(),
-                    },
-                )
-                .change_context(LeistungAusBehandlungBuchenFehler::Konstruktion)?,
-            )
+            .create(NeueLeistung::neu(
+                self.klient_id,
+                self.haustier_id,
+                behandlung.name(),
+                self.leistungsdatum,
+                LeistungQuelle::Behandlung {
+                    behandlung_id: self.behandlung_id,
+                    preis,
+                    mwst: behandlung.mwst().clone(),
+                },
+            ))
             .await
             .map(Versioned::into_data)
             .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)
@@ -203,8 +197,6 @@ pub struct LeistungManuellErfassen {
 pub enum LeistungManuellErfassenFehler {
     #[error("persistenzfehler")]
     Persistenz,
-    #[error("leistung konnte nicht erzeugt werden")]
-    Konstruktion,
 }
 
 #[async_trait]
@@ -215,19 +207,16 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.leistungen()
-            .create(
-                NeueLeistung::neu(
-                    self.klient_id,
-                    self.haustier_id,
-                    self.beschreibung,
-                    self.leistungsdatum,
-                    LeistungQuelle::Manuell {
-                        preis: self.betrag,
-                        mwst: self.mwst,
-                    },
-                )
-                .change_context(LeistungManuellErfassenFehler::Konstruktion)?,
-            )
+            .create(NeueLeistung::neu(
+                self.klient_id,
+                self.haustier_id,
+                self.beschreibung,
+                self.leistungsdatum,
+                LeistungQuelle::Manuell {
+                    preis: self.betrag,
+                    mwst: self.mwst,
+                },
+            ))
             .await
             .map(Versioned::into_data)
             .change_context(LeistungManuellErfassenFehler::Persistenz)

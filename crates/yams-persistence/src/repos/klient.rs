@@ -85,7 +85,7 @@ impl KlientRepository for SQLiteKlientRepository {
 
     async fn create(&self, new: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
-        let klient = Versioned::init(Klient::neu(id, new));
+        let klient = Versioned::init(Klient::neu(id, new).change_context(RepositoryError::Data)?);
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;

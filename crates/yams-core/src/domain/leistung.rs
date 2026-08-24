@@ -114,8 +114,8 @@ impl Leistung {
                 beschreibung,
                 leistungsdatum,
                 quelle,
-            )?,
-        );
+            ),
+        )?;
 
         Ok(match rechnung_id {
             Some(rechnung_id) => Self::from(offen.mark_abgerechnet(rechnung_id)),
@@ -169,8 +169,11 @@ impl<S> LeistungIn<S> {
 }
 
 impl LeistungOffen {
-    pub fn neu(id: LeistungId, leistung: NeueLeistung) -> Self {
-        Self {
+    pub fn neu(id: LeistungId, leistung: NeueLeistung) -> ResultReport<Self, LeistungFehler> {
+        if leistung.beschreibung.trim().is_empty() {
+            return Err(Report::new(LeistungFehler::BeschreibungLeer).attach(CONSTRUCTING));
+        }
+        Ok(Self {
             id,
             klient_id: leistung.klient_id,
             haustier_id: leistung.haustier_id,
@@ -178,7 +181,7 @@ impl LeistungOffen {
             leistungsdatum: leistung.leistungsdatum,
             quelle: leistung.quelle,
             state: Offen,
-        }
+        })
     }
 
     pub fn mark_abgerechnet(self, rechnung_id: RechnungId) -> LeistungAbgerechnet {
@@ -216,18 +219,14 @@ impl NeueLeistung {
         beschreibung: impl Into<String>,
         leistungsdatum: NaiveDate,
         quelle: LeistungQuelle,
-    ) -> ResultReport<Self, LeistungFehler> {
-        let beschreibung = beschreibung.into();
-        if beschreibung.trim().is_empty() {
-            return Err(Report::new(LeistungFehler::BeschreibungLeer).attach(CONSTRUCTING));
-        }
-        Ok(Self {
+    ) -> Self {
+        Self {
             klient_id,
             haustier_id,
-            beschreibung,
+            beschreibung: beschreibung.into(),
             leistungsdatum,
             quelle,
-        })
+        }
     }
 }
 
@@ -261,8 +260,26 @@ mod tests {
     }
 
     #[test]
-    fn menge_negative_cannot_exist() {
-        assert!(Menge::new(Decimal::new(-1, 0)).is_err());
+    fn leistung_rejects_empty_beschreibung() {
+        let err = LeistungOffen::neu(
+            LeistungId(Uuid::new_v4()),
+            NeueLeistung::neu(
+                KlientId(Uuid::new_v4()),
+                None,
+                "   ",
+                NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
+                LeistungQuelle::Manuell {
+                    preis: Preis::new(Decimal::new(30, 0)).unwrap(),
+                    mwst: Ratio::zero(),
+                },
+            ),
+        )
+        .unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            LeistungFehler::BeschreibungLeer
+        ));
+        assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
     #[test]
@@ -279,9 +296,9 @@ mod tests {
                     preis: Preis::new(Decimal::new(30, 0)).unwrap(),
                     mwst: Ratio::zero(),
                 },
-            )
-            .unwrap(),
-        );
+            ),
+        )
+        .unwrap();
         let abgerechnet = offen.mark_abgerechnet(rechnung_id.clone());
         assert_eq!(abgerechnet.rechnung_id(), &rechnung_id);
 

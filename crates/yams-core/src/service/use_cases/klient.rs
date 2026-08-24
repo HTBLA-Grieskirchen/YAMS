@@ -34,19 +34,16 @@ impl UseCase<Klient> for KlientErstellen {
         let ExecutionContext { uow, .. } = ctx;
 
         uow.klienten()
-            .create(
-                NeuerKlient::neu(
-                    self.vorname,
-                    self.nachname,
-                    self.geburtstag,
-                    self.email.as_ref(),
-                    self.mobilnummer.as_ref(),
-                    self.kundennummer,
-                    self.einwilligung,
-                    self.adresse,
-                )
-                .change_context(KlientErstellenFehler::Erstellung)?,
-            )
+            .create(NeuerKlient::neu(
+                self.vorname,
+                self.nachname,
+                self.geburtstag,
+                self.email,
+                self.mobilnummer,
+                self.kundennummer,
+                self.einwilligung,
+                self.adresse,
+            ))
             .await
             .map(Versioned::into_data)
             .map_err(IntoReport::into_report)

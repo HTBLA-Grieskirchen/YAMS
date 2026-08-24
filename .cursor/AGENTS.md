@@ -214,9 +214,37 @@ Persistence proves adapter conformance by running the same case suite against re
 - **Key tasks**: `test:backend` (`cargo test`), `build:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri`
 - **Formatting/linting**: `fmt:rust`, `lint:crates` (clippy), `fmt:biome` (frontend)
 
-## Frontend (Brief)
+## Frontend
 
-Next.js app in `frontend/`. Tauri shell in `frontend/src-tauri/`. OpenAPI types generated at `frontend/src/api/schema.d.ts`. Not the current focus — defer frontend work unless explicitly requested.
+Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `frontend/src/api/schema.d.ts` (`mise run build:openapi`).
+
+### API layer
+
+- **`YamsApi`** (`src/api/yams-api.ts`) — framework-agnostic interface mirroring `YamsAppApi`.
+- **Adapters** — `HttpYamsApi` (openapi-fetch + schema paths) for remote mode; `TauriYamsApi` (invoke) for embedded mode. Mode from `NEXT_PUBLIC_YAMS_MODE`, `isTauri()`, or `frontend_config.remoteDatabaseLocation`.
+- **Bootstrap** — `YamsApiProvider` resolves adapter once; components never choose HTTP vs Tauri themselves.
+
+### TanStack Query (server state)
+
+**All backend reads and writes go through TanStack Query hooks** in `frontend/src/api/hooks/` — not raw `useEffect` + `fetch`, not direct `YamsApi` calls in components.
+
+| Layer | Responsibility |
+|-------|----------------|
+| `YamsApi` + adapters | Transport only (HTTP or Tauri) |
+| `api/hooks/queries.ts` | `useQuery` for reads (`useAlleHaustiereQuery`, …) |
+| `api/hooks/mutations.ts` | `useMutation` for writes; invalidate or update `query-keys` on success |
+| `api/query-keys.ts` | Hierarchical keys for targeted invalidation |
+| Components | Consume hooks; render `isPending` / `error` / `data` |
+
+**Rules:**
+
+1. **Queries** — `enabled: isReady` from `useYamsApiReady()` so nothing runs before the adapter exists.
+2. **Mutations** — call `YamsApi` inside `mutationFn`; on success invalidate the smallest matching key prefix (e.g. `yamsKeys.haustiere.all()` after create).
+3. **No duplicate server state** — do not copy query results into local `useState`; use `queryClient.setQueryData` when optimistically updating cache.
+4. **New endpoint** — add method to `YamsApi`, both adapters, a key in `query-keys.ts`, and a hook in `queries.ts` or `mutations.ts`; use the hook in UI.
+5. **Defaults** — `createQueryClient()` (`src/lib/query-client.ts`): 30s `staleTime`, refetch on window focus, mutations do not retry.
+
+`QueryClientProvider` wraps `YamsApiProvider` in `src/app/providers.tsx`.
 
 ## Conventions for Contributors
 
@@ -228,3 +256,4 @@ Next.js app in `frontend/`. Tauri shell in `frontend/src-tauri/`. OpenAPI types 
 5. **Errors: `thiserror` in domain/use cases, `Report` at boundaries.** Use `.contextualize()` / `.change_context()` when crossing layers. English for technical messages; German only in domain/user-facing UL strings where appropriate.
 6. **Language** — English docs/comments/technical code; German UL for domain names; UTF-8 identifiers, no `ae`/`oe`/`ue` transliteration (see Language & Naming).
 7. **Tests: add cases to `yams-core/tests/cases/`.** Persistence conformance follows automatically.
+8. **Frontend data** — add TanStack Query hooks in `frontend/src/api/hooks/`; never fetch from components directly (see Frontend → TanStack Query).

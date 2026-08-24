@@ -14,6 +14,7 @@
     "check:ts": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.102.2",
     "@tauri-apps/api": "^2.11.1",
     "next": "16.1.4",
     "openapi-fetch": "^0.17.0",

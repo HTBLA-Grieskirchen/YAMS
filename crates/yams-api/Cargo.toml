@@ -30,7 +30,7 @@ serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde", "rust_d
 
 [dev-dependencies]
 pollster = { version = "0.4.0", features = ["macro"] }
-yams-fakes = { path = "../yams-fakes" }
+yams-persistence = { path = "../yams-persistence" }
 
 [[bin]]
 name = "export_spec"

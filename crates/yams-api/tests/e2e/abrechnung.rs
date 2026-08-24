@@ -1,90 +1,18 @@
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
+
+use super::support::{api, klient_erstellung};
 use yams_api::{
-    YamsAppApi,
     requests::{
-        BehandlungErstellung, HaustierErstellung, KlientErstellung,
-        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
-        ProduktErstellung, TagesabschlussErstellung,
+        BehandlungErstellung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung,
+        LeistungManuelleErstellung, ProduktErstellung, TagesabschlussErstellung,
     },
-    schema::{Adresse, Ländercode, RechnungStatus},
+    schema::RechnungStatus,
 };
-use yams_core::App;
-use yams_fakes::FakeUnitOfWorkProvider;
-
-fn api() -> YamsAppApi {
-    let app = App::builder()
-        .uow_provider(Box::new(FakeUnitOfWorkProvider::empty()))
-        .build();
-    YamsAppApi::new(app)
-}
-
-fn adresse(ländercode: &str) -> Adresse {
-    Adresse {
-        postleitzahl: "4711".into(),
-        stadt: "Grieskirchen".into(),
-        straße_und_hausnummer: "Hauptstraße 1".into(),
-        ländercode: Ländercode(ländercode.into()),
-    }
-}
-
-fn klient_erstellung(kundennummer: u64) -> KlientErstellung {
-    KlientErstellung {
-        vorname: "Anna".into(),
-        nachname: "Muster".into(),
-        geburtstag: NaiveDate::from_ymd_opt(1990, 1, 1).unwrap(),
-        email: "anna@muster.de".into(),
-        mobilnummer: "1234567890".into(),
-        kundennummer,
-        einwilligung: true,
-        adresse: adresse("DE"),
-    }
-}
-
-#[pollster::test]
-async fn klient_erstellen_returns_schema_fields() {
-    let api = api();
-
-    let klient = api.klient_erstellen(klient_erstellung(1001)).await.unwrap();
-
-    assert_eq!(klient.vorname, "Anna");
-    assert_eq!(klient.nachname, "Muster");
-    assert_eq!(klient.kundennummer, 1001);
-    assert_eq!(klient.adresse.postleitzahl, "4711");
-    assert_eq!(klient.adresse.ländercode.0, "DE");
-    assert!(klient.haustiere.is_empty());
-}
-
-#[pollster::test]
-async fn klient_erstellen_rejects_invalid_email() {
-    let api = api();
-    let mut body = klient_erstellung(1001);
-    body.email = "not-an-email".into();
-
-    assert!(api.klient_erstellen(body).await.is_err());
-}
-
-#[pollster::test]
-async fn klient_erstellen_rejects_invalid_mobilnummer() {
-    let api = api();
-    let mut body = klient_erstellung(1001);
-    body.mobilnummer = "123".into();
-
-    assert!(api.klient_erstellen(body).await.is_err());
-}
-
-#[pollster::test]
-async fn klient_erstellen_rejects_invalid_ländercode() {
-    let api = api();
-    let mut body = klient_erstellung(1001);
-    body.adresse.ländercode = Ländercode("US".into());
-
-    assert!(api.klient_erstellen(body).await.is_err());
-}
 
 #[pollster::test]
 async fn produkt_erstellen_rejects_negative_preis() {
-    let api = api();
+    let api = api().await;
 
     let err = api
         .produkt_erstellen(ProduktErstellung {
@@ -99,35 +27,8 @@ async fn produkt_erstellen_rejects_negative_preis() {
 }
 
 #[pollster::test]
-async fn haustier_erstellen_is_listed_and_fetchable() {
-    let api = api();
-    let klient = api.klient_erstellen(klient_erstellung(2001)).await.unwrap();
-
-    let haustier = api
-        .haustier_erstellen(HaustierErstellung {
-            name: "Bello".into(),
-            geburtstag: NaiveDate::from_ymd_opt(2020, 6, 15).unwrap(),
-            tierart: "Hund".into(),
-            beschreibung: "Mischling".into(),
-            klient_id: klient.id,
-        })
-        .await
-        .unwrap();
-
-    assert_eq!(haustier.name, "Bello");
-    assert_eq!(haustier.klient_id, klient.id);
-
-    let by_id = api.haustier_by_id(haustier.id).await.unwrap();
-    assert_eq!(by_id.id, haustier.id);
-
-    let alle = api.alle_haustiere().await.unwrap();
-    assert_eq!(alle.len(), 1);
-    assert_eq!(alle[0].id, haustier.id);
-}
-
-#[pollster::test]
 async fn tagesabschluss_returns_rechnungen_through_api() {
-    let api = api();
+    let api = api().await;
     let abschlussdatum = NaiveDate::from_ymd_opt(2026, 8, 23).unwrap();
 
     let klient1 = api.klient_erstellen(klient_erstellung(3001)).await.unwrap();

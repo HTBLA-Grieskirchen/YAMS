@@ -83,4 +83,20 @@ export class TauriYamsApi implements YamsApi {
   async rechnungenFürKlient(klientId: string): Promise<Rechnung[]> {
     return invokeCommand("rechnungen_für_klient", { klient_id: klientId });
   }
+
+  async rechnungPdf(id: string): Promise<Blob> {
+    const bytes = await invokeCommand<number[]>("rechnung_pdf", { id });
+    return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+  }
+
+  async teilnahmebestätigungPdf(
+    terminId: string,
+    buchungId: string,
+  ): Promise<Blob> {
+    const bytes = await invokeCommand<number[]>("teilnahmebestätigung_pdf", {
+      termin_id: terminId,
+      buchung_id: buchungId,
+    });
+    return new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+  }
 }

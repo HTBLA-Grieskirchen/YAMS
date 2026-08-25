@@ -31,6 +31,8 @@ export interface YamsApi {
   leistungManuellErfassen(body: LeistungManuelleErstellung): Promise<Leistung>;
   tagesabschlussDurchführen(body: TagesabschlussErstellung): Promise<Rechnung[]>;
   rechnungenFürKlient(klientId: string): Promise<Rechnung[]>;
+  rechnungPdf(id: string): Promise<Blob>;
+  teilnahmebestätigungPdf(terminId: string, buchungId: string): Promise<Blob>;
 }
 
 export type DeploymentMode = "embedded" | "remote";

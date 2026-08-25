@@ -3,16 +3,18 @@ mod tracing_setup;
 use clap::Parser;
 use error_stack::{Report, ResultExt};
 use poem::http::StatusCode;
-use poem::middleware::{
-    CatchPanic, Compression, Cors, Middleware, ReuseId, RequestId, Tracing,
-};
+use poem::middleware::{CatchPanic, Compression, Cors, Middleware, RequestId, ReuseId, Tracing};
 use poem::{EndpointExt, IntoResponse, Route, Server, listener::TcpListener};
 use poem_openapi::payload::PlainText;
+use std::path::Path;
+use std::sync::Arc;
 use thiserror::Error;
 use tracing_setup::init_tracing;
 use yams_api::{errors::InternalServerError, openapi_service};
 use yams_core::App;
+use yams_filesystemstore::FileSystemObjectStore;
 use yams_persistence::SQLiteInstance;
+use yams_typstreports::TypstPdfRenderer;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -32,6 +34,10 @@ struct Config {
     /// Database URL
     #[arg(long, env = "DATABASE_URL", default_value = "yams.db")]
     database_url: String,
+
+    /// Directory for generated PDF files
+    #[arg(long, env = "PDF_STORE_DIR")]
+    pdf_store_dir: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -61,7 +67,21 @@ async fn main() -> Result<(), Report<BackendServerError>> {
         .await
         .change_context(BackendServerError)?;
 
-    let app = App::builder().uow_provider(Box::new(adapter)).build();
+    let pdf_dir = config
+        .pdf_store_dir
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| {
+            Path::new(&config.database_url)
+                .parent()
+                .unwrap_or(Path::new("."))
+                .join("pdfs")
+        });
+    let object_store = FileSystemObjectStore::new(pdf_dir).change_context(BackendServerError)?;
+    let app = App::builder()
+        .uow_provider(Box::new(adapter))
+        .object_store(Arc::new(object_store))
+        .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
+        .build();
 
     let base_path = config.subpath.trim_matches('/');
     let subpath = if base_path.is_empty() {
@@ -86,8 +106,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             || origin == "tauri://localhost"
     });
 
-    let tracing = Tracing::default()
-        .combine(RequestId::new().reuse_id(ReuseId::Use));
+    let tracing = Tracing::default().combine(RequestId::new().reuse_id(ReuseId::Use));
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())

@@ -108,6 +108,17 @@ async fn seminar_flow_books_holds_and_forecasts() {
     assert_status_ok(status);
     assert_eq!(abgehalten["status"], "Abgehalten");
     assert!(abgehalten["buchungen"][0]["leistungId"].is_string());
+
+    let buchung_id = abgehalten["buchungen"][0]["id"].as_str().unwrap();
+    let termin_id = termin["id"].as_str().unwrap();
+    let (status, pdf, content_type) = api
+        .get_bytes(&format!(
+            "/api/seminar-termin/{termin_id}/buchung/{buchung_id}/teilnahmebestätigung"
+        ))
+        .await;
+    assert_status_ok(status);
+    assert!(content_type.contains("application/pdf"));
+    assert!(pdf.starts_with(b"%PDF"));
 }
 
 #[pollster::test]

@@ -608,6 +608,700 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rechnung/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/pdf": string;
+                    };
+                };
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["SeminarErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Seminar"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Seminar"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["SeminarTerminErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["SeminarTerminAktualisierung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/buchung": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["SeminarBuchungErstellung"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/buchung/{buchung_id}/storno": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    buchung_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/absagen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["SeminarTerminAbsage"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/abgehalten": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarTermin"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/buchung/{buchung_id}/teilnahmebest\u00E4tigung": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    buchung_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/pdf": string;
+                    };
+                };
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-termin/{id}/umsatz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarUmsatzVorschau"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seminar-prognose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    stichtag: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["SeminarUmsatzPrognose"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -646,6 +1340,19 @@ export interface components {
             standardpreis: string;
             /** Format: decimal */
             mwst: string;
+        };
+        /** BuchungUmsatz */
+        BuchungUmsatz: {
+            /** Format: uuid */
+            buchungId: string;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: decimal */
+            netto: string;
+            /** Format: decimal */
+            mwst: string;
+            /** Format: decimal */
+            brutto: string;
         };
         /** Haustier */
         Haustier: {
@@ -699,7 +1406,15 @@ export interface components {
             nachname: string;
             /** Format: naive-date */
             geburtstag: string;
+            /**
+             * E-Mail-Adresse
+             * @example test@example.com
+             */
             email: string;
+            /**
+             * Mobilnummer
+             * @example +43 699 12345678
+             */
             mobilnummer: string;
             /** Format: uint64 */
             kundennummer: number;
@@ -764,7 +1479,7 @@ export interface components {
             /** Format: naive-date */
             leistungsdatum: string;
         };
-        LeistungQuelle: components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"] | components["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"] | components["schemas"]["LeistungQuelle_LeistungQuelleManuell"];
+        LeistungQuelle: components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"] | components["schemas"]["LeistungQuelle_LeistungQuelleBehandlung"] | components["schemas"]["LeistungQuelle_LeistungQuelleManuell"] | components["schemas"]["LeistungQuelle_LeistungQuelleSeminar"];
         /** LeistungQuelleBehandlung */
         LeistungQuelleBehandlung: {
             /** Format: uuid */
@@ -785,6 +1500,17 @@ export interface components {
             menge: string;
             /** Format: decimal */
             einzelpreis: string;
+        };
+        /** LeistungQuelleSeminar */
+        LeistungQuelleSeminar: {
+            /** Format: uuid */
+            terminId: string;
+            /** Format: uuid */
+            buchungId: string;
+            /** Format: decimal */
+            "teilnahmegeb\u00FChrBasis": string;
+            /** Format: decimal */
+            rabatt: string;
         };
         LeistungQuelle_LeistungQuelleBehandlung: {
             /**
@@ -824,6 +1550,19 @@ export interface components {
              * @enum {string}
              */
             typ: "Produkt";
+        };
+        LeistungQuelle_LeistungQuelleSeminar: {
+            /**
+             * @example Seminar
+             * @enum {string}
+             */
+            typ: "Seminar";
+        } & components["schemas"]["LeistungQuelleSeminar"] & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            typ: "Seminar";
         };
         /** @enum {string} */
         LeistungStatus: "Offen" | "Abgerechnet";
@@ -882,6 +1621,133 @@ export interface components {
             /** Format: uuid */
             leistungId: string;
         };
+        /** Seminar */
+        Seminar: {
+            /** Format: uuid */
+            id: string;
+            titel: string;
+            beschreibung: string;
+            /** Format: decimal */
+            "teilnahmegeb\u00FChrBasis": string;
+            /** Format: decimal */
+            mwst: string;
+            /** Format: int64 */
+            standarddauerMs?: number;
+        };
+        /** SeminarBuchung */
+        SeminarBuchung: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            klientId: string;
+            /** Format: decimal */
+            rabatt: string;
+            status: components["schemas"]["SeminarBuchungStatus"];
+            /** Format: date-time */
+            storniertAm?: string;
+            /** Format: uuid */
+            leistungId?: string;
+        };
+        /** SeminarBuchungErstellung */
+        SeminarBuchungErstellung: {
+            /** Format: uuid */
+            klientId: string;
+            /** Format: decimal */
+            rabatt: string;
+        };
+        /** @enum {string} */
+        SeminarBuchungStatus: "Bestätigt" | "Storniert";
+        /** SeminarErstellung */
+        SeminarErstellung: {
+            titel: string;
+            beschreibung: string;
+            /** Format: decimal */
+            "teilnahmegeb\u00FChrBasis": string;
+            /** Format: decimal */
+            mwst: string;
+            /** Format: int64 */
+            standarddauerMs?: number;
+        };
+        /** SeminarOrt */
+        SeminarOrt: {
+            ortName?: string;
+            adresse?: components["schemas"]["Adresse"];
+        };
+        /** SeminarTermin */
+        SeminarTermin: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            seminarId: string;
+            /** Format: date-time */
+            beginn: string;
+            /** Format: date-time */
+            ende: string;
+            ort: components["schemas"]["SeminarOrt"];
+            /** Format: uint32 */
+            maxTeilnehmer?: number;
+            status: components["schemas"]["SeminarTerminStatus"];
+            /** Format: date-time */
+            abgehaltenAm?: string;
+            /** Format: date-time */
+            abgesagtAm?: string;
+            absagegrund?: string;
+            buchungen: components["schemas"]["SeminarBuchung"][];
+        };
+        /** SeminarTerminAbsage */
+        SeminarTerminAbsage: {
+            grund: string;
+        };
+        /** SeminarTerminAktualisierung */
+        SeminarTerminAktualisierung: {
+            /** Format: date-time */
+            beginn: string;
+            /** Format: date-time */
+            ende: string;
+            ort: components["schemas"]["SeminarOrt"];
+            /** Format: uint32 */
+            maxTeilnehmer?: number;
+        };
+        /** SeminarTerminErstellung */
+        SeminarTerminErstellung: {
+            /** Format: uuid */
+            seminarId: string;
+            /** Format: date-time */
+            beginn: string;
+            /** Format: date-time */
+            ende: string;
+            ort: components["schemas"]["SeminarOrt"];
+            /** Format: uint32 */
+            maxTeilnehmer?: number;
+        };
+        /** @enum {string} */
+        SeminarTerminStatus: "Geplant" | "Abgehalten" | "Abgesagt";
+        /** SeminarUmsatzPrognose */
+        SeminarUmsatzPrognose: {
+            /** Format: naive-date */
+            stichtag: string;
+            termine: components["schemas"]["SeminarUmsatzVorschau"][];
+            /** Format: decimal */
+            gesamtNetto: string;
+            /** Format: decimal */
+            gesamtBrutto: string;
+        };
+        /** SeminarUmsatzVorschau */
+        SeminarUmsatzVorschau: {
+            /** Format: uuid */
+            terminId: string;
+            /** Format: uuid */
+            seminarId: string;
+            /** Format: uint32 */
+            teilnehmerAnzahl: number;
+            positionen: components["schemas"]["BuchungUmsatz"][];
+            /** Format: decimal */
+            gesamtNetto: string;
+            /** Format: decimal */
+            gesamtMwst: string;
+            /** Format: decimal */
+            gesamtBrutto: string;
+        };
         /** StructuredError */
         StructuredError: {
             message: string;
@@ -912,6 +1778,10 @@ export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<compon
 export const leistungQuelle_LeistungQuelleManuellTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleManuell"]["typ"]> = ["Manuell"];
 export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
 export const leistungQuelle_LeistungQuelleProduktTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleProdukt"]["typ"]> = ["Produkt"];
+export const leistungQuelle_LeistungQuelleSeminarTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleSeminar"]["typ"]> = ["Seminar"];
+export const leistungQuelle_LeistungQuelleSeminarTypValues: ReadonlyArray<components["schemas"]["LeistungQuelle_LeistungQuelleSeminar"]["typ"]> = ["Seminar"];
 export const leistungStatusValues: ReadonlyArray<components["schemas"]["LeistungStatus"]> = ["Offen", "Abgerechnet"];
 export const rechnungStatusValues: ReadonlyArray<components["schemas"]["RechnungStatus"]> = ["Offen", "Bezahlt"];
+export const seminarBuchungStatusValues: ReadonlyArray<components["schemas"]["SeminarBuchungStatus"]> = ["Best\u00E4tigt", "Storniert"];
+export const seminarTerminStatusValues: ReadonlyArray<components["schemas"]["SeminarTerminStatus"]> = ["Geplant", "Abgehalten", "Abgesagt"];
 export type operations = Record<string, never>;

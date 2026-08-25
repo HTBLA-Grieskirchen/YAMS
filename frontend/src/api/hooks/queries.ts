@@ -42,3 +42,31 @@ export function useRechnungenFürKlientQuery(klientId: string | undefined) {
     enabled: isReady && klientId !== undefined && klientId.length > 0,
   });
 }
+
+export function useRechnungPdfQuery(id: string | undefined) {
+  const { api, isReady } = useYamsApiReady();
+
+  return useQuery({
+    queryKey: yamsKeys.rechnungen.pdf(id ?? ""),
+    queryFn: () => api!.rechnungPdf(id!),
+    enabled: isReady && id !== undefined && id.length > 0,
+  });
+}
+
+export function useTeilnahmebestätigungPdfQuery(
+  terminId: string | undefined,
+  buchungId: string | undefined,
+) {
+  const { api, isReady } = useYamsApiReady();
+
+  return useQuery({
+    queryKey: yamsKeys.teilnahmebestätigung.pdf(terminId ?? "", buchungId ?? ""),
+    queryFn: () => api!.teilnahmebestätigungPdf(terminId!, buchungId!),
+    enabled:
+      isReady &&
+      terminId !== undefined &&
+      terminId.length > 0 &&
+      buchungId !== undefined &&
+      buchungId.length > 0,
+  });
+}

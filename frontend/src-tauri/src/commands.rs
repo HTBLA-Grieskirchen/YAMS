@@ -96,3 +96,17 @@ pub async fn rechnungen_für_klient(
 ) -> Result<Vec<Rechnung>, String> {
     map_report(ctx.rechnungen_für_klient(klient_id).await)
 }
+
+#[tauri::command]
+pub async fn rechnung_pdf(id: Uuid, ctx: State<'_, YamsAppApi>) -> Result<Vec<u8>, String> {
+    map_report(ctx.rechnung_pdf(id).await)
+}
+
+#[tauri::command]
+pub async fn teilnahmebestätigung_pdf(
+    termin_id: Uuid,
+    buchung_id: Uuid,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<Vec<u8>, String> {
+    map_report(ctx.teilnahmebestätigung_pdf(termin_id, buchung_id).await)
+}

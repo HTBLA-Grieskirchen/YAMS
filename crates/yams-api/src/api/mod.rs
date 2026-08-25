@@ -2,14 +2,17 @@ pub mod requests;
 
 use std::sync::Arc;
 
-use error_stack::ResultExt;
+use error_stack::{Report, ResultExt};
+use http::StatusCode;
 use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
     domain::{
-        HaustierId, KlientId, SeminarId, SeminarTermin as DomainSeminarTermin, SeminarTerminId,
+        HaustierId, KlientId, RechnungId, SeminarBuchungId, SeminarId,
+        SeminarTermin as DomainSeminarTermin, SeminarTerminId,
     },
+    ports::{collect_object, rechnung_object_key, teilnahme_object_key},
     service::{
         BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
         LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
@@ -182,6 +185,51 @@ impl YamsAppApi {
         Ok(rechnungen
             .map(schema_rechnung_from_domain_rechnung)
             .collect())
+    }
+
+    pub async fn rechnung_pdf(&self, rechnung_id: Uuid) -> ResultReport<Vec<u8>, ExecutionError> {
+        let pdf = self
+            .app
+            .execute_fn(async move |ctx| {
+                let key = rechnung_object_key(&RechnungId(rechnung_id));
+                match ctx.object_store().get(&key).await? {
+                    Some(stream) => collect_object(stream).await.map(Some).map_err(Report::new),
+                    None => Ok(None),
+                }
+            })
+            .await?;
+        match pdf {
+            Some(bytes) => Ok(bytes),
+            None => Err(Report::new(ExecutionError)
+                .attach("pdf not found")
+                .attach_opaque(StatusCode::NOT_FOUND)),
+        }
+    }
+
+    pub async fn teilnahmebestätigung_pdf(
+        &self,
+        termin_id: Uuid,
+        buchung_id: Uuid,
+    ) -> ResultReport<Vec<u8>, ExecutionError> {
+        let pdf = self
+            .app
+            .execute_fn(async move |ctx| {
+                let key = teilnahme_object_key(
+                    &SeminarTerminId(termin_id),
+                    &SeminarBuchungId(buchung_id),
+                );
+                match ctx.object_store().get(&key).await? {
+                    Some(stream) => collect_object(stream).await.map(Some).map_err(Report::new),
+                    None => Ok(None),
+                }
+            })
+            .await?;
+        match pdf {
+            Some(bytes) => Ok(bytes),
+            None => Err(Report::new(ExecutionError)
+                .attach("pdf not found")
+                .attach_opaque(StatusCode::NOT_FOUND)),
+        }
     }
 
     pub async fn seminar_erstellen(

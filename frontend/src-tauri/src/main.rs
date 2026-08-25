@@ -1,8 +1,12 @@
 use error_stack::Report;
+use std::path::Path;
+use std::sync::Arc;
 use tauri::Manager;
 use yams_api::YamsAppApi;
 use yams_core::{App, ports::RepositoryError};
+use yams_filesystemstore::FileSystemObjectStore;
 use yams_persistence::SQLiteInstance;
+use yams_typstreports::TypstPdfRenderer;
 
 mod commands;
 mod config;
@@ -28,7 +32,17 @@ fn main() {
             })
             .expect("failed to initialize LibSQL adapter");
 
-            let app = App::builder().uow_provider(Box::new(db_instance)).build();
+            let pdf_dir = Path::new(db_url)
+                .parent()
+                .unwrap_or(Path::new("."))
+                .join("pdfs");
+            let object_store =
+                FileSystemObjectStore::new(pdf_dir).expect("failed to initialize pdf object store");
+            let app = App::builder()
+                .uow_provider(Box::new(db_instance))
+                .object_store(Arc::new(object_store))
+                .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
+                .build();
             let api = YamsAppApi::new(app);
 
             tauri_app.manage(api.inner_app());
@@ -51,6 +65,8 @@ fn main() {
             commands::leistung_manuell_erfassen,
             commands::tagesabschluss_durchführen,
             commands::rechnungen_für_klient,
+            commands::rechnung_pdf,
+            commands::teilnahmebestätigung_pdf,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

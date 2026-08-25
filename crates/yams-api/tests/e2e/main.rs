@@ -52,6 +52,20 @@ impl YamsApiTestClient {
         json_response(self.client.get(path).send().await).await
     }
 
+    pub async fn get_bytes(&self, path: &str) -> (StatusCode, Vec<u8>, String) {
+        let resp = self.client.get(path).send().await;
+        let status = resp.0.status();
+        let content_type = resp
+            .0
+            .headers()
+            .get("content-type")
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or("")
+            .to_string();
+        let body = resp.0.into_body().into_vec().await.unwrap_or_default();
+        (status, body, content_type)
+    }
+
     pub async fn put_json(&self, path: &str, body: Value) -> (StatusCode, Value) {
         json_response(self.client.put(path).body_json(&body).send().await).await
     }

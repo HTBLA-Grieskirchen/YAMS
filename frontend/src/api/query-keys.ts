@@ -11,5 +11,10 @@ export const yamsKeys = {
     all: () => [...yamsKeys.root, "rechnungen"] as const,
     byKlient: (klientId: string) =>
       [...yamsKeys.rechnungen.all(), klientId] as const,
+    pdf: (id: string) => [...yamsKeys.rechnungen.all(), "pdf", id] as const,
+  },
+  teilnahmebestätigung: {
+    pdf: (terminId: string, buchungId: string) =>
+      [...yamsKeys.root, "teilnahmebestätigung", terminId, buchungId] as const,
   },
 };

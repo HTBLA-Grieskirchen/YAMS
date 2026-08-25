@@ -120,4 +120,25 @@ export class HttpYamsApi implements YamsApi {
       }),
     );
   }
+
+  async rechnungPdf(id: string) {
+    return unwrap(
+      await this.client.GET("/rechnung/{id}/pdf", {
+        params: { path: { id } },
+        parseAs: "blob",
+      }),
+    );
+  }
+
+  async teilnahmebestätigungPdf(terminId: string, buchungId: string) {
+    return unwrap(
+      await this.client.GET(
+        "/seminar-termin/{id}/buchung/{buchung_id}/teilnahmebestätigung",
+        {
+          params: { path: { id: terminId, buchung_id: buchungId } },
+          parseAs: "blob",
+        },
+      ),
+    );
+  }
 }

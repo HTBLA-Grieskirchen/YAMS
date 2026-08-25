@@ -3,7 +3,7 @@ use http::StatusCode;
 use poem_openapi::{
     OpenApi, OpenApiService, ServerObject,
     param::{Path, Query},
-    payload::{Json, PlainText},
+    payload::{Binary, Json, PlainText},
     types::ToJSON,
 };
 use uuid::Uuid;
@@ -64,11 +64,46 @@ impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonRe
                 let status = error
                     .request_value::<StatusCode>()
                     .next()
+                    .or_else(|| error.downcast_ref::<StatusCode>().copied())
                     .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
                 if status.is_server_error() {
                     return TypicalJsonResponse::InternalError(PlainText(InternalServerError));
                 }
                 TypicalJsonResponse::ClientError(status, Json(error.into()))
+            }
+        }
+    }
+}
+
+#[derive(poem_openapi::ApiResponse)]
+pub enum PdfFileResponse {
+    #[oai(status = 200, content_type = "application/pdf")]
+    Ok(Binary<Vec<u8>>),
+    #[oai(status = 404)]
+    NotFound(Json<StructuredError>),
+    #[oai(status_range = "4XX")]
+    ClientError(StatusCode, Json<StructuredError>),
+    #[oai(status = 500)]
+    InternalError(PlainText<InternalServerError>),
+}
+
+impl<C: ThreadSafeError> From<Result<Vec<u8>, Report<C>>> for PdfFileResponse {
+    fn from(result: Result<Vec<u8>, Report<C>>) -> Self {
+        match result {
+            Ok(bytes) => PdfFileResponse::Ok(Binary(bytes)),
+            Err(error) => {
+                let status = error
+                    .request_value::<StatusCode>()
+                    .next()
+                    .or_else(|| error.downcast_ref::<StatusCode>().copied())
+                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+                if status == StatusCode::NOT_FOUND {
+                    return PdfFileResponse::NotFound(Json(error.into()));
+                }
+                if status.is_server_error() {
+                    return PdfFileResponse::InternalError(PlainText(InternalServerError));
+                }
+                PdfFileResponse::ClientError(status, Json(error.into()))
             }
         }
     }
@@ -166,6 +201,11 @@ impl YamsApiSpec {
         self.app_api.rechnungen_für_klient(klient_id.0).await.into()
     }
 
+    #[oai(path = "/rechnung/:id/pdf", method = "get")]
+    async fn rechnung_pdf(&self, id: Path<Uuid>) -> PdfFileResponse {
+        self.app_api.rechnung_pdf(id.0).await.into()
+    }
+
     #[oai(path = "/seminar", method = "post")]
     async fn seminar_erstellen(
         &self,
@@ -249,6 +289,21 @@ impl YamsApiSpec {
         id: Path<Uuid>,
     ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api.seminar_termin_abgehalten(id.0).await.into()
+    }
+
+    #[oai(
+        path = "/seminar-termin/:id/buchung/:buchung_id/teilnahmebestätigung",
+        method = "get"
+    )]
+    async fn teilnahmebestätigung_pdf(
+        &self,
+        id: Path<Uuid>,
+        buchung_id: Path<Uuid>,
+    ) -> PdfFileResponse {
+        self.app_api
+            .teilnahmebestätigung_pdf(id.0, buchung_id.0)
+            .await
+            .into()
     }
 
     #[oai(path = "/seminar-termin/:id/umsatz", method = "get")]

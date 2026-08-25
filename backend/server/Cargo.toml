@@ -10,6 +10,8 @@ repository.workspace = true
 yams-core = { path = "../../crates/yams-core" }
 yams-persistence = { path = "../../crates/yams-persistence" }
 yams-api = { path = "../../crates/yams-api" }
+yams-filesystemstore = { path = "../../crates/yams-filesystemstore" }
+yams-typstreports = { path = "../../crates/yams-typstreports" }
 
 thiserror = { workspace = true }
 error-stack = { workspace = true }

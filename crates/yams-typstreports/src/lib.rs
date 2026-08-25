@@ -9,6 +9,7 @@ use rust_decimal::prelude::ToPrimitive;
 use typst::foundations::{Array, Datetime, Dict, IntoValue, Value};
 use typst_as_lib::TypstEngine;
 use typst_as_lib::typst_kit_options::TypstKitFontOptions;
+use typst_layout::PagedDocument;
 use yams_core::{
     ResultReport,
     domain::{Adresse, Menge, Preis, Ratio},
@@ -23,7 +24,7 @@ static RECHNUNG_TYP: &str = include_str!("../templates/rechnung.typ");
 static TEILNAHME_TYP: &str = include_str!("../templates/teilnahme.typ");
 
 pub struct TypstPdfRenderer {
-    engine: Mutex<typst_as_lib::TypstEngine>,
+    pub(crate) engine: Mutex<typst_as_lib::TypstEngine>,
 }
 
 impl TypstPdfRenderer {
@@ -56,23 +57,28 @@ impl Default for TypstPdfRenderer {
 impl PdfRenderer for TypstPdfRenderer {
     async fn rendern(&self, dokument: &PdfDokument) -> ResultReport<Vec<u8>, PdfRenderError> {
         let engine = self.engine.lock().expect("typst engine mutex");
-        let (main, inputs) = match dokument {
-            PdfDokument::Rechnung(bericht) => ("rechnung.typ", rechnung_dict(bericht)),
-            PdfDokument::Teilnahmebestätigung(bericht) => {
-                ("teilnahme.typ", teilnahme_dict(bericht))
-            }
-        };
-        let warned = engine.compile_with_input(main, inputs);
-        let doc = warned
-            .output
-            .change_context(PdfRenderError::Rendering)
-            .attach("typst compile failed")?;
+        let doc = compile_paged(&engine, dokument)?;
         typst_pdf::pdf(&doc, &typst_pdf::PdfOptions::default()).map_err(|err| {
             Report::new(PdfRenderError::Rendering)
                 .attach(format!("{err:?}"))
                 .attach("typst pdf export failed")
         })
     }
+}
+
+fn compile_paged(
+    engine: &TypstEngine,
+    dokument: &PdfDokument,
+) -> ResultReport<PagedDocument, PdfRenderError> {
+    let (main, inputs) = match dokument {
+        PdfDokument::Rechnung(bericht) => ("rechnung.typ", rechnung_dict(bericht)),
+        PdfDokument::Teilnahmebestätigung(bericht) => ("teilnahme.typ", teilnahme_dict(bericht)),
+    };
+    engine
+        .compile_with_input(main, inputs)
+        .output
+        .change_context(PdfRenderError::Rendering)
+        .attach("typst compile failed")
 }
 
 fn decimal(value: rust_decimal::Decimal) -> Value {
@@ -222,83 +228,4 @@ fn teilnahme_dict(bericht: &Teilnahmebestätigung) -> Dict {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use chrono::TimeZone;
-    use rust_decimal::Decimal;
-    use uuid::Uuid;
-    use yams_core::domain::{
-        EmailAdresse, KlientId, Ländercode, RechnungId, SeminarBuchungId, SeminarTerminId,
-    };
-    use yams_core::ports::Rechnungspositionsbericht;
-    use yams_core::service::praxis;
-
-    fn praxis_angaben() -> PraxisAngaben {
-        praxis()
-    }
-
-    fn klient() -> Klientbericht {
-        Klientbericht {
-            id: KlientId(Uuid::nil()),
-            vorname: "Anna".into(),
-            nachname: "Muster".into(),
-            kundennummer: 1001,
-            adresse: Adresse {
-                postleitzahl: "4711".into(),
-                stadt: "Grieskirchen".into(),
-                straße_und_hausnummer: "Hauptstraße 1".into(),
-                ländercode: Ländercode::AT,
-            },
-            email: EmailAdresse::new("anna@muster.de").unwrap(),
-        }
-    }
-
-    fn sample_rechnung() -> PdfDokument {
-        PdfDokument::Rechnung(Rechnungsbericht {
-            rechnung_id: RechnungId(Uuid::nil()),
-            rechnungsnummer: 42,
-            rechnungsdatum: NaiveDate::from_ymd_opt(2026, 8, 23).unwrap(),
-            praxis: praxis_angaben(),
-            klient: klient(),
-            positionen: vec![Rechnungspositionsbericht {
-                beschreibung: "Futter".into(),
-                einzelpreis: Preis::new(Decimal::new(25, 0)).unwrap(),
-                stückzahl: Menge::new(Decimal::new(2, 0)).unwrap(),
-                mwst: Ratio::new(Decimal::new(19, 2)).unwrap(),
-            }],
-            gesamt_netto: Preis::new(Decimal::new(50, 0)).unwrap(),
-            gesamt_mwst: Preis::new(Decimal::new(95, 1)).unwrap(),
-            gesamt_brutto: Preis::new(Decimal::new(595, 1)).unwrap(),
-        })
-    }
-
-    fn sample_teilnahme() -> PdfDokument {
-        PdfDokument::Teilnahmebestätigung(Teilnahmebestätigung {
-            termin_id: SeminarTerminId(Uuid::nil()),
-            buchung_id: SeminarBuchungId(Uuid::from_u128(1)),
-            praxis: praxis_angaben(),
-            klient: klient(),
-            seminar_titel: "Hufseminar".into(),
-            zeitraum_beginn: Utc.with_ymd_and_hms(2026, 8, 25, 10, 0, 0).unwrap(),
-            zeitraum_ende: Utc.with_ymd_and_hms(2026, 8, 25, 16, 0, 0).unwrap(),
-            ort_name: Some("Hof".into()),
-            ort_adresse: None,
-        })
-    }
-
-    #[pollster::test]
-    async fn renders_rechnung_pdf() {
-        let renderer = TypstPdfRenderer::new();
-        let bytes = renderer.rendern(&sample_rechnung()).await.unwrap();
-        assert!(bytes.starts_with(b"%PDF"));
-        assert!(bytes.len() > 200);
-    }
-
-    #[pollster::test]
-    async fn renders_teilnahme_pdf() {
-        let renderer = TypstPdfRenderer::new();
-        let bytes = renderer.rendern(&sample_teilnahme()).await.unwrap();
-        assert!(bytes.starts_with(b"%PDF"));
-        assert!(bytes.len() > 200);
-    }
-}
+mod tests;

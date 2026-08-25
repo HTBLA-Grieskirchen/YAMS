@@ -8261,6 +8261,7 @@ dependencies = [
  "thiserror 2.0.20",
  "typst",
  "typst-as-lib",
+ "typst-layout",
  "typst-pdf",
  "uuid",
  "yams-core",

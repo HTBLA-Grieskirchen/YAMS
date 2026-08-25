@@ -18,6 +18,7 @@ rust_decimal = { workspace = true }
 
 typst-as-lib = { version = "0.16", features = ["typst-kit-fonts", "typst-kit-embed-fonts"] }
 typst-pdf = "0.15"
+typst-layout = "0.15"
 typst = "0.15"
 
 [dev-dependencies]

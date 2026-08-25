@@ -265,9 +265,11 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         LeistungQuelle::Produkt {
             einzelpreis, menge, ..
         } => (einzelpreis.clone(), menge.clone()),
-        LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis, .. } => {
-            (preis.clone(), Menge::one())
-        }
+        LeistungQuelle::Behandlung { preis, .. }
+        | LeistungQuelle::Manuell { preis, .. } => (preis.clone(), Menge::one()),
+        LeistungQuelle::Seminar {
+            teilnahmegebühr, ..
+        } => (teilnahmegebühr.clone(), Menge::one()),
     };
 
     Rechnungsposition::neu(
@@ -414,5 +416,52 @@ mod tests {
             err.current_context(),
             RechnungFehler::KeineLeistungen
         ));
+    }
+
+    #[test]
+    fn aus_leistungen_maps_seminar_quelle() {
+        let klient = KlientId(Uuid::new_v4());
+        let mut seminar = Leistung::from(
+            LeistungOffen::neu(
+                LeistungId(Uuid::new_v4()),
+                NeueLeistung::neu(
+                    klient.clone(),
+                    None,
+                    "Hufseminar",
+                    NaiveDate::from_ymd_opt(2026, 8, 25).unwrap(),
+                    LeistungQuelle::Seminar {
+                        termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
+                        buchung_id: crate::domain::SeminarBuchungId(Uuid::new_v4()),
+                        teilnahmegebühr_basis: Preis::new(Decimal::new(100, 0)).unwrap(),
+                        rabatt: Ratio::new(Decimal::new(20, 2)).unwrap(),
+                        teilnahmegebühr: Preis::new(Decimal::new(80, 0)).unwrap(),
+                        mwst: mwst_19(),
+                    },
+                ),
+            )
+            .unwrap(),
+        );
+        let mut leistungen = vec![&mut seminar];
+        let rechnung = RechnungOffen::aus_leistungen(
+            klient,
+            1,
+            NaiveDate::from_ymd_opt(2026, 8, 25).unwrap(),
+            &mut leistungen,
+        )
+        .unwrap();
+
+        assert_eq!(rechnung.positionen().len(), 1);
+        assert_eq!(
+            rechnung.positionen()[0].einzelpreis().value(),
+            Decimal::new(80, 0)
+        );
+        assert_eq!(
+            rechnung.positionen()[0].stückzahl().value(),
+            Decimal::ONE
+        );
+        assert_eq!(
+            rechnung.gesamtbetrag_brutto().value(),
+            Decimal::new(952, 1)
+        );
     }
 }

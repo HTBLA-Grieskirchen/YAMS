@@ -5,7 +5,7 @@ use thiserror::Error;
 #[error("Ratio muss zwischen 0 und 1 liegen: {0}")]
 pub struct RatioFehler(pub Decimal);
 
-/// Dimensionless ratio in `0..=1` (100% = 1). Used for MwSt.
+/// Dimensionless ratio in `0..=1` (100% = 1). MwSt-Anteil and Rabatt.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ratio(Decimal);
 

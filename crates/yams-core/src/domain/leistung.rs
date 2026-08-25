@@ -4,7 +4,10 @@ use uuid::Uuid;
 
 use crate::{
     ResultReport,
-    domain::{BehandlungId, HaustierId, KlientId, Menge, Preis, ProduktId, Ratio, RechnungId},
+    domain::{
+        BehandlungId, HaustierId, KlientId, Menge, Preis, ProduktId, Ratio, RechnungId,
+        SeminarBuchungId, SeminarTerminId,
+    },
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -43,6 +46,14 @@ pub enum LeistungQuelle {
         preis: Preis,
         mwst: Ratio,
     },
+    Seminar {
+        termin_id: SeminarTerminId,
+        buchung_id: SeminarBuchungId,
+        teilnahmegebühr_basis: Preis,
+        rabatt: Ratio,
+        teilnahmegebühr: Preis,
+        mwst: Ratio,
+    },
 }
 
 impl LeistungQuelle {
@@ -52,6 +63,9 @@ impl LeistungQuelle {
                 menge, einzelpreis, ..
             } => einzelpreis * menge,
             Self::Behandlung { preis, .. } | Self::Manuell { preis, .. } => preis.clone(),
+            Self::Seminar {
+                teilnahmegebühr, ..
+            } => teilnahmegebühr.clone(),
         }
     }
 
@@ -60,6 +74,7 @@ impl LeistungQuelle {
             Self::Produkt { mwst, .. } => mwst,
             Self::Behandlung { mwst, .. } => mwst,
             Self::Manuell { mwst, .. } => mwst,
+            Self::Seminar { mwst, .. } => mwst,
         }
     }
 }
@@ -228,6 +243,26 @@ impl NeueLeistung {
             quelle,
         }
     }
+
+    pub fn klient_id(&self) -> &KlientId {
+        &self.klient_id
+    }
+
+    pub fn haustier_id(&self) -> Option<&HaustierId> {
+        self.haustier_id.as_ref()
+    }
+
+    pub fn beschreibung(&self) -> &str {
+        &self.beschreibung
+    }
+
+    pub fn leistungsdatum(&self) -> NaiveDate {
+        self.leistungsdatum
+    }
+
+    pub fn quelle(&self) -> &LeistungQuelle {
+        &self.quelle
+    }
 }
 
 #[cfg(test)]
@@ -257,6 +292,21 @@ mod tests {
         };
 
         assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
+    }
+
+    #[test]
+    fn seminar_betrag_uses_teilnahmegebühr_snapshot() {
+        let quelle = LeistungQuelle::Seminar {
+            termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
+            buchung_id: crate::domain::SeminarBuchungId(Uuid::new_v4()),
+            teilnahmegebühr_basis: Preis::new(Decimal::new(100, 0)).unwrap(),
+            rabatt: Ratio::new(Decimal::new(20, 2)).unwrap(),
+            teilnahmegebühr: Preis::new(Decimal::new(80, 0)).unwrap(),
+            mwst: Ratio::new(Decimal::new(20, 2)).unwrap(),
+        };
+
+        assert_eq!(quelle.betrag().value(), Decimal::new(80, 0));
+        assert_eq!(quelle.mwst().value(), Decimal::new(20, 2));
     }
 
     #[test]

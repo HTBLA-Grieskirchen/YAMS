@@ -8,7 +8,8 @@ Ubiquitous Language: **Deutsch** in Code, API-JSON und SQLite-Spalten (UTF-8, z.
 |-----------|----------|--------------|
 | `LeistungIn<S>` | `Offen` → `Abgerechnet` | Type-state; enum `Leistung` sums states |
 | `RechnungIn<S>` | `Offen` → `Bezahlt` | Type-state; enum `Rechnung` sums states |
-| `Klient`, `Haustier`, `Produkt`, `Behandlung` | — | Stammdaten / Katalog |
+| `Klient`, `Haustier`, `Produkt`, `Behandlung`, `Seminar` | — | Stammdaten / Katalog |
+| `SeminarTerminIn<S>` | `Geplant` → `Abgehalten` \| `Abgesagt` | siehe [`seminar.md`](seminar.md) |
 
 Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zustand via `from_parts`.
 
@@ -16,12 +17,12 @@ Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zust
 
 | Typ | Invarianten |
 |-----|-------------|
-| `Preis` | `rust_decimal`, nicht negativ; `Add` und `&Preis * &Menge` / `&Preis * &Ratio` erhalten die Invariante |
-| `Ratio` | `0..=1` (100% = `1`); MwSt-Anteil, nicht Prozent |
+| `Preis` | `rust_decimal`, nicht negativ; `Add` und `&Preis * &Menge` / `&Preis * &Ratio` erhalten die Invariante; `nach_rabatt(&Ratio)` ist infallible (`basis * (1 - rabatt)`, 100% → `0`) |
+| `Ratio` | `0..=1` (100% = `1`); generischer Anteil (MwSt, Rabatt) |
 | `Menge` | nicht negativ, einheitenlos; Produktmenge und Rechnungs-`stückzahl` |
 | `EmailAdresse`, `Mobilnummer` | Validierung bei Konstruktion (`Result`, kein `Report`) |
 | `Ländercode` | Enum `AT` \| `DE` \| `CH` |
-| `LeistungQuelle` | `Produkt { produkt_id, menge, einzelpreis, mwst }` \| `Behandlung { behandlung_id, preis, mwst }` \| `Manuell { preis, mwst }` — Preis-Snapshot zum Buchungszeitpunkt |
+| `LeistungQuelle` | `Produkt { … }` \| `Behandlung { … }` \| `Manuell { … }` \| `Seminar { termin_id, buchung_id, teilnahmegebühr_basis, rabatt, teilnahmegebühr, mwst }` — Preis-Snapshot zum Buchungszeitpunkt |
 | `Rechnungsposition` | `einzelpreis`, `stückzahl`, `mwst` (`Ratio`) → Getter `gesamtpreis_netto`, `mwst_betrag`, `gesamtpreis_brutto` |
 
 `Leistung::betrag()` und `Rechnung::gesamtbetrag_brutto()` sind berechnete Getter, keine gespeicherten Felder.
@@ -58,4 +59,4 @@ Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zust
 
 ## Geplant (nicht in diesem Slice)
 
-`Veranstaltung`, `Teilnahme`, `Beziehung`, `Rasse`, PDF-Export, Zahlungsabwicklung.
+`Beziehung`, `Rasse`, PDF-Export, Zahlungsabwicklung. Seminare: siehe [`seminar.md`](seminar.md).

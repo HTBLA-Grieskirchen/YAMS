@@ -4,9 +4,9 @@
 
 ## Core Domain (`yams-core`)
 
-- **Entities**: `Klient`, `Haustier`, `Adresse`, `Produkt`, `Behandlung`, `Leistung`, `Rechnung` (siehe [`abrechnung.md`](abrechnung.md)).
-- **Geplant**: `Veranstaltung`, `Teilnahme`, `Beziehung`, `Rasse`, `Seminar`.
-- **Value Objects**: `Preis`, `EmailAdresse`, `Mobilnummer`, `Ländercode`, Status-Enums.
+- **Entities**: `Klient`, `Haustier`, `Adresse`, `Produkt`, `Behandlung`, `Leistung`, `Rechnung`, `Seminar`, `SeminarTermin` (siehe [`abrechnung.md`](abrechnung.md), [`seminar.md`](seminar.md)).
+- **Geplant**: `Beziehung`, `Rasse`.
+- **Value Objects**: `Preis`, `Ratio`, `Zeitraum`, `EmailAdresse`, `Mobilnummer`, `Ländercode`, Status-Enums.
 - **Ports**: Repository pro Aggregate + `Clock`.
 - **Use Cases**: Ein Use Case pro Geschäftsvorgang (`KlientErstellen`, `TagesabschlussDurchführen`, …).
 - **App**: Composition Root; alle Mutationen via `App::execute`.

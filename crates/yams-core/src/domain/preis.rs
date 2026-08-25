@@ -28,6 +28,11 @@ impl Preis {
     pub fn value(&self) -> Decimal {
         self.0
     }
+
+    /// `basis * (1 - rabatt)`. Always non-negative because `Ratio` is `0..=1`.
+    pub fn nach_rabatt(&self, rabatt: &Ratio) -> Preis {
+        Preis(self.0 * (Decimal::ONE - rabatt.value()))
+    }
 }
 
 impl Add for Preis {
@@ -106,5 +111,24 @@ mod tests {
     #[test]
     fn preis_new_rejects_negative() {
         assert!(Preis::new(Decimal::new(-1, 0)).is_err());
+    }
+
+    #[test]
+    fn nach_rabatt_zero_keeps_basis() {
+        let preis = Preis::new(Decimal::new(100, 0)).unwrap();
+        assert_eq!(preis.nach_rabatt(&Ratio::zero()).value(), Decimal::new(100, 0));
+    }
+
+    #[test]
+    fn nach_rabatt_twenty_percent() {
+        let preis = Preis::new(Decimal::new(100, 0)).unwrap();
+        let rabatt = Ratio::new(Decimal::new(20, 2)).unwrap();
+        assert_eq!(preis.nach_rabatt(&rabatt).value(), Decimal::new(80, 0));
+    }
+
+    #[test]
+    fn nach_rabatt_full_is_zero() {
+        let preis = Preis::new(Decimal::new(100, 0)).unwrap();
+        assert_eq!(preis.nach_rabatt(&Ratio::one()).value(), Decimal::ZERO);
     }
 }

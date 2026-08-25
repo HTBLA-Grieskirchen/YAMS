@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use uuid::Uuid;
-use yams_core::domain::{self, SeminarTermin};
+use yams_core::domain;
 
 use crate::schema::Adresse;
 
@@ -85,7 +85,7 @@ pub struct SeminarBuchung {
 #[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-pub struct SeminarTerminDto {
+pub struct SeminarTermin {
     pub id: Uuid,
     pub seminar_id: Uuid,
     pub beginn: DateTime<Utc>,
@@ -99,9 +99,9 @@ pub struct SeminarTerminDto {
     pub buchungen: Vec<SeminarBuchung>,
 }
 
-pub fn schema_seminar_termin_from_domain(termin: SeminarTermin) -> SeminarTerminDto {
+pub fn schema_seminar_termin_from_domain(termin: domain::SeminarTermin) -> SeminarTermin {
     let leistung_lookup = match &termin {
-        SeminarTermin::Abgehalten(t) => Some(t.leistungen().clone()),
+        domain::SeminarTermin::Abgehalten(t) => Some(t.leistungen().clone()),
         _ => None,
     };
 
@@ -132,14 +132,14 @@ pub fn schema_seminar_termin_from_domain(termin: SeminarTermin) -> SeminarTermin
         .collect();
 
     let (status, abgehalten_am, abgesagt_am, absagegrund) = match &termin {
-        SeminarTermin::Geplant(_) => (SeminarTerminStatus::Geplant, None, None, None),
-        SeminarTermin::Abgehalten(t) => (
+        domain::SeminarTermin::Geplant(_) => (SeminarTerminStatus::Geplant, None, None, None),
+        domain::SeminarTermin::Abgehalten(t) => (
             SeminarTerminStatus::Abgehalten,
             Some(t.abgehalten_am()),
             None,
             None,
         ),
-        SeminarTermin::Abgesagt(t) => (
+        domain::SeminarTermin::Abgesagt(t) => (
             SeminarTerminStatus::Abgesagt,
             None,
             Some(t.abgesagt_am()),
@@ -147,7 +147,7 @@ pub fn schema_seminar_termin_from_domain(termin: SeminarTermin) -> SeminarTermin
         ),
     };
 
-    SeminarTerminDto {
+    SeminarTermin {
         id: termin.id().0,
         seminar_id: termin.seminar_id().0,
         beginn: termin.zeitraum().beginn(),

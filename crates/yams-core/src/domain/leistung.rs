@@ -51,7 +51,6 @@ pub enum LeistungQuelle {
         buchung_id: SeminarBuchungId,
         teilnahmegebühr_basis: Preis,
         rabatt: Ratio,
-        teilnahmegebühr: Preis,
         mwst: Ratio,
     },
 }
@@ -64,8 +63,10 @@ impl LeistungQuelle {
             } => einzelpreis * menge,
             Self::Behandlung { preis, .. } | Self::Manuell { preis, .. } => preis.clone(),
             Self::Seminar {
-                teilnahmegebühr, ..
-            } => teilnahmegebühr.clone(),
+                teilnahmegebühr_basis,
+                rabatt,
+                ..
+            } => teilnahmegebühr_basis.nach_rabatt(rabatt),
         }
     }
 
@@ -289,18 +290,30 @@ mod tests {
     }
 
     #[test]
-    fn seminar_betrag_uses_teilnahmegebühr_snapshot() {
+    fn seminar_betrag_uses_nach_rabatt() {
         let quelle = LeistungQuelle::Seminar {
             termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
             buchung_id: crate::domain::SeminarBuchungId(Uuid::new_v4()),
             teilnahmegebühr_basis: Preis::new(Decimal::new(100, 0)).unwrap(),
             rabatt: Ratio::new(Decimal::new(20, 2)).unwrap(),
-            teilnahmegebühr: Preis::new(Decimal::new(80, 0)).unwrap(),
             mwst: Ratio::new(Decimal::new(20, 2)).unwrap(),
         };
 
         assert_eq!(quelle.betrag().value(), Decimal::new(80, 0));
         assert_eq!(quelle.mwst().value(), Decimal::new(20, 2));
+    }
+
+    #[test]
+    fn seminar_betrag_full_rabatt_is_zero() {
+        let quelle = LeistungQuelle::Seminar {
+            termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
+            buchung_id: crate::domain::SeminarBuchungId(Uuid::new_v4()),
+            teilnahmegebühr_basis: Preis::new(Decimal::new(100, 0)).unwrap(),
+            rabatt: Ratio::one(),
+            mwst: Ratio::new(Decimal::new(20, 2)).unwrap(),
+        };
+
+        assert_eq!(quelle.betrag().value(), Decimal::ZERO);
     }
 
     #[test]

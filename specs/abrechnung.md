@@ -22,7 +22,7 @@ Repository-Grenze: enum `Leistung` / `Rechnung` rekonstruiert persistierten Zust
 | `Menge` | nicht negativ, einheitenlos; Produktmenge und Rechnungs-`stückzahl` |
 | `EmailAdresse`, `Mobilnummer` | Validierung bei Konstruktion (`Result`, kein `Report`) |
 | `Ländercode` | Enum `AT` \| `DE` \| `CH` |
-| `LeistungQuelle` | `Produkt { … }` \| `Behandlung { … }` \| `Manuell { … }` \| `Seminar { termin_id, buchung_id, teilnahmegebühr_basis, rabatt, teilnahmegebühr, mwst }` — Preis-Snapshot zum Buchungszeitpunkt |
+| `LeistungQuelle` | `Produkt { … }` \| `Behandlung { … }` \| `Manuell { … }` \| `Seminar { termin_id, buchung_id, teilnahmegebühr_basis, rabatt, mwst }` — `betrag()` = `basis.nach_rabatt(rabatt)` (JIT, nicht persistiert) |
 | `Rechnungsposition` | `einzelpreis`, `stückzahl`, `mwst` (`Ratio`) → Getter `gesamtpreis_netto`, `mwst_betrag`, `gesamtpreis_brutto` |
 
 `Leistung::betrag()` und `Rechnung::gesamtbetrag_brutto()` sind berechnete Getter, keine gespeicherten Felder.

@@ -51,7 +51,6 @@ pub struct LeistungQuelleSeminar {
     pub buchung_id: Uuid,
     pub teilnahmegebühr_basis: Decimal,
     pub rabatt: Decimal,
-    pub teilnahmegebühr: Decimal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -144,14 +143,12 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
             buchung_id,
             teilnahmegebühr_basis,
             rabatt,
-            teilnahmegebühr,
             ..
         } => LeistungQuelle::Seminar(LeistungQuelleSeminar {
             termin_id: termin_id.0,
             buchung_id: buchung_id.0,
             teilnahmegebühr_basis: teilnahmegebühr_basis.value(),
             rabatt: rabatt.value(),
-            teilnahmegebühr: teilnahmegebühr.value(),
         }),
     }
 }

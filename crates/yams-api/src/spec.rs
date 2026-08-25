@@ -19,7 +19,7 @@ use crate::{
         SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
     },
     schema::{
-        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTerminDto,
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
         SeminarUmsatzPrognose, SeminarUmsatzVorschau,
     },
 };
@@ -183,12 +183,12 @@ impl YamsApiSpec {
     async fn seminar_termin_planen(
         &self,
         body: Json<SeminarTerminErstellung>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api.seminar_termin_planen(body.0).await.into()
     }
 
     #[oai(path = "/seminar-termin/:id", method = "get")]
-    async fn seminar_termin_by_id(&self, id: Path<Uuid>) -> TypicalJsonResponse<SeminarTerminDto> {
+    async fn seminar_termin_by_id(&self, id: Path<Uuid>) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api.seminar_termin_by_id(id.0).await.into()
     }
 
@@ -197,7 +197,7 @@ impl YamsApiSpec {
         &self,
         id: Path<Uuid>,
         body: Json<SeminarTerminAktualisierung>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api
             .seminar_termin_aktualisieren(id.0, body.0)
             .await
@@ -209,7 +209,7 @@ impl YamsApiSpec {
         &self,
         id: Path<Uuid>,
         body: Json<SeminarBuchungErstellung>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api
             .seminar_buchung_anlegen(id.0, body.0)
             .await
@@ -224,7 +224,7 @@ impl YamsApiSpec {
         &self,
         id: Path<Uuid>,
         buchung_id: Path<Uuid>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api
             .seminar_buchung_stornieren(id.0, buchung_id.0)
             .await
@@ -236,7 +236,7 @@ impl YamsApiSpec {
         &self,
         id: Path<Uuid>,
         body: Json<SeminarTerminAbsage>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api
             .seminar_termin_absagen(id.0, body.0)
             .await
@@ -247,7 +247,7 @@ impl YamsApiSpec {
     async fn seminar_termin_abgehalten(
         &self,
         id: Path<Uuid>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api.seminar_termin_abgehalten(id.0).await.into()
     }
 

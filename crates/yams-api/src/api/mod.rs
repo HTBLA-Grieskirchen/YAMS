@@ -7,12 +7,14 @@ use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
-    domain::{HaustierId, KlientId, SeminarId, SeminarTerminId},
+    domain::{
+        HaustierId, KlientId, SeminarId, SeminarTermin as DomainSeminarTermin, SeminarTerminId,
+    },
     service::{
         BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
         LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
         SeminarBuchungStornieren, SeminarErstellen, SeminarTerminPlanen,
-        SeminarUmsatzPrognoseBisDatum, SeminarUmsatzVorschau, TagesabschlussDurchführen,
+        SeminarUmsatzPrognoseBisDatum, TagesabschlussDurchführen,
     },
     uow::Versioned,
 };
@@ -26,12 +28,12 @@ use crate::{
         abgehalten_use_case, buchung_id,
     },
     schema::{
-        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTerminDto,
-        SeminarUmsatzPrognose, SeminarUmsatzVorschau as SeminarUmsatzVorschauDto,
-        schema_behandlung_from_domain, schema_haustier_from_domain, schema_klient_from_domain,
-        schema_leistung_from_domain, schema_produkt_from_domain, schema_prognose_from_domain,
-        schema_rechnung_from_domain, schema_rechnung_from_domain_rechnung,
-        schema_seminar_from_domain, schema_seminar_termin_from_domain, schema_umsatz_from_domain,
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
+        SeminarUmsatzPrognose, SeminarUmsatzVorschau, schema_behandlung_from_domain,
+        schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
+        schema_produkt_from_domain, schema_prognose_from_domain, schema_rechnung_from_domain,
+        schema_rechnung_from_domain_rechnung, schema_seminar_from_domain,
+        schema_seminar_termin_from_domain, schema_umsatz_from_domain,
     },
 };
 
@@ -205,18 +207,20 @@ impl YamsAppApi {
     pub async fn seminar_termin_planen(
         &self,
         body: SeminarTerminErstellung,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self
             .app
             .execute(SeminarTerminPlanen::try_from(body).change_context(ExecutionError)?)
             .await?;
-        Ok(schema_seminar_termin_from_domain(termin))
+        Ok(schema_seminar_termin_from_domain(
+            DomainSeminarTermin::from(termin),
+        ))
     }
 
     pub async fn seminar_termin_by_id(
         &self,
         id: Uuid,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self
             .app
             .execute_fn(async |ctx| {
@@ -234,7 +238,7 @@ impl YamsAppApi {
         &self,
         id: Uuid,
         body: SeminarTerminAktualisierung,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self
             .app
             .execute(body.into_use_case(id).change_context(ExecutionError)?)
@@ -246,7 +250,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         body: SeminarBuchungErstellung,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self
             .app
             .execute(
@@ -261,7 +265,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         buchung: Uuid,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self
             .app
             .execute(SeminarBuchungStornieren {
@@ -276,7 +280,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         body: SeminarTerminAbsage,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self.app.execute(body.into_use_case(termin_id)).await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }
@@ -284,7 +288,7 @@ impl YamsAppApi {
     pub async fn seminar_termin_abgehalten(
         &self,
         termin_id: Uuid,
-    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, ExecutionError> {
         let termin = self.app.execute(abgehalten_use_case(termin_id)).await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }
@@ -292,10 +296,10 @@ impl YamsAppApi {
     pub async fn seminar_umsatz_vorschau(
         &self,
         termin_id: Uuid,
-    ) -> ResultReport<SeminarUmsatzVorschauDto, ExecutionError> {
+    ) -> ResultReport<SeminarUmsatzVorschau, ExecutionError> {
         let umsatz = self
             .app
-            .execute(SeminarUmsatzVorschau {
+            .execute(yams_core::service::SeminarUmsatzVorschau {
                 termin_id: SeminarTerminId(termin_id),
             })
             .await?;

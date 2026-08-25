@@ -87,13 +87,11 @@ pub fn quelle_from_row(
             let buchung_id = parse_uuid(buchung_str)?;
             let rabatt = parse_ratio(rabatt_str)?;
             let basis = parse_preis(&quelle_einzelpreis.ok_or(RepositoryError::Data)?)?;
-            let gebühr = parse_preis(&quelle_preis.ok_or(RepositoryError::Data)?)?;
             Ok(LeistungQuelle::Seminar {
                 termin_id: SeminarTerminId(termin_id),
                 buchung_id: SeminarBuchungId(buchung_id),
                 teilnahmegebühr_basis: basis,
                 rabatt,
-                teilnahmegebühr: gebühr,
                 mwst,
             })
         }
@@ -150,14 +148,13 @@ pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
             buchung_id,
             teilnahmegebühr_basis,
             rabatt,
-            teilnahmegebühr,
             mwst,
         } => QuelleDbColumns {
             typ: "seminar",
             id: Some(termin_id.0.to_string()),
             menge: Some(format!("{}|{}", buchung_id.0, ratio_to_str(rabatt))),
             einzelpreis: Some(preis_to_str(teilnahmegebühr_basis)),
-            preis: Some(preis_to_str(teilnahmegebühr)),
+            preis: None,
             mwst: ratio_to_str(mwst),
         },
     }

@@ -30,8 +30,6 @@ pub enum SeminarTerminFehler {
     KapazitätUnterBestätigten,
     #[error("leistungen-mapping deckt die bestätigten buchungen nicht genau ab")]
     LeistungenUnvollständig,
-    #[error("termin ist nicht geplant")]
-    NichtGeplant,
 }
 
 const CONSTRUCTING: &str = "while constructing seminar-termin";
@@ -317,7 +315,6 @@ impl SeminarTerminGeplant {
     pub fn teilnahmeleistungen(&self, seminar: &Seminar) -> Vec<(SeminarBuchungId, NeueLeistung)> {
         self.bestätigte_buchungen()
             .map(|buchung| {
-                let gebühr = seminar.teilnahmegebühr_nach_rabatt(buchung.rabatt());
                 let beschreibung = format!("{} — {}", seminar.titel(), self.zeitraum);
                 let leistung = NeueLeistung::neu(
                     buchung.klient_id().clone(),
@@ -329,7 +326,6 @@ impl SeminarTerminGeplant {
                         buchung_id: buchung.id().clone(),
                         teilnahmegebühr_basis: seminar.teilnahmegebühr_basis().clone(),
                         rabatt: buchung.rabatt().clone(),
-                        teilnahmegebühr: gebühr,
                         mwst: seminar.mwst().clone(),
                     },
                 );
@@ -483,13 +479,6 @@ impl SeminarTermin {
             Self::Geplant(t) => t.buchungen(),
             Self::Abgehalten(t) => t.buchungen(),
             Self::Abgesagt(t) => t.buchungen(),
-        }
-    }
-
-    pub fn as_geplant_mut(&mut self) -> Result<&mut SeminarTerminGeplant, SeminarTerminFehler> {
-        match self {
-            Self::Geplant(termin) => Ok(termin),
-            _ => Err(SeminarTerminFehler::NichtGeplant),
         }
     }
 }
@@ -704,6 +693,46 @@ mod tests {
     }
 
     #[test]
+    fn als_abgehalten_maps_all_confirmed() {
+        let mut termin = geplant(None);
+        let erste = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
+        let zweite = termin.buchung_anlegen(klient(), rabatt_20()).unwrap();
+
+        let mut mapping = FxHashMap::default();
+        mapping.insert(erste.clone(), LeistungId(Uuid::new_v4()));
+        mapping.insert(zweite.clone(), LeistungId(Uuid::new_v4()));
+
+        let abgehalten = termin.als_abgehalten(utc(16), mapping).unwrap();
+        assert!(abgehalten.leistung_fuer_buchung(&erste).is_some());
+        assert!(abgehalten.leistung_fuer_buchung(&zweite).is_some());
+        assert_eq!(abgehalten.leistungen().len(), 2);
+    }
+
+    #[test]
+    fn als_abgehalten_rejects_extra_mapping_keys() {
+        let mut termin = geplant(None);
+        let bestätigt = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
+        let mut mapping = FxHashMap::default();
+        mapping.insert(bestätigt, LeistungId(Uuid::new_v4()));
+        mapping.insert(SeminarBuchungId(Uuid::new_v4()), LeistungId(Uuid::new_v4()));
+
+        let err = termin.als_abgehalten(utc(16), mapping).unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            SeminarTerminFehler::LeistungenUnvollständig
+        ));
+    }
+
+    #[test]
+    fn teilnahmeleistungen_full_rabatt_is_zero() {
+        let seminar = seminar();
+        let mut termin = geplant(None);
+        termin.buchung_anlegen(klient(), Ratio::one()).unwrap();
+        let leistungen = termin.teilnahmeleistungen(&seminar);
+        assert_eq!(leistungen[0].1.quelle().betrag().value(), Decimal::ZERO);
+    }
+
+    #[test]
     fn teilnahmeleistungen_applies_rabatt_snapshot() {
         let seminar = seminar();
         let mut termin = geplant(None);
@@ -711,12 +740,11 @@ mod tests {
         let leistungen = termin.teilnahmeleistungen(&seminar);
         assert_eq!(leistungen.len(), 1);
         match leistungen[0].1.quelle() {
-            crate::domain::LeistungQuelle::Seminar {
-                teilnahmegebühr,
-                rabatt,
-                ..
-            } => {
-                assert_eq!(teilnahmegebühr.value(), Decimal::new(80, 0));
+            crate::domain::LeistungQuelle::Seminar { rabatt, .. } => {
+                assert_eq!(
+                    leistungen[0].1.quelle().betrag().value(),
+                    Decimal::new(80, 0)
+                );
                 assert_eq!(rabatt.value(), Decimal::new(20, 2));
             }
             other => panic!("expected seminar quelle, got {other:?}"),

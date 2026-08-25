@@ -8,7 +8,8 @@ use crate::{
     application::uow::Versioned,
     domain::{
         KlientId, Preis, Ratio, Seminar, SeminarBuchungId, SeminarId, SeminarOrt, SeminarTermin,
-        SeminarTerminId, Zeitraum, seminar::NeuesSeminar, seminar_termin::NeuerSeminarTermin,
+        SeminarTerminGeplant, SeminarTerminId, Zeitraum, seminar::NeuesSeminar,
+        seminar_termin::NeuerSeminarTermin,
     },
     service::{ExecutionContext, UseCase},
 };
@@ -65,10 +66,10 @@ pub enum SeminarTerminPlanenFehler {
 }
 
 #[async_trait]
-impl UseCase<SeminarTermin> for SeminarTerminPlanen {
+impl UseCase<SeminarTerminGeplant> for SeminarTerminPlanen {
     type Error = Report<SeminarTerminPlanenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTerminGeplant, Self::Error> {
         let ExecutionContext { uow, .. } = ctx;
         uow.seminare()
             .find_by_id(self.seminar_id.clone())
@@ -83,7 +84,7 @@ impl UseCase<SeminarTermin> for SeminarTerminPlanen {
                 self.max_teilnehmer,
             ))
             .await
-            .map(|versioned| SeminarTermin::from(versioned.into_data()))
+            .map(Versioned::into_data)
             .change_context(SeminarTerminPlanenFehler::Persistenz)
     }
 }
@@ -121,11 +122,10 @@ impl UseCase<SeminarTermin> for SeminarTerminAktualisieren {
             .change_context(SeminarTerminAktualisierenFehler::TerminNichtGefunden)?;
 
         // TODO: Benachrichtigung an Teilnehmer
-        termin
-            .as_geplant_mut()
-            .map_err(|err| {
-                Report::new(err).change_context(SeminarTerminAktualisierenFehler::NichtGeplant)
-            })?
+        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+            return Err(Report::new(SeminarTerminAktualisierenFehler::NichtGeplant));
+        };
+        geplant
             .aktualisieren(self.ort, self.zeitraum, self.max_teilnehmer)
             .change_context(SeminarTerminAktualisierenFehler::Invariante)?;
 
@@ -176,11 +176,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungAnlegen {
             .await
             .change_context(SeminarBuchungAnlegenFehler::TerminNichtGefunden)?;
 
-        termin
-            .as_geplant_mut()
-            .map_err(|err| {
-                Report::new(err).change_context(SeminarBuchungAnlegenFehler::NichtGeplant)
-            })?
+        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+            return Err(Report::new(SeminarBuchungAnlegenFehler::NichtGeplant));
+        };
+        geplant
             .buchung_anlegen(self.klient_id, self.rabatt)
             .change_context(SeminarBuchungAnlegenFehler::Invariante)?;
 
@@ -224,11 +223,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungStornieren {
             .await
             .change_context(SeminarBuchungStornierenFehler::TerminNichtGefunden)?;
 
-        termin
-            .as_geplant_mut()
-            .map_err(|err| {
-                Report::new(err).change_context(SeminarBuchungStornierenFehler::NichtGeplant)
-            })?
+        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+            return Err(Report::new(SeminarBuchungStornierenFehler::NichtGeplant));
+        };
+        geplant
             .buchung_stornieren(&self.buchung_id, now)
             .change_context(SeminarBuchungStornierenFehler::Invariante)?;
 

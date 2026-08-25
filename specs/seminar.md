@@ -39,7 +39,7 @@ Kein `leistung_id` auf der Entity — Zuordnung nur im `Abgehalten`-State.
 
 | Typ | Invarianten |
 |-----|-------------|
-| `Zeitraum` | `ende > beginn` (`DateTime<Utc>`) |
+| `Zeitraum` | `ende > beginn` (`DateTime<Utc>`); Konstruktion als `Result<Self, ZeitraumFehler>`, kein `Report` |
 | `Ratio` | `0..=1`; Rabatt und MwSt |
 | `Preis::nach_rabatt` | `basis * (1 - rabatt)`; infallible, bei 100% → `0` |
 | `SeminarOrt` | optional `ort_name` und/oder `adresse` |
@@ -57,7 +57,7 @@ Kein `leistung_id` auf der Entity — Zuordnung nur im `Abgehalten`-State.
 ## Abgehalten-Ablauf
 
 1. Termin muss `Geplant` sein.
-2. Pro bestätigter Buchung: `LeistungOffen` mit `LeistungQuelle::Seminar` (Preis-Snapshots).
+2. Pro bestätigter Buchung: `LeistungOffen` mit `LeistungQuelle::Seminar` (`basis` + `rabatt`; Betrag JIT).
 3. `leistungsdatum` = `zeitraum.ende` als Datum.
 4. Transition `Geplant → Abgehalten` mit vollständigem Mapping.
 5. `TagesabschlussDurchführen` übernimmt die offenen Leistungen — kein eigener Rechnungs-Use-Case.
@@ -67,7 +67,7 @@ Kein `leistung_id` auf der Entity — Zuordnung nur im `Abgehalten`-State.
 | Use Case | Zweck |
 |----------|-------|
 | `SeminarErstellen` | Vorlage anlegen |
-| `SeminarTerminPlanen` | Termin aus Vorlage, leere Buchungen |
+| `SeminarTerminPlanen` | Termin aus Vorlage, leere Buchungen; liefert `SeminarTerminGeplant` |
 | `SeminarTerminAktualisieren` | Ort/Zeitraum/max TN — nur `Geplant`; Benachrichtigung TODO |
 | `SeminarBuchungAnlegen` | Aggregate-Methode + `update` |
 | `SeminarBuchungStornieren` | `Bestätigt → Storniert` |

@@ -67,14 +67,16 @@ async fn seminar(app: &yams_core::App) -> Seminar {
 }
 
 async fn termin(app: &yams_core::App, seminar: &Seminar, max: Option<u32>) -> SeminarTermin {
-    app.execute(SeminarTerminPlanen {
-        seminar_id: seminar.id().clone(),
-        zeitraum: zeitraum(),
-        ort: SeminarOrt::neu(Some("Hof".into()), None),
-        max_teilnehmer: max,
-    })
-    .await
-    .unwrap()
+    SeminarTermin::from(
+        app.execute(SeminarTerminPlanen {
+            seminar_id: seminar.id().clone(),
+            zeitraum: zeitraum(),
+            ort: SeminarOrt::neu(Some("Hof".into()), None),
+            max_teilnehmer: max,
+        })
+        .await
+        .unwrap(),
+    )
 }
 
 #[pollster::test]
@@ -344,4 +346,303 @@ async fn umsatz_vorschau_und_prognose() {
         .unwrap();
     assert_eq!(prognose.termine.len(), 1);
     assert_eq!(prognose.gesamt_netto.value(), Decimal::new(180, 0));
+}
+
+#[pollster::test]
+async fn abgehalten_maps_every_confirmed_buchung() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let a = klient(&app, 2010, "map-a@test.de").await;
+    let b = klient(&app, 2011, "map-b@test.de").await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: a.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: b.id().clone(),
+        rabatt: Ratio::new(Decimal::new(20, 2)).unwrap(),
+    })
+    .await
+    .unwrap();
+
+    let abgehalten = app
+        .execute(SeminarTerminAlsAbgehaltenMarkieren {
+            termin_id: termin.id().clone(),
+        })
+        .await
+        .unwrap();
+    let SeminarTermin::Abgehalten(abgehalten) = abgehalten else {
+        panic!("expected abgehalten");
+    };
+
+    let bestätigt: Vec<_> = abgehalten
+        .bestätigte_buchungen()
+        .map(|buchung| buchung.id().clone())
+        .collect();
+    assert_eq!(bestätigt.len(), 2);
+    assert_eq!(abgehalten.leistungen().len(), 2);
+    for buchung_id in &bestätigt {
+        assert!(abgehalten.leistung_fuer_buchung(buchung_id).is_some());
+    }
+}
+
+#[pollster::test]
+async fn zwei_klienten_erzeugen_zwei_rechnungen() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let a = klient(&app, 2012, "inv-a@test.de").await;
+    let b = klient(&app, 2013, "inv-b@test.de").await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: a.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: b.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+
+    app.execute(SeminarTerminAlsAbgehaltenMarkieren {
+        termin_id: termin.id().clone(),
+    })
+    .await
+    .unwrap();
+
+    let rechnungen = app
+        .execute(TagesabschlussDurchführen {
+            abschlussdatum: Some(zeitraum().ende().date_naive()),
+        })
+        .await
+        .unwrap();
+    assert_eq!(rechnungen.len(), 2);
+}
+
+#[pollster::test]
+async fn voller_rabatt_ergibt_null_betrag() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let klient = klient(&app, 2014, "gratis@test.de").await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: klient.id().clone(),
+        rabatt: Ratio::one(),
+    })
+    .await
+    .unwrap();
+
+    app.execute(SeminarTerminAlsAbgehaltenMarkieren {
+        termin_id: termin.id().clone(),
+    })
+    .await
+    .unwrap();
+
+    let rechnungen = app
+        .execute(TagesabschlussDurchführen {
+            abschlussdatum: Some(zeitraum().ende().date_naive()),
+        })
+        .await
+        .unwrap();
+    assert_eq!(rechnungen.len(), 1);
+    assert_eq!(
+        rechnungen[0].positionen()[0].einzelpreis().value(),
+        Decimal::ZERO
+    );
+    assert_eq!(rechnungen[0].gesamtbetrag_brutto().value(), Decimal::ZERO);
+}
+
+#[pollster::test]
+async fn storno_erlaubt_erneute_buchung_desselben_klienten() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let klient = klient(&app, 2015, "rebook@test.de").await;
+    let termin = termin(&app, &seminar, Some(1)).await;
+
+    let gebucht = app
+        .execute(SeminarBuchungAnlegen {
+            termin_id: termin.id().clone(),
+            klient_id: klient.id().clone(),
+            rabatt: Ratio::zero(),
+        })
+        .await
+        .unwrap();
+    let buchung_id = gebucht.buchungen()[0].id().clone();
+
+    app.execute(SeminarBuchungStornieren {
+        termin_id: termin.id().clone(),
+        buchung_id,
+    })
+    .await
+    .unwrap();
+
+    let erneut = app
+        .execute(SeminarBuchungAnlegen {
+            termin_id: termin.id().clone(),
+            klient_id: klient.id().clone(),
+            rabatt: Ratio::zero(),
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        erneut
+            .buchungen()
+            .iter()
+            .filter(|buchung| buchung.ist_bestätigt())
+            .count(),
+        1
+    );
+
+    let abgehalten = app
+        .execute(SeminarTerminAlsAbgehaltenMarkieren {
+            termin_id: termin.id().clone(),
+        })
+        .await
+        .unwrap();
+    let SeminarTermin::Abgehalten(abgehalten) = abgehalten else {
+        panic!("expected abgehalten");
+    };
+    assert_eq!(abgehalten.leistungen().len(), 1);
+}
+
+#[pollster::test]
+async fn aktualisieren_blockiert_nach_abgehalten() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarTerminAlsAbgehaltenMarkieren {
+        termin_id: termin.id().clone(),
+    })
+    .await
+    .unwrap();
+
+    let err = app
+        .execute(SeminarTerminAktualisieren {
+            termin_id: termin.id().clone(),
+            zeitraum: zeitraum(),
+            ort: SeminarOrt::neu(None, None),
+            max_teilnehmer: None,
+        })
+        .await
+        .unwrap_err();
+    assert!(format!("{err:?}").contains("nicht geplant"));
+}
+
+#[pollster::test]
+async fn vorschau_abgehalten_zählt_nur_offene_leistungen() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let klient = klient(&app, 2016, "open@test.de").await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: klient.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+
+    app.execute(SeminarTerminAlsAbgehaltenMarkieren {
+        termin_id: termin.id().clone(),
+    })
+    .await
+    .unwrap();
+
+    let offen = app
+        .execute(SeminarUmsatzVorschau {
+            termin_id: termin.id().clone(),
+        })
+        .await
+        .unwrap();
+    assert_eq!(offen.teilnehmer_anzahl, 1);
+    assert_eq!(offen.gesamt_netto.value(), Decimal::new(100, 0));
+
+    app.execute(TagesabschlussDurchführen {
+        abschlussdatum: Some(zeitraum().ende().date_naive()),
+    })
+    .await
+    .unwrap();
+
+    let danach = app
+        .execute(SeminarUmsatzVorschau {
+            termin_id: termin.id().clone(),
+        })
+        .await
+        .unwrap();
+    assert_eq!(danach.teilnehmer_anzahl, 0);
+    assert_eq!(danach.gesamt_netto.value(), Decimal::ZERO);
+}
+
+#[pollster::test]
+async fn prognose_enthält_abgehalten_offen_und_schließt_abgesagt_aus() {
+    let app = Arc::new(base_app_builder().await.build());
+    let seminar = seminar(&app).await;
+    let a = klient(&app, 2017, "prog-a@test.de").await;
+    let b = klient(&app, 2018, "prog-b@test.de").await;
+
+    let gehalten = termin(&app, &seminar, None).await;
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: gehalten.id().clone(),
+        klient_id: a.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+    app.execute(SeminarTerminAlsAbgehaltenMarkieren {
+        termin_id: gehalten.id().clone(),
+    })
+    .await
+    .unwrap();
+
+    let abgesagt = termin(&app, &seminar, None).await;
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: abgesagt.id().clone(),
+        klient_id: b.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+    app.execute(SeminarTerminAbsagen {
+        termin_id: abgesagt.id().clone(),
+        grund: "zu wenig tn".into(),
+    })
+    .await
+    .unwrap();
+
+    let stichtag = zeitraum().ende().date_naive();
+    let vor_abschluss = app
+        .execute(SeminarUmsatzPrognoseBisDatum { stichtag })
+        .await
+        .unwrap();
+    assert_eq!(vor_abschluss.termine.len(), 1);
+    assert_eq!(vor_abschluss.termine[0].termin_id, gehalten.id().clone());
+    assert_eq!(vor_abschluss.gesamt_netto.value(), Decimal::new(100, 0));
+
+    app.execute(TagesabschlussDurchführen {
+        abschlussdatum: Some(stichtag),
+    })
+    .await
+    .unwrap();
+
+    let nach_abschluss = app
+        .execute(SeminarUmsatzPrognoseBisDatum { stichtag })
+        .await
+        .unwrap();
+    assert!(nach_abschluss.termine.is_empty());
+    assert_eq!(nach_abschluss.gesamt_netto.value(), Decimal::ZERO);
 }

@@ -268,9 +268,7 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis, .. } => {
             (preis.clone(), Menge::one())
         }
-        LeistungQuelle::Seminar {
-            teilnahmegebühr, ..
-        } => (teilnahmegebühr.clone(), Menge::one()),
+        LeistungQuelle::Seminar { .. } => (leistung.betrag(), Menge::one()),
     };
 
     Rechnungsposition::neu(
@@ -435,7 +433,6 @@ mod tests {
                         buchung_id: crate::domain::SeminarBuchungId(Uuid::new_v4()),
                         teilnahmegebühr_basis: Preis::new(Decimal::new(100, 0)).unwrap(),
                         rabatt: Ratio::new(Decimal::new(20, 2)).unwrap(),
-                        teilnahmegebühr: Preis::new(Decimal::new(80, 0)).unwrap(),
                         mwst: mwst_19(),
                     },
                 ),

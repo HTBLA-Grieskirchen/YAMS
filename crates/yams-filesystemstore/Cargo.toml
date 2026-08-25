@@ -1,0 +1,19 @@
+[package]
+name = "yams-filesystemstore"
+description = "Filesystem ObjectStore adapter for YAMS"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+[dependencies]
+yams-core = { path = "../yams-core" }
+
+async-trait = { workspace = true }
+error-stack = { workspace = true }
+futures-lite = { workspace = true }
+tempdir = "0.3.7"
+
+[dev-dependencies]
+pollster = { version = "0.4.0", features = ["macro"] }

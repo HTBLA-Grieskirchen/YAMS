@@ -4,9 +4,9 @@ use bon::Builder;
 use error_stack::IntoReport;
 use error_stack::ResultExt;
 
-use crate::adapters::SystemClock;
+use crate::adapters::{BlankPdfRenderer, InMemoryObjectStore, SystemClock};
 use crate::application::uow::UnitOfWork;
-use crate::ports::Clock;
+use crate::ports::{Clock, ObjectStore, PdfRenderer};
 use crate::service::UseCase;
 use crate::uow::UnitOfWorkProvider;
 
@@ -29,6 +29,10 @@ pub struct App {
     pub uow_provider: Box<dyn UnitOfWorkProvider>,
     #[builder(default = Arc::new(SystemClock))]
     pub clock: Arc<dyn Clock>,
+    #[builder(default = Arc::new(InMemoryObjectStore::new()))]
+    pub object_store: Arc<dyn ObjectStore>,
+    #[builder(default = Arc::new(BlankPdfRenderer))]
+    pub pdf_renderer: Arc<dyn PdfRenderer>,
 }
 
 pub use app_builder::{SetClock, SetUowProvider};
@@ -97,6 +101,8 @@ impl App {
         ExecutionContext {
             uow,
             clock: Arc::clone(&self.clock),
+            object_store: Arc::clone(&self.object_store),
+            pdf_renderer: Arc::clone(&self.pdf_renderer),
         }
     }
 }

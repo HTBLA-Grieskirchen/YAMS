@@ -1,8 +1,8 @@
 use clap::Parser;
 use error_stack::{Report, ResultExt};
+use poem::middleware::Cors;
 use poem::{EndpointExt, IntoResponse};
 use poem::{Route, Server, listener::TcpListener};
-use poem::middleware::Cors;
 use thiserror::Error;
 use yams_api::openapi_service;
 use yams_core::App;

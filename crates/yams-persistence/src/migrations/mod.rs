@@ -46,7 +46,6 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteConnection {
                 .query(
                     "SELECT version FROM _migration_history ORDER BY applied_at DESC, version DESC LIMIT 1",
                     (),
-               
                 )
                 .await?;
 

@@ -131,10 +131,7 @@ impl NeuesHaustier {
 mod tests {
     use super::*;
 
-    fn neues(
-        name: &str,
-        klient_id: KlientId,
-    ) -> NeuesHaustier {
+    fn neues(name: &str, klient_id: KlientId) -> NeuesHaustier {
         NeuesHaustier::neu(
             klient_id,
             name,
@@ -146,8 +143,11 @@ mod tests {
 
     #[test]
     fn haustier_rejects_empty_name() {
-        let err = Haustier::neu(HaustierId(Uuid::new_v4()), neues("", KlientId(Uuid::new_v4())))
-            .unwrap_err();
+        let err = Haustier::neu(
+            HaustierId(Uuid::new_v4()),
+            neues("", KlientId(Uuid::new_v4())),
+        )
+        .unwrap_err();
         assert!(matches!(err.current_context(), HaustierFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
@@ -155,8 +155,11 @@ mod tests {
     #[test]
     fn haustier_neu_keeps_klient_id() {
         let klient_id = KlientId(Uuid::new_v4());
-        let haustier = Haustier::neu(HaustierId(Uuid::new_v4()), neues("Bello", klient_id.clone()))
-            .unwrap();
+        let haustier = Haustier::neu(
+            HaustierId(Uuid::new_v4()),
+            neues("Bello", klient_id.clone()),
+        )
+        .unwrap();
         assert_eq!(haustier.klient_id(), &klient_id);
         assert_eq!(haustier.name(), "Bello");
     }

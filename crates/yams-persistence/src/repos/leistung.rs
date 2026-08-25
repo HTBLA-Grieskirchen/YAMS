@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use async_lock::Mutex;
 use async_trait::async_trait;
-use error_stack::ResultExt;
 use chrono::NaiveDate;
+use error_stack::ResultExt;
 use libsql::{Row, Transaction};
 use uuid::Uuid;
 use yams_core::{
@@ -120,10 +120,7 @@ impl LeistungRepository for SQLiteLeistungRepository {
 
         let id_str = id.0.to_string();
         let mut rows = tx
-            .query(
-                &format!("{LEISTUNG_SELECT} WHERE id = ?1"),
-                [id_str],
-            )
+            .query(&format!("{LEISTUNG_SELECT} WHERE id = ?1"), [id_str])
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
 

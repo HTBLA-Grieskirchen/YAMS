@@ -188,10 +188,7 @@ impl YamsApiSpec {
     }
 
     #[oai(path = "/seminar-termin/:id", method = "get")]
-    async fn seminar_termin_by_id(
-        &self,
-        id: Path<Uuid>,
-    ) -> TypicalJsonResponse<SeminarTerminDto> {
+    async fn seminar_termin_by_id(&self, id: Path<Uuid>) -> TypicalJsonResponse<SeminarTerminDto> {
         self.app_api.seminar_termin_by_id(id.0).await.into()
     }
 
@@ -219,7 +216,10 @@ impl YamsApiSpec {
             .into()
     }
 
-    #[oai(path = "/seminar-termin/:id/buchung/:buchung_id/storno", method = "post")]
+    #[oai(
+        path = "/seminar-termin/:id/buchung/:buchung_id/storno",
+        method = "post"
+    )]
     async fn seminar_buchung_stornieren(
         &self,
         id: Path<Uuid>,
@@ -237,7 +237,10 @@ impl YamsApiSpec {
         id: Path<Uuid>,
         body: Json<SeminarTerminAbsage>,
     ) -> TypicalJsonResponse<SeminarTerminDto> {
-        self.app_api.seminar_termin_absagen(id.0, body.0).await.into()
+        self.app_api
+            .seminar_termin_absagen(id.0, body.0)
+            .await
+            .into()
     }
 
     #[oai(path = "/seminar-termin/:id/abgehalten", method = "post")]
@@ -261,7 +264,10 @@ impl YamsApiSpec {
         &self,
         stichtag: Query<chrono::NaiveDate>,
     ) -> TypicalJsonResponse<SeminarUmsatzPrognose> {
-        self.app_api.seminar_umsatz_prognose(stichtag.0).await.into()
+        self.app_api
+            .seminar_umsatz_prognose(stichtag.0)
+            .await
+            .into()
     }
 }
 

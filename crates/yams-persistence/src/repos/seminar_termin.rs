@@ -20,9 +20,7 @@ use yams_core::{
 
 use crate::errors::libsql_error_to_persistence_error;
 
-use super::common::{
-    format_datetime, parse_datetime, parse_ratio, parse_uuid, ratio_to_str,
-};
+use super::common::{format_datetime, parse_datetime, parse_ratio, parse_uuid, ratio_to_str};
 
 const TERMIN_SELECT: &str = "SELECT id, seminar_id, beginn, ende, ort_name, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", max_teilnehmer, status, abgehalten_am, abgesagt_am, absagegrund, _version FROM seminar_termine";
 
@@ -62,8 +60,7 @@ fn zustand_from_row(
     match status {
         "geplant" => Ok(SeminarTerminZustandTeile::Geplant),
         "abgehalten" => {
-            let abgehalten_am =
-                parse_datetime(&abgehalten_am.ok_or(RepositoryError::Data)?)?;
+            let abgehalten_am = parse_datetime(&abgehalten_am.ok_or(RepositoryError::Data)?)?;
             Ok(SeminarTerminZustandTeile::Abgehalten {
                 abgehalten_am,
                 leistungen,
@@ -80,7 +77,9 @@ fn zustand_from_row(
     }
 }
 
-fn status_columns(termin: &SeminarTermin) -> (&'static str, Option<String>, Option<String>, Option<String>) {
+fn status_columns(
+    termin: &SeminarTermin,
+) -> (&'static str, Option<String>, Option<String>, Option<String>) {
     match termin {
         SeminarTermin::Geplant(_) => ("geplant", None, None, None),
         SeminarTermin::Abgehalten(t) => (
@@ -131,13 +130,7 @@ fn termin_from_parts(
     let zeitraum = Zeitraum::neu(parse_datetime(&beginn_str)?, parse_datetime(&ende_str)?)
         .change_context(RepositoryError::Data)?;
     let ort = ort_from_columns(ort_name, postleitzahl, stadt, straße, ländercode)?;
-    let zustand = zustand_from_row(
-        &status,
-        abgehalten_am,
-        abgesagt_am,
-        absagegrund,
-        leistungen,
-    )?;
+    let zustand = zustand_from_row(&status, abgehalten_am, abgesagt_am, absagegrund, leistungen)?;
 
     Ok(Versioned::new(
         version,
@@ -156,10 +149,7 @@ fn termin_from_parts(
 async fn load_buchungen(
     tx: &Transaction,
     termin_id: &str,
-) -> RepositoryResult<(
-    Vec<SeminarBuchung>,
-    FxHashMap<SeminarBuchungId, LeistungId>,
-)> {
+) -> RepositoryResult<(Vec<SeminarBuchung>, FxHashMap<SeminarBuchungId, LeistungId>)> {
     let mut rows = tx
         .query(
             "SELECT id, klient_id, rabatt, storniert_am, leistung_id FROM seminar_buchungen WHERE termin_id = ?1",
@@ -196,19 +186,13 @@ async fn load_buchungen(
     Ok((buchungen, leistungen))
 }
 
-async fn load_termin(
-    tx: &Transaction,
-    row: &Row,
-) -> RepositoryResult<Versioned<SeminarTermin>> {
+async fn load_termin(tx: &Transaction, row: &Row) -> RepositoryResult<Versioned<SeminarTermin>> {
     let id_raw: String = row.get(0).contextualize(RepositoryError::Data)?;
     let (buchungen, leistungen) = load_buchungen(tx, &id_raw).await?;
     termin_from_parts(row, buchungen, leistungen)
 }
 
-async fn replace_buchungen(
-    tx: &Transaction,
-    termin: &SeminarTermin,
-) -> RepositoryResult<()> {
+async fn replace_buchungen(tx: &Transaction, termin: &SeminarTermin) -> RepositoryResult<()> {
     let termin_id = termin.id().0.to_string();
     tx.execute(
         "DELETE FROM seminar_buchungen WHERE termin_id = ?1",

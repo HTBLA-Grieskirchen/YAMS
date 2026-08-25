@@ -1,9 +1,7 @@
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
-use super::{
-    YamsApiTestClient, assert_status_ok, base_app_builder, json_decimal,
-};
+use super::{YamsApiTestClient, assert_status_ok, base_app_builder, json_decimal};
 
 fn klient_body(kundennummer: u64) -> Value {
     json!({
@@ -77,7 +75,10 @@ async fn tagesabschluss_returns_rechnungen_as_json() {
         )
         .await;
     assert_status_ok(status);
-    assert_eq!(json_decimal(&leistung_produkt["betrag"]), Decimal::new(50, 0));
+    assert_eq!(
+        json_decimal(&leistung_produkt["betrag"]),
+        Decimal::new(50, 0)
+    );
 
     let (status, leistung_behandlung) = api
         .post_json(

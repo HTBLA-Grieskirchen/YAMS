@@ -7,10 +7,8 @@ use std::ops::DerefMut;
 use crate::{
     application::uow::Versioned,
     domain::{
-        KlientId, Preis, Ratio, Seminar, SeminarBuchungId, SeminarId, SeminarOrt,
-        SeminarTermin, SeminarTerminId, Zeitraum,
-        seminar::NeuesSeminar,
-        seminar_termin::NeuerSeminarTermin,
+        KlientId, Preis, Ratio, Seminar, SeminarBuchungId, SeminarId, SeminarOrt, SeminarTermin,
+        SeminarTerminId, Zeitraum, seminar::NeuesSeminar, seminar_termin::NeuerSeminarTermin,
     },
     service::{ExecutionContext, UseCase},
 };
@@ -408,7 +406,12 @@ impl SeminarUmsatzVorschauErgebnis {
     }
 }
 
-fn buchung_umsatz(seminar: &Seminar, buchung_id: SeminarBuchungId, klient_id: KlientId, rabatt: &Ratio) -> BuchungUmsatz {
+fn buchung_umsatz(
+    seminar: &Seminar,
+    buchung_id: SeminarBuchungId,
+    klient_id: KlientId,
+    rabatt: &Ratio,
+) -> BuchungUmsatz {
     let netto = seminar.teilnahmegebühr_nach_rabatt(rabatt);
     let mwst = &netto * seminar.mwst();
     let brutto = netto.clone() + mwst.clone();
@@ -560,9 +563,11 @@ impl UseCase<SeminarUmsatzPrognose> for SeminarUmsatzPrognoseBisDatum {
 
         let mut ergebnisse = Vec::new();
         for termin in termine {
-            match umsatz_für_termin(&uow, &*termin).await {
+            match umsatz_für_termin(&uow, &termin).await {
                 Ok(ergebnis) => ergebnisse.push(ergebnis),
-                Err(err) if matches!(err.current_context(), SeminarUmsatzVorschauFehler::Abgesagt) => {
+                Err(err)
+                    if matches!(err.current_context(), SeminarUmsatzVorschauFehler::Abgesagt) =>
+                {
                     continue;
                 }
                 Err(err) => {

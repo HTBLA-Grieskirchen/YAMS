@@ -70,7 +70,10 @@ async fn seminar_flow_books_holds_and_forecasts() {
 
     let (status, gebucht) = api
         .post_json(
-            &format!("/api/seminar-termin/{}/buchung", termin["id"].as_str().unwrap()),
+            &format!(
+                "/api/seminar-termin/{}/buchung",
+                termin["id"].as_str().unwrap()
+            ),
             json!({
                 "klientId": klient["id"],
                 "rabatt": "0.20"
@@ -137,7 +140,10 @@ async fn absage_blocks_abgehalten_via_api() {
 
     let (status, _) = api
         .post_json(
-            &format!("/api/seminar-termin/{}/absagen", termin["id"].as_str().unwrap()),
+            &format!(
+                "/api/seminar-termin/{}/absagen",
+                termin["id"].as_str().unwrap()
+            ),
             json!({ "grund": "zu wenig tn" }),
         )
         .await;

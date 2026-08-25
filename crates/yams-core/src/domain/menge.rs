@@ -42,7 +42,10 @@ mod tests {
 
     #[test]
     fn menge_accepts_positive() {
-        assert_eq!(Menge::new(Decimal::new(2, 0)).unwrap().value(), Decimal::new(2, 0));
+        assert_eq!(
+            Menge::new(Decimal::new(2, 0)).unwrap().value(),
+            Decimal::new(2, 0)
+        );
     }
 
     #[test]

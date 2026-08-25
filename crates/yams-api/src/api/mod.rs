@@ -27,11 +27,11 @@ use crate::{
     },
     schema::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTerminDto,
-        SeminarUmsatzPrognose, SeminarUmsatzVorschau as SeminarUmsatzVorschauDto, schema_behandlung_from_domain,
-        schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
-        schema_produkt_from_domain, schema_prognose_from_domain, schema_rechnung_from_domain,
-        schema_rechnung_from_domain_rechnung, schema_seminar_from_domain,
-        schema_seminar_termin_from_domain, schema_umsatz_from_domain,
+        SeminarUmsatzPrognose, SeminarUmsatzVorschau as SeminarUmsatzVorschauDto,
+        schema_behandlung_from_domain, schema_haustier_from_domain, schema_klient_from_domain,
+        schema_leistung_from_domain, schema_produkt_from_domain, schema_prognose_from_domain,
+        schema_rechnung_from_domain, schema_rechnung_from_domain_rechnung,
+        schema_seminar_from_domain, schema_seminar_termin_from_domain, schema_umsatz_from_domain,
     },
 };
 
@@ -249,7 +249,10 @@ impl YamsAppApi {
     ) -> ResultReport<SeminarTerminDto, ExecutionError> {
         let termin = self
             .app
-            .execute(body.into_use_case(termin_id).change_context(ExecutionError)?)
+            .execute(
+                body.into_use_case(termin_id)
+                    .change_context(ExecutionError)?,
+            )
             .await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }

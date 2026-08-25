@@ -119,7 +119,8 @@ impl HaustierRepository for SQLiteHaustierRepository {
 
     async fn create(&self, new: NeuesHaustier) -> RepositoryResult<Versioned<Haustier>> {
         let id = HaustierId(Uuid::new_v4());
-        let haustier = Versioned::init(Haustier::neu(id, new).change_context(RepositoryError::Data)?);
+        let haustier =
+            Versioned::init(Haustier::neu(id, new).change_context(RepositoryError::Data)?);
 
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;

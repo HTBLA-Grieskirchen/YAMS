@@ -6,8 +6,7 @@ use uuid::Uuid;
 use crate::{
     ResultReport,
     domain::{
-        Adresse, KlientId, LeistungId, Ratio, Seminar, SeminarId, Zeitraum,
-        leistung::NeueLeistung,
+        Adresse, KlientId, LeistungId, Ratio, Seminar, SeminarId, Zeitraum, leistung::NeueLeistung,
     },
 };
 
@@ -216,7 +215,9 @@ impl<S> SeminarTerminIn<S> {
     }
 
     pub fn bestätigte_buchungen(&self) -> impl Iterator<Item = &SeminarBuchung> {
-        self.buchungen.iter().filter(|buchung| buchung.ist_bestätigt())
+        self.buchungen
+            .iter()
+            .filter(|buchung| buchung.ist_bestätigt())
     }
 
     fn bestätigte_anzahl(&self) -> u32 {
@@ -294,7 +295,11 @@ impl SeminarTerminGeplant {
         Ok(())
     }
 
-    pub fn absagen(self, grund: impl Into<String>, abgesagt_am: DateTime<Utc>) -> SeminarTerminAbgesagt {
+    pub fn absagen(
+        self,
+        grund: impl Into<String>,
+        abgesagt_am: DateTime<Utc>,
+    ) -> SeminarTerminAbgesagt {
         SeminarTerminAbgesagt {
             id: self.id,
             seminar_id: self.seminar_id,
@@ -427,10 +432,9 @@ impl SeminarTermin {
                     leistungen,
                 },
             }),
-            SeminarTerminZustandTeile::Abgesagt {
-                abgesagt_am,
-                grund,
-            } => Self::Abgesagt(geplant.absagen(grund, abgesagt_am)),
+            SeminarTerminZustandTeile::Abgesagt { abgesagt_am, grund } => {
+                Self::Abgesagt(geplant.absagen(grund, abgesagt_am))
+            }
         }
     }
 
@@ -549,8 +553,8 @@ mod tests {
     use rust_decimal::Decimal;
 
     use super::*;
-    use crate::domain::seminar::NeuesSeminar;
     use crate::domain::Preis;
+    use crate::domain::seminar::NeuesSeminar;
 
     fn utc(h: u32) -> DateTime<Utc> {
         Utc.with_ymd_and_hms(2026, 8, 25, h, 0, 0).unwrap()
@@ -597,12 +601,8 @@ mod tests {
     #[test]
     fn buchung_anlegen_enforces_capacity() {
         let mut termin = geplant(Some(1));
-        termin
-            .buchung_anlegen(klient(), Ratio::zero())
-            .unwrap();
-        let err = termin
-            .buchung_anlegen(klient(), Ratio::zero())
-            .unwrap_err();
+        termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
+        let err = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap_err();
         assert!(matches!(
             err.current_context(),
             SeminarTerminFehler::KapazitätErreicht
@@ -613,7 +613,9 @@ mod tests {
     fn buchung_anlegen_rejects_duplicate_klient() {
         let mut termin = geplant(None);
         let klient = klient();
-        termin.buchung_anlegen(klient.clone(), Ratio::zero()).unwrap();
+        termin
+            .buchung_anlegen(klient.clone(), Ratio::zero())
+            .unwrap();
         let err = termin.buchung_anlegen(klient, Ratio::zero()).unwrap_err();
         assert!(matches!(
             err.current_context(),
@@ -652,11 +654,7 @@ mod tests {
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
         let err = termin
-            .aktualisieren(
-                SeminarOrt::neu(None, None),
-                zeitraum(),
-                Some(1),
-            )
+            .aktualisieren(SeminarOrt::neu(None, None), zeitraum(), Some(1))
             .unwrap_err();
         assert!(matches!(
             err.current_context(),
@@ -667,9 +665,7 @@ mod tests {
     #[test]
     fn als_abgehalten_maps_confirmed_only() {
         let mut termin = geplant(None);
-        let bestätigt = termin
-            .buchung_anlegen(klient(), rabatt_20())
-            .unwrap();
+        let bestätigt = termin.buchung_anlegen(klient(), rabatt_20()).unwrap();
         let storniert = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
         termin.buchung_stornieren(&storniert, utc(9)).unwrap();
 

@@ -116,7 +116,10 @@ mod tests {
     #[test]
     fn nach_rabatt_zero_keeps_basis() {
         let preis = Preis::new(Decimal::new(100, 0)).unwrap();
-        assert_eq!(preis.nach_rabatt(&Ratio::zero()).value(), Decimal::new(100, 0));
+        assert_eq!(
+            preis.nach_rabatt(&Ratio::zero()).value(),
+            Decimal::new(100, 0)
+        );
     }
 
     #[test]

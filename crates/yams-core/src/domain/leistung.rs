@@ -123,13 +123,7 @@ impl Leistung {
     ) -> ResultReport<Self, LeistungFehler> {
         let offen = LeistungOffen::neu(
             id,
-            NeueLeistung::neu(
-                klient_id,
-                haustier_id,
-                beschreibung,
-                leistungsdatum,
-                quelle,
-            ),
+            NeueLeistung::neu(klient_id, haustier_id, beschreibung, leistungsdatum, quelle),
         )?;
 
         Ok(match rechnung_id {

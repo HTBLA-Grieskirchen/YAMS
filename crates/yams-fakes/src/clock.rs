@@ -27,7 +27,7 @@ impl FixedClock {
 
 impl Clock for FixedClock {
     fn now(&self) -> DateTime<Utc> {
-        self.current_time.lock().unwrap().clone()
+        *self.current_time.lock().unwrap()
     }
 
     fn today(&self) -> NaiveDate {

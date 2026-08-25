@@ -1,13 +1,13 @@
 use tauri::State;
 use uuid::Uuid;
 use yams_api::{
+    YamsAppApi,
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
         ProduktErstellung, TagesabschlussErstellung,
     },
     schema::{Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung},
-    YamsAppApi,
 };
 use yams_core::ResultReport;
 

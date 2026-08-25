@@ -265,8 +265,9 @@ fn position_from_leistung(leistung: &LeistungOffen) -> Rechnungsposition {
         LeistungQuelle::Produkt {
             einzelpreis, menge, ..
         } => (einzelpreis.clone(), menge.clone()),
-        LeistungQuelle::Behandlung { preis, .. }
-        | LeistungQuelle::Manuell { preis, .. } => (preis.clone(), Menge::one()),
+        LeistungQuelle::Behandlung { preis, .. } | LeistungQuelle::Manuell { preis, .. } => {
+            (preis.clone(), Menge::one())
+        }
         LeistungQuelle::Seminar {
             teilnahmegebühr, ..
         } => (teilnahmegebühr.clone(), Menge::one()),
@@ -455,13 +456,7 @@ mod tests {
             rechnung.positionen()[0].einzelpreis().value(),
             Decimal::new(80, 0)
         );
-        assert_eq!(
-            rechnung.positionen()[0].stückzahl().value(),
-            Decimal::ONE
-        );
-        assert_eq!(
-            rechnung.gesamtbetrag_brutto().value(),
-            Decimal::new(952, 1)
-        );
+        assert_eq!(rechnung.positionen()[0].stückzahl().value(), Decimal::ONE);
+        assert_eq!(rechnung.gesamtbetrag_brutto().value(), Decimal::new(952, 1));
     }
 }

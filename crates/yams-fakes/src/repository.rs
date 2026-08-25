@@ -54,6 +54,12 @@ impl Clone for FakeDatastore {
     }
 }
 
+impl Default for FakeDatastore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FakeDatastore {
     pub fn new() -> Self {
         Self {
@@ -230,7 +236,7 @@ impl KlientRepository for FakeKlientenRepository {
         let versioned = Versioned::init(
             Klient::neu(id, klient).map_err(|err| err.change_context(RepositoryError::Data))?,
         );
-        data.insert(versioned.id().0.clone(), versioned.clone());
+        data.insert(versioned.id().0, versioned.clone());
         Ok(versioned)
     }
 
@@ -244,7 +250,7 @@ impl KlientRepository for FakeKlientenRepository {
                 })?;
             }
             *klient = klient.clone().incremented();
-            data.insert(klient.id().0.clone(), klient.clone());
+            data.insert(klient.id().0, klient.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -306,7 +312,7 @@ impl HaustierRepository for FakeHaustiereRepository {
         let versioned = Versioned::init(
             Haustier::neu(id, haustier).map_err(|err| err.change_context(RepositoryError::Data))?,
         );
-        data.insert(versioned.id().0.clone(), versioned.clone());
+        data.insert(versioned.id().0, versioned.clone());
         Ok(versioned)
     }
 
@@ -320,7 +326,7 @@ impl HaustierRepository for FakeHaustiereRepository {
                 })?;
             }
             *haustier = haustier.clone().incremented();
-            data.insert(haustier.id().0.clone(), haustier.clone());
+            data.insert(haustier.id().0, haustier.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?
@@ -365,7 +371,7 @@ impl ProduktRepository for FakeProdukteRepository {
         let versioned = Versioned::init(
             Produkt::neu(id, produkt).map_err(|err| err.change_context(RepositoryError::Data))?,
         );
-        data.insert(versioned.id().0.clone(), versioned.clone());
+        data.insert(versioned.id().0, versioned.clone());
         Ok(versioned)
     }
 }
@@ -394,7 +400,7 @@ impl BehandlungRepository for FakeBehandlungenRepository {
             Behandlung::neu(id, behandlung)
                 .map_err(|err| err.change_context(RepositoryError::Data))?,
         );
-        data.insert(versioned.id().0.clone(), versioned.clone());
+        data.insert(versioned.id().0, versioned.clone());
         Ok(versioned)
     }
 }
@@ -525,7 +531,7 @@ impl SeminarRepository for FakeSeminareRepository {
         let versioned = Versioned::init(
             Seminar::neu(id, seminar).map_err(|err| err.change_context(RepositoryError::Data))?,
         );
-        data.insert(versioned.id().0.clone(), versioned.clone());
+        data.insert(versioned.id().0, versioned.clone());
         Ok(versioned)
     }
 
@@ -539,7 +545,7 @@ impl SeminarRepository for FakeSeminareRepository {
                 })?;
             }
             *seminar = seminar.clone().incremented();
-            data.insert(seminar.id().0.clone(), seminar.clone());
+            data.insert(seminar.id().0, seminar.clone());
             return Ok(());
         }
         Err(RepositoryError::NotFound)?

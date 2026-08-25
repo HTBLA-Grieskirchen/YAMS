@@ -1,6 +1,8 @@
 use serde_json::json;
 
-use super::{YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder, json_decimal};
+use super::{
+    YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder, json_decimal,
+};
 use rust_decimal::Decimal;
 
 #[pollster::test]

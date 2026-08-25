@@ -7,7 +7,7 @@ use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
     LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
-    SeminarTerminId, SeminarTerminGeplant, behandlung::NeueBehandlung, haustier::NeuesHaustier,
+    SeminarTerminGeplant, SeminarTerminId, behandlung::NeueBehandlung, haustier::NeuesHaustier,
     klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
     seminar_termin::NeuerSeminarTermin,
 };

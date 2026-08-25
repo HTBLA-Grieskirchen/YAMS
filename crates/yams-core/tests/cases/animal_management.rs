@@ -70,7 +70,12 @@ async fn test_haustier() {
     assert_eq!(batch_results.len(), 10);
 
     let haustiere = app
-        .execute_fn(async |ctx| ctx.uow.haustiere().find_by_klient_id(klient.id().clone()).await)
+        .execute_fn(async |ctx| {
+            ctx.uow
+                .haustiere()
+                .find_by_klient_id(klient.id().clone())
+                .await
+        })
         .await
         .unwrap();
     assert_eq!(haustiere.len(), haustier_amount * 2);

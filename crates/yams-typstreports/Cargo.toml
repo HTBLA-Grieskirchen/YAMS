@@ -1,0 +1,25 @@
+[package]
+name = "yams-typstreports"
+description = "Typst PdfRenderer adapter for YAMS invoices and participation confirmations"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+[dependencies]
+yams-core = { path = "../yams-core" }
+
+async-trait = { workspace = true }
+error-stack = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+rust_decimal = { workspace = true }
+
+typst-as-lib = { version = "0.16", features = ["typst-kit-fonts", "typst-kit-embed-fonts"] }
+typst-pdf = "0.15"
+typst = "0.15"
+
+[dev-dependencies]
+pollster = { version = "0.4.0", features = ["macro"] }
+uuid = { workspace = true }

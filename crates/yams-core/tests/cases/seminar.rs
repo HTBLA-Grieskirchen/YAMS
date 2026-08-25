@@ -13,8 +13,7 @@ use yams_core::service::{
 };
 
 use super::super::base_app_builder;
-use yams_core::ports::teilnahme_object_key;
-use yams_core::service::teilnahme_dokument;
+use yams_core::service::{teilnahme_dokument, teilnahme_object_key};
 use yams_fakes::{FAKE_PDF, FakeObjectStore, FakePdfRenderer};
 
 fn mwst_20() -> Ratio {

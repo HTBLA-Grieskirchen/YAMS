@@ -12,12 +12,12 @@ use yams_core::{
         HaustierId, KlientId, RechnungId, SeminarBuchungId, SeminarId,
         SeminarTermin as DomainSeminarTermin, SeminarTerminId,
     },
-    ports::{collect_object, rechnung_object_key, teilnahme_object_key},
     service::{
         BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
         LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
         SeminarBuchungStornieren, SeminarErstellen, SeminarTerminPlanen,
-        SeminarUmsatzPrognoseBisDatum, TagesabschlussDurchführen,
+        SeminarUmsatzPrognoseBisDatum, TagesabschlussDurchführen, rechnung_pdf_laden,
+        teilnahme_pdf_laden,
     },
     uow::Versioned,
 };
@@ -191,11 +191,7 @@ impl YamsAppApi {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
-                let key = rechnung_object_key(&RechnungId(rechnung_id));
-                match ctx.object_store().get(&key).await? {
-                    Some(stream) => collect_object(stream).await.map(Some).map_err(Report::new),
-                    None => Ok(None),
-                }
+                rechnung_pdf_laden(ctx.object_store(), &RechnungId(rechnung_id)).await
             })
             .await?;
         match pdf {
@@ -214,14 +210,12 @@ impl YamsAppApi {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
-                let key = teilnahme_object_key(
+                teilnahme_pdf_laden(
+                    ctx.object_store(),
                     &SeminarTerminId(termin_id),
                     &SeminarBuchungId(buchung_id),
-                );
-                match ctx.object_store().get(&key).await? {
-                    Some(stream) => collect_object(stream).await.map(Some).map_err(Report::new),
-                    None => Ok(None),
-                }
+                )
+                .await
             })
             .await?;
         match pdf {

@@ -9,8 +9,7 @@ use yams_core::service::{
 };
 
 use super::super::base_app_builder;
-use yams_core::ports::rechnung_object_key;
-use yams_core::service::rechnungsdokument;
+use yams_core::service::{rechnung_object_key, rechnungsdokument};
 use yams_fakes::{FAKE_PDF, FakeObjectStore, FakePdfRenderer, FixedClock};
 
 fn mwst_19() -> Ratio {

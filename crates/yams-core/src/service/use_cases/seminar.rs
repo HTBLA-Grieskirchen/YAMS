@@ -11,8 +11,10 @@ use crate::{
         SeminarTerminGeplant, SeminarTerminId, Zeitraum, seminar::NeuesSeminar,
         seminar_termin::NeuerSeminarTermin,
     },
-    ports::teilnahme_object_key,
-    service::{ExecutionContext, UseCase, pdf::teilnahme_dokument},
+    service::{
+        ExecutionContext, UseCase,
+        pdf::{teilnahme_dokument, teilnahme_object_key},
+    },
 };
 
 #[derive(Clone)]

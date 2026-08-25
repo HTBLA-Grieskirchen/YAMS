@@ -11,8 +11,10 @@ use crate::{
         Menge, Preis, Produkt, ProduktId, Ratio, RechnungOffen, behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
-    ports::rechnung_object_key,
-    service::{ExecutionContext, UseCase, pdf::rechnungsdokument},
+    service::{
+        ExecutionContext, UseCase,
+        pdf::{rechnung_object_key, rechnungsdokument},
+    },
 };
 
 #[derive(Clone)]

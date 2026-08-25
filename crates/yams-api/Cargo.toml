@@ -20,7 +20,11 @@ chrono = { workspace = true }
 http = { workspace = true }
 rust_decimal = { workspace = true }
 
-poem-openapi = { workspace = true, features = ["uuid", "chrono", "rust_decimal"], optional = true }
+poem-openapi = {
+    workspace = true,
+    features = ["uuid", "chrono", "rust_decimal", "swagger-ui", "redoc"],
+    optional = true,
+}
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]

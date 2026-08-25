@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "backend/server/Cargo.toml": {
-    "mtime": 1787339335.1974046,
-    "seen": 1787489081.310923,
-    "ast_hash": "0cf9cbabbcbde56ad7654d185383a1ac",
-    "semantic_hash": "0cf9cbabbcbde56ad7654d185383a1ac"
+    "mtime": 1787659985.9765615,
+    "seen": 1787660049.0169759,
+    "ast_hash": "e372a92db78c38f55452f89e3b6dd8f4",
+    "semantic_hash": ""
   },
   "backend/server/src/main.rs": {
-    "mtime": 1787655024.9212594,
-    "seen": 1787658748.1958668,
-    "ast_hash": "5b5337caabbe39be146b40185f8d5815",
+    "mtime": 1787660028.9685712,
+    "seen": 1787660049.0169802,
+    "ast_hash": "aaaf3fd3e5ab4d4ee5d1c50a56710ecf",
     "semantic_hash": ""
   },
   "crates/molting/Cargo.toml": {
@@ -68,7 +68,7 @@
   "crates/yams-api/Cargo.toml": {
     "mtime": 1787644536.7697072,
     "seen": 1787651764.0987608,
-    "ast_hash": "35fcc52da6ed7a9009181edd29a72956",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/mod.rs": {
@@ -1683,6 +1683,12 @@
     "mtime": 1787658607.4327548,
     "seen": 1787658748.2050798,
     "ast_hash": "ef22de8dd8cb8da99c3edb2bd3af8c7c",
+    "semantic_hash": ""
+  },
+  "backend/server/src/tracing_setup.rs": {
+    "mtime": 1787659986.9845614,
+    "seen": 1787660049.0169835,
+    "ast_hash": "2d40056bd7aeceaae5fbb10d24b0fb11",
     "semantic_hash": ""
   }
 }

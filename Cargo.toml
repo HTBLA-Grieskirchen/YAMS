@@ -29,6 +29,8 @@ libsql = { version = "0.9.29", default-features = false, features = ["serde", "c
 poem = "3.0"
 poem-openapi = { version = "5.1.16", features = ["swagger-ui", "uuid", "redoc"] }
 http = "1.5.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [profile.release]
 panic = "abort" # Strip expensive panic clean-up logic

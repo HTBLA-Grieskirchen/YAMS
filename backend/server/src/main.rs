@@ -1,10 +1,16 @@
+mod tracing_setup;
+
 use clap::Parser;
 use error_stack::{Report, ResultExt};
-use poem::middleware::Cors;
-use poem::{EndpointExt, IntoResponse};
-use poem::{Route, Server, listener::TcpListener};
+use poem::http::StatusCode;
+use poem::middleware::{
+    CatchPanic, Compression, Cors, Middleware, ReuseId, RequestId, Tracing,
+};
+use poem::{EndpointExt, IntoResponse, Route, Server, listener::TcpListener};
+use poem_openapi::payload::PlainText;
 use thiserror::Error;
-use yams_api::openapi_service;
+use tracing_setup::init_tracing;
+use yams_api::{errors::InternalServerError, openapi_service};
 use yams_core::App;
 use yams_persistence::SQLiteInstance;
 
@@ -32,8 +38,19 @@ struct Config {
 #[error("Backend server fatal error")]
 pub struct BackendServerError;
 
+fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
+    CatchPanic::new().with_handler(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            PlainText(InternalServerError),
+        )
+            .into_response()
+    })
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Report<BackendServerError>> {
+    init_tracing();
     let config = Config::parse();
 
     let mut adapter = SQLiteInstance::local(&config.database_url)
@@ -69,6 +86,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             || origin == "tauri://localhost"
     });
 
+    let request_tracing = Tracing::default().combine(Compression::new());
+
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())
         .nest("/redoc", api_service.redoc())
@@ -83,9 +102,12 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             }),
         )
         .nest("/api", api_service)
+        .with(request_tracing)
+        .with(RequestId::new().reuse_id(ReuseId::Use))
+        .with(catch_panic())
         .with(cors);
 
-    println!("Server started at {}", api_url);
+    tracing::info!("Server started at {}", api_url);
     Server::new(TcpListener::bind(format!(
         "{}:{}",
         config.bind_address, config.port

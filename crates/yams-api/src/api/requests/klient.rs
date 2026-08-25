@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
 use yams_core::service::KlientErstellen;
 
-use crate::{errors::ValidationError, schema::Adresse};
+use crate::{errors::ValidationError, schema::{Adresse, EmailAdresse, Mobilnummer}};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
@@ -13,8 +13,8 @@ pub struct KlientErstellung {
     pub vorname: String,
     pub nachname: String,
     pub geburtstag: NaiveDate,
-    pub email: String,
-    pub mobilnummer: String,
+    pub email: EmailAdresse,
+    pub mobilnummer: Mobilnummer,
     pub kundennummer: u64,
     pub einwilligung: bool,
     pub adresse: Adresse,

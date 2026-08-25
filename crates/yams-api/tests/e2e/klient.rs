@@ -29,6 +29,8 @@ async fn klient_erstellen_returns_camelcase_utf8_json() {
     assert_status_ok(status);
     assert_eq!(body["vorname"], "Anna");
     assert_eq!(body["nachname"], "Muster");
+    assert_eq!(body["email"], "anna@muster.de");
+    assert_eq!(body["mobilnummer"], "1234567890");
     assert_eq!(body["kundennummer"], 1001);
     assert_eq!(body["adresse"]["postleitzahl"], "4711");
     assert_eq!(body["adresse"]["ländercode"], "DE");

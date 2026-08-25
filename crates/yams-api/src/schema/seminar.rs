@@ -49,6 +49,17 @@ impl From<&domain::SeminarOrt> for SeminarOrt {
     }
 }
 
+impl TryFrom<SeminarOrt> for domain::SeminarOrt {
+    type Error = domain::adresse::LändercodeValidierungsfehler;
+    fn try_from(value: SeminarOrt) -> Result<Self, Self::Error> {
+        let adresse = match value.adresse {
+            Some(adresse) => Some(domain::Adresse::try_from(adresse)?),
+            None => None,
+        };
+        Ok(domain::SeminarOrt::neu(value.ort_name, adresse))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Enum))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

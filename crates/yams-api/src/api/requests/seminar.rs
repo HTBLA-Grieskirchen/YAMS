@@ -3,16 +3,14 @@ use error_stack::{Report, ResultExt};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
-    domain::{
-        KlientId, Preis, Ratio, SeminarBuchungId, SeminarId, SeminarOrt, SeminarTerminId, Zeitraum,
-    },
+    domain::{KlientId, Preis, Ratio, SeminarBuchungId, SeminarId, SeminarTerminId, Zeitraum},
     service::{
         SeminarBuchungAnlegen, SeminarErstellen, SeminarTerminAbsagen, SeminarTerminAktualisieren,
         SeminarTerminAlsAbgehaltenMarkieren, SeminarTerminPlanen,
     },
 };
 
-use crate::{errors::ValidationError, schema::Adresse};
+use crate::{errors::ValidationError, schema::SeminarOrt};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
@@ -45,32 +43,11 @@ impl TryFrom<SeminarErstellung> for SeminarErstellen {
 #[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-pub struct SeminarOrtErstellung {
-    pub ort_name: Option<String>,
-    pub adresse: Option<Adresse>,
-}
-
-impl TryFrom<SeminarOrtErstellung> for SeminarOrt {
-    type Error = Report<ValidationError>;
-    fn try_from(value: SeminarOrtErstellung) -> Result<Self, Self::Error> {
-        let adresse = match value.adresse {
-            Some(adresse) => Some(adresse.try_into().change_context(ValidationError)?),
-            None => None,
-        };
-        Ok(SeminarOrt::neu(value.ort_name, adresse))
-    }
-}
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
-#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct SeminarTerminErstellung {
     pub seminar_id: Uuid,
     pub beginn: DateTime<Utc>,
     pub ende: DateTime<Utc>,
-    pub ort: SeminarOrtErstellung,
+    pub ort: SeminarOrt,
     pub max_teilnehmer: Option<u32>,
 }
 
@@ -80,7 +57,7 @@ impl TryFrom<SeminarTerminErstellung> for SeminarTerminPlanen {
         Ok(Self {
             seminar_id: SeminarId(value.seminar_id),
             zeitraum: Zeitraum::neu(value.beginn, value.ende).change_context(ValidationError)?,
-            ort: value.ort.try_into()?,
+            ort: value.ort.try_into().change_context(ValidationError)?,
             max_teilnehmer: value.max_teilnehmer,
         })
     }
@@ -94,7 +71,7 @@ impl TryFrom<SeminarTerminErstellung> for SeminarTerminPlanen {
 pub struct SeminarTerminAktualisierung {
     pub beginn: DateTime<Utc>,
     pub ende: DateTime<Utc>,
-    pub ort: SeminarOrtErstellung,
+    pub ort: SeminarOrt,
     pub max_teilnehmer: Option<u32>,
 }
 
@@ -106,7 +83,7 @@ impl SeminarTerminAktualisierung {
         Ok(SeminarTerminAktualisieren {
             termin_id: SeminarTerminId(termin_id),
             zeitraum: Zeitraum::neu(self.beginn, self.ende).change_context(ValidationError)?,
-            ort: self.ort.try_into()?,
+            ort: self.ort.try_into().change_context(ValidationError)?,
             max_teilnehmer: self.max_teilnehmer,
         })
     }

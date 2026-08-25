@@ -3,6 +3,7 @@ mod behandlung;
 mod haustier;
 mod klient;
 mod produkt;
+mod seminar;
 
 use std::str::FromStr;
 
@@ -39,12 +40,20 @@ impl YamsApiTestClient {
         &self.client
     }
 
+    pub async fn post(&self, path: &str) -> (StatusCode, Value) {
+        json_response(self.client.post(path).send().await).await
+    }
+
     pub async fn post_json(&self, path: &str, body: Value) -> (StatusCode, Value) {
         json_response(self.client.post(path).body_json(&body).send().await).await
     }
 
     pub async fn get_json(&self, path: &str) -> (StatusCode, Value) {
         json_response(self.client.get(path).send().await).await
+    }
+
+    pub async fn put_json(&self, path: &str, body: Value) -> (StatusCode, Value) {
+        json_response(self.client.put(path).body_json(&body).send().await).await
     }
 }
 

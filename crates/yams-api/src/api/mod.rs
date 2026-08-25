@@ -7,11 +7,12 @@ use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
     application::ExecutionError,
-    domain::{HaustierId, KlientId},
+    domain::{HaustierId, KlientId, SeminarId, SeminarTerminId},
     service::{
         BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
         LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
-        TagesabschlussDurchführen,
+        SeminarBuchungStornieren, SeminarErstellen, SeminarTerminPlanen,
+        SeminarUmsatzPrognoseBisDatum, SeminarUmsatzVorschau, TagesabschlussDurchführen,
     },
     uow::Versioned,
 };
@@ -20,13 +21,17 @@ use crate::{
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
-        ProduktErstellung, TagesabschlussErstellung,
+        ProduktErstellung, SeminarBuchungErstellung, SeminarErstellung, SeminarTerminAbsage,
+        SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
+        abgehalten_use_case, buchung_id,
     },
     schema::{
-        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, schema_behandlung_from_domain,
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTerminDto,
+        SeminarUmsatzPrognose, SeminarUmsatzVorschau as SeminarUmsatzVorschauDto, schema_behandlung_from_domain,
         schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
-        schema_produkt_from_domain, schema_rechnung_from_domain,
-        schema_rechnung_from_domain_rechnung,
+        schema_produkt_from_domain, schema_prognose_from_domain, schema_rechnung_from_domain,
+        schema_rechnung_from_domain_rechnung, schema_seminar_from_domain,
+        schema_seminar_termin_from_domain, schema_umsatz_from_domain,
     },
 };
 
@@ -175,5 +180,133 @@ impl YamsAppApi {
         Ok(rechnungen
             .map(schema_rechnung_from_domain_rechnung)
             .collect())
+    }
+
+    pub async fn seminar_erstellen(
+        &self,
+        body: SeminarErstellung,
+    ) -> ResultReport<Seminar, ExecutionError> {
+        let seminar = self
+            .app
+            .execute(SeminarErstellen::try_from(body).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_seminar_from_domain(seminar))
+    }
+
+    pub async fn seminar_by_id(&self, id: Uuid) -> ResultReport<Seminar, ExecutionError> {
+        let seminar = self
+            .app
+            .execute_fn(async |ctx| ctx.uow.seminare().find_by_id(SeminarId(id)).await)
+            .await?
+            .into_data();
+        Ok(schema_seminar_from_domain(seminar))
+    }
+
+    pub async fn seminar_termin_planen(
+        &self,
+        body: SeminarTerminErstellung,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self
+            .app
+            .execute(SeminarTerminPlanen::try_from(body).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_by_id(
+        &self,
+        id: Uuid,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self
+            .app
+            .execute_fn(async |ctx| {
+                ctx.uow
+                    .seminar_termine()
+                    .find_by_id(SeminarTerminId(id))
+                    .await
+            })
+            .await?
+            .into_data();
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_aktualisieren(
+        &self,
+        id: Uuid,
+        body: SeminarTerminAktualisierung,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self
+            .app
+            .execute(body.into_use_case(id).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_buchung_anlegen(
+        &self,
+        termin_id: Uuid,
+        body: SeminarBuchungErstellung,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self
+            .app
+            .execute(body.into_use_case(termin_id).change_context(ExecutionError)?)
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_buchung_stornieren(
+        &self,
+        termin_id: Uuid,
+        buchung: Uuid,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self
+            .app
+            .execute(SeminarBuchungStornieren {
+                termin_id: SeminarTerminId(termin_id),
+                buchung_id: buchung_id(buchung),
+            })
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_absagen(
+        &self,
+        termin_id: Uuid,
+        body: SeminarTerminAbsage,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self.app.execute(body.into_use_case(termin_id)).await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_abgehalten(
+        &self,
+        termin_id: Uuid,
+    ) -> ResultReport<SeminarTerminDto, ExecutionError> {
+        let termin = self.app.execute(abgehalten_use_case(termin_id)).await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_umsatz_vorschau(
+        &self,
+        termin_id: Uuid,
+    ) -> ResultReport<SeminarUmsatzVorschauDto, ExecutionError> {
+        let umsatz = self
+            .app
+            .execute(SeminarUmsatzVorschau {
+                termin_id: SeminarTerminId(termin_id),
+            })
+            .await?;
+        Ok(schema_umsatz_from_domain(umsatz))
+    }
+
+    pub async fn seminar_umsatz_prognose(
+        &self,
+        stichtag: chrono::NaiveDate,
+    ) -> ResultReport<SeminarUmsatzPrognose, ExecutionError> {
+        let prognose = self
+            .app
+            .execute(SeminarUmsatzPrognoseBisDatum { stichtag })
+            .await?;
+        Ok(schema_prognose_from_domain(prognose))
     }
 }

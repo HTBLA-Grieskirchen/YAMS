@@ -27,7 +27,7 @@
 ## Standalone Server (`yams-server`)
 
 - **Framework**: `poem-openapi`.
-- **Routes**: `/klient`, `/haustier`, `/produkt`, `/behandlung`, `/leistung`, `/rechnung`, `/tagesabschluss`.
+- **Routes**: `/klient`, `/haustier`, `/produkt`, `/behandlung`, `/leistung`, `/rechnung`, `/tagesabschluss`, `/seminar`, `/seminar-termin`, `/seminar-prognose`.
 
 ## Tauri Embedded (`frontend/src-tauri`)
 

@@ -6,6 +6,7 @@ mod kontakt;
 mod leistung;
 mod produkt;
 mod rechnung;
+mod seminar;
 
 pub use adresse::*;
 pub use behandlung::*;
@@ -15,3 +16,4 @@ pub use kontakt::*;
 pub use leistung::*;
 pub use produkt::*;
 pub use rechnung::*;
+pub use seminar::*;

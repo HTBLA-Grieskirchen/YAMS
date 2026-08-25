@@ -86,7 +86,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             || origin == "tauri://localhost"
     });
 
-    let request_tracing = Tracing::default().combine(Compression::new());
+    let tracing = Tracing::default()
+        .combine(RequestId::new().reuse_id(ReuseId::Use));
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())
@@ -102,8 +103,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             }),
         )
         .nest("/api", api_service)
-        .with(request_tracing)
-        .with(RequestId::new().reuse_id(ReuseId::Use))
+        .with(Compression::new())
+        .with(tracing)
         .with(catch_panic())
         .with(cors);
 

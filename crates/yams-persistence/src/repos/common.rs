@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
@@ -177,6 +177,16 @@ pub fn menge_to_str(menge: &Menge) -> String {
 
 pub fn format_naive_date(date: NaiveDate) -> String {
     date.format("%Y-%m-%d").to_string()
+}
+
+pub fn format_datetime(dt: DateTime<Utc>) -> String {
+    dt.to_rfc3339()
+}
+
+pub fn parse_datetime(s: &str) -> Result<DateTime<Utc>, RepositoryError> {
+    DateTime::parse_from_rfc3339(s)
+        .map(|dt| dt.with_timezone(&Utc))
+        .map_err(|_| RepositoryError::Data)
 }
 
 pub fn parse_klient_id(s: &str) -> Result<KlientId, RepositoryError> {

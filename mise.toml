@@ -6,6 +6,7 @@ jobs = 1
 node = "22"
 "pipx:graphifyy" = "latest"
 "npm:diffx-cli" = "latest"
+"cargo:cargo-nextest" = "latest"
 
 [env]
 FRONTEND_DIR = "frontend"

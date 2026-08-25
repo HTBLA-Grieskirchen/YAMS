@@ -1,9 +1,13 @@
 use crate::{ResultReport, application::ExecutionContext};
 
 use async_trait::async_trait;
+mod pdf;
+mod praxis;
 mod use_cases;
 
 use error_stack::IntoReport;
+pub use pdf::*;
+pub use praxis::*;
 pub use use_cases::*;
 
 #[async_trait]

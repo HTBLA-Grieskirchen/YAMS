@@ -9,7 +9,9 @@ use yams_core::service::{
 };
 
 use super::super::base_app_builder;
-use yams_fakes::FixedClock;
+use yams_core::ports::rechnung_object_key;
+use yams_core::service::rechnungsdokument;
+use yams_fakes::{FAKE_PDF, FakeObjectStore, FakePdfRenderer, FixedClock};
 
 fn mwst_19() -> Ratio {
     Ratio::new(Decimal::new(19, 2)).unwrap()
@@ -26,9 +28,24 @@ struct AbrechnungSetup {
     abschlussdatum: NaiveDate,
 }
 
-async fn setup_abrechnung_fixture() -> AbrechnungSetup {
-    let app = Arc::new(base_app_builder().await.build());
+async fn app_with_pdf_fakes() -> (Arc<yams_core::App>, FakeObjectStore, FakePdfRenderer) {
+    let store = FakeObjectStore::new();
+    let renderer = FakePdfRenderer::new();
+    let app = Arc::new(
+        base_app_builder()
+            .await
+            .object_store(Arc::new(store.clone()))
+            .pdf_renderer(Arc::new(renderer.clone()))
+            .build(),
+    );
+    (app, store, renderer)
+}
 
+async fn setup_abrechnung_fixture() -> AbrechnungSetup {
+    setup_abrechnung_on(Arc::new(base_app_builder().await.build())).await
+}
+
+async fn setup_abrechnung_on(app: Arc<yams_core::App>) -> AbrechnungSetup {
     let klient1 = app
         .execute(KlientErstellen {
             vorname: "Anna".into(),
@@ -355,4 +372,40 @@ async fn test_tagesabschluss_incremental_reclose_bills_only_new_leistung() {
     assert_eq!(second[0].klient_id(), setup.klient1.id());
     assert_eq!(second[0].positionen().len(), 1);
     assert!(second[0].rechnungsnummer() > max_nummer);
+}
+
+#[pollster::test]
+async fn tagesabschluss_schreibt_pdfs_und_ruft_renderer_mit_rechnungsdaten() {
+    let (app, store, renderer) = app_with_pdf_fakes().await;
+    let setup = setup_abrechnung_on(app).await;
+
+    let rechnungen = setup
+        .app
+        .execute(TagesabschlussDurchführen {
+            abschlussdatum: Some(setup.abschlussdatum),
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(rechnungen.len(), 2);
+    let calls = renderer.calls();
+    assert_eq!(calls.len(), 2);
+
+    for rechnung in &rechnungen {
+        let klient = if rechnung.klient_id() == setup.klient1.id() {
+            &setup.klient1
+        } else {
+            &setup.klient2
+        };
+        let expected = rechnungsdokument(rechnung, klient);
+        assert!(
+            calls.contains(&expected),
+            "missing renderer call for rechnung {}",
+            rechnung.rechnungsnummer()
+        );
+        assert_eq!(
+            store.stored(&rechnung_object_key(rechnung.id())).as_deref(),
+            Some(FAKE_PDF)
+        );
+    }
 }

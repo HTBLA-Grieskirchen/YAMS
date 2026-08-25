@@ -13,6 +13,9 @@ use yams_core::service::{
 };
 
 use super::super::base_app_builder;
+use yams_core::ports::teilnahme_object_key;
+use yams_core::service::teilnahme_dokument;
+use yams_fakes::{FAKE_PDF, FakeObjectStore, FakePdfRenderer};
 
 fn mwst_20() -> Ratio {
     Ratio::new(Decimal::new(20, 2)).unwrap()
@@ -64,6 +67,19 @@ async fn seminar(app: &yams_core::App) -> Seminar {
     })
     .await
     .unwrap()
+}
+
+async fn app_with_pdf_fakes() -> (Arc<yams_core::App>, FakeObjectStore, FakePdfRenderer) {
+    let store = FakeObjectStore::new();
+    let renderer = FakePdfRenderer::new();
+    let app = Arc::new(
+        base_app_builder()
+            .await
+            .object_store(Arc::new(store.clone()))
+            .pdf_renderer(Arc::new(renderer.clone()))
+            .build(),
+    );
+    (app, store, renderer)
 }
 
 async fn termin(app: &yams_core::App, seminar: &Seminar, max: Option<u32>) -> SeminarTermin {
@@ -516,6 +532,72 @@ async fn storno_erlaubt_erneute_buchung_desselben_klienten() {
         panic!("expected abgehalten");
     };
     assert_eq!(abgehalten.leistungen().len(), 1);
+}
+
+#[pollster::test]
+async fn abgehalten_schreibt_teilnahme_pdf_für_bestätigte_buchungen() {
+    let (app, store, renderer) = app_with_pdf_fakes().await;
+    let seminar = seminar(&app).await;
+    let a = klient(&app, 2100, "pdf-a@test.de").await;
+    let b = klient(&app, 2101, "pdf-b@test.de").await;
+    let termin = termin(&app, &seminar, None).await;
+
+    app.execute(SeminarBuchungAnlegen {
+        termin_id: termin.id().clone(),
+        klient_id: a.id().clone(),
+        rabatt: Ratio::zero(),
+    })
+    .await
+    .unwrap();
+    let gebucht_b = app
+        .execute(SeminarBuchungAnlegen {
+            termin_id: termin.id().clone(),
+            klient_id: b.id().clone(),
+            rabatt: Ratio::zero(),
+        })
+        .await
+        .unwrap();
+    let b_buchung_id = gebucht_b
+        .buchungen()
+        .iter()
+        .find(|buchung| buchung.klient_id() == b.id())
+        .unwrap()
+        .id()
+        .clone();
+    app.execute(SeminarBuchungStornieren {
+        termin_id: termin.id().clone(),
+        buchung_id: b_buchung_id.clone(),
+    })
+    .await
+    .unwrap();
+
+    let abgehalten = app
+        .execute(SeminarTerminAlsAbgehaltenMarkieren {
+            termin_id: termin.id().clone(),
+        })
+        .await
+        .unwrap();
+    let SeminarTermin::Abgehalten(abgehalten) = abgehalten else {
+        panic!("expected abgehalten");
+    };
+
+    let bestätigt: Vec<_> = abgehalten.bestätigte_buchungen().cloned().collect();
+    assert_eq!(bestätigt.len(), 1);
+    assert_eq!(bestätigt[0].klient_id(), a.id());
+
+    let expected = teilnahme_dokument(&abgehalten, &seminar, &bestätigt[0], &a);
+    assert_eq!(renderer.calls(), vec![expected]);
+    assert_eq!(
+        store
+            .stored(&teilnahme_object_key(abgehalten.id(), bestätigt[0].id()))
+            .as_deref(),
+        Some(FAKE_PDF)
+    );
+    assert!(
+        store
+            .stored(&teilnahme_object_key(abgehalten.id(), &b_buchung_id))
+            .is_none()
+    );
 }
 
 #[pollster::test]

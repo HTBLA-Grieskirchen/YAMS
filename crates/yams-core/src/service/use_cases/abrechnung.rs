@@ -11,7 +11,8 @@ use crate::{
         Menge, Preis, Produkt, ProduktId, Ratio, RechnungOffen, behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
-    service::{ExecutionContext, UseCase},
+    ports::rechnung_object_key,
+    service::{ExecutionContext, UseCase, pdf::rechnungsdokument},
 };
 
 #[derive(Clone)]
@@ -234,20 +235,29 @@ pub enum TagesabschlussDurchführenFehler {
     Persistenz,
     #[error("rechnung konnte nicht erstellt werden")]
     Rechnung,
+    #[error("klient nicht gefunden")]
+    KlientNichtGefunden,
+    #[error("pdf konnte nicht erzeugt werden")]
+    Pdf,
+    #[error("pdf konnte nicht gespeichert werden")]
+    Speicher,
 }
 
 #[async_trait]
 impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
     type Error = Report<TagesabschlussDurchführenFehler>;
 
-    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Vec<RechnungOffen>, Self::Error> {
+    async fn perform(
+        self,
+        mut ctx: ExecutionContext<'_>,
+    ) -> Result<Vec<RechnungOffen>, Self::Error> {
         let abschlussdatum = match self.abschlussdatum {
             Some(datum) => datum,
             None => ctx.clock().today(),
         };
-        let ExecutionContext { mut uow, .. } = ctx;
 
-        let leistungen = uow
+        let leistungen = ctx
+            .uow
             .leistungen()
             .find_offene_by_datum(abschlussdatum)
             .await
@@ -268,7 +278,8 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 .map(|l| Versioned::new(l.v(), Leistung::from(l.cloned_data())))
                 .collect();
 
-            let rechnungsnummer = uow
+            let rechnungsnummer = ctx
+                .uow
                 .rechnungen()
                 .nächste_rechnungsnummer()
                 .await
@@ -281,7 +292,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                     .collect();
 
                 RechnungOffen::aus_leistungen(
-                    klient_id,
+                    klient_id.clone(),
                     rechnungsnummer,
                     abschlussdatum,
                     &mut leistung_refs,
@@ -291,7 +302,8 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 })?
             };
 
-            let persisted = uow
+            let persisted = ctx
+                .uow
                 .rechnungen()
                 .create(rechnung)
                 .await
@@ -299,14 +311,34 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
 
             for mut versioned in versioned_leistungen {
                 if matches!(*versioned, Leistung::Abgerechnet(_)) {
-                    uow.leistungen()
+                    ctx.uow
+                        .leistungen()
                         .update(&mut versioned)
                         .await
                         .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
                 }
             }
 
-            uow.checkpoint()
+            let klient = ctx
+                .uow
+                .klienten()
+                .find_by_id(klient_id)
+                .await
+                .change_context(TagesabschlussDurchführenFehler::KlientNichtGefunden)?
+                .into_data();
+            let dokument = rechnungsdokument(&*persisted, &klient);
+            let pdf = ctx
+                .pdf_renderer()
+                .rendern(&dokument)
+                .await
+                .change_context(TagesabschlussDurchführenFehler::Pdf)?;
+            ctx.object_store()
+                .put(&rechnung_object_key(persisted.id()), &pdf)
+                .await
+                .change_context(TagesabschlussDurchführenFehler::Speicher)?;
+
+            ctx.uow
+                .checkpoint()
                 .await
                 .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 

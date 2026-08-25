@@ -11,7 +11,8 @@ use crate::{
         SeminarTerminGeplant, SeminarTerminId, Zeitraum, seminar::NeuesSeminar,
         seminar_termin::NeuerSeminarTermin,
     },
-    service::{ExecutionContext, UseCase},
+    ports::teilnahme_object_key,
+    service::{ExecutionContext, UseCase, pdf::teilnahme_dokument},
 };
 
 #[derive(Clone)]
@@ -302,6 +303,12 @@ pub enum SeminarTerminAlsAbgehaltenMarkierenFehler {
     NichtGeplant,
     #[error("leistungen-mapping unvollständig")]
     Invariante,
+    #[error("klient nicht gefunden")]
+    KlientNichtGefunden,
+    #[error("pdf konnte nicht erzeugt werden")]
+    Pdf,
+    #[error("pdf konnte nicht gespeichert werden")]
+    Speicher,
 }
 
 #[async_trait]
@@ -310,8 +317,8 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
         let now = ctx.clock().now();
-        let ExecutionContext { uow, .. } = ctx;
-        let mut termin = uow
+        let mut termin = ctx
+            .uow
             .seminar_termine()
             .find_by_id(self.termin_id)
             .await
@@ -326,7 +333,8 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             }
         };
 
-        let seminar = uow
+        let seminar = ctx
+            .uow
             .seminare()
             .find_by_id(geplant.seminar_id().clone())
             .await
@@ -335,7 +343,8 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
 
         let mut mapping = FxHashMap::default();
         for (buchung_id, neue_leistung) in geplant.teilnahmeleistungen(&seminar) {
-            let offen = uow
+            let offen = ctx
+                .uow
                 .leistungen()
                 .create(neue_leistung)
                 .await
@@ -348,10 +357,33 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Invariante)?;
         *termin.deref_mut() = SeminarTermin::from(abgehalten);
 
-        uow.seminar_termine()
+        ctx.uow
+            .seminar_termine()
             .update(&mut termin)
             .await
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+
+        if let SeminarTermin::Abgehalten(abgehalten) = &*termin {
+            for buchung in abgehalten.bestätigte_buchungen() {
+                let klient = ctx
+                    .uow
+                    .klienten()
+                    .find_by_id(buchung.klient_id().clone())
+                    .await
+                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden)?
+                    .into_data();
+                let dokument = teilnahme_dokument(abgehalten, &seminar, buchung, &klient);
+                let pdf = ctx
+                    .pdf_renderer()
+                    .rendern(&dokument)
+                    .await
+                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Pdf)?;
+                ctx.object_store()
+                    .put(&teilnahme_object_key(abgehalten.id(), buchung.id()), &pdf)
+                    .await
+                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Speicher)?;
+            }
+        }
 
         Ok(termin.into_data())
     }

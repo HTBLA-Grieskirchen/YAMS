@@ -228,11 +228,8 @@ impl<S> SeminarTerminIn<S> {
 }
 
 impl SeminarTerminGeplant {
-    pub fn neu(
-        id: SeminarTerminId,
-        neu: NeuerSeminarTermin,
-    ) -> ResultReport<Self, crate::domain::zeitraum::ZeitraumFehler> {
-        Ok(Self {
+    pub fn neu(id: SeminarTerminId, neu: NeuerSeminarTermin) -> Self {
+        Self {
             id,
             seminar_id: neu.seminar_id,
             zeitraum: neu.zeitraum,
@@ -240,7 +237,7 @@ impl SeminarTerminGeplant {
             max_teilnehmer: neu.max_teilnehmer,
             buchungen: Vec::new(),
             state: Geplant,
-        })
+        }
     }
 
     pub fn buchung_anlegen(
@@ -587,7 +584,6 @@ mod tests {
                 max,
             ),
         )
-        .unwrap()
     }
 
     fn klient() -> KlientId {

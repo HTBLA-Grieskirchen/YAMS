@@ -4,7 +4,8 @@ use async_trait::async_trait;
 use yams_core::{
     ports::{
         BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
-        ProduktRepository, RechnungRepository, RepositoryResult,
+        ProduktRepository, RechnungRepository, RepositoryResult, SeminarRepository,
+        SeminarTerminRepository,
     },
     uow::{UnitOfWorkImpl, UnitOfWorkProvider},
 };
@@ -12,6 +13,7 @@ use yams_core::{
 use crate::repository::{
     FakeBehandlungenRepository, FakeDatastore, FakeHaustiereRepository, FakeKlientenRepository,
     FakeLeistungenRepository, FakeProdukteRepository, FakeRechnungenRepository,
+    FakeSeminarTermineRepository, FakeSeminareRepository,
 };
 
 pub struct FakeUnitOfWorkProvider {
@@ -54,6 +56,8 @@ pub struct FakeUnitOfWork {
     behandlungen: FakeBehandlungenRepository,
     leistungen: FakeLeistungenRepository,
     rechnungen: FakeRechnungenRepository,
+    seminare: FakeSeminareRepository,
+    seminar_termine: FakeSeminarTermineRepository,
 }
 
 impl FakeUnitOfWork {
@@ -70,6 +74,8 @@ impl FakeUnitOfWork {
             behandlungen: FakeBehandlungenRepository::new(Arc::clone(&transaction_datastore)),
             leistungen: FakeLeistungenRepository::new(Arc::clone(&transaction_datastore)),
             rechnungen: FakeRechnungenRepository::new(Arc::clone(&transaction_datastore)),
+            seminare: FakeSeminareRepository::new(Arc::clone(&transaction_datastore)),
+            seminar_termine: FakeSeminarTermineRepository::new(Arc::clone(&transaction_datastore)),
             backing_datastore,
             snapshotted_datastore,
             transaction_datastore,
@@ -147,6 +153,14 @@ impl UnitOfWorkImpl for FakeUnitOfWork {
 
     fn rechnungen(&self) -> &dyn RechnungRepository {
         &self.rechnungen
+    }
+
+    fn seminare(&self) -> &dyn SeminarRepository {
+        &self.seminare
+    }
+
+    fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
+        &self.seminar_termine
     }
 }
 

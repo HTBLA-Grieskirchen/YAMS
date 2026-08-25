@@ -42,6 +42,19 @@ pub struct LeistungQuelleManuell {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct LeistungQuelleSeminar {
+    pub termin_id: Uuid,
+    pub buchung_id: Uuid,
+    pub teilnahmegebühr_basis: Decimal,
+    pub rabatt: Decimal,
+    pub teilnahmegebühr: Decimal,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Union))]
 #[cfg_attr(feature = "openapi", oai(discriminator_name = "typ", one_of = true))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -50,6 +63,7 @@ pub enum LeistungQuelle {
     Produkt(LeistungQuelleProdukt),
     Behandlung(LeistungQuelleBehandlung),
     Manuell(LeistungQuelleManuell),
+    Seminar(LeistungQuelleSeminar),
 }
 
 #[derive(Debug, Clone)]
@@ -125,5 +139,19 @@ fn schema_quelle_from_domain(quelle: &domain::LeistungQuelle) -> LeistungQuelle 
                 preis: preis.value(),
             })
         }
+        domain::LeistungQuelle::Seminar {
+            termin_id,
+            buchung_id,
+            teilnahmegebühr_basis,
+            rabatt,
+            teilnahmegebühr,
+            ..
+        } => LeistungQuelle::Seminar(LeistungQuelleSeminar {
+            termin_id: termin_id.0,
+            buchung_id: buchung_id.0,
+            teilnahmegebühr_basis: teilnahmegebühr_basis.value(),
+            rabatt: rabatt.value(),
+            teilnahmegebühr: teilnahmegebühr.value(),
+        }),
     }
 }

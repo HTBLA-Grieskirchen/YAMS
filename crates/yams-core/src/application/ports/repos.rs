@@ -6,8 +6,10 @@ use chrono::NaiveDate;
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungOffen,
-    Produkt, ProduktId, Rechnung, RechnungOffen, behandlung::NeueBehandlung,
-    haustier::NeuesHaustier, klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt,
+    Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
+    SeminarTerminId, SeminarTerminGeplant, behandlung::NeueBehandlung, haustier::NeuesHaustier,
+    klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
+    seminar_termin::NeuerSeminarTermin,
 };
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
@@ -63,6 +65,31 @@ pub trait RechnungRepository: Send + Sync {
         &self,
         klient_id: KlientId,
     ) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
+}
+
+#[async_trait]
+pub trait SeminarRepository: Send + Sync {
+    async fn find_by_id(&self, id: SeminarId) -> RepositoryResult<Versioned<Seminar>>;
+    async fn create(&self, seminar: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>>;
+    async fn update(&self, seminar: &mut Versioned<Seminar>) -> RepositoryResult<()>;
+}
+
+#[async_trait]
+pub trait SeminarTerminRepository: Send + Sync {
+    async fn find_by_id(&self, id: SeminarTerminId) -> RepositoryResult<Versioned<SeminarTermin>>;
+    async fn find_by_seminar_id(
+        &self,
+        seminar_id: SeminarId,
+    ) -> RepositoryResult<Vec<Versioned<SeminarTermin>>>;
+    async fn find_nicht_vollständig_abgerechnet_bis(
+        &self,
+        stichtag: NaiveDate,
+    ) -> RepositoryResult<Vec<Versioned<SeminarTermin>>>;
+    async fn create(
+        &self,
+        termin: NeuerSeminarTermin,
+    ) -> RepositoryResult<Versioned<SeminarTerminGeplant>>;
+    async fn update(&self, termin: &mut Versioned<SeminarTermin>) -> RepositoryResult<()>;
 }
 
 #[derive(thiserror::Error, Debug)]

@@ -10,16 +10,20 @@ use uuid::Uuid;
 use yams_core::{
     domain::{
         Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-        LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen,
+        LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId,
+        SeminarTermin, SeminarTerminGeplant, SeminarTerminId,
         behandlung::NeueBehandlung,
         haustier::NeuesHaustier,
         klient::NeuerKlient,
         leistung::{LeistungOffen as LeistungOffenType, NeueLeistung},
         produkt::NeuesProdukt,
+        seminar::NeuesSeminar,
+        seminar_termin::NeuerSeminarTermin,
     },
     ports::{
         BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
         ProduktRepository, RechnungRepository, RepositoryError, RepositoryResult,
+        SeminarRepository, SeminarTerminRepository,
     },
     uow::Versioned,
 };
@@ -31,6 +35,8 @@ pub struct FakeDatastore {
     pub behandlungen: Mutex<FxHashMap<Uuid, Versioned<Behandlung>>>,
     pub leistungen: Mutex<FxHashMap<Uuid, Versioned<Leistung>>>,
     pub rechnungen: Mutex<FxHashMap<Uuid, Versioned<Rechnung>>>,
+    pub seminare: Mutex<FxHashMap<Uuid, Versioned<Seminar>>>,
+    pub seminar_termine: Mutex<FxHashMap<Uuid, Versioned<SeminarTermin>>>,
 }
 
 impl Clone for FakeDatastore {
@@ -42,6 +48,8 @@ impl Clone for FakeDatastore {
             behandlungen: Mutex::new(self.behandlungen.lock().unwrap().clone()),
             leistungen: Mutex::new(self.leistungen.lock().unwrap().clone()),
             rechnungen: Mutex::new(self.rechnungen.lock().unwrap().clone()),
+            seminare: Mutex::new(self.seminare.lock().unwrap().clone()),
+            seminar_termine: Mutex::new(self.seminar_termine.lock().unwrap().clone()),
         }
     }
 }
@@ -55,6 +63,8 @@ impl FakeDatastore {
             behandlungen: Mutex::new(FxHashMap::default()),
             leistungen: Mutex::new(FxHashMap::default()),
             rechnungen: Mutex::new(FxHashMap::default()),
+            seminare: Mutex::new(FxHashMap::default()),
+            seminar_termine: Mutex::new(FxHashMap::default()),
         }
     }
 
@@ -65,6 +75,8 @@ impl FakeDatastore {
         *self.behandlungen.lock().unwrap() = other.behandlungen.lock().unwrap().clone();
         *self.leistungen.lock().unwrap() = other.leistungen.lock().unwrap().clone();
         *self.rechnungen.lock().unwrap() = other.rechnungen.lock().unwrap().clone();
+        *self.seminare.lock().unwrap() = other.seminare.lock().unwrap().clone();
+        *self.seminar_termine.lock().unwrap() = other.seminar_termine.lock().unwrap().clone();
     }
 
     pub fn merge(
@@ -84,6 +96,8 @@ impl FakeDatastore {
         let mut target_behandlungen = acquire_map_lock(&target.behandlungen)?;
         let mut target_leistungen = acquire_map_lock(&target.leistungen)?;
         let mut target_rechnungen = acquire_map_lock(&target.rechnungen)?;
+        let mut target_seminare = acquire_map_lock(&target.seminare)?;
+        let mut target_seminar_termine = acquire_map_lock(&target.seminar_termine)?;
 
         FakeDatastore::merge_single_aggregate(
             target_klienten.deref_mut(),
@@ -115,6 +129,16 @@ impl FakeDatastore {
             &*acquire_map_lock(&reference.rechnungen)?,
             &*acquire_map_lock(&tx.rechnungen)?,
         )?;
+        FakeDatastore::merge_single_aggregate(
+            target_seminare.deref_mut(),
+            &*acquire_map_lock(&reference.seminare)?,
+            &*acquire_map_lock(&tx.seminare)?,
+        )?;
+        FakeDatastore::merge_single_aggregate(
+            target_seminar_termine.deref_mut(),
+            &*acquire_map_lock(&reference.seminar_termine)?,
+            &*acquire_map_lock(&tx.seminar_termine)?,
+        )?;
 
         Ok(FakeDatastore {
             klienten: Mutex::new(target_klienten.clone()),
@@ -123,6 +147,8 @@ impl FakeDatastore {
             behandlungen: Mutex::new(target_behandlungen.clone()),
             leistungen: Mutex::new(target_leistungen.clone()),
             rechnungen: Mutex::new(target_rechnungen.clone()),
+            seminare: Mutex::new(target_seminare.clone()),
+            seminar_termine: Mutex::new(target_seminar_termine.clone()),
         })
     }
 
@@ -468,5 +494,137 @@ impl RechnungRepository for FakeRechnungenRepository {
             .filter(|r| r.klient_id() == &klient_id)
             .cloned()
             .collect())
+    }
+}
+
+pub struct FakeSeminareRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeSeminareRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl SeminarRepository for FakeSeminareRepository {
+    async fn find_by_id(&self, id: SeminarId) -> RepositoryResult<Versioned<Seminar>> {
+        let data = self.datastore.seminare.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn create(&self, seminar: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>> {
+        let id = SeminarId(Uuid::new_v4());
+        let mut data = self.datastore.seminare.lock().unwrap();
+        let versioned = Versioned::init(
+            Seminar::neu(id, seminar).map_err(|err| err.change_context(RepositoryError::Data))?,
+        );
+        data.insert(versioned.id().0.clone(), versioned.clone());
+        Ok(versioned)
+    }
+
+    async fn update(&self, seminar: &mut Versioned<Seminar>) -> RepositoryResult<()> {
+        let mut data = self.datastore.seminare.lock().unwrap();
+        if let Some(existing) = data.get(&seminar.id().0) {
+            if existing.v() != seminar.v() {
+                Err(RepositoryError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: Some(seminar.v()),
+                })?;
+            }
+            *seminar = seminar.clone().incremented();
+            data.insert(seminar.id().0.clone(), seminar.clone());
+            return Ok(());
+        }
+        Err(RepositoryError::NotFound)?
+    }
+}
+
+pub struct FakeSeminarTermineRepository {
+    datastore: Arc<FakeDatastore>,
+}
+
+impl FakeSeminarTermineRepository {
+    pub fn new(datastore: Arc<FakeDatastore>) -> Self {
+        Self { datastore }
+    }
+}
+
+#[async_trait]
+impl SeminarTerminRepository for FakeSeminarTermineRepository {
+    async fn find_by_id(&self, id: SeminarTerminId) -> RepositoryResult<Versioned<SeminarTermin>> {
+        let data = self.datastore.seminar_termine.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_by_seminar_id(
+        &self,
+        seminar_id: SeminarId,
+    ) -> RepositoryResult<Vec<Versioned<SeminarTermin>>> {
+        let data = self.datastore.seminar_termine.lock().unwrap();
+        Ok(data
+            .values()
+            .filter(|termin| termin.seminar_id() == &seminar_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn find_nicht_vollständig_abgerechnet_bis(
+        &self,
+        stichtag: NaiveDate,
+    ) -> RepositoryResult<Vec<Versioned<SeminarTermin>>> {
+        let termine = self.datastore.seminar_termine.lock().unwrap();
+        let leistungen = self.datastore.leistungen.lock().unwrap();
+        Ok(termine
+            .values()
+            .filter(|termin| {
+                if termin.zeitraum().ende().date_naive() > stichtag {
+                    return false;
+                }
+                match &***termin {
+                    SeminarTermin::Geplant(_) => true,
+                    SeminarTermin::Abgesagt(_) => false,
+                    SeminarTermin::Abgehalten(abgehalten) => {
+                        abgehalten.leistungen().values().any(|leistung_id| {
+                            matches!(
+                                leistungen.get(&leistung_id.0).map(|l| &**l),
+                                Some(Leistung::Offen(_))
+                            )
+                        })
+                    }
+                }
+            })
+            .cloned()
+            .collect())
+    }
+
+    async fn create(
+        &self,
+        termin: NeuerSeminarTermin,
+    ) -> RepositoryResult<Versioned<SeminarTerminGeplant>> {
+        let id = SeminarTerminId(Uuid::new_v4());
+        let geplant = SeminarTerminGeplant::neu(id, termin);
+        let mut data = self.datastore.seminar_termine.lock().unwrap();
+        let versioned = Versioned::init(SeminarTermin::from(geplant.clone()));
+        data.insert(geplant.id().0, versioned);
+        Ok(Versioned::init(geplant))
+    }
+
+    async fn update(&self, termin: &mut Versioned<SeminarTermin>) -> RepositoryResult<()> {
+        let mut data = self.datastore.seminar_termine.lock().unwrap();
+        let id = termin.id().0;
+        if let Some(existing) = data.get(&id) {
+            if existing.v() != termin.v() {
+                Err(RepositoryError::VersionMismatch {
+                    expected: existing.v(),
+                    actual: Some(termin.v()),
+                })?;
+            }
+            *termin = termin.clone().incremented();
+            data.insert(id, termin.clone());
+            return Ok(());
+        }
+        Err(RepositoryError::NotFound)?
     }
 }

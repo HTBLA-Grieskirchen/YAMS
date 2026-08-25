@@ -7,7 +7,8 @@ use std::fmt::Debug;
 use crate::application::{ResultReport, ports::RepositoryError};
 use crate::ports::{
     BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
-    ProduktRepository, RechnungRepository, RepositoryResult,
+    ProduktRepository, RechnungRepository, RepositoryResult, SeminarRepository,
+    SeminarTerminRepository,
 };
 
 pub struct UnitOfWork<'a> {
@@ -74,6 +75,14 @@ impl UnitOfWork<'_> {
     pub fn rechnungen(&self) -> &dyn RechnungRepository {
         self.implementation.rechnungen()
     }
+
+    pub fn seminare(&self) -> &dyn SeminarRepository {
+        self.implementation.seminare()
+    }
+
+    pub fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
+        self.implementation.seminar_termine()
+    }
 }
 
 struct LockedUnitOfWorkImpl<'a> {
@@ -116,6 +125,14 @@ impl UnitOfWorkImpl for LockedUnitOfWorkImpl<'_> {
 
     fn rechnungen(&self) -> &dyn RechnungRepository {
         self.inner.rechnungen()
+    }
+
+    fn seminare(&self) -> &dyn SeminarRepository {
+        self.inner.seminare()
+    }
+
+    fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
+        self.inner.seminar_termine()
     }
 }
 
@@ -160,6 +177,14 @@ impl UnitOfWorkImpl for SharedUnitOfWorkImpl<'_> {
     fn rechnungen(&self) -> &dyn RechnungRepository {
         self.inner.rechnungen()
     }
+
+    fn seminare(&self) -> &dyn SeminarRepository {
+        self.inner.seminare()
+    }
+
+    fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
+        self.inner.seminar_termine()
+    }
 }
 
 /// UoW Provider
@@ -175,6 +200,8 @@ pub trait UnitOfWorkImpl: Send + Sync {
     fn behandlungen(&self) -> &dyn BehandlungRepository;
     fn leistungen(&self) -> &dyn LeistungRepository;
     fn rechnungen(&self) -> &dyn RechnungRepository;
+    fn seminare(&self) -> &dyn SeminarRepository;
+    fn seminar_termine(&self) -> &dyn SeminarTerminRepository;
 }
 
 #[async_trait]

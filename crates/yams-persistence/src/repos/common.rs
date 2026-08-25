@@ -6,7 +6,7 @@ use uuid::Uuid;
 use yams_core::{
     domain::{
         BehandlungId, HaustierId, KlientId, LeistungQuelle, Menge, Preis, ProduktId, Ratio,
-        RechnungId,
+        RechnungId, SeminarBuchungId, SeminarTerminId,
     },
     ports::RepositoryError,
 };
@@ -80,6 +80,23 @@ pub fn quelle_from_row(
             let preis = parse_preis(&preis_str)?;
             Ok(LeistungQuelle::Manuell { preis, mwst })
         }
+        "seminar" => {
+            let termin_id = parse_uuid(&quelle_id.ok_or(RepositoryError::Data)?)?;
+            let packed = quelle_menge.ok_or(RepositoryError::Data)?;
+            let (buchung_str, rabatt_str) = packed.split_once('|').ok_or(RepositoryError::Data)?;
+            let buchung_id = parse_uuid(buchung_str)?;
+            let rabatt = parse_ratio(rabatt_str)?;
+            let basis = parse_preis(&quelle_einzelpreis.ok_or(RepositoryError::Data)?)?;
+            let gebühr = parse_preis(&quelle_preis.ok_or(RepositoryError::Data)?)?;
+            Ok(LeistungQuelle::Seminar {
+                termin_id: SeminarTerminId(termin_id),
+                buchung_id: SeminarBuchungId(buchung_id),
+                teilnahmegebühr_basis: basis,
+                rabatt,
+                teilnahmegebühr: gebühr,
+                mwst,
+            })
+        }
         _ => Err(RepositoryError::Data),
     }
 }
@@ -126,6 +143,21 @@ pub fn quelle_to_db(quelle: &LeistungQuelle) -> QuelleDbColumns {
             menge: None,
             einzelpreis: None,
             preis: Some(preis_to_str(preis)),
+            mwst: ratio_to_str(mwst),
+        },
+        LeistungQuelle::Seminar {
+            termin_id,
+            buchung_id,
+            teilnahmegebühr_basis,
+            rabatt,
+            teilnahmegebühr,
+            mwst,
+        } => QuelleDbColumns {
+            typ: "seminar",
+            id: Some(termin_id.0.to_string()),
+            menge: Some(format!("{}|{}", buchung_id.0, ratio_to_str(rabatt))),
+            einzelpreis: Some(preis_to_str(teilnahmegebühr_basis)),
+            preis: Some(preis_to_str(teilnahmegebühr)),
             mwst: ratio_to_str(mwst),
         },
     }

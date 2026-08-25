@@ -8,6 +8,7 @@ use yams_core::{
     ports::{
         BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
         ProduktRepository, RechnungRepository, RepositoryError, RepositoryResult,
+        SeminarRepository, SeminarTerminRepository,
     },
     uow::{UnitOfWorkImpl, UnitOfWorkProvider},
 };
@@ -18,6 +19,7 @@ use crate::{
     repos::{
         SQLiteBehandlungRepository, SQLiteHaustierRepository, SQLiteKlientRepository,
         SQLiteLeistungRepository, SQLiteProduktRepository, SQLiteRechnungRepository,
+        SQLiteSeminarRepository, SQLiteSeminarTerminRepository,
     },
 };
 
@@ -31,6 +33,8 @@ pub struct SQLiteUnitOfWork {
     pub(crate) behandlung_repo: SQLiteBehandlungRepository,
     pub(crate) leistung_repo: SQLiteLeistungRepository,
     pub(crate) rechnung_repo: SQLiteRechnungRepository,
+    pub(crate) seminar_repo: SQLiteSeminarRepository,
+    pub(crate) seminar_termin_repo: SQLiteSeminarTerminRepository,
 }
 
 #[async_trait]
@@ -50,6 +54,8 @@ impl UnitOfWorkProvider for SQLiteInstance {
             behandlung_repo: SQLiteBehandlungRepository { tx: tx.clone() },
             leistung_repo: SQLiteLeistungRepository { tx: tx.clone() },
             rechnung_repo: SQLiteRechnungRepository { tx: tx.clone() },
+            seminar_repo: SQLiteSeminarRepository { tx: tx.clone() },
+            seminar_termin_repo: SQLiteSeminarTerminRepository { tx: tx.clone() },
             tx,
         }))
     }
@@ -114,5 +120,13 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
 
     fn rechnungen(&self) -> &dyn RechnungRepository {
         &self.rechnung_repo
+    }
+
+    fn seminare(&self) -> &dyn SeminarRepository {
+        &self.seminar_repo
+    }
+
+    fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
+        &self.seminar_termin_repo
     }
 }

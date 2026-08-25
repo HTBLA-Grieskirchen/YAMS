@@ -22,7 +22,7 @@ fn klient_body(kundennummer: u64) -> Value {
 
 #[pollster::test]
 async fn haustier_erstellen_is_listed_and_fetchable() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, klient) = api.post_json("/api/klient", klient_body(2001)).await;
     assert_status_ok(status);
     let klient_id = klient["id"].as_str().unwrap();

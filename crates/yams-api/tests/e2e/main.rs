@@ -6,21 +6,30 @@ mod produkt;
 mod seminar;
 
 use std::str::FromStr;
+use std::sync::{Arc, OnceLock};
 
 use poem::{Route, http::StatusCode, test::TestClient};
 use rust_decimal::Decimal;
 use serde_json::Value;
 use yams_api::openapi_service;
-use yams_core::{
-    App,
-    application::{AppBuilder, SetUowProvider},
-};
+use yams_core::App;
+use yams_filesystemstore::FileSystemObjectStore;
 use yams_persistence::SQLiteInstance;
+use yams_typstreports::TypstPdfRenderer;
 
-pub async fn base_app_builder() -> AppBuilder<SetUowProvider> {
+fn e2e_pdf_renderer() -> Arc<TypstPdfRenderer> {
+    static RENDERER: OnceLock<Arc<TypstPdfRenderer>> = OnceLock::new();
+    Arc::clone(RENDERER.get_or_init(|| Arc::new(TypstPdfRenderer::new())))
+}
+
+pub async fn base_app_builder() -> App {
     let mut sqlite = SQLiteInstance::in_temp_dir().await.unwrap();
     sqlite.migrate_to_latest().await.unwrap();
-    App::builder().uow_provider(Box::new(sqlite))
+    App::builder()
+        .uow_provider(Box::new(sqlite))
+        .object_store(Arc::new(FileSystemObjectStore::in_temp_dir().unwrap()))
+        .pdf_renderer(e2e_pdf_renderer())
+        .build()
 }
 
 pub struct YamsApiTestClient {

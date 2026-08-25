@@ -8159,7 +8159,9 @@ dependencies = [
  "uuid",
  "yams-core",
  "yams-fakes",
+ "yams-filesystemstore",
  "yams-persistence",
+ "yams-typstreports",
 ]
 
 [[package]]

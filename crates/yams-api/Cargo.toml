@@ -39,6 +39,8 @@ rust_decimal = { workspace = true }
 serde_json = { workspace = true }
 yams-persistence = { path = "../yams-persistence" }
 yams-fakes = { path = "../yams-fakes" }
+yams-filesystemstore = { path = "../yams-filesystemstore" }
+yams-typstreports = { path = "../yams-typstreports" }
 
 [[bin]]
 name = "export_spec"

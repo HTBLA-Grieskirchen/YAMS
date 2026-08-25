@@ -23,7 +23,7 @@ fn klient_body(kundennummer: u64) -> Value {
 
 #[pollster::test]
 async fn tagesabschluss_returns_rechnungen_as_json() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
     let abschlussdatum = "2026-08-23";
 
     let (status, klient1) = api.post_json("/api/klient", klient_body(3001)).await;
@@ -167,6 +167,11 @@ async fn tagesabschluss_returns_rechnungen_as_json() {
     assert_status_ok(status);
     assert!(content_type.contains("application/pdf"));
     assert!(pdf.starts_with(b"%PDF"));
+    assert!(
+        pdf.len() > 200,
+        "expected Typst PDF, got {} bytes",
+        pdf.len()
+    );
 
     let (status, _, _) = api
         .get_bytes("/api/rechnung/00000000-0000-0000-0000-000000000000/pdf")

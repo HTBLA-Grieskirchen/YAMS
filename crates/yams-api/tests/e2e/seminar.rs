@@ -45,7 +45,7 @@ fn termin_body(seminar_id: &Value) -> Value {
 
 #[pollster::test]
 async fn seminar_flow_books_holds_and_forecasts() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
 
     let (status, seminar) = api.post_json("/api/seminar", seminar_body()).await;
     assert_status_ok(status);
@@ -119,11 +119,16 @@ async fn seminar_flow_books_holds_and_forecasts() {
     assert_status_ok(status);
     assert!(content_type.contains("application/pdf"));
     assert!(pdf.starts_with(b"%PDF"));
+    assert!(
+        pdf.len() > 200,
+        "expected Typst PDF, got {} bytes",
+        pdf.len()
+    );
 }
 
 #[pollster::test]
 async fn seminar_rejects_empty_titel() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, _) = api
         .post_json(
             "/api/seminar",
@@ -141,7 +146,7 @@ async fn seminar_rejects_empty_titel() {
 
 #[pollster::test]
 async fn absage_blocks_abgehalten_via_api() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, seminar) = api.post_json("/api/seminar", seminar_body()).await;
     assert_status_ok(status);
     let (status, termin) = api

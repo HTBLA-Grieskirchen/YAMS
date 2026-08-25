@@ -7,7 +7,7 @@ use rust_decimal::Decimal;
 
 #[pollster::test]
 async fn behandlung_erstellen_returns_mwst_ratio() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
 
     let (status, behandlung) = api
         .post_json(
@@ -27,7 +27,7 @@ async fn behandlung_erstellen_returns_mwst_ratio() {
 
 #[pollster::test]
 async fn behandlung_erstellen_rejects_empty_name() {
-    let api = YamsApiTestClient::new(base_app_builder().await.build());
+    let api = YamsApiTestClient::new(base_app_builder().await);
 
     let (status, _) = api
         .post_json(

@@ -48,6 +48,7 @@ pub use seminar_termin::SeminarOrt;
 pub use seminar_termin::SeminarTermin;
 pub use seminar_termin::SeminarTerminAbgehalten;
 pub use seminar_termin::SeminarTerminAbgesagt;
+pub use seminar_termin::SeminarTerminFehler;
 pub use seminar_termin::SeminarTerminGeplant;
 pub use seminar_termin::SeminarTerminId;
 pub use zeitraum::Zeitraum;

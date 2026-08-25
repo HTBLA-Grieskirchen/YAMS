@@ -5,8 +5,8 @@ use chrono::NaiveDate;
 
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
-    Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungOffen,
-    Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
+    Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
+    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
     SeminarTerminId, SeminarTerminGeplant, behandlung::NeueBehandlung, haustier::NeuesHaustier,
     klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
     seminar_termin::NeuerSeminarTermin,
@@ -50,6 +50,7 @@ pub trait BehandlungRepository: Send + Sync {
 #[async_trait]
 pub trait LeistungRepository: Send + Sync {
     async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>>;
+    async fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>>;
     async fn find_offene_by_datum(
         &self,
         datum: NaiveDate,

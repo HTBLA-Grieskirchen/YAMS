@@ -114,6 +114,28 @@ impl LeistungRepository for SQLiteLeistungRepository {
         Ok(versioned)
     }
 
+    async fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let id_str = id.0.to_string();
+        let mut rows = tx
+            .query(
+                &format!("{LEISTUNG_SELECT} WHERE id = ?1"),
+                [id_str],
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let row = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+            .ok_or(RepositoryError::NotFound)?;
+
+        leistung_from_row(&row)
+    }
+
     async fn find_offene_by_datum(
         &self,
         datum: NaiveDate,

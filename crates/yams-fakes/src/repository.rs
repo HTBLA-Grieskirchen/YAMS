@@ -421,6 +421,11 @@ impl LeistungRepository for FakeLeistungenRepository {
         Ok(Versioned::new(versioned.v(), offen))
     }
 
+    async fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>> {
+        let data = self.datastore.leistungen.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
     async fn find_offene_by_datum(
         &self,
         datum: NaiveDate,

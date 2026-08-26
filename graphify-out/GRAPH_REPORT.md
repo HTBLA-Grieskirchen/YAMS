@@ -1,16 +1,16 @@
 # Graph Report - yams  (2026-08-26)
 
 ## Corpus Check
-- 269 files · ~331,490 words
+- 269 files · ~331,477 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2840 nodes · 6971 edges · 153 communities (129 shown, 24 thin omitted)
+- 2840 nodes · 6971 edges · 152 communities (128 shown, 24 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 227 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `405f057b`
+- Built from commit: `2324cd47`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -152,7 +152,6 @@
 - .seminar_umsatz_prognose
 - paths.ts
 - .tagesabschluss_durchführen
-- relations/index.tsx
 - document_text
 - layout.tsx
 - LeistungIn<S>
@@ -194,11 +193,11 @@
 - **Frontend Backend Communication Bridge** — specs_backend_hexagonal_backend_client, specs_backend_hexagonal_http_adapter, specs_backend_hexagonal_tauri_adapter, specs_backend_hexagonal_tanstack_query, specs_frontend_migration_yamsconfig [EXTRACTED 1.00]
 - **YAMS Hexagonal Backend Layers** — cursor_agents_md_driving_adapters, cursor_agents_md_yams_api, cursor_agents_md_yams_core, cursor_agents_md_yams_persistence [EXTRACTED 1.00]
 
-## Communities (153 total, 24 thin omitted)
+## Communities (152 total, 24 thin omitted)
 
 ### Community 0 - ".add_dyn"
-Cohesion: 0.21
-Nodes (13): DownMigration, MigrationRegistry, MigrationRegistry<dyn DownMigration<T, E>>, MigrationRegistry<dyn UpMigration<T, E>>, MigrationRegistry<M>, Arc, Default, From (+5 more)
+Cohesion: 0.23
+Nodes (12): MigrationRegistry, MigrationRegistry<dyn DownMigration<T, E>>, MigrationRegistry<dyn UpMigration<T, E>>, MigrationRegistry<M>, Arc, Default, From, Into (+4 more)
 
 ### Community 1 - "arc_up"
 Cohesion: 0.06
@@ -249,8 +248,8 @@ Cohesion: 0.07
 Nodes (28): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+20 more)
 
 ### Community 13 - "query"
-Cohesion: 0.20
-Nodes (15): AnimalAddItem, AnimalComboBox, AnimalList, AnimalRow, ClientItem, deleteClient(), ClientTableHeader, ClientTableRow (+7 more)
+Cohesion: 0.16
+Nodes (19): AnimalAddItem, AnimalComboBox, AnimalRow, clientSearched(), deleteAddress(), deleteAnimal(), patchAnimal(), deleteClientRelation() (+11 more)
 
 ### Community 14 - "Versioned"
 Cohesion: 0.17
@@ -261,12 +260,12 @@ Cohesion: 0.09
 Nodes (19): Behandlung, BehandlungFehler, BehandlungId, NeueBehandlung, preis(), Into, ResultReport, Self (+11 more)
 
 ### Community 17 - "apply_up_migrations"
-Cohesion: 0.25
+Cohesion: 0.21
 Nodes (11): apply_down_migrations(), apply_up_migrations(), ApplyMigrationDown, ApplyMigrationUp, MigrationError, MigrationTarget, Box, Item (+3 more)
 
 ### Community 18 - "E"
-Cohesion: 0.29
-Nodes (8): AppliableMigration, ApplyMigrationDown<T, E>, ApplyMigrationUp<T, E>, Arc<dyn DownMigration<T, E>>, Arc<dyn UpMigration<T, E>>, Box<dyn UpMigration<T, E>>, T, E
+Cohesion: 0.35
+Nodes (9): AppliableMigration, ApplyMigrationDown<T, E>, ApplyMigrationUp<T, E>, Arc<dyn DownMigration<T, E>>, Arc<dyn UpMigration<T, E>>, Box<dyn UpMigration<T, E>>, DownMigration, T (+1 more)
 
 ### Community 19 - "domain/kontakt.rs"
 Cohesion: 0.16
@@ -325,16 +324,16 @@ Cohesion: 0.17
 Nodes (8): Address, BackendClient, getBackendClient(), HttpBackendClient, TauriBackendClient, useAddresses(), useBackend(), Addresses
 
 ### Community 33 - "RechnungId"
-Cohesion: 0.10
-Nodes (29): LeistungAbgerechnet, aus_leistungen_maps_seminar_quelle(), aus_leistungen_rejects_klient_mismatch(), aus_leistungen_skips_already_abgerechnet(), Bezahlt, leistung_offen(), mwst_19(), Offen (+21 more)
+Cohesion: 0.12
+Nodes (27): aus_leistungen_maps_seminar_quelle(), aus_leistungen_rejects_klient_mismatch(), aus_leistungen_skips_already_abgerechnet(), Bezahlt, leistung_offen(), mwst_19(), Offen, position() (+19 more)
 
 ### Community 34 - "KlientId"
 Cohesion: 0.11
 Nodes (18): Klient, klient_rejects_empty_vorname(), klient_rejects_invalid_email_with_attach(), klient_rejects_invalid_mobilnummer_with_attach(), KlientFehler, KlientId, neu(), NeuerKlient (+10 more)
 
 ### Community 35 - "LeistungId"
-Cohesion: 0.15
-Nodes (17): Abgerechnet, Leistung, leistung_rejects_empty_beschreibung(), LeistungFehler, LeistungId, LeistungIn, mark_abgerechnet_sets_rechnung_id(), NeueLeistung (+9 more)
+Cohesion: 0.12
+Nodes (19): Abgerechnet, Leistung, leistung_rejects_empty_beschreibung(), LeistungAbgerechnet, LeistungFehler, LeistungId, LeistungIn, mark_abgerechnet_sets_rechnung_id() (+11 more)
 
 ### Community 36 - "PdfDokument"
 Cohesion: 0.12
@@ -385,8 +384,8 @@ Cohesion: 0.24
 Nodes (8): KlientErstellen, KlientErstellenFehler, Adresse, EmailAdresse, Error, Klient, Mobilnummer, NaiveDate
 
 ### Community 48 - "participation/index.tsx"
-Cohesion: 0.30
-Nodes (10): ClientParticipation, askAddParticipantEvent(), askEditEventParticipation(), submitAddParticipantEvent(), submitDeleteEventParticipation(), submitUpdateEventParticipation(), deleteEventParticipation(), relateClientParticipateEvent() (+2 more)
+Cohesion: 0.19
+Nodes (11): ClientParticipation, askAddParticipantEvent(), askEditEventParticipation(), submitAddParticipantEvent(), submitDeleteEventParticipation(), submitUpdateEventParticipation(), deleteEventParticipation(), relateClientParticipateEvent() (+3 more)
 
 ### Community 50 - "leistung_from_row"
 Cohesion: 0.17
@@ -577,8 +576,8 @@ Cohesion: 0.24
 Nodes (11): get_missing_is_none(), InMemoryObjectStore, put_overwrites(), put_then_get_roundtrip(), FxHashMap, Mutex, ObjectStream, Option (+3 more)
 
 ### Community 118 - "notification.ts"
-Cohesion: 0.13
-Nodes (15): ActionButton, buttonColor(), Notification, Notifications, notificationTypeValues(), NotificationActions, NotificationBehaviour, NotificationContent (+7 more)
+Cohesion: 0.14
+Nodes (14): ActionButton, buttonColor(), Notification, notificationTypeValues(), NotificationActions, NotificationBehaviour, NotificationContent, NotificationInfo (+6 more)
 
 ### Community 119 - "KlientErstellung"
 Cohesion: 0.22
@@ -657,12 +656,8 @@ Cohesion: 0.50
 Nodes (3): NaiveDate, SeminarUmsatzPrognose, Query
 
 ### Community 144 - "paths.ts"
-Cohesion: 0.06
-Nodes (28): queryClient, MenuEntryData, LanguagePicker, MainMenu, MainMenuCategory, MainMenuEntries, MainMenuItem, MainMenuItemData (+20 more)
-
-### Community 146 - "relations/index.tsx"
-Cohesion: 0.18
-Nodes (11): clientSearched(), deleteClientRelation(), relateClients(), updateClientRelation(), ClientRelationResponse, ClientDetail, AddRelationDialog, ClientRelations (+3 more)
+Cohesion: 0.05
+Nodes (35): queryClient, AnimalList, ClientItem, deleteClient(), ClientTableHeader, ClientTableRow, MenuEntryData, LanguagePicker (+27 more)
 
 ### Community 147 - "document_text"
 Cohesion: 0.50

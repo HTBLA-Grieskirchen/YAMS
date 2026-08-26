@@ -1770,9 +1770,9 @@
     "semantic_hash": ""
   },
   "crates/yams-persistence/tests/wal_connection_race.rs": {
-    "mtime": 1787741065.7537239,
-    "seen": 1787754540.4071074,
-    "ast_hash": "3a2337b9c38dd02ce019b28ca464740f",
+    "mtime": 1787754547.084556,
+    "seen": 1787754561.0083258,
+    "ast_hash": "a2a6210b466699f7ac953635fd1c6d1d",
     "semantic_hash": ""
   }
 }

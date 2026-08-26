@@ -325,19 +325,6 @@
       "source_location": "L5"
     },
     {
-      "id": "frontend_legacy_libs_database_index_liverefresher",
-      "label": "LiveRefresher",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "liverefresher",
-      "source_file": "frontend-legacy/libs/database/index.ts",
-      "source_location": "L92"
-    },
-    {
       "id": "frontend_legacy_components_layout_index_menuentrydata",
       "label": "MenuEntryData",
       "_callable": true,
@@ -375,6 +362,19 @@
       "norm_label": "mainmenuitemdata",
       "source_file": "frontend-legacy/components/layout/MainMenu.tsx",
       "source_location": "L87"
+    },
+    {
+      "id": "frontend_legacy_libs_database_index_liverefresher",
+      "label": "LiveRefresher",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "liverefresher",
+      "source_file": "frontend-legacy/libs/database/index.ts",
+      "source_location": "L92"
     },
     {
       "id": "frontend_legacy_pages_api_hello_data",
@@ -440,19 +440,6 @@
       "norm_label": "navigationpage",
       "source_file": "frontend-legacy/types/layout.ts",
       "source_location": "L8"
-    },
-    {
-      "id": "frontend_legacy_model_relation_clientrelationresponse",
-      "label": "ClientRelationResponse",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "clientrelationresponse",
-      "source_file": "frontend-legacy/model/relation.ts",
-      "source_location": "L25"
     },
     {
       "id": "frontend_legacy_libs_database_index_compatibilityresult",
@@ -559,17 +546,17 @@
       "source_location": "L59"
     },
     {
-      "id": "frontend_legacy_model_participation_eventparticipationresponse",
-      "label": "EventParticipationResponse",
+      "id": "frontend_legacy_model_relation_clientrelationresponse",
+      "label": "ClientRelationResponse",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 23,
       "community_name": "libs/database/index.ts",
       "file_type": "code",
-      "norm_label": "eventparticipationresponse",
-      "source_file": "frontend-legacy/model/participation.ts",
-      "source_location": "L26"
+      "norm_label": "clientrelationresponse",
+      "source_file": "frontend-legacy/model/relation.ts",
+      "source_location": "L25"
     },
     {
       "id": "frontend_legacy_stores_client_relationstore_relationstore",
@@ -908,6 +895,19 @@
       "norm_label": "eventparticipation",
       "source_file": "frontend-legacy/model/participation.ts",
       "source_location": "L7"
+    },
+    {
+      "id": "frontend_legacy_model_participation_eventparticipationresponse",
+      "label": "EventParticipationResponse",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "participation/index.tsx",
+      "file_type": "code",
+      "norm_label": "eventparticipationresponse",
+      "source_file": "frontend-legacy/model/participation.ts",
+      "source_location": "L26"
     },
     {
       "id": "frontend_legacy_config_index_frontendconfig",
@@ -2797,16 +2797,16 @@
       "source_location": "L1"
     },
     {
-      "id": "frontend_legacy_components_client_clientitem_deleteclient",
-      "label": "deleteClient()",
+      "id": "frontend_legacy_components_client_index_clientsearched",
+      "label": "clientSearched()",
       "_callable": true,
       "_origin": "ast",
       "community": 13,
       "community_name": "query",
       "file_type": "code",
-      "norm_label": "deleteclient()",
-      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
-      "source_location": "L168"
+      "norm_label": "clientsearched()",
+      "source_file": "frontend-legacy/components/client/index.tsx",
+      "source_location": "L3"
     },
     {
       "id": "frontend_legacy_libs_database_address_deleteaddress",
@@ -2845,6 +2845,42 @@
       "source_location": "L32"
     },
     {
+      "id": "frontend_legacy_libs_database_clientrelation_deleteclientrelation",
+      "label": "deleteClientRelation()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "deleteclientrelation()",
+      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
+      "source_location": "L71"
+    },
+    {
+      "id": "frontend_legacy_libs_database_clientrelation_relateclients",
+      "label": "relateClients()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "relateclients()",
+      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "frontend_legacy_libs_database_clientrelation_updateclientrelation",
+      "label": "updateClientRelation()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "updateclientrelation()",
+      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
+      "source_location": "L37"
+    },
+    {
       "id": "frontend_legacy_libs_database_index_query",
       "label": "query()",
       "_callable": true,
@@ -2879,6 +2915,30 @@
       "norm_label": "patchrace()",
       "source_file": "frontend-legacy/libs/database/race.ts",
       "source_location": "L31"
+    },
+    {
+      "id": "frontend_legacy_util_helpers_groupby",
+      "label": "groupBy()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "groupby()",
+      "source_file": "frontend-legacy/util/helpers.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "frontend_legacy_components_client_clientitem_deleteclient",
+      "label": "deleteClient()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "deleteclient()",
+      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
+      "source_location": "L168"
     },
     {
       "id": "frontend_legacy_components_layout_leftmenulayout_createleftmenulayout",
@@ -3047,114 +3107,6 @@
       "norm_label": "eventedit()",
       "source_file": "frontend-legacy/util/paths.ts",
       "source_location": "L34"
-    },
-    {
-      "id": "frontend_legacy_components_client_index_clientsearched",
-      "label": "clientSearched()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "clientsearched()",
-      "source_file": "frontend-legacy/components/client/index.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "frontend_legacy_libs_database_clientrelation_deleteclientrelation",
-      "label": "deleteClientRelation()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "deleteclientrelation()",
-      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
-      "source_location": "L71"
-    },
-    {
-      "id": "frontend_legacy_libs_database_clientrelation_relateclients",
-      "label": "relateClients()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "relateclients()",
-      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
-      "source_location": "L5"
-    },
-    {
-      "id": "frontend_legacy_libs_database_clientrelation_updateclientrelation",
-      "label": "updateClientRelation()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "updateclientrelation()",
-      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
-      "source_location": "L37"
-    },
-    {
-      "id": "frontend_legacy_model_relation_clientrelationresponse_applyon",
-      "label": ".applyOn()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": ".applyon()",
-      "source_file": "frontend-legacy/model/relation.ts",
-      "source_location": "L51"
-    },
-    {
-      "id": "frontend_legacy_model_relation_clientrelationresponse_constructor",
-      "label": ".constructor()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": ".constructor()",
-      "source_file": "frontend-legacy/model/relation.ts",
-      "source_location": "L35"
-    },
-    {
-      "id": "frontend_legacy_model_relation_clientrelationresponse_from",
-      "label": ".from()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": ".from()",
-      "source_file": "frontend-legacy/model/relation.ts",
-      "source_location": "L39"
-    },
-    {
-      "id": "frontend_legacy_model_relation_clientrelationresponse_intoobject",
-      "label": ".intoObject()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": ".intoobject()",
-      "source_file": "frontend-legacy/model/relation.ts",
-      "source_location": "L73"
-    },
-    {
-      "id": "frontend_legacy_util_helpers_groupby",
-      "label": "groupBy()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "groupby()",
-      "source_file": "frontend-legacy/util/helpers.ts",
-      "source_location": "L7"
     },
     {
       "id": "frontend_src_app_layout_rootlayout",
@@ -3337,7 +3289,7 @@
       "source_location": "L114"
     },
     {
-      "id": "frontend_legacy_model_participation_eventparticipationresponse_applyon",
+      "id": "frontend_legacy_model_relation_clientrelationresponse_applyon",
       "label": ".applyOn()",
       "_callable": true,
       "_origin": "ast",
@@ -3345,11 +3297,11 @@
       "community_name": "libs/database/index.ts",
       "file_type": "code",
       "norm_label": ".applyon()",
-      "source_file": "frontend-legacy/model/participation.ts",
-      "source_location": "L52"
+      "source_file": "frontend-legacy/model/relation.ts",
+      "source_location": "L51"
     },
     {
-      "id": "frontend_legacy_model_participation_eventparticipationresponse_constructor",
+      "id": "frontend_legacy_model_relation_clientrelationresponse_constructor",
       "label": ".constructor()",
       "_callable": true,
       "_origin": "ast",
@@ -3357,11 +3309,11 @@
       "community_name": "libs/database/index.ts",
       "file_type": "code",
       "norm_label": ".constructor()",
-      "source_file": "frontend-legacy/model/participation.ts",
-      "source_location": "L36"
+      "source_file": "frontend-legacy/model/relation.ts",
+      "source_location": "L35"
     },
     {
-      "id": "frontend_legacy_model_participation_eventparticipationresponse_from",
+      "id": "frontend_legacy_model_relation_clientrelationresponse_from",
       "label": ".from()",
       "_callable": true,
       "_origin": "ast",
@@ -3369,11 +3321,11 @@
       "community_name": "libs/database/index.ts",
       "file_type": "code",
       "norm_label": ".from()",
-      "source_file": "frontend-legacy/model/participation.ts",
-      "source_location": "L40"
+      "source_file": "frontend-legacy/model/relation.ts",
+      "source_location": "L39"
     },
     {
-      "id": "frontend_legacy_model_participation_eventparticipationresponse_intoobject",
+      "id": "frontend_legacy_model_relation_clientrelationresponse_intoobject",
       "label": ".intoObject()",
       "_callable": true,
       "_origin": "ast",
@@ -3381,8 +3333,8 @@
       "community_name": "libs/database/index.ts",
       "file_type": "code",
       "norm_label": ".intoobject()",
-      "source_file": "frontend-legacy/model/participation.ts",
-      "source_location": "L74"
+      "source_file": "frontend-legacy/model/relation.ts",
+      "source_location": "L73"
     },
     {
       "id": "frontend_legacy_model_seminar_seminarresponse_from",
@@ -4501,6 +4453,54 @@
       "source_location": "L37"
     },
     {
+      "id": "frontend_legacy_model_participation_eventparticipationresponse_applyon",
+      "label": ".applyOn()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "participation/index.tsx",
+      "file_type": "code",
+      "norm_label": ".applyon()",
+      "source_file": "frontend-legacy/model/participation.ts",
+      "source_location": "L52"
+    },
+    {
+      "id": "frontend_legacy_model_participation_eventparticipationresponse_constructor",
+      "label": ".constructor()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "participation/index.tsx",
+      "file_type": "code",
+      "norm_label": ".constructor()",
+      "source_file": "frontend-legacy/model/participation.ts",
+      "source_location": "L36"
+    },
+    {
+      "id": "frontend_legacy_model_participation_eventparticipationresponse_from",
+      "label": ".from()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "participation/index.tsx",
+      "file_type": "code",
+      "norm_label": ".from()",
+      "source_file": "frontend-legacy/model/participation.ts",
+      "source_location": "L40"
+    },
+    {
+      "id": "frontend_legacy_model_participation_eventparticipationresponse_intoobject",
+      "label": ".intoObject()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "participation/index.tsx",
+      "file_type": "code",
+      "norm_label": ".intoobject()",
+      "source_file": "frontend-legacy/model/participation.ts",
+      "source_location": "L74"
+    },
+    {
       "id": "frontend_legacy_stores_event_participationstore_participationstore_participations",
       "label": ".participations()",
       "_callable": true,
@@ -5579,17 +5579,6 @@
       "norm_label": ".teilnahmebestatigungpdf()",
       "source_file": "frontend/src/api/yams-api.ts",
       "source_location": "L35"
-    },
-    {
-      "id": "crates_molting_src_lib_downmigration",
-      "label": "DownMigration",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": ".add_dyn",
-      "file_type": "code",
-      "norm_label": "downmigration",
-      "source_file": "crates/molting/src/lib.rs",
-      "source_location": "L42"
     },
     {
       "id": "crates_molting_src_lib_migrationregistry",
@@ -9816,17 +9805,6 @@
       "source_location": "L33"
     },
     {
-      "id": "frontend_legacy_components_notifications_notifications",
-      "label": "Notifications",
-      "_origin": "ast",
-      "community": 118,
-      "community_name": "notification.ts",
-      "file_type": "code",
-      "norm_label": "notifications",
-      "source_file": "frontend-legacy/components/Notifications.tsx",
-      "source_location": "L21"
-    },
-    {
       "id": "frontend_legacy_libs_notification",
       "label": "notification.ts",
       "_origin": "ast",
@@ -11862,28 +11840,6 @@
       "source_location": "L9"
     },
     {
-      "id": "frontend_legacy_components_animal_animallist",
-      "label": "AnimalList.tsx",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "animallist.tsx",
-      "source_file": "frontend-legacy/components/animal/AnimalList.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_components_animal_animallist_animallist",
-      "label": "AnimalList",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "animallist",
-      "source_file": "frontend-legacy/components/animal/AnimalList.tsx",
-      "source_location": "L8"
-    },
-    {
       "id": "frontend_legacy_components_animal_animaltable",
       "label": "AnimalTable.tsx",
       "_origin": "ast",
@@ -11906,59 +11862,15 @@
       "source_location": "L7"
     },
     {
-      "id": "frontend_legacy_components_client_clientitem",
-      "label": "ClientItem.tsx",
+      "id": "frontend_legacy_components_client_index",
+      "label": "components/client/index.tsx",
       "_origin": "ast",
       "community": 13,
       "community_name": "query",
       "file_type": "code",
-      "norm_label": "clientitem.tsx",
-      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
+      "norm_label": "components/client/index.tsx",
+      "source_file": "frontend-legacy/components/client/index.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_components_client_clientitem_clientitem",
-      "label": "ClientItem",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "clientitem",
-      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "frontend_legacy_components_client_clienttable",
-      "label": "ClientTable.tsx",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "clienttable.tsx",
-      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_components_client_clienttable_clienttableheader",
-      "label": "ClientTableHeader",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "clienttableheader",
-      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "frontend_legacy_components_client_clienttable_clienttablerow",
-      "label": "ClientTableRow",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "query",
-      "file_type": "code",
-      "norm_label": "clienttablerow",
-      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
-      "source_location": "L24"
     },
     {
       "id": "frontend_legacy_libs_database_animal",
@@ -11972,6 +11884,17 @@
       "source_location": "L1"
     },
     {
+      "id": "frontend_legacy_libs_database_clientrelation",
+      "label": "clientRelation.ts",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "clientrelation.ts",
+      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
+      "source_location": "L1"
+    },
+    {
       "id": "frontend_legacy_libs_database_race",
       "label": "database/race.ts",
       "_origin": "ast",
@@ -11981,6 +11904,72 @@
       "norm_label": "database/race.ts",
       "source_file": "frontend-legacy/libs/database/race.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_index_clientdetail",
+      "label": "ClientDetail",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "clientdetail",
+      "source_file": "frontend-legacy/pages/client/[id]/index.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_relations_index",
+      "label": "relations/index.tsx",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "relations/index.tsx",
+      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_relations_index_addrelationdialog",
+      "label": "AddRelationDialog",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "addrelationdialog",
+      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
+      "source_location": "L180"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_relations_index_clientrelations",
+      "label": "ClientRelations",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "clientrelations",
+      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
+      "source_location": "L27"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_relations_index_relation",
+      "label": "Relation",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "relation",
+      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
+      "source_location": "L469"
+    },
+    {
+      "id": "frontend_legacy_pages_client_id_relations_index_relationsperclient",
+      "label": "RelationsPerClient",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "query",
+      "file_type": "code",
+      "norm_label": "relationsperclient",
+      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
+      "source_location": "L431"
     },
     {
       "id": "crates_yams_api_src_spec_rs_behandlung",
@@ -13600,6 +13589,83 @@
       "source_location": "L3"
     },
     {
+      "id": "frontend_legacy_components_animal_animallist",
+      "label": "AnimalList.tsx",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "animallist.tsx",
+      "source_file": "frontend-legacy/components/animal/AnimalList.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_components_animal_animallist_animallist",
+      "label": "AnimalList",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "animallist",
+      "source_file": "frontend-legacy/components/animal/AnimalList.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "frontend_legacy_components_client_clientitem",
+      "label": "ClientItem.tsx",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "clientitem.tsx",
+      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_components_client_clientitem_clientitem",
+      "label": "ClientItem",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "clientitem",
+      "source_file": "frontend-legacy/components/client/ClientItem.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "frontend_legacy_components_client_clienttable",
+      "label": "ClientTable.tsx",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "clienttable.tsx",
+      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_components_client_clienttable_clienttableheader",
+      "label": "ClientTableHeader",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "clienttableheader",
+      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "frontend_legacy_components_client_clienttable_clienttablerow",
+      "label": "ClientTableRow",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "clienttablerow",
+      "source_file": "frontend-legacy/components/client/ClientTable.tsx",
+      "source_location": "L24"
+    },
+    {
       "id": "frontend_legacy_components_layout_index",
       "label": "layout/index.ts",
       "_origin": "ast",
@@ -13752,6 +13818,17 @@
       "norm_label": "tabmenulayout.tsx",
       "source_file": "frontend-legacy/components/layout/TabMenuLayout.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "frontend_legacy_components_notifications_notifications",
+      "label": "Notifications",
+      "_origin": "ast",
+      "community": 144,
+      "community_name": "paths.ts",
+      "file_type": "code",
+      "norm_label": "notifications",
+      "source_file": "frontend-legacy/components/Notifications.tsx",
+      "source_location": "L21"
     },
     {
       "id": "frontend_legacy_pages_api_hello",
@@ -13983,94 +14060,6 @@
       "norm_label": ".tagesabschluss_durchfuhren()",
       "source_file": "crates/yams-api/src/spec.rs",
       "source_location": "L189"
-    },
-    {
-      "id": "frontend_legacy_components_client_index",
-      "label": "components/client/index.tsx",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "components/client/index.tsx",
-      "source_file": "frontend-legacy/components/client/index.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_libs_database_clientrelation",
-      "label": "clientRelation.ts",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "clientrelation.ts",
-      "source_file": "frontend-legacy/libs/database/clientRelation.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_index_clientdetail",
-      "label": "ClientDetail",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "clientdetail",
-      "source_file": "frontend-legacy/pages/client/[id]/index.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_relations_index",
-      "label": "relations/index.tsx",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "relations/index.tsx",
-      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_relations_index_addrelationdialog",
-      "label": "AddRelationDialog",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "addrelationdialog",
-      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
-      "source_location": "L180"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_relations_index_clientrelations",
-      "label": "ClientRelations",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "clientrelations",
-      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
-      "source_location": "L27"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_relations_index_relation",
-      "label": "Relation",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "relation",
-      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
-      "source_location": "L469"
-    },
-    {
-      "id": "frontend_legacy_pages_client_id_relations_index_relationsperclient",
-      "label": "RelationsPerClient",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "relations/index.tsx",
-      "file_type": "code",
-      "norm_label": "relationsperclient",
-      "source_file": "frontend-legacy/pages/client/[id]/relations/index.tsx",
-      "source_location": "L431"
     },
     {
       "id": "crates_yams_typstreports_src_tests_collect_frame_text",
@@ -15019,6 +15008,17 @@
       "source_location": "L101"
     },
     {
+      "id": "crates_molting_src_lib_arc_dyn_downmigration_t_e_version",
+      "label": ".version()",
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "apply_up_migrations",
+      "file_type": "code",
+      "norm_label": ".version()",
+      "source_file": "crates/molting/src/lib.rs",
+      "source_location": "L98"
+    },
+    {
       "id": "crates_molting_src_lib_arc_dyn_upmigration_t_e_description",
       "label": ".description()",
       "_origin": "ast",
@@ -15030,6 +15030,17 @@
       "source_location": "L86"
     },
     {
+      "id": "crates_molting_src_lib_arc_dyn_upmigration_t_e_version",
+      "label": ".version()",
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "apply_up_migrations",
+      "file_type": "code",
+      "norm_label": ".version()",
+      "source_file": "crates/molting/src/lib.rs",
+      "source_location": "L83"
+    },
+    {
       "id": "crates_molting_src_lib_box_dyn_upmigration_t_e_description",
       "label": ".description()",
       "_origin": "ast",
@@ -15039,6 +15050,17 @@
       "norm_label": ".description()",
       "source_file": "crates/molting/src/lib.rs",
       "source_location": "L32"
+    },
+    {
+      "id": "crates_molting_src_lib_box_dyn_upmigration_t_e_version",
+      "label": ".version()",
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "apply_up_migrations",
+      "file_type": "code",
+      "norm_label": ".version()",
+      "source_file": "crates/molting/src/lib.rs",
+      "source_location": "L28"
     },
     {
       "id": "crates_molting_src_lib_migrationerror",
@@ -15239,17 +15261,6 @@
       "source_location": "L104"
     },
     {
-      "id": "crates_molting_src_lib_arc_dyn_downmigration_t_e_version",
-      "label": ".version()",
-      "_origin": "ast",
-      "community": 18,
-      "community_name": "E",
-      "file_type": "code",
-      "norm_label": ".version()",
-      "source_file": "crates/molting/src/lib.rs",
-      "source_location": "L98"
-    },
-    {
       "id": "crates_molting_src_lib_arc_dyn_upmigration_t_e",
       "label": "Arc<dyn UpMigration<T, E>>",
       "_origin": "ast",
@@ -15270,17 +15281,6 @@
       "norm_label": ".up()",
       "source_file": "crates/molting/src/lib.rs",
       "source_location": "L89"
-    },
-    {
-      "id": "crates_molting_src_lib_arc_dyn_upmigration_t_e_version",
-      "label": ".version()",
-      "_origin": "ast",
-      "community": 18,
-      "community_name": "E",
-      "file_type": "code",
-      "norm_label": ".version()",
-      "source_file": "crates/molting/src/lib.rs",
-      "source_location": "L83"
     },
     {
       "id": "crates_molting_src_lib_box_dyn_upmigration_t_e",
@@ -15305,15 +15305,15 @@
       "source_location": "L36"
     },
     {
-      "id": "crates_molting_src_lib_box_dyn_upmigration_t_e_version",
-      "label": ".version()",
+      "id": "crates_molting_src_lib_downmigration",
+      "label": "DownMigration",
       "_origin": "ast",
       "community": 18,
       "community_name": "E",
       "file_type": "code",
-      "norm_label": ".version()",
+      "norm_label": "downmigration",
       "source_file": "crates/molting/src/lib.rs",
-      "source_location": "L28"
+      "source_location": "L42"
     },
     {
       "id": "crates_molting_src_lib_rs_t",
@@ -18726,50 +18726,6 @@
       "source_location": "L74"
     },
     {
-      "id": "crates_yams_core_src_domain_leistung_leistungabgerechnet",
-      "label": "LeistungAbgerechnet",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "RechnungId",
-      "file_type": "code",
-      "norm_label": "leistungabgerechnet",
-      "source_file": "crates/yams-core/src/domain/leistung.rs",
-      "source_location": "L210"
-    },
-    {
-      "id": "crates_yams_core_src_domain_leistung_leistungabgerechnet_rechnung_id",
-      "label": ".rechnung_id()",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "RechnungId",
-      "file_type": "code",
-      "norm_label": ".rechnung_id()",
-      "source_file": "crates/yams-core/src/domain/leistung.rs",
-      "source_location": "L211"
-    },
-    {
-      "id": "crates_yams_core_src_domain_leistung_leistungoffen_mark_abgerechnet",
-      "label": ".mark_abgerechnet()",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "RechnungId",
-      "file_type": "code",
-      "norm_label": ".mark_abgerechnet()",
-      "source_file": "crates/yams-core/src/domain/leistung.rs",
-      "source_location": "L197"
-    },
-    {
-      "id": "crates_yams_core_src_domain_mod",
-      "label": "domain/mod.rs",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "RechnungId",
-      "file_type": "code",
-      "norm_label": "domain/mod.rs",
-      "source_file": "crates/yams-core/src/domain/mod.rs",
-      "source_location": "L1"
-    },
-    {
       "id": "crates_yams_core_src_domain_rechnung",
       "label": "domain/rechnung.rs",
       "_origin": "ast",
@@ -19184,17 +19140,6 @@
       "community_name": "RechnungId",
       "file_type": "code",
       "norm_label": "vec",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "leistungquelle",
-      "label": "LeistungQuelle",
-      "_origin": "ast",
-      "community": 33,
-      "community_name": "RechnungId",
-      "file_type": "code",
-      "norm_label": "leistungquelle",
       "source_file": "",
       "source_location": ""
     },
@@ -19716,6 +19661,28 @@
       "source_location": "L320"
     },
     {
+      "id": "crates_yams_core_src_domain_leistung_leistungabgerechnet",
+      "label": "LeistungAbgerechnet",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "LeistungId",
+      "file_type": "code",
+      "norm_label": "leistungabgerechnet",
+      "source_file": "crates/yams-core/src/domain/leistung.rs",
+      "source_location": "L210"
+    },
+    {
+      "id": "crates_yams_core_src_domain_leistung_leistungabgerechnet_rechnung_id",
+      "label": ".rechnung_id()",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "LeistungId",
+      "file_type": "code",
+      "norm_label": ".rechnung_id()",
+      "source_file": "crates/yams-core/src/domain/leistung.rs",
+      "source_location": "L211"
+    },
+    {
       "id": "crates_yams_core_src_domain_leistung_leistungfehler",
       "label": "LeistungFehler",
       "_origin": "ast",
@@ -19747,6 +19714,17 @@
       "norm_label": "leistungin",
       "source_file": "crates/yams-core/src/domain/leistung.rs",
       "source_location": "L84"
+    },
+    {
+      "id": "crates_yams_core_src_domain_leistung_leistungoffen_mark_abgerechnet",
+      "label": ".mark_abgerechnet()",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "LeistungId",
+      "file_type": "code",
+      "norm_label": ".mark_abgerechnet()",
+      "source_file": "crates/yams-core/src/domain/leistung.rs",
+      "source_location": "L197"
     },
     {
       "id": "crates_yams_core_src_domain_leistung_leistungoffen_neu",
@@ -19947,6 +19925,17 @@
       "source_location": ""
     },
     {
+      "id": "crates_yams_core_src_domain_mod",
+      "label": "domain/mod.rs",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "LeistungId",
+      "file_type": "code",
+      "norm_label": "domain/mod.rs",
+      "source_file": "crates/yams-core/src/domain/mod.rs",
+      "source_location": "L1"
+    },
+    {
       "id": "crates_yams_core_src_domain_rechnung_rechnungsposition_leistung_id",
       "label": ".leistung_id()",
       "_origin": "ast",
@@ -19956,6 +19945,17 @@
       "norm_label": ".leistung_id()",
       "source_file": "crates/yams-core/src/domain/rechnung.rs",
       "source_location": "L63"
+    },
+    {
+      "id": "leistungquelle",
+      "label": "LeistungQuelle",
+      "_origin": "ast",
+      "community": 35,
+      "community_name": "LeistungId",
+      "file_type": "code",
+      "norm_label": "leistungquelle",
+      "source_file": "",
+      "source_location": ""
     },
     {
       "id": "crates_yams_core_src_adapters_blank_pdf_renderer",
@@ -38737,7 +38737,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "crates/yams-persistence/tests/wal_connection_race.rs",
-      "source_location": "L51",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -113611,5 +113611,5 @@
       "source_file": ".cursor/AGENTS.md"
     }
   ],
-  "built_at_commit": "405f057bfa88f2baa9e9fbb493b1d15e224ddff4"
+  "built_at_commit": "2324cd47b922434dbf96bcf94f335f1be677580d"
 }

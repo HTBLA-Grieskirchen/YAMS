@@ -37,10 +37,9 @@ fn neuer_klient(kundennummer: u64) -> NeuerKlient {
 async fn parallel_execute_fn_survives_wal_connection_init() {
     let app = app().await;
 
-    // Pair a writer (commit + connection drop / vacuum) with an opener that
-    // immediately create_connection + `PRAGMA journal_mode=WAL`. This is the
-    // window that flaked as "database is locked".
-    // Enough paired writer/opener races that pre-fix code flakes within one run.
+    // Pair a writer (commit + connection drop/checkpoint) with openers that
+    // immediately begin a new UoW. Pre-fix, each open re-ran
+    // `PRAGMA journal_mode=WAL` and flaked with "database is locked".
     let mut handles = Vec::with_capacity(2000);
     for round in 0..500u64 {
         let writer_app = Arc::clone(&app);

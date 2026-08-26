@@ -44,32 +44,14 @@ struct Config {
 pub struct BackendServerError;
 
 fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
-    CatchPanic::new().with_handler(|_| {
+    CatchPanic::new().with_handler(|err| {
+        tracing::error!("Panic: {:?}", dbg!(err));
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             PlainText(InternalServerError),
         )
             .into_response()
     })
-}
-
-async fn log_unsuccessful_response_body(
-    result: Result<poem::Response, poem::Error>,
-) -> Result<poem::Response, poem::Error> {
-    let Ok(mut response) = result else {
-        return result;
-    };
-    if response.status().is_success() {
-        return Ok(response);
-    }
-
-    let status = response.status();
-    let body = response.take_body();
-    let bytes = body.into_bytes().await.unwrap_or_default();
-    let body_preview = String::from_utf8_lossy(&bytes);
-    tracing::error!(%status, body = %body_preview, "HTTP error response");
-    response.set_body(bytes);
-    Ok(response)
 }
 
 #[tokio::main]
@@ -133,7 +115,6 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             }),
         )
         .nest("/api", api_service)
-        .after(log_unsuccessful_response_body)
         .with(Compression::new())
         .with(tracing)
         .with(catch_panic())

@@ -35,9 +35,9 @@ struct Config {
     #[arg(long, env = "DATABASE_URL", default_value = "yams.db")]
     database_url: String,
 
-    /// Directory for generated PDF files
-    #[arg(long, env = "PDF_STORE_DIR")]
-    pdf_store_dir: Option<String>,
+    /// Directory for object store
+    #[arg(long, env = "OBJECT_STORE_DIR", default_value = "objects.local/")]
+    object_store_dir: String,
 }
 
 #[derive(Debug, Error)]
@@ -67,16 +67,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
         .await
         .change_context(BackendServerError)?;
 
-    let pdf_dir = config
-        .pdf_store_dir
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| {
-            Path::new(&config.database_url)
-                .parent()
-                .unwrap_or(Path::new("."))
-                .join("pdfs")
-        });
-    let object_store = FileSystemObjectStore::new(pdf_dir).change_context(BackendServerError)?;
+    let object_store_dir = std::path::PathBuf::from(config.object_store_dir);
+    let object_store = FileSystemObjectStore::new(object_store_dir).change_context(BackendServerError)?;
     let app = App::builder()
         .uow_provider(Box::new(adapter))
         .object_store(Arc::new(object_store))

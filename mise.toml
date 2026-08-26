@@ -12,6 +12,7 @@ node = "22"
 FRONTEND_DIR = "frontend"
 OPENAPI_SPEC = "openapi.json"
 DATABASE_URL = "{{ config_root }}/sqlite.local/yams.db"
+OBJECT_STORE_DIR = "{{ config_root }}/objects.local/"
 
 [task_config]
 includes = [

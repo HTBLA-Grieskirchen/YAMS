@@ -6,7 +6,6 @@ use poem::http::StatusCode;
 use poem::middleware::{CatchPanic, Compression, Cors, Middleware, RequestId, ReuseId, Tracing};
 use poem::{EndpointExt, IntoResponse, Route, Server, listener::TcpListener};
 use poem_openapi::payload::PlainText;
-use std::path::Path;
 use std::sync::Arc;
 use thiserror::Error;
 use tracing_setup::init_tracing;
@@ -54,6 +53,25 @@ fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
     })
 }
 
+async fn log_unsuccessful_response_body(
+    result: Result<poem::Response, poem::Error>,
+) -> Result<poem::Response, poem::Error> {
+    let Ok(mut response) = result else {
+        return result;
+    };
+    if response.status().is_success() {
+        return Ok(response);
+    }
+
+    let status = response.status();
+    let body = response.take_body();
+    let bytes = body.into_bytes().await.unwrap_or_default();
+    let body_preview = String::from_utf8_lossy(&bytes);
+    tracing::error!(%status, body = %body_preview, "HTTP error response");
+    response.set_body(bytes);
+    Ok(response)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Report<BackendServerError>> {
     init_tracing();
@@ -68,7 +86,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
         .change_context(BackendServerError)?;
 
     let object_store_dir = std::path::PathBuf::from(config.object_store_dir);
-    let object_store = FileSystemObjectStore::new(object_store_dir).change_context(BackendServerError)?;
+    let object_store =
+        FileSystemObjectStore::new(object_store_dir).change_context(BackendServerError)?;
     let app = App::builder()
         .uow_provider(Box::new(adapter))
         .object_store(Arc::new(object_store))
@@ -114,6 +133,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             }),
         )
         .nest("/api", api_service)
+        .after(log_unsuccessful_response_body)
         .with(Compression::new())
         .with(tracing)
         .with(catch_panic())

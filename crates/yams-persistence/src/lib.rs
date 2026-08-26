@@ -3,7 +3,14 @@ mod migrations;
 pub mod repos;
 mod uow;
 
-use std::{ops::Deref, path::Path, sync::Arc};
+use std::{
+    ops::Deref,
+    path::Path,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+};
 
 use async_lock::{Mutex, MutexGuardArc};
 use error_stack::ResultExt;
@@ -18,6 +25,9 @@ use crate::errors::{libsql_error_to_persistence_error, migration_error_to_persis
 
 pub struct SQLiteInstance {
     variant: InstanceType,
+    /// File-level pragmas (WAL, auto_vacuum) must run once; re-running
+    /// `journal_mode=WAL` on every connection races close/checkpoint locks.
+    database_configured: AtomicBool,
 }
 
 enum InstanceType {
@@ -68,8 +78,9 @@ impl SQLiteInstance {
                     .await
                     .contextualize_with(libsql_error_to_persistence_error)?,
             ),
+            database_configured: AtomicBool::new(false),
         };
-        // Sanity check connection
+        // Sanity check connection (also configures WAL once)
         drop(this.create_connection().await?);
         Ok(this)
     }
@@ -86,6 +97,7 @@ impl SQLiteInstance {
                     .contextualize_with(libsql_error_to_persistence_error)?,
                 temp_dir: Arc::new(temp_dir),
             },
+            database_configured: AtomicBool::new(false),
         })
     }
 
@@ -96,17 +108,17 @@ impl SQLiteInstance {
                 .build()
                 .await
                 .contextualize_with(libsql_error_to_persistence_error)?;
+        let connection = db
+            .connect()
+            .contextualize_with(libsql_error_to_persistence_error)?;
+        Self::configure_database(&connection).await?;
+        let connection = Self::initialize_connection(connection).await?;
         Ok(Self {
             variant: InstanceType::InMemory {
-                connection: Arc::new(
-                    Self::initialize_connection(
-                        db.connect()
-                            .contextualize_with(libsql_error_to_persistence_error)?,
-                    )
-                    .await?,
-                ),
+                connection: Arc::new(connection),
                 connection_lock: Arc::new(Mutex::new(())),
             },
+            database_configured: AtomicBool::new(true),
         })
     }
 
@@ -126,6 +138,7 @@ impl SQLiteInstance {
                 let connection = db
                     .connect()
                     .contextualize_with(libsql_error_to_persistence_error)?;
+                self.ensure_database_configured(&connection).await?;
                 let connection = Self::initialize_connection(connection).await?;
                 Ok(SQLiteConnection::Local(connection))
             }
@@ -143,6 +156,7 @@ impl SQLiteInstance {
                 let connection = db
                     .connect()
                     .contextualize_with(libsql_error_to_persistence_error)?;
+                self.ensure_database_configured(&connection).await?;
                 let connection = Self::initialize_connection(connection).await?;
                 Ok(SQLiteConnection::TempDir {
                     connection,
@@ -152,15 +166,47 @@ impl SQLiteInstance {
         }
     }
 
+    async fn ensure_database_configured(
+        &self,
+        connection: &libsql::Connection,
+    ) -> ResultReport<(), RepositoryError> {
+        if self.database_configured.load(Ordering::Acquire) {
+            return Ok(());
+        }
+        Self::configure_database(connection).await?;
+        self.database_configured.store(true, Ordering::Release);
+        Ok(())
+    }
+
+    /// File-level settings. Must run with busy_timeout first; only once per DB.
+    async fn configure_database(
+        connection: &libsql::Connection,
+    ) -> ResultReport<(), RepositoryError> {
+        let statements = [
+            "PRAGMA busy_timeout=5000",
+            "PRAGMA journal_mode=WAL",
+            "PRAGMA auto_vacuum=INCREMENTAL",
+        ];
+        for statement in statements {
+            connection
+                .query(statement, ())
+                .await
+                .contextualize_with(libsql_error_to_persistence_error)
+                .attach(format!(
+                    "while configuring database with stmt: {statement}"
+                ))?;
+        }
+        Ok(())
+    }
+
+    /// Per-connection settings. busy_timeout first so later work can wait on locks.
     async fn initialize_connection(
         connection: libsql::Connection,
     ) -> ResultReport<libsql::Connection, RepositoryError> {
-        let statements = vec![
-            "PRAGMA journal_mode=WAL",
+        let statements = [
             "PRAGMA busy_timeout=5000",
             "PRAGMA synchronous=NORMAL",
             "PRAGMA foreign_keys=ON",
-            "PRAGMA auto_vacuum=INCREMENTAL",
             "PRAGMA cache_size=-64000",
             "PRAGMA temp_store=MEMORY",
             "PRAGMA mmap_size=2147483648",

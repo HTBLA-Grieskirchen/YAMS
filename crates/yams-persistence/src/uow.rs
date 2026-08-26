@@ -82,9 +82,9 @@ impl UnitOfWorkImpl for SQLiteUnitOfWork {
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
         let mut tx_guard = self.tx.lock().await;
         let tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;
-        tx.query("PRAGMA incremental_vacuum", ())
-            .await
-            .contextualize_with(libsql_error_to_persistence_error)?;
+        // No incremental_vacuum here: it needs an exclusive lock and races the
+        // next connection open. auto_vacuum=INCREMENTAL still tracks free pages;
+        // vacuum can run idle/shutdown if freelist reclaim is needed later.
         tx.commit()
             .await
             .contextualize_with(libsql_error_to_persistence_error)

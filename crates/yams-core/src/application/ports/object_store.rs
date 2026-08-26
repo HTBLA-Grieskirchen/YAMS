@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use async_trait::async_trait;
-use futures_lite::{Stream, StreamExt, stream};
+use futures::{Stream, StreamExt, stream};
 
 use crate::ResultReport;
 
@@ -28,5 +28,5 @@ pub async fn collect_object(mut stream: ObjectStream) -> Result<Vec<u8>, ObjectS
 }
 
 pub fn once_stream(bytes: Vec<u8>) -> ObjectStream {
-    Box::pin(stream::once(Ok(bytes)))
+    Box::pin(stream::iter(std::iter::once(Ok(bytes))))
 }

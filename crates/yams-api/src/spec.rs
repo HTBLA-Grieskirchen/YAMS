@@ -1,13 +1,16 @@
 use error_stack::Report;
+use futures::StreamExt;
 use http::StatusCode;
+use poem::{Body, IntoResponse, Response};
 use poem_openapi::{
     OpenApi, OpenApiService, ServerObject,
     param::{Path, Query},
-    payload::{Binary, Json, PlainText},
+    payload::{Json, Payload, PlainText},
+    registry::{MetaSchema, MetaSchemaRef},
     types::ToJSON,
 };
 use uuid::Uuid;
-use yams_core::{App, ThreadSafeError};
+use yams_core::{App, ThreadSafeError, ports::ObjectStream};
 
 use crate::{
     api::YamsAppApi,
@@ -75,10 +78,34 @@ impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonRe
     }
 }
 
+/// Streaming binary HTTP response for OpenAPI (poem `ApiResponse` needs `Payload`).
+pub struct StreamBody(Response);
+
+impl Payload for StreamBody {
+    const CONTENT_TYPE: &'static str = "application/pdf";
+
+    fn check_content_type(_content_type: &str) -> bool {
+        true
+    }
+
+    fn schema_ref() -> MetaSchemaRef {
+        MetaSchemaRef::Inline(Box::new(MetaSchema {
+            format: Some("binary"),
+            ..MetaSchema::new("string")
+        }))
+    }
+}
+
+impl IntoResponse for StreamBody {
+    fn into_response(self) -> Response {
+        self.0
+    }
+}
+
 #[derive(poem_openapi::ApiResponse)]
-pub enum PdfFileResponse {
+pub enum StreamBinaryResponse {
     #[oai(status = 200, content_type = "application/pdf")]
-    Ok(Binary<Vec<u8>>),
+    Ok(StreamBody),
     #[oai(status = 404)]
     NotFound(Json<StructuredError>),
     #[oai(status_range = "4XX")]
@@ -87,10 +114,19 @@ pub enum PdfFileResponse {
     InternalError(PlainText<InternalServerError>),
 }
 
-impl<C: ThreadSafeError> From<Result<Vec<u8>, Report<C>>> for PdfFileResponse {
-    fn from(result: Result<Vec<u8>, Report<C>>) -> Self {
+impl<C: ThreadSafeError> From<Result<ObjectStream, Report<C>>> for StreamBinaryResponse {
+    fn from(result: Result<ObjectStream, Report<C>>) -> Self {
         match result {
-            Ok(bytes) => PdfFileResponse::Ok(Binary(bytes)),
+            Ok(stream) => {
+                let body = Body::from_bytes_stream(stream.map(|chunk| {
+                    chunk.map_err(|err| std::io::Error::other(err.to_string()))
+                }));
+                StreamBinaryResponse::Ok(StreamBody(
+                    Response::builder()
+                        .content_type("application/pdf")
+                        .body(body),
+                ))
+            }
             Err(error) => {
                 let status = error
                     .request_value::<StatusCode>()
@@ -98,12 +134,12 @@ impl<C: ThreadSafeError> From<Result<Vec<u8>, Report<C>>> for PdfFileResponse {
                     .or_else(|| error.downcast_ref::<StatusCode>().copied())
                     .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
                 if status == StatusCode::NOT_FOUND {
-                    return PdfFileResponse::NotFound(Json(error.into()));
+                    return StreamBinaryResponse::NotFound(Json(error.into()));
                 }
                 if status.is_server_error() {
-                    return PdfFileResponse::InternalError(PlainText(InternalServerError));
+                    return StreamBinaryResponse::InternalError(PlainText(InternalServerError));
                 }
-                PdfFileResponse::ClientError(status, Json(error.into()))
+                StreamBinaryResponse::ClientError(status, Json(error.into()))
             }
         }
     }
@@ -202,7 +238,7 @@ impl YamsApiSpec {
     }
 
     #[oai(path = "/rechnung/:id/pdf", method = "get")]
-    async fn rechnung_pdf(&self, id: Path<Uuid>) -> PdfFileResponse {
+    async fn rechnung_pdf(&self, id: Path<Uuid>) -> StreamBinaryResponse {
         self.app_api.rechnung_pdf(id.0).await.into()
     }
 
@@ -299,7 +335,7 @@ impl YamsApiSpec {
         &self,
         id: Path<Uuid>,
         buchung_id: Path<Uuid>,
-    ) -> PdfFileResponse {
+    ) -> StreamBinaryResponse {
         self.app_api
             .teilnahmebestätigung_pdf(id.0, buchung_id.0)
             .await

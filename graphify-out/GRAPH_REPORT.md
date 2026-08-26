@@ -1,16 +1,16 @@
 # Graph Report - yams  (2026-08-26)
 
 ## Corpus Check
-- 269 files · ~331,477 words
+- 269 files · ~331,565 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2840 nodes · 6971 edges · 152 communities (128 shown, 24 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 227 edges (avg confidence: 0.85)
+- 2847 nodes · 6971 edges · 146 communities (124 shown, 22 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 226 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2324cd47`
+- Built from commit: `d572fc74`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -28,7 +28,7 @@
 - ObjectStoreError
 - UpMigration
 - compilerOptions
-- query
+- relations/index.tsx
 - Versioned
 - Behandlung
 - HaustierRepository
@@ -37,19 +37,19 @@
 - domain/kontakt.rs
 - SQLiteRechnungRepository
 - Versioned<T>
-- .from_parts
+- SeminarBuchungId
 - libs/database/index.ts
 - tests.rs
 - LeistungOffen
-- makeRecordForTable
+- query
 - dialog.ts
 - HaustierErstellen
 - .run
-- SeminarTerminId
+- SeminarBuchung
 - EmailAdresse
 - api/client.ts
 - RechnungId
-- KlientId
+- Klient
 - LeistungId
 - PdfDokument
 - UnitOfWork
@@ -67,15 +67,15 @@
 - leistung_from_row
 - Menge
 - base_app_builder
-- SeminarId
+- Seminar
 - HaustierErstellung
 - Produkt
 - Ratio
-- teilnahme_dokument
+- Klientbericht
 - StructuredError
 - BehandlungRepository
 - DatabaseConnection
-- PdfFileResponse
+- StreamBinaryResponse
 - base_app_builder
 - schema/seminar.rs
 - Option
@@ -114,50 +114,44 @@
 - Preis
 - stores/index.tsx
 - .behandlung_erstellen
-- SQLiteConnection
+- AnimalStore
 - Klient
 - .produkt_erstellen
 - page.tsx
 - SQLiteHaustierRepository
-- HaustierId
+- KlientId
 - api/index.ts
 - HttpYamsApi
 - Zeitraum
-- InMemoryObjectStore
+- behandlung_from_row
 - notification.ts
 - KlientErstellung
-- FakeObjectStore
+- produkt_from_row
 - preis.rs
 - domain/seminar_termin.rs
-- ObjectStore
+- SeminarTerminId
 - FakeUnitOfWork
-- seminar_from_row
-- openapi_service
-- Klientbericht
+- SeminarId
+- StreamBody
+- RechnungIn<S>
 - Migration
 - SQLiteKlientRepository
 - TypicalJsonResponse
-- main
-- .poll_next
+- openapi_service
+- repos.rs
 - KlientRepository
 - Haustier
-- SeminarTerminGeplant
-- repos.rs
-- .haustier_erstellen
-- LeistungRepository
+- SeminarTermin
+- ProduktRepository
 - InternalServerError
 - RechnungRepository
 - SeminarRepository
-- collect_object
 - .seminar_umsatz_prognose
 - paths.ts
 - .tagesabschluss_durchführen
 - document_text
 - layout.tsx
-- LeistungIn<S>
-- SeminarTerminIn<S>
 - FakeKlientenRepository
-- wal_connection_race.rs
 
 ## God Nodes (most connected - your core abstractions)
 1. `KlientId` - 74 edges
@@ -172,10 +166,10 @@
 10. `ExecutionContext` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `main()` --calls--> `openapi_service()`  [INFERRED]
-  backend/server/src/main.rs → crates/yams-api/src/spec.rs
 - `Config` --references--> `String`  [EXTRACTED]
   backend/server/src/main.rs → crates/yams-api/src/errors/internal_error.rs
+- `main()` --calls--> `openapi_service()`  [INFERRED]
+  backend/server/src/main.rs → crates/yams-api/src/spec.rs
 - `alle_haustiere()` --references--> `YamsAppApi`  [EXTRACTED]
   frontend/src-tauri/src/commands.rs → crates/yams-api/src/api/mod.rs
 - `behandlung_erstellen()` --references--> `YamsAppApi`  [EXTRACTED]
@@ -193,7 +187,7 @@
 - **Frontend Backend Communication Bridge** — specs_backend_hexagonal_backend_client, specs_backend_hexagonal_http_adapter, specs_backend_hexagonal_tauri_adapter, specs_backend_hexagonal_tanstack_query, specs_frontend_migration_yamsconfig [EXTRACTED 1.00]
 - **YAMS Hexagonal Backend Layers** — cursor_agents_md_driving_adapters, cursor_agents_md_yams_api, cursor_agents_md_yams_core, cursor_agents_md_yams_persistence [EXTRACTED 1.00]
 
-## Communities (152 total, 24 thin omitted)
+## Communities (146 total, 22 thin omitted)
 
 ### Community 0 - ".add_dyn"
 Cohesion: 0.23
@@ -236,8 +230,8 @@ Cohesion: 0.16
 Nodes (27): format_datetime(), parse_datetime(), DateTime, Utc, insert_params(), leistung_id_for(), load_buchungen(), load_termin() (+19 more)
 
 ### Community 10 - "ObjectStoreError"
-Cohesion: 0.23
-Nodes (15): ObjectStoreError, FileSystemObjectStore, key_to_path(), missing_is_none(), overwrites_existing(), put_get_roundtrip(), rejects_parent_segment(), Arc (+7 more)
+Cohesion: 0.06
+Nodes (47): get_missing_is_none(), InMemoryObjectStore, put_overwrites(), put_then_get_roundtrip(), FxHashMap, Mutex, ObjectStream, Option (+39 more)
 
 ### Community 11 - "UpMigration"
 Cohesion: 0.14
@@ -247,17 +241,17 @@ Nodes (11): Send, Sync, UpMigration, Migration, Error, Option, Transaction, Migr
 Cohesion: 0.07
 Nodes (28): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+20 more)
 
-### Community 13 - "query"
-Cohesion: 0.16
-Nodes (19): AnimalAddItem, AnimalComboBox, AnimalRow, clientSearched(), deleteAddress(), deleteAnimal(), patchAnimal(), deleteClientRelation() (+11 more)
+### Community 13 - "relations/index.tsx"
+Cohesion: 0.18
+Nodes (11): clientSearched(), deleteClientRelation(), relateClients(), updateClientRelation(), ClientRelationResponse, ClientDetail, AddRelationDialog, ClientRelations (+3 more)
 
 ### Community 14 - "Versioned"
 Cohesion: 0.17
 Nodes (11): Versioned, FakeHaustiereRepository, FakeSeminareRepository, FakeSeminarTermineRepository, Haustier, Leistung, NaiveDate, RepositoryResult (+3 more)
 
 ### Community 15 - "Behandlung"
-Cohesion: 0.09
-Nodes (19): Behandlung, BehandlungFehler, BehandlungId, NeueBehandlung, preis(), Into, ResultReport, Self (+11 more)
+Cohesion: 0.14
+Nodes (10): Behandlung, BehandlungFehler, BehandlungId, NeueBehandlung, preis(), Into, ResultReport, Self (+2 more)
 
 ### Community 17 - "apply_up_migrations"
 Cohesion: 0.21
@@ -272,32 +266,32 @@ Cohesion: 0.16
 Nodes (12): email_accepts_valid_address(), EmailAdresse, EmailAdresseValidierungsfehler, Mobilnummer, mobilnummer_accepts_digits(), mobilnummer_accepts_plus_prefix(), MobilnummerValidierungsfehler, AsRef (+4 more)
 
 ### Community 20 - "SQLiteRechnungRepository"
-Cohesion: 0.20
-Nodes (14): parse_klient_id(), geladene_rechnung_from_parts(), parse_rechnung_header(), RechnungRowData, Arc, Mutex, NaiveDate, Option (+6 more)
+Cohesion: 0.21
+Nodes (12): preis_to_str(), geladene_rechnung_from_parts(), RechnungRowData, Arc, Mutex, NaiveDate, Option, Rechnung (+4 more)
 
 ### Community 21 - "Versioned<T>"
 Cohesion: 0.13
 Nodes (8): Clone, Deref, Formatter, T, Target, Versioned<T>, PartialEq, PartialOrd
 
-### Community 22 - ".from_parts"
-Cohesion: 0.19
-Nodes (11): Abgehalten, Abgesagt, DateTime, FxHashMap, Into, Self, Utc, SeminarBuchungStatus (+3 more)
+### Community 22 - "SeminarBuchungId"
+Cohesion: 0.14
+Nodes (15): seminar_betrag_full_rabatt_is_zero(), seminar_betrag_uses_nach_rabatt(), Abgehalten, Abgesagt, DateTime, FxHashMap, Into, Self (+7 more)
 
 ### Community 23 - "libs/database/index.ts"
 Cohesion: 0.05
 Nodes (22): CompatibilityResult, DatabaseError, db, live(), LiveCleaner, LoadingResult, QueryResultState, TODO: Provide live support once sync is implemented (+14 more)
 
 ### Community 24 - "tests.rs"
-Cohesion: 0.22
-Nodes (31): adresse(), assert_absent(), assert_contains(), assert_valid_pdf(), generate(), hof_adresse(), klient(), klient_named() (+23 more)
+Cohesion: 0.21
+Nodes (33): adresse(), assert_absent(), assert_contains(), assert_valid_pdf(), generate(), hof_adresse(), klient(), klient_named() (+25 more)
 
 ### Community 25 - "LeistungOffen"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (21): LeistungOffen, RechnungOffen, BehandlungErstellen, BehandlungErstellenFehler, LeistungAusBehandlungBuchen, LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchen, LeistungAusProduktBuchenFehler (+13 more)
 
-### Community 26 - "makeRecordForTable"
-Cohesion: 0.07
-Nodes (17): createSeminar(), ensureSeminar(), Animal, AnimalResponse, Client, DatabaseResponse, isRecord(), makeRecord() (+9 more)
+### Community 26 - "query"
+Cohesion: 0.09
+Nodes (23): AnimalAddItem, AnimalComboBox, AnimalRow, deleteAddress(), deleteAnimal(), patchAnimal(), query(), deleteRace() (+15 more)
 
 ### Community 27 - "dialog.ts"
 Cohesion: 0.20
@@ -311,9 +305,9 @@ Nodes (11): HaustierErstellen, HaustierErstellenFehler, Context, Error, Haustier
 Cohesion: 0.26
 Nodes (10): FnOp<F>, OrchestrateFn, Context, Future, O, Output, Report, ResultReport (+2 more)
 
-### Community 30 - "SeminarTerminId"
-Cohesion: 0.16
-Nodes (12): seminar_betrag_full_rabatt_is_zero(), seminar_betrag_uses_nach_rabatt(), S, Seminar, Uuid, Vec, SeminarBuchung, SeminarBuchungId (+4 more)
+### Community 30 - "SeminarBuchung"
+Cohesion: 0.12
+Nodes (9): Item, Iterator, S, Seminar, Vec, SeminarBuchung, SeminarTerminIn, SeminarTerminIn<S> (+1 more)
 
 ### Community 31 - "EmailAdresse"
 Cohesion: 0.22
@@ -324,16 +318,16 @@ Cohesion: 0.17
 Nodes (8): Address, BackendClient, getBackendClient(), HttpBackendClient, TauriBackendClient, useAddresses(), useBackend(), Addresses
 
 ### Community 33 - "RechnungId"
-Cohesion: 0.12
-Nodes (27): aus_leistungen_maps_seminar_quelle(), aus_leistungen_rejects_klient_mismatch(), aus_leistungen_skips_already_abgerechnet(), Bezahlt, leistung_offen(), mwst_19(), Offen, position() (+19 more)
+Cohesion: 0.13
+Nodes (28): aus_leistungen_maps_seminar_quelle(), aus_leistungen_rejects_klient_mismatch(), aus_leistungen_skips_already_abgerechnet(), Bezahlt, leistung_offen(), mwst_19(), Offen, position() (+20 more)
 
-### Community 34 - "KlientId"
-Cohesion: 0.11
-Nodes (18): Klient, klient_rejects_empty_vorname(), klient_rejects_invalid_email_with_attach(), klient_rejects_invalid_mobilnummer_with_attach(), KlientFehler, KlientId, neu(), NeuerKlient (+10 more)
+### Community 34 - "Klient"
+Cohesion: 0.09
+Nodes (21): Klient, klient_rejects_empty_vorname(), klient_rejects_invalid_email_with_attach(), klient_rejects_invalid_mobilnummer_with_attach(), KlientFehler, neu(), NeuerKlient, Adresse (+13 more)
 
 ### Community 35 - "LeistungId"
-Cohesion: 0.12
-Nodes (19): Abgerechnet, Leistung, leistung_rejects_empty_beschreibung(), LeistungAbgerechnet, LeistungFehler, LeistungId, LeistungIn, mark_abgerechnet_sets_rechnung_id() (+11 more)
+Cohesion: 0.10
+Nodes (20): Abgerechnet, Leistung, leistung_rejects_empty_beschreibung(), LeistungAbgerechnet, LeistungFehler, LeistungId, LeistungIn, LeistungIn<S> (+12 more)
 
 ### Community 36 - "PdfDokument"
 Cohesion: 0.12
@@ -345,7 +339,7 @@ Nodes (7): LockedUnitOfWorkImpl, Box, RepositoryResult, ResultReport, Self, Unit
 
 ### Community 38 - "YamsAppApi"
 Cohesion: 0.12
-Nodes (21): Arc, Haustier, HaustierErstellung, Leistung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung, NaiveDate (+13 more)
+Nodes (21): Arc, Haustier, HaustierErstellung, Klient, KlientErstellung, Leistung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung (+13 more)
 
 ### Community 39 - "Clock"
 Cohesion: 0.11
@@ -356,7 +350,7 @@ Cohesion: 0.22
 Nodes (10): Box, Error, Future, Option, Output, Pin, Send, Transaction (+2 more)
 
 ### Community 41 - "YamsApiSpec"
-Cohesion: 0.33
+Cohesion: 0.32
 Nodes (5): Path, SeminarTermin, SeminarUmsatzVorschau, Uuid, YamsApiSpec
 
 ### Community 42 - "domain/adresse.rs"
@@ -384,40 +378,40 @@ Cohesion: 0.24
 Nodes (8): KlientErstellen, KlientErstellenFehler, Adresse, EmailAdresse, Error, Klient, Mobilnummer, NaiveDate
 
 ### Community 48 - "participation/index.tsx"
-Cohesion: 0.19
-Nodes (11): ClientParticipation, askAddParticipantEvent(), askEditEventParticipation(), submitAddParticipantEvent(), submitDeleteEventParticipation(), submitUpdateEventParticipation(), deleteEventParticipation(), relateClientParticipateEvent() (+3 more)
+Cohesion: 0.30
+Nodes (10): ClientParticipation, askAddParticipantEvent(), askEditEventParticipation(), submitAddParticipantEvent(), submitDeleteEventParticipation(), submitUpdateEventParticipation(), deleteEventParticipation(), relateClientParticipateEvent() (+2 more)
 
 ### Community 50 - "leistung_from_row"
-Cohesion: 0.17
-Nodes (16): format_naive_date(), parse_naive_date(), NaiveDate, leistung_from_row(), leistung_offen_from_row(), Arc, Leistung, Mutex (+8 more)
+Cohesion: 0.21
+Nodes (13): parse_rechnung_id(), leistung_from_row(), leistung_offen_from_row(), Arc, Leistung, Mutex, NaiveDate, Option (+5 more)
 
 ### Community 51 - "Menge"
-Cohesion: 0.27
+Cohesion: 0.22
 Nodes (4): Menge, MengeFehler, Decimal, Self
 
 ### Community 52 - "base_app_builder"
 Cohesion: 0.08
 Nodes (40): klient_body(), Value, tagesabschluss_returns_rechnungen_as_json(), behandlung_erstellen_rejects_empty_name(), behandlung_erstellen_returns_mwst_ratio(), haustier_erstellen_is_listed_and_fetchable(), klient_body(), Value (+32 more)
 
-### Community 53 - "SeminarId"
-Cohesion: 0.18
-Nodes (13): NeuesSeminar, preis(), Into, Option, ResultReport, Self, TimeDelta, Uuid (+5 more)
+### Community 53 - "Seminar"
+Cohesion: 0.17
+Nodes (11): NeuesSeminar, preis(), Into, Option, ResultReport, Self, TimeDelta, Seminar (+3 more)
 
 ### Community 54 - "HaustierErstellung"
 Cohesion: 0.31
 Nodes (7): HaustierErstellen, HaustierErstellung, Error, NaiveDate, Self, TryFrom, Uuid
 
 ### Community 55 - "Produkt"
-Cohesion: 0.09
-Nodes (19): produkt_betrag_multiplies_menge(), NeuesProdukt, preis(), Produkt, ProduktFehler, ProduktId, Into, ResultReport (+11 more)
+Cohesion: 0.14
+Nodes (10): produkt_betrag_multiplies_menge(), NeuesProdukt, preis(), Produkt, ProduktFehler, ProduktId, Into, ResultReport (+2 more)
 
 ### Community 56 - "Ratio"
-Cohesion: 0.16
-Nodes (5): LeistungQuelle, Ratio, RatioFehler, Decimal, Self
+Cohesion: 0.18
+Nodes (4): Ratio, RatioFehler, Decimal, Self
 
-### Community 57 - "teilnahme_dokument"
-Cohesion: 0.23
-Nodes (11): PraxisAngaben, klient_bericht(), rechnungsdokument(), Klient, S, Seminar, SeminarBuchung, teilnahme_dokument() (+3 more)
+### Community 57 - "Klientbericht"
+Cohesion: 0.12
+Nodes (22): Klientbericht, PraxisAngaben, Rechnungsbericht, Rechnungspositionsbericht, Adresse, DateTime, EmailAdresse, NaiveDate (+14 more)
 
 ### Community 58 - "StructuredError"
 Cohesion: 0.33
@@ -425,27 +419,27 @@ Nodes (7): into_structured_error_from_frame(), Frame, From, Report, Self, Vec, S
 
 ### Community 59 - "BehandlungRepository"
 Cohesion: 0.20
-Nodes (4): BehandlungRepository, Send, Sync, SeminarTerminRepository
+Nodes (4): BehandlungRepository, LeistungRepository, Send, Sync
 
 ### Community 60 - "DatabaseConnection"
 Cohesion: 0.16
 Nodes (6): config(), defaultConfig, FrontendConfig, loadPromise, TauriType, DatabaseConnection
 
-### Community 61 - "PdfFileResponse"
-Cohesion: 0.29
-Nodes (9): Binary, PdfFileResponse, C, From, Report, StatusCode, T, Vec (+1 more)
+### Community 61 - "StreamBinaryResponse"
+Cohesion: 0.31
+Nodes (9): C, From, ObjectStream, Report, StatusCode, T, StreamBinaryResponse, TypicalJsonResponse<T> (+1 more)
 
 ### Community 62 - "base_app_builder"
 Cohesion: 0.06
 Nodes (65): App, Arc, Box, F, O, ResultReport, T, U (+57 more)
 
 ### Community 63 - "schema/seminar.rs"
-Cohesion: 0.15
-Nodes (25): BuchungUmsatz, domain::SeminarOrt, Adresse, DateTime, Decimal, Error, From, NaiveDate (+17 more)
+Cohesion: 0.12
+Nodes (28): NaiveDate, SeminarUmsatzPrognose, SeminarUmsatzVorschau, BuchungUmsatz, domain::SeminarOrt, Adresse, DateTime, Decimal (+20 more)
 
 ### Community 64 - "Option"
-Cohesion: 0.19
-Nodes (6): NeuerSeminarTermin, Adresse, From, Option, SeminarOrt, SeminarTermin
+Cohesion: 0.26
+Nodes (6): Geplant, NeuerSeminarTermin, Adresse, Option, SeminarOrt, SeminarTerminGeplant
 
 ### Community 65 - "AddressStore"
 Cohesion: 0.10
@@ -493,7 +487,7 @@ Nodes (3): diffx-finish-review, diffx server, diffx-start-review
 
 ### Community 77 - "requests/abrechnung.rs"
 Cohesion: 0.08
-Nodes (46): BehandlungErstellen, BehandlungErstellung, LeistungAusBehandlungBuchen, LeistungAusBehandlungErstellung, LeistungAusProduktBuchen, LeistungAusProduktErstellung, LeistungManuelleErstellung, LeistungManuellErfassen (+38 more)
+Nodes (44): BehandlungErstellen, BehandlungErstellung, LeistungAusBehandlungBuchen, LeistungAusBehandlungErstellung, LeistungAusProduktBuchen, LeistungAusProduktErstellung, LeistungManuelleErstellung, LeistungManuellErfassen (+36 more)
 
 ### Community 80 - "api/types.ts"
 Cohesion: 0.10
@@ -504,16 +498,16 @@ Cohesion: 0.18
 Nodes (23): adresse_dict(), decimal(), klient_dict(), menge(), naive_date(), praxis_dict(), preis(), ratio() (+15 more)
 
 ### Community 89 - "common.rs"
-Cohesion: 0.22
-Nodes (18): menge_to_str(), parse_decimal(), parse_haustier_id(), parse_menge(), parse_preis(), parse_ratio(), parse_rechnung_id(), parse_uuid() (+10 more)
+Cohesion: 0.15
+Nodes (24): format_naive_date(), menge_to_str(), parse_decimal(), parse_haustier_id(), parse_klient_id(), parse_menge(), parse_naive_date(), parse_preis() (+16 more)
 
 ### Community 92 - "ExecutionContext"
-Cohesion: 0.08
-Nodes (35): ExecutionContext, Arc, PdfRenderer, Send, Sync, UseCase, buchung_umsatz(), BuchungUmsatz (+27 more)
+Cohesion: 0.07
+Nodes (41): ExecutionContext, Arc, ObjectStore, Send, Sync, PdfRenderer, Send, Sync (+33 more)
 
 ### Community 100 - "RepositoryError"
-Cohesion: 0.23
-Nodes (12): AtomicBool, Connection, RepositoryError, Option, libsql_error_to_persistence_error(), migration_error_to_persistence_error(), Error, AsRef (+4 more)
+Cohesion: 0.14
+Nodes (21): AtomicBool, Connection, RepositoryError, Option, libsql_error_to_persistence_error(), migration_error_to_persistence_error(), Error, InstanceType (+13 more)
 
 ### Community 101 - "Rechnung"
 Cohesion: 0.29
@@ -528,8 +522,8 @@ Cohesion: 0.17
 Nodes (20): useBehandlungErstellenMutation(), useHaustierErstellenMutation(), useKlientErstellenMutation(), useLeistungAusBehandlungBuchenMutation(), useLeistungAusProduktBuchenMutation(), useLeistungManuellErfassenMutation(), useProduktErstellenMutation(), useTagesabschlussDurchführenMutation() (+12 more)
 
 ### Community 104 - "Preis"
-Cohesion: 0.12
-Nodes (7): Add, Preis, Output, Self, RechnungIn<S>, Rechnungsposition, Mul
+Cohesion: 0.16
+Nodes (5): Add, Preis, Output, Self, Mul
 
 ### Community 105 - "stores/index.tsx"
 Cohesion: 0.09
@@ -539,13 +533,13 @@ Nodes (39): AddressEditTableRowContent, AddressTableHeader, AddressTableRow, Add
 Cohesion: 0.36
 Nodes (6): Behandlung, BehandlungErstellung, Behandlung, Decimal, Uuid, schema_behandlung_from_domain()
 
-### Community 107 - "SQLiteConnection"
-Cohesion: 0.24
-Nodes (9): InstanceType, Arc, Deref, Mutex, Target, TempDir, SQLiteConnection, Database (+1 more)
+### Community 107 - "AnimalStore"
+Cohesion: 0.14
+Nodes (3): AnimalResponse, RaceResponse, AnimalStore
 
 ### Community 108 - "Klient"
-Cohesion: 0.22
-Nodes (11): Klient, KlientErstellung, Klient, Adresse, EmailAdresse, Haustier, Mobilnummer, NaiveDate (+3 more)
+Cohesion: 0.31
+Nodes (9): Klient, Adresse, EmailAdresse, Haustier, Mobilnummer, NaiveDate, Uuid, Vec (+1 more)
 
 ### Community 110 - ".produkt_erstellen"
 Cohesion: 0.32
@@ -559,61 +553,57 @@ Nodes (11): deriveCurrentStep(), Home(), defaultHaustier(), HaustierForm(), defa
 Cohesion: 0.24
 Nodes (12): haustier_from_row(), query_all_haustiere(), Arc, Haustier, IntoParams, Mutex, Option, RepositoryResult (+4 more)
 
-### Community 113 - "HaustierId"
-Cohesion: 0.15
-Nodes (13): Haustier, haustier_from_parts_rejects_empty_name(), haustier_neu_keeps_klient_id(), haustier_rejects_empty_name(), HaustierFehler, HaustierId, neues(), NeuesHaustier (+5 more)
+### Community 113 - "KlientId"
+Cohesion: 0.16
+Nodes (14): Haustier, haustier_from_parts_rejects_empty_name(), haustier_neu_keeps_klient_id(), haustier_rejects_empty_name(), HaustierFehler, HaustierId, neues(), NeuesHaustier (+6 more)
 
 ### Community 114 - "api/index.ts"
 Cohesion: 0.23
 Nodes (14): createYamsApi(), envDeploymentMode(), envRemoteApiUrl(), getYamsApi(), normalizeApiBaseUrl(), resolveDeploymentMode(), resolveRemoteApiBaseUrl(), tauriFrontendConfig() (+6 more)
 
 ### Community 116 - "Zeitraum"
-Cohesion: 0.16
-Nodes (14): DateTime, Display, Formatter, Self, Utc, utc(), Zeitraum, zeitraum_accepts_ende_after_beginn() (+6 more)
+Cohesion: 0.20
+Nodes (10): DateTime, Display, Formatter, Self, Utc, utc(), Zeitraum, zeitraum_accepts_ende_after_beginn() (+2 more)
 
-### Community 117 - "InMemoryObjectStore"
-Cohesion: 0.24
-Nodes (11): get_missing_is_none(), InMemoryObjectStore, put_overwrites(), put_then_get_roundtrip(), FxHashMap, Mutex, ObjectStream, Option (+3 more)
+### Community 117 - "behandlung_from_row"
+Cohesion: 0.27
+Nodes (9): behandlung_from_row(), Arc, Behandlung, Mutex, Option, RepositoryResult, Row, Transaction (+1 more)
 
 ### Community 118 - "notification.ts"
-Cohesion: 0.14
-Nodes (14): ActionButton, buttonColor(), Notification, notificationTypeValues(), NotificationActions, NotificationBehaviour, NotificationContent, NotificationInfo (+6 more)
+Cohesion: 0.13
+Nodes (15): ActionButton, buttonColor(), Notification, Notifications, notificationTypeValues(), NotificationActions, NotificationBehaviour, NotificationContent (+7 more)
 
 ### Community 119 - "KlientErstellung"
 Cohesion: 0.22
 Nodes (9): KlientErstellen, KlientErstellung, Adresse, EmailAdresse, Error, Mobilnummer, NaiveDate, Self (+1 more)
 
-### Community 120 - "FakeObjectStore"
-Cohesion: 0.19
-Nodes (9): FakeObjectStore, Arc, FxHashMap, Mutex, ObjectStream, Option, ResultReport, Self (+1 more)
+### Community 120 - "produkt_from_row"
+Cohesion: 0.27
+Nodes (9): produkt_from_row(), Arc, Mutex, Option, Produkt, RepositoryResult, Row, Transaction (+1 more)
 
 ### Community 121 - "preis.rs"
 Cohesion: 0.29
 Nodes (8): nach_rabatt_full_is_zero(), nach_rabatt_twenty_percent(), nach_rabatt_zero_keeps_basis(), preis_add_sums_values(), preis_times_menge_scales_value(), preis_times_ratio_scales_value(), PreisFehler, Decimal
 
 ### Community 122 - "domain/seminar_termin.rs"
-Cohesion: 0.30
-Nodes (18): absagen_archives_buchungen(), aktualisieren_rejects_max_below_confirmed(), als_abgehalten_maps_all_confirmed(), als_abgehalten_maps_confirmed_only(), als_abgehalten_rejects_extra_mapping_keys(), als_abgehalten_rejects_incomplete_mapping(), buchung_anlegen_enforces_capacity(), buchung_anlegen_rejects_duplicate_klient() (+10 more)
+Cohesion: 0.27
+Nodes (19): absagen_archives_buchungen(), aktualisieren_rejects_max_below_confirmed(), als_abgehalten_maps_all_confirmed(), als_abgehalten_maps_confirmed_only(), als_abgehalten_rejects_extra_mapping_keys(), als_abgehalten_rejects_incomplete_mapping(), buchung_anlegen_enforces_capacity(), buchung_anlegen_rejects_duplicate_klient() (+11 more)
 
-### Community 123 - "ObjectStore"
-Cohesion: 0.29
-Nodes (12): ObjectStore, Send, Sync, pdf_laden(), rechnung_key_uses_uuid(), rechnung_object_key(), rechnung_pdf_laden(), Option (+4 more)
+### Community 123 - "SeminarTerminId"
+Cohesion: 0.22
+Nodes (13): abgehalten_use_case(), SeminarTerminAbsage, SeminarTerminId, rechnung_key_uses_uuid(), rechnung_object_key(), rechnung_pdf_laden(), ObjectStream, Option (+5 more)
 
 ### Community 124 - "FakeUnitOfWork"
 Cohesion: 0.28
 Nodes (9): FakeUnitOfWork, FakeUnitOfWorkProvider, Arc, Box, Mutex, RepositoryResult, Self, Vec (+1 more)
 
-### Community 125 - "seminar_from_row"
-Cohesion: 0.27
-Nodes (9): Arc, Mutex, Option, RepositoryResult, Row, Seminar, Transaction, seminar_from_row() (+1 more)
+### Community 125 - "SeminarId"
+Cohesion: 0.18
+Nodes (11): Uuid, SeminarId, Arc, Mutex, Option, RepositoryResult, Row, Seminar (+3 more)
 
-### Community 126 - "openapi_service"
-Cohesion: 0.25
-Nodes (7): openapi_service(), Into, Item, Self, IntoIterator, OpenApiService, ServerObject
-
-### Community 127 - "Klientbericht"
-Cohesion: 0.19
-Nodes (13): Klientbericht, Rechnungsbericht, Rechnungspositionsbericht, Adresse, DateTime, EmailAdresse, NaiveDate, Option (+5 more)
+### Community 126 - "StreamBody"
+Cohesion: 0.22
+Nodes (6): Self, StreamBody, IntoResponse, MetaSchemaRef, Payload, Response
 
 ### Community 128 - "Migration"
 Cohesion: 0.36
@@ -624,32 +614,20 @@ Cohesion: 0.26
 Nodes (9): klient_from_row(), Arc, Klient, Mutex, Option, RepositoryResult, Row, Transaction (+1 more)
 
 ### Community 130 - "TypicalJsonResponse"
-Cohesion: 0.13
-Nodes (13): Behandlung, BehandlungErstellung, Klient, KlientErstellung, Leistung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung (+5 more)
+Cohesion: 0.12
+Nodes (14): Behandlung, BehandlungErstellung, HaustierErstellung, Klient, KlientErstellung, Leistung, LeistungAusBehandlungErstellung, LeistungAusProduktErstellung (+6 more)
 
-### Community 131 - "main"
-Cohesion: 0.21
-Nodes (10): BackendServerError, catch_panic(), Config, main(), Option, Report, init_tracing(), CatchPanic (+2 more)
-
-### Community 132 - ".poll_next"
-Cohesion: 0.22
-Nodes (8): FileStream, Context, Item, Option, Pin, File, Poll, Stream
+### Community 131 - "openapi_service"
+Cohesion: 0.14
+Nodes (14): BackendServerError, catch_panic(), Config, main(), Report, init_tracing(), CatchPanic, openapi_service() (+6 more)
 
 ### Community 134 - "Haustier"
 Cohesion: 0.70
 Nodes (4): Haustier, NaiveDate, Uuid, schema_haustier_from_domain()
 
-### Community 135 - "SeminarTerminGeplant"
-Cohesion: 0.29
-Nodes (5): Item, Iterator, ResultReport, SeminarTerminFehler, SeminarTerminGeplant
-
 ### Community 139 - "InternalServerError"
 Cohesion: 0.33
 Nodes (3): InternalServerError, Self, StructuredError
-
-### Community 142 - "collect_object"
-Cohesion: 0.60
-Nodes (4): collect_object(), once_stream(), ObjectStream, Vec
 
 ### Community 143 - ".seminar_umsatz_prognose"
 Cohesion: 0.50
@@ -657,7 +635,11 @@ Nodes (3): NaiveDate, SeminarUmsatzPrognose, Query
 
 ### Community 144 - "paths.ts"
 Cohesion: 0.05
-Nodes (35): queryClient, AnimalList, ClientItem, deleteClient(), ClientTableHeader, ClientTableRow, MenuEntryData, LanguagePicker (+27 more)
+Nodes (34): queryClient, AnimalList, ClientItem, deleteClient(), ClientTableHeader, ClientTableRow, MenuEntryData, LanguagePicker (+26 more)
+
+### Community 145 - ".tagesabschluss_durchführen"
+Cohesion: 0.33
+Nodes (4): Haustier, Rechnung, TagesabschlussErstellung, Vec
 
 ### Community 147 - "document_text"
 Cohesion: 0.50
@@ -667,23 +649,19 @@ Nodes (4): collect_frame_text(), document_text(), Frame, PagedDocument
 Cohesion: 0.31
 Nodes (5): geistMono, geistSans, metadata, Providers(), createQueryClient()
 
-### Community 152 - "wal_connection_race.rs"
-Cohesion: 0.70
-Nodes (4): app(), neuer_klient(), parallel_execute_fn_survives_wal_connection_init(), Arc
-
 ## Knowledge Gaps
 - **242 isolated node(s):** `molting`, `UnitOfWork<'a>`, `ProduktErstellenFehler`, `BehandlungErstellenFehler`, `LeistungAusProduktBuchenFehler` (+237 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `String` connect `String` to `arc_up`, `TypicalJsonResponse`, `main`, `Haustier`, `YAMSFrontendConfig`, `termin_from_parts`, `InternalServerError`, `Behandlung`, `domain/kontakt.rs`, `SQLiteRechnungRepository`, `document_text`, `.from_parts`, `tests.rs`, `LeistungOffen`, `HaustierErstellen`, `EmailAdresse`, `KlientId`, `LeistungId`, `domain/adresse.rs`, `schema/leistung.rs`, `KlientErstellen`, `leistung_from_row`, `base_app_builder`, `SeminarId`, `HaustierErstellung`, `Produkt`, `teilnahme_dokument`, `StructuredError`, `schema/seminar.rs`, `Option`, `Adresse`, `requests/abrechnung.rs`, `common.rs`, `ExecutionContext`, `Rechnung`, `Preis`, `.behandlung_erstellen`, `Klient`, `.produkt_erstellen`, `HaustierId`, `InMemoryObjectStore`, `KlientErstellung`, `FakeObjectStore`, `ObjectStore`, `FakeUnitOfWork`, `Klientbericht`?**
-  _High betweenness centrality (0.235) - this node is a cross-community bridge._
-- **Why does `KlientId` connect `KlientId` to `SQLiteKlientRepository`, `termin_from_parts`, `Versioned`, `SQLiteRechnungRepository`, `LeistungIn<S>`, `.from_parts`, `FakeKlientenRepository`, `tests.rs`, `LeistungOffen`, `HaustierErstellen`, `SeminarTerminId`, `RechnungId`, `LeistungId`, `PdfDokument`, `YamsAppApi`, `HaustierErstellung`, `requests/abrechnung.rs`, `ExecutionContext`, `Preis`, `SQLiteHaustierRepository`, `HaustierId`, `domain/seminar_termin.rs`, `Klientbericht`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `RepositoryError` connect `RepositoryError` to `UnitOfWork`, `SharedUnitOfWorkImpl`, `repos.rs`, `termin_from_parts`, `SQLiteConnection`, `FakeDatastore`, `SQLiteRechnungRepository`, `common.rs`?**
+- **Why does `String` connect `String` to `arc_up`, `TypicalJsonResponse`, `openapi_service`, `Haustier`, `YAMSFrontendConfig`, `termin_from_parts`, `ObjectStoreError`, `InternalServerError`, `Behandlung`, `domain/kontakt.rs`, `SQLiteRechnungRepository`, `document_text`, `SeminarBuchungId`, `tests.rs`, `LeistungOffen`, `HaustierErstellen`, `EmailAdresse`, `RechnungId`, `Klient`, `LeistungId`, `domain/adresse.rs`, `schema/leistung.rs`, `KlientErstellen`, `Menge`, `base_app_builder`, `Seminar`, `HaustierErstellung`, `Produkt`, `Klientbericht`, `StructuredError`, `schema/seminar.rs`, `Option`, `Adresse`, `requests/abrechnung.rs`, `common.rs`, `ExecutionContext`, `Rechnung`, `.behandlung_erstellen`, `Klient`, `.produkt_erstellen`, `KlientId`, `KlientErstellung`, `SeminarTerminId`, `FakeUnitOfWork`?**
+  _High betweenness centrality (0.251) - this node is a cross-community bridge._
+- **Why does `Ratio` connect `Ratio` to `common.rs`, `RechnungId`, `LeistungId`, `Preis`, `requests/abrechnung.rs`, `Behandlung`, `Menge`, `LeistungOffen`, `Seminar`, `SeminarBuchungId`, `Produkt`, `base_app_builder`, `Klientbericht`, `domain/seminar_termin.rs`, `tests.rs`, `ExecutionContext`, `SeminarBuchung`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
+- **Why does `TestError` connect `arc_up` to `String`?**
   _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Are the 9 inferred relationships involving `KlientId` (e.g. with `.rechnungen_für_klient()` and `.try_from()`) actually correct?**
   _`KlientId` has 9 INFERRED edges - model-reasoned connections that need verification._

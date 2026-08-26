@@ -25,11 +25,13 @@ poem-openapi = {
     features = ["uuid", "chrono", "rust_decimal", "swagger-ui", "redoc"],
     optional = true,
 }
+poem = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
 
 [features]
 default = ["serde", "openapi"]
-openapi = ["dep:poem-openapi"]
+openapi = ["dep:poem-openapi", "dep:poem", "dep:futures"]
 serde = ["dep:serde", "uuid/serde", "chrono/serde", "error-stack/serde", "rust_decimal/serde"]
 
 [dev-dependencies]

@@ -1,13 +1,11 @@
-use error_stack::Report;
-
 use crate::ResultReport;
 use crate::domain::{
     Klient, Preis, RechnungId, RechnungIn, Seminar, SeminarBuchung, SeminarBuchungId,
     SeminarTerminAbgehalten, SeminarTerminId,
 };
 use crate::ports::{
-    Klientbericht, ObjectStore, ObjectStoreError, PdfDokument, Rechnungsbericht,
-    Rechnungspositionsbericht, Teilnahmebestätigung, collect_object,
+    Klientbericht, ObjectStore, ObjectStoreError, ObjectStream, PdfDokument, Rechnungsbericht,
+    Rechnungspositionsbericht, Teilnahmebestätigung,
 };
 use crate::service::praxis::praxis;
 
@@ -25,26 +23,18 @@ pub fn teilnahme_object_key(termin_id: &SeminarTerminId, buchung_id: &SeminarBuc
 pub async fn rechnung_pdf_laden(
     store: &dyn ObjectStore,
     id: &RechnungId,
-) -> ResultReport<Option<Vec<u8>>, ObjectStoreError> {
-    pdf_laden(store, &rechnung_object_key(id)).await
+) -> ResultReport<Option<ObjectStream>, ObjectStoreError> {
+    store.get(&rechnung_object_key(id)).await
 }
 
 pub async fn teilnahme_pdf_laden(
     store: &dyn ObjectStore,
     termin_id: &SeminarTerminId,
     buchung_id: &SeminarBuchungId,
-) -> ResultReport<Option<Vec<u8>>, ObjectStoreError> {
-    pdf_laden(store, &teilnahme_object_key(termin_id, buchung_id)).await
-}
-
-async fn pdf_laden(
-    store: &dyn ObjectStore,
-    key: &str,
-) -> ResultReport<Option<Vec<u8>>, ObjectStoreError> {
-    match store.get(key).await? {
-        Some(stream) => collect_object(stream).await.map(Some).map_err(Report::new),
-        None => Ok(None),
-    }
+) -> ResultReport<Option<ObjectStream>, ObjectStoreError> {
+    store
+        .get(&teilnahme_object_key(termin_id, buchung_id))
+        .await
 }
 
 pub fn klient_bericht(klient: &Klient) -> Klientbericht {

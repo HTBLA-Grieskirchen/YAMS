@@ -99,7 +99,10 @@ pub async fn rechnungen_für_klient(
 
 #[tauri::command]
 pub async fn rechnung_pdf(id: Uuid, ctx: State<'_, YamsAppApi>) -> Result<Vec<u8>, String> {
-    map_report(ctx.rechnung_pdf(id).await)
+    let stream = map_report(ctx.rechnung_pdf(id).await)?;
+    yams_core::ports::collect_object(stream)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -108,5 +111,8 @@ pub async fn teilnahmebestätigung_pdf(
     buchung_id: Uuid,
     ctx: State<'_, YamsAppApi>,
 ) -> Result<Vec<u8>, String> {
-    map_report(ctx.teilnahmebestätigung_pdf(termin_id, buchung_id).await)
+    let stream = map_report(ctx.teilnahmebestätigung_pdf(termin_id, buchung_id).await)?;
+    yams_core::ports::collect_object(stream)
+        .await
+        .map_err(|e| e.to_string())
 }

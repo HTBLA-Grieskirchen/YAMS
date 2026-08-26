@@ -12,7 +12,7 @@ yams-core = { path = "../yams-core" }
 
 async-trait = { workspace = true }
 error-stack = { workspace = true }
-futures-lite = { workspace = true }
+futures = { workspace = true }
 tempdir = "0.3.7"
 
 [dev-dependencies]

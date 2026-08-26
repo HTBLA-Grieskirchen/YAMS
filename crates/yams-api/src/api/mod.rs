@@ -19,6 +19,7 @@ use yams_core::{
         SeminarUmsatzPrognoseBisDatum, TagesabschlussDurchführen, rechnung_pdf_laden,
         teilnahme_pdf_laden,
     },
+    ports::ObjectStream,
     uow::Versioned,
 };
 
@@ -187,7 +188,10 @@ impl YamsAppApi {
             .collect())
     }
 
-    pub async fn rechnung_pdf(&self, rechnung_id: Uuid) -> ResultReport<Vec<u8>, ExecutionError> {
+    pub async fn rechnung_pdf(
+        &self,
+        rechnung_id: Uuid,
+    ) -> ResultReport<ObjectStream, ExecutionError> {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
@@ -195,7 +199,7 @@ impl YamsAppApi {
             })
             .await?;
         match pdf {
-            Some(bytes) => Ok(bytes),
+            Some(stream) => Ok(stream),
             None => Err(Report::new(ExecutionError)
                 .attach("pdf not found")
                 .attach_opaque(StatusCode::NOT_FOUND)),
@@ -206,7 +210,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         buchung_id: Uuid,
-    ) -> ResultReport<Vec<u8>, ExecutionError> {
+    ) -> ResultReport<ObjectStream, ExecutionError> {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
@@ -219,7 +223,7 @@ impl YamsAppApi {
             })
             .await?;
         match pdf {
-            Some(bytes) => Ok(bytes),
+            Some(stream) => Ok(stream),
             None => Err(Report::new(ExecutionError)
                 .attach("pdf not found")
                 .attach_opaque(StatusCode::NOT_FOUND)),

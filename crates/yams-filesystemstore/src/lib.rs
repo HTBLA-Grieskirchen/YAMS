@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use async_trait::async_trait;
-use futures_lite::Stream;
+use futures::Stream;
 use tempdir::TempDir;
 use yams_core::{
     ErrorReportExt, ResultReport,

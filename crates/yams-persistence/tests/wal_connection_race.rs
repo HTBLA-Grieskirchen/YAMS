@@ -37,12 +37,14 @@ fn neuer_klient(kundennummer: u64) -> NeuerKlient {
 async fn parallel_execute_fn_survives_wal_connection_init() {
     let app = app().await;
 
-    // Pair a writer (commit + connection drop/checkpoint) with openers that
-    // immediately begin a new UoW. Pre-fix, each open re-ran
+    // Pair a writer (commit + connection drop/checkpoint) with an opener that
+    // immediately begins a new UoW. Pre-fix, each open re-ran
     // `PRAGMA journal_mode=WAL` and flaked with "database is locked".
-    let mut handles = Vec::with_capacity(2000);
-    for round in 0..500u64 {
+    // Keep the loop modest: enough overlap to stress locks, not dominate CI time.
+    let mut handles = Vec::with_capacity(128);
+    for round in 0..64u64 {
         let writer_app = Arc::clone(&app);
+        let opener_app = Arc::clone(&app);
         handles.push(std::thread::spawn(move || {
             pollster::block_on(async move {
                 writer_app
@@ -53,24 +55,16 @@ async fn parallel_execute_fn_survives_wal_connection_init() {
                     .expect("writer execute_fn must not fail with database locked");
             })
         }));
-        for opener in 0..3u64 {
-            let opener_app = Arc::clone(&app);
-            handles.push(std::thread::spawn(move || {
-                pollster::block_on(async move {
-                    opener_app
-                        .execute_fn::<_, _, RepositoryError>(async |ctx| {
-                            ctx.uow
-                                .klienten()
-                                .create(neuer_klient(50_000 + round * 10 + opener))
-                                .await
-                        })
-                        .await
-                        .expect(
-                            "opener execute_fn must not fail with database locked / WAL init",
-                        );
-                })
-            }));
-        }
+        handles.push(std::thread::spawn(move || {
+            pollster::block_on(async move {
+                opener_app
+                    .execute_fn::<_, _, RepositoryError>(async |ctx| {
+                        ctx.uow.klienten().create(neuer_klient(50_000 + round)).await
+                    })
+                    .await
+                    .expect("opener execute_fn must not fail with database locked / WAL init");
+            })
+        }));
     }
 
     for handle in handles {

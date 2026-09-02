@@ -37,8 +37,12 @@ impl UseCase<Seminar> for SeminarErstellen {
     type Error = Report<SeminarErstellenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Seminar, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
-        uow.seminare()
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarErstellenFehler::Erstellung)?;
+        let seminar = uow
+            .seminare()
             .create(NeuesSeminar::neu(
                 self.titel,
                 self.beschreibung,
@@ -48,7 +52,11 @@ impl UseCase<Seminar> for SeminarErstellen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(SeminarErstellenFehler::Erstellung)
+            .change_context(SeminarErstellenFehler::Erstellung)?;
+        uow.commit()
+            .await
+            .change_context(SeminarErstellenFehler::Erstellung)?;
+        Ok(seminar)
     }
 }
 
@@ -73,13 +81,17 @@ impl UseCase<SeminarTerminGeplant> for SeminarTerminPlanen {
     type Error = Report<SeminarTerminPlanenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTerminGeplant, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarTerminPlanenFehler::Persistenz)?;
         uow.seminare()
             .find_by_id(self.seminar_id.clone())
             .await
             .change_context(SeminarTerminPlanenFehler::SeminarNichtGefunden)?;
 
-        uow.seminar_termine()
+        let termin = uow
+            .seminar_termine()
             .create(NeuerSeminarTermin::neu(
                 self.seminar_id,
                 self.zeitraum,
@@ -88,7 +100,11 @@ impl UseCase<SeminarTerminGeplant> for SeminarTerminPlanen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(SeminarTerminPlanenFehler::Persistenz)
+            .change_context(SeminarTerminPlanenFehler::Persistenz)?;
+        uow.commit()
+            .await
+            .change_context(SeminarTerminPlanenFehler::Persistenz)?;
+        Ok(termin)
     }
 }
 
@@ -117,7 +133,10 @@ impl UseCase<SeminarTermin> for SeminarTerminAktualisieren {
     type Error = Report<SeminarTerminAktualisierenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
         let mut termin = uow
             .seminar_termine()
             .find_by_id(self.termin_id)
@@ -134,6 +153,10 @@ impl UseCase<SeminarTermin> for SeminarTerminAktualisieren {
 
         uow.seminar_termine()
             .update(&mut termin)
+            .await
+            .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
+
+        uow.commit()
             .await
             .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
 
@@ -167,7 +190,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungAnlegen {
     type Error = Report<SeminarBuchungAnlegenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
         uow.klienten()
             .find_by_id(self.klient_id.clone())
             .await
@@ -188,6 +214,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungAnlegen {
 
         uow.seminar_termine()
             .update(&mut termin)
+            .await
+            .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
+
+        uow.commit()
             .await
             .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
 
@@ -219,7 +249,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungStornieren {
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
         let now = ctx.clock().now();
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
         let mut termin = uow
             .seminar_termine()
             .find_by_id(self.termin_id)
@@ -235,6 +268,10 @@ impl UseCase<SeminarTermin> for SeminarBuchungStornieren {
 
         uow.seminar_termine()
             .update(&mut termin)
+            .await
+            .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
+
+        uow.commit()
             .await
             .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
 
@@ -264,7 +301,10 @@ impl UseCase<SeminarTermin> for SeminarTerminAbsagen {
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
         let now = ctx.clock().now();
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
         let mut termin = uow
             .seminar_termine()
             .find_by_id(self.termin_id)
@@ -281,6 +321,10 @@ impl UseCase<SeminarTermin> for SeminarTerminAbsagen {
 
         uow.seminar_termine()
             .update(&mut termin)
+            .await
+            .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
+
+        uow.commit()
             .await
             .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
 
@@ -319,8 +363,11 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
         let now = ctx.clock().now();
-        let mut termin = ctx
-            .uow
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+        let mut termin = uow
             .seminar_termine()
             .find_by_id(self.termin_id)
             .await
@@ -335,8 +382,7 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             }
         };
 
-        let seminar = ctx
-            .uow
+        let seminar = uow
             .seminare()
             .find_by_id(geplant.seminar_id().clone())
             .await
@@ -345,8 +391,7 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
 
         let mut mapping = FxHashMap::default();
         for (buchung_id, neue_leistung) in geplant.teilnahmeleistungen(&seminar) {
-            let offen = ctx
-                .uow
+            let offen = uow
                 .leistungen()
                 .create(neue_leistung)
                 .await
@@ -359,35 +404,46 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Invariante)?;
         *termin.deref_mut() = SeminarTermin::from(abgehalten);
 
-        ctx.uow
-            .seminar_termine()
+        uow.seminar_termine()
             .update(&mut termin)
             .await
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
 
+        let mut pdf_jobs = Vec::new();
         if let SeminarTermin::Abgehalten(abgehalten) = &*termin {
             for buchung in abgehalten.bestätigte_buchungen() {
-                let klient = ctx
-                    .uow
+                let klient = uow
                     .klienten()
                     .find_by_id(buchung.klient_id().clone())
                     .await
                     .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden)?
                     .into_data();
                 let dokument = teilnahme_dokument(abgehalten, &seminar, buchung, &klient);
-                let pdf = ctx
-                    .pdf_renderer()
-                    .rendern(&dokument)
-                    .await
-                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Pdf)?;
-                ctx.object_store()
-                    .put(&teilnahme_object_key(abgehalten.id(), buchung.id()), &pdf)
-                    .await
-                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Speicher)?;
+                pdf_jobs.push((
+                    teilnahme_object_key(abgehalten.id(), buchung.id()),
+                    dokument,
+                ));
             }
         }
 
-        Ok(termin.into_data())
+        let termin = termin.into_data();
+        uow.commit()
+            .await
+            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+
+        for (object_key, dokument) in pdf_jobs {
+            let pdf = ctx
+                .pdf_renderer()
+                .rendern(&dokument)
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Pdf)?;
+            ctx.object_store()
+                .put(&object_key, &pdf)
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Speicher)?;
+        }
+
+        Ok(termin)
     }
 }
 
@@ -481,7 +537,10 @@ impl UseCase<SeminarUmsatzVorschauErgebnis> for SeminarUmsatzVorschau {
         self,
         ctx: ExecutionContext<'_>,
     ) -> Result<SeminarUmsatzVorschauErgebnis, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarUmsatzVorschauFehler::Persistenz)?;
         let termin = uow
             .seminar_termine()
             .find_by_id(self.termin_id)
@@ -489,7 +548,11 @@ impl UseCase<SeminarUmsatzVorschauErgebnis> for SeminarUmsatzVorschau {
             .change_context(SeminarUmsatzVorschauFehler::TerminNichtGefunden)?
             .into_data();
 
-        umsatz_für_termin(&uow, &termin).await
+        let ergebnis = umsatz_für_termin(&uow, &termin).await?;
+        uow.commit()
+            .await
+            .change_context(SeminarUmsatzVorschauFehler::Persistenz)?;
+        Ok(ergebnis)
     }
 }
 
@@ -586,7 +649,10 @@ impl UseCase<SeminarUmsatzPrognose> for SeminarUmsatzPrognoseBisDatum {
         self,
         ctx: ExecutionContext<'_>,
     ) -> Result<SeminarUmsatzPrognose, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
         let termine = uow
             .seminar_termine()
             .find_nicht_vollständig_abgerechnet_bis(self.stichtag)
@@ -614,6 +680,10 @@ impl UseCase<SeminarUmsatzPrognose> for SeminarUmsatzPrognoseBisDatum {
         let gesamt_brutto = ergebnisse
             .iter()
             .fold(Preis::zero(), |acc, t| acc + t.gesamt_brutto.clone());
+
+        uow.commit()
+            .await
+            .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
 
         Ok(SeminarUmsatzPrognose {
             stichtag: self.stichtag,

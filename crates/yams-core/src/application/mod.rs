@@ -1,30 +1,23 @@
 use std::sync::Arc;
 
-use bon::Builder;
-use error_stack::IntoReport;
-use error_stack::ResultExt;
-
 use crate::adapters::{BlankPdfRenderer, InMemoryObjectStore, SystemClock};
-use crate::application::uow::UnitOfWork;
 use crate::ports::{Clock, ObjectStore, PdfRenderer};
 use crate::service::UseCase;
 use crate::uow::UnitOfWorkProvider;
+use error_stack::IntoReport;
 
-mod orchestration;
 pub mod uow;
 
 mod context;
 pub mod ports;
 pub use context::ExecutionContext;
-use orchestration::*;
 
 mod errors;
 pub use errors::ErrorReportExt;
 pub use errors::ResultReport;
 pub use errors::ThreadSafeError;
-pub use orchestration::ExecutionError;
 
-#[derive(Builder)]
+#[derive(bon::Builder)]
 pub struct App {
     pub uow_provider: Box<dyn UnitOfWorkProvider>,
     #[builder(default = Arc::new(SystemClock))]
@@ -42,67 +35,24 @@ impl App {
     pub async fn execute<U: UseCase<O> + Send, O>(
         &self,
         use_case: U,
-    ) -> ResultReport<O, ExecutionError> {
-        self.orchestrate(UseCaseOp(use_case)).await
+    ) -> ResultReport<O, <U::Error as IntoReport>::Context> {
+        use_case.perform(self.new_execution_context()).await
     }
 
-    pub async fn execute_fn<F, O, E: ThreadSafeError>(
-        &self,
-        f: F,
-    ) -> ResultReport<O, ExecutionError>
+    pub async fn execute_fn<F, O, E: ThreadSafeError>(&self, f: F) -> ResultReport<O, E>
     where
         for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> ResultReport<O, E> + Send,
         E: Send,
     {
-        self.orchestrate(FnOp(f)).await
+        f(self.new_execution_context()).await
     }
 
-    async fn orchestrate<T, O, E: IntoReport>(&self, op: T) -> ResultReport<O, ExecutionError>
-    where
-        T: OrchestrateFn<O, E>,
-    {
-        // 1. Create the UoW (Factory starts TX behind the scenes)
-        let mut uow = self
-            .uow_provider
-            .begin()
-            .await
-            .map(UnitOfWork::new)
-            .change_context(ExecutionError)?;
-
-        // 2. Run the operation
-        let ctx = self.new_execution_context(uow.shared());
-        let result = op.run(ctx).await;
-
-        // 3. Decide what to do
-        match result {
-            Ok(output) => {
-                uow.commit().await.change_context(ExecutionError)?;
-                Ok(output)
-            }
-            Err(e) => {
-                let mut e = e
-                    .into_report()
-                    .change_context(ExecutionError)
-                    .attach("UseCase failed")
-                    .expand();
-                if let Err(rollback_error) = uow.rollback().await {
-                    e.push(
-                        rollback_error
-                            .change_context(ExecutionError)
-                            .attach("Rollback failed"),
-                    );
-                }
-                Err(e.change_context(ExecutionError))
-            }
-        }
-    }
-
-    fn new_execution_context<'a>(&self, uow: UnitOfWork<'a>) -> ExecutionContext<'a> {
-        ExecutionContext {
-            uow,
-            clock: Arc::clone(&self.clock),
-            object_store: Arc::clone(&self.object_store),
-            pdf_renderer: Arc::clone(&self.pdf_renderer),
-        }
+    fn new_execution_context(&self) -> ExecutionContext<'_> {
+        ExecutionContext::root(
+            self.uow_provider.as_ref(),
+            Arc::clone(&self.clock),
+            Arc::clone(&self.object_store),
+            Arc::clone(&self.pdf_renderer),
+        )
     }
 }

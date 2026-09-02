@@ -14,7 +14,7 @@ use yams_core::{App, ThreadSafeError, ports::ObjectStream};
 
 use crate::{
     api::YamsAppApi,
-    errors::{InternalServerError, StructuredError},
+    errors::{HttpStatusMapping, InternalServerError, StructuredError},
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
@@ -59,16 +59,14 @@ pub enum TypicalJsonResponse<T: ToJSON> {
     InternalError(PlainText<InternalServerError>),
 }
 
-impl<T: ToJSON, C: ThreadSafeError> From<Result<T, Report<C>>> for TypicalJsonResponse<T> {
+impl<T: ToJSON, C: ThreadSafeError + HttpStatusMapping> From<Result<T, Report<C>>>
+    for TypicalJsonResponse<T>
+{
     fn from(result: Result<T, Report<C>>) -> Self {
         match result {
             Ok(value) => TypicalJsonResponse::Ok(Json(value)),
             Err(error) => {
-                let status = error
-                    .request_value::<StatusCode>()
-                    .next()
-                    .or_else(|| error.downcast_ref::<StatusCode>().copied())
-                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+                let status = status_from_report(&error);
                 if status.is_server_error() {
                     return TypicalJsonResponse::InternalError(PlainText(InternalServerError));
                 }
@@ -114,13 +112,15 @@ pub enum StreamBinaryResponse {
     InternalError(PlainText<InternalServerError>),
 }
 
-impl<C: ThreadSafeError> From<Result<ObjectStream, Report<C>>> for StreamBinaryResponse {
+impl<C: ThreadSafeError + HttpStatusMapping> From<Result<ObjectStream, Report<C>>>
+    for StreamBinaryResponse
+{
     fn from(result: Result<ObjectStream, Report<C>>) -> Self {
         match result {
             Ok(stream) => {
-                let body = Body::from_bytes_stream(stream.map(|chunk| {
-                    chunk.map_err(|err| std::io::Error::other(err.to_string()))
-                }));
+                let body = Body::from_bytes_stream(
+                    stream.map(|chunk| chunk.map_err(|err| std::io::Error::other(err.to_string()))),
+                );
                 StreamBinaryResponse::Ok(StreamBody(
                     Response::builder()
                         .content_type("application/pdf")
@@ -128,11 +128,7 @@ impl<C: ThreadSafeError> From<Result<ObjectStream, Report<C>>> for StreamBinaryR
                 ))
             }
             Err(error) => {
-                let status = error
-                    .request_value::<StatusCode>()
-                    .next()
-                    .or_else(|| error.downcast_ref::<StatusCode>().copied())
-                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+                let status = status_from_report(&error);
                 if status == StatusCode::NOT_FOUND {
                     return StreamBinaryResponse::NotFound(Json(error.into()));
                 }
@@ -143,6 +139,15 @@ impl<C: ThreadSafeError> From<Result<ObjectStream, Report<C>>> for StreamBinaryR
             }
         }
     }
+}
+
+fn status_from_report<C: ThreadSafeError + HttpStatusMapping>(error: &Report<C>) -> StatusCode {
+    error
+        .request_value::<StatusCode>()
+        .next()
+        .or_else(|| error.downcast_ref::<StatusCode>().copied())
+        .or_else(|| error.current_context().http_status())
+        .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 #[OpenApi]

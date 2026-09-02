@@ -1,55 +1,79 @@
 use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
-use crate::application::{ResultReport, ports::RepositoryError};
+use crate::application::context::ExecutionContext;
 use crate::ports::{
-    BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
-    ProduktRepository, RechnungRepository, RepositoryResult, SeminarRepository,
-    SeminarTerminRepository,
+    BehandlungRepository, Clock, HaustierRepository, KlientRepository, LeistungRepository,
+    ObjectStore, PdfRenderer, ProduktRepository, RechnungRepository, RepositoryResult,
+    SeminarRepository, SeminarTerminRepository,
 };
 
+/// Active unit of work. `commit` / `rollback` consume it.
+///
+/// Drop does **not** call [`UnitOfWorkImpl::rollback`] (async, fallible). An uncommitted
+/// owned UoW just drops the impl; SQLite's transaction Drop aborts the TX and swallows errors.
+/// Nested (locked) UoWs do not own the TX.
+#[must_use = "UnitOfWork must be committed or rolled back"]
 pub struct UnitOfWork<'a> {
     implementation: Box<dyn UnitOfWorkImpl + 'a>,
+    clock: Arc<dyn Clock>,
+    object_store: Arc<dyn ObjectStore>,
+    pdf_renderer: Arc<dyn PdfRenderer>,
 }
 
 impl<'a> UnitOfWork<'a> {
-    pub fn new(implementation: Box<dyn UnitOfWorkImpl + 'a>) -> Self {
-        Self { implementation }
+    pub(super) fn owned(
+        implementation: Box<dyn UnitOfWorkImpl + 'a>,
+        clock: Arc<dyn Clock>,
+        object_store: Arc<dyn ObjectStore>,
+        pdf_renderer: Arc<dyn PdfRenderer>,
+    ) -> Self {
+        Self {
+            implementation,
+            clock,
+            object_store,
+            pdf_renderer,
+        }
+    }
+
+    pub(super) fn locked(
+        inner: &'a dyn UnitOfWorkImpl,
+        clock: Arc<dyn Clock>,
+        object_store: Arc<dyn ObjectStore>,
+        pdf_renderer: Arc<dyn PdfRenderer>,
+    ) -> Self {
+        Self {
+            implementation: Box::new(LockedUnitOfWorkImpl { inner }),
+            clock,
+            object_store,
+            pdf_renderer,
+        }
+    }
+
+    /// Nested execution context that joins this transaction.
+    /// Nested `enter` returns a locked UoW; `commit` / `rollback` are no-ops.
+    /// Borrows `self`, so this UoW cannot be committed until the nested context is dropped.
+    pub fn subcontext(&self) -> ExecutionContext<'_> {
+        ExecutionContext::nested(
+            self.implementation.as_ref(),
+            Arc::clone(&self.clock),
+            Arc::clone(&self.object_store),
+            Arc::clone(&self.pdf_renderer),
+        )
     }
 }
 
 impl UnitOfWork<'_> {
-    pub async fn checkpoint(&mut self) -> ResultReport<(), RepositoryError> {
-        self.implementation.checkpoint().await
-    }
-
     pub async fn commit(self) -> RepositoryResult<()> {
         self.implementation.commit().await
     }
 
     pub async fn rollback(self) -> RepositoryResult<()> {
         self.implementation.rollback().await
-    }
-
-    /// Create a new locked UoW, which is read-only and cannot be committed, checkpointed or rolled back.
-    pub fn locked<'b>(&'b self) -> UnitOfWork<'b> {
-        UnitOfWork {
-            implementation: Box::new(LockedUnitOfWorkImpl {
-                inner: self.implementation.as_ref(),
-            }),
-        }
-    }
-
-    /// Create a new shared UoW, which is can be checkpointed, but not consumed for commit or rollback.
-    pub fn shared<'b>(&'b mut self) -> UnitOfWork<'b> {
-        UnitOfWork {
-            implementation: Box::new(SharedUnitOfWorkImpl {
-                inner: self.implementation.as_mut(),
-            }),
-        }
     }
 
     pub fn klienten(&self) -> &dyn KlientRepository {
@@ -91,61 +115,6 @@ struct LockedUnitOfWorkImpl<'a> {
 
 #[async_trait]
 impl UnitOfWorkImpl for LockedUnitOfWorkImpl<'_> {
-    async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        Ok(())
-    }
-
-    async fn commit(self: Box<Self>) -> RepositoryResult<()> {
-        Ok(())
-    }
-
-    async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
-        Ok(())
-    }
-
-    fn klienten(&self) -> &dyn KlientRepository {
-        self.inner.klienten()
-    }
-
-    fn haustiere(&self) -> &dyn HaustierRepository {
-        self.inner.haustiere()
-    }
-
-    fn produkte(&self) -> &dyn ProduktRepository {
-        self.inner.produkte()
-    }
-
-    fn behandlungen(&self) -> &dyn BehandlungRepository {
-        self.inner.behandlungen()
-    }
-
-    fn leistungen(&self) -> &dyn LeistungRepository {
-        self.inner.leistungen()
-    }
-
-    fn rechnungen(&self) -> &dyn RechnungRepository {
-        self.inner.rechnungen()
-    }
-
-    fn seminare(&self) -> &dyn SeminarRepository {
-        self.inner.seminare()
-    }
-
-    fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
-        self.inner.seminar_termine()
-    }
-}
-
-struct SharedUnitOfWorkImpl<'a> {
-    inner: &'a mut dyn UnitOfWorkImpl,
-}
-
-#[async_trait]
-impl UnitOfWorkImpl for SharedUnitOfWorkImpl<'_> {
-    async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        self.inner.checkpoint().await
-    }
-
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
         Ok(())
     }
@@ -190,7 +159,6 @@ impl UnitOfWorkImpl for SharedUnitOfWorkImpl<'_> {
 /// UoW Provider
 #[async_trait]
 pub trait UnitOfWorkImpl: Send + Sync {
-    async fn checkpoint(&mut self) -> RepositoryResult<()>;
     async fn commit(self: Box<Self>) -> RepositoryResult<()>;
     async fn rollback(self: Box<Self>) -> RepositoryResult<()>;
 

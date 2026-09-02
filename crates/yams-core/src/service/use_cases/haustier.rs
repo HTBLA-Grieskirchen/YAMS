@@ -30,7 +30,10 @@ impl UseCase<Haustier> for HaustierErstellen {
     type Error = HaustierErstellenFehler;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Haustier, Report<Self::Error>> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(HaustierErstellenFehler::Persistenz)?;
 
         uow.klienten()
             .find_by_id(self.klient_id.clone())
@@ -48,6 +51,10 @@ impl UseCase<Haustier> for HaustierErstellen {
                 self.tierart,
                 self.beschreibung,
             ))
+            .await
+            .change_context(HaustierErstellenFehler::Persistenz)?;
+
+        uow.commit()
             .await
             .change_context(HaustierErstellenFehler::Persistenz)?;
 
@@ -75,12 +82,18 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
         self,
         ctx: ExecutionContext<'_>,
     ) -> ResultReport<Vec<Haustier>, <Self::Error as IntoReport>::Context> {
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(HaustierErstellenFehler::Persistenz)
+            .map_err(|e| e.expand())?;
+
         let mut errors = Option::<Report<[HaustierErstellenFehler]>>::None;
         let mut haustiere = Vec::with_capacity(self.haustiere.len());
         for fut in self
             .haustiere
             .into_iter()
-            .map(|h| h.perform(ctx.to_locked()))
+            .map(|h| h.perform(uow.subcontext()))
         {
             match fut.await {
                 Ok(haustier) => haustiere.push(haustier),
@@ -93,6 +106,12 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
         if let Some(errors) = errors {
             return Err(errors);
         }
+
+        uow.commit()
+            .await
+            .change_context(HaustierErstellenFehler::Persistenz)
+            .map_err(|e| e.expand())?;
+
         Ok(haustiere)
     }
 }

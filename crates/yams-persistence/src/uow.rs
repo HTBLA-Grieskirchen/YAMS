@@ -24,7 +24,9 @@ use crate::{
 };
 
 pub struct SQLiteUnitOfWork {
-    /// Held for the whole UoW; ensures only one transaction on the connection. Dropped on commit/rollback.
+    /// Held for the whole UoW so the connection outlives the transaction.
+    /// Dropped after repos/tx (field order). Unused after `checkpoint` was removed.
+    #[allow(dead_code)]
     connection: SQLiteConnection,
     pub(crate) tx: Arc<Mutex<Option<Transaction>>>,
     pub(crate) klient_repo: SQLiteKlientRepository,
@@ -63,22 +65,6 @@ impl UnitOfWorkProvider for SQLiteInstance {
 
 #[async_trait]
 impl UnitOfWorkImpl for SQLiteUnitOfWork {
-    async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        let mut tx_guard = self.tx.lock().await;
-        let old_tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;
-        old_tx
-            .commit()
-            .await
-            .contextualize_with(libsql_error_to_persistence_error)?;
-        let new_tx = self
-            .connection
-            .transaction_with_behavior(libsql::TransactionBehavior::Deferred)
-            .await
-            .contextualize_with(libsql_error_to_persistence_error)?;
-        *tx_guard = Some(new_tx);
-        Ok(())
-    }
-
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {
         let mut tx_guard = self.tx.lock().await;
         let tx = tx_guard.take().ok_or(RepositoryError::Conflict)?;

@@ -4,6 +4,7 @@ use super::super::base_app_builder;
 use chrono::Utc;
 use yams_core::{
     domain::{Adresse, Ländercode},
+    ports::RepositoryError,
     service::{HaustierErstellen, KlientErstellen, VieleHaustiereErstellen},
 };
 
@@ -70,11 +71,14 @@ async fn test_haustier() {
     assert_eq!(batch_results.len(), 10);
 
     let haustiere = app
-        .execute_fn(async |ctx| {
-            ctx.uow
+        .execute_fn::<_, _, RepositoryError>(async |ctx| {
+            let uow = ctx.enter().await?;
+            let haustiere = uow
                 .haustiere()
                 .find_by_klient_id(klient.id().clone())
-                .await
+                .await?;
+            uow.commit().await?;
+            Ok(haustiere)
         })
         .await
         .unwrap();

@@ -49,10 +49,12 @@ async fn test_klient() {
 
     let klienten = app
         .execute_fn::<_, _, RepositoryError>(async |ctx| {
-            let mut klienten = vec![ctx.uow.klienten().find_by_id(result.id().clone()).await?];
+            let uow = ctx.enter().await?;
+            let mut klienten = vec![uow.klienten().find_by_id(result.id().clone()).await?];
             for res in parallel_results {
-                klienten.push(ctx.uow.klienten().find_by_id(res.id().clone()).await?);
+                klienten.push(uow.klienten().find_by_id(res.id().clone()).await?);
             }
+            uow.commit().await?;
             Ok(klienten)
         })
         .await

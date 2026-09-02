@@ -85,26 +85,6 @@ impl FakeUnitOfWork {
 
 #[async_trait]
 impl UnitOfWorkImpl for FakeUnitOfWork {
-    async fn checkpoint(&mut self) -> RepositoryResult<()> {
-        self.log.lock().unwrap().push(UoWEvent::Checkpoint);
-
-        let new_snapshot = FakeDatastore::merge(
-            &self.backing_datastore,
-            &self.snapshotted_datastore,
-            &self.transaction_datastore,
-        )
-        .inspect_err(|e| {
-            self.log
-                .lock()
-                .unwrap()
-                .push(UoWEvent::Error(e.to_string()))
-        })?;
-
-        self.snapshotted_datastore = new_snapshot;
-
-        Ok(())
-    }
-
     async fn commit(mut self: Box<Self>) -> RepositoryResult<()> {
         self.log.lock().unwrap().push(UoWEvent::Commit);
 
@@ -167,7 +147,6 @@ impl UnitOfWorkImpl for FakeUnitOfWork {
 #[derive(Debug)]
 pub enum UoWEvent {
     Begin,
-    Checkpoint,
     Commit,
     Rollback,
     Error(String),

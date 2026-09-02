@@ -192,9 +192,7 @@ impl SQLiteInstance {
                 .query(statement, ())
                 .await
                 .contextualize_with(libsql_error_to_persistence_error)
-                .attach(format!(
-                    "while configuring database with stmt: {statement}"
-                ))?;
+                .attach(format!("while configuring database with stmt: {statement}"))?;
         }
         Ok(())
     }

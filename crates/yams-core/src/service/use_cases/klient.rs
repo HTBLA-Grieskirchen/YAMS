@@ -31,9 +31,13 @@ impl UseCase<Klient> for KlientErstellen {
     type Error = Report<KlientErstellenFehler>;
 
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Klient, Self::Error> {
-        let ExecutionContext { uow, .. } = ctx;
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(KlientErstellenFehler::Erstellung)?;
 
-        uow.klienten()
+        let klient = uow
+            .klienten()
             .create(NeuerKlient::neu(
                 self.vorname,
                 self.nachname,
@@ -47,6 +51,12 @@ impl UseCase<Klient> for KlientErstellen {
             .await
             .map(Versioned::into_data)
             .map_err(IntoReport::into_report)
-            .change_context(KlientErstellenFehler::Erstellung)
+            .change_context(KlientErstellenFehler::Erstellung)?;
+
+        uow.commit()
+            .await
+            .change_context(KlientErstellenFehler::Erstellung)?;
+
+        Ok(klient)
     }
 }

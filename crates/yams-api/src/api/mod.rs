@@ -2,28 +2,34 @@ pub mod requests;
 
 use std::sync::Arc;
 
-use error_stack::{Report, ResultExt};
+use error_stack::Report;
 use http::StatusCode;
 use uuid::Uuid;
 use yams_core::{
     App, ResultReport,
-    application::ExecutionError,
     domain::{
         HaustierId, KlientId, RechnungId, SeminarBuchungId, SeminarId,
         SeminarTermin as DomainSeminarTermin, SeminarTerminId,
     },
+    ports::{ObjectStoreError, ObjectStream, RepositoryError},
     service::{
-        BehandlungErstellen, HaustierErstellen, KlientErstellen, LeistungAusBehandlungBuchen,
-        LeistungAusProduktBuchen, LeistungManuellErfassen, ProduktErstellen,
-        SeminarBuchungStornieren, SeminarErstellen, SeminarTerminPlanen,
-        SeminarUmsatzPrognoseBisDatum, TagesabschlussDurchführen, rechnung_pdf_laden,
-        teilnahme_pdf_laden,
+        BehandlungErstellen, BehandlungErstellenFehler, HaustierErstellen, HaustierErstellenFehler,
+        KlientErstellen, KlientErstellenFehler, LeistungAusBehandlungBuchen,
+        LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchen,
+        LeistungAusProduktBuchenFehler, LeistungManuellErfassen, LeistungManuellErfassenFehler,
+        ProduktErstellen, ProduktErstellenFehler, SeminarBuchungAnlegenFehler,
+        SeminarBuchungStornieren, SeminarBuchungStornierenFehler, SeminarErstellen,
+        SeminarErstellenFehler, SeminarTerminAbsagenFehler, SeminarTerminAktualisierenFehler,
+        SeminarTerminAlsAbgehaltenMarkierenFehler, SeminarTerminPlanen, SeminarTerminPlanenFehler,
+        SeminarUmsatzPrognoseBisDatum, SeminarUmsatzPrognoseBisDatumFehler,
+        SeminarUmsatzVorschauFehler, TagesabschlussDurchführen, TagesabschlussDurchführenFehler,
+        rechnung_pdf_laden, teilnahme_pdf_laden,
     },
-    ports::ObjectStream,
     uow::Versioned,
 };
 
 use crate::{
+    errors::ValidationError,
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
@@ -56,14 +62,26 @@ impl YamsAppApi {
     }
 }
 
+fn bad_request<C: yams_core::ThreadSafeError>(
+    report: Report<ValidationError>,
+    context: C,
+) -> Report<C> {
+    report
+        .attach_opaque(StatusCode::BAD_REQUEST)
+        .change_context(context)
+}
+
 impl YamsAppApi {
     pub async fn klient_erstellen(
         &self,
         body: KlientErstellung,
-    ) -> ResultReport<Klient, ExecutionError> {
+    ) -> ResultReport<Klient, KlientErstellenFehler> {
         let klient = self
             .app
-            .execute(KlientErstellen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                KlientErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, KlientErstellenFehler::Erstellung))?,
+            )
             .await?;
         Ok(schema_klient_from_domain(klient, vec![]))
     }
@@ -71,7 +89,7 @@ impl YamsAppApi {
     pub async fn haustier_erstellen(
         &self,
         body: HaustierErstellung,
-    ) -> ResultReport<Haustier, ExecutionError> {
+    ) -> ResultReport<Haustier, HaustierErstellenFehler> {
         let use_case = match HaustierErstellen::try_from(body) {
             Ok(use_case) => use_case,
             Err(error) => match error {},
@@ -80,20 +98,30 @@ impl YamsAppApi {
         Ok(schema_haustier_from_domain(haustier))
     }
 
-    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, ExecutionError> {
+    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, RepositoryError> {
         let haustiere = self
             .app
-            .execute_fn(async |ctx| ctx.uow.haustiere().find_all().await)
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let haustiere = uow.haustiere().find_all().await?;
+                uow.commit().await?;
+                Ok(haustiere)
+            })
             .await?
             .into_iter()
             .map(Versioned::into_data);
         Ok(haustiere.map(schema_haustier_from_domain).collect())
     }
 
-    pub async fn haustier_by_id(&self, id: Uuid) -> ResultReport<Haustier, ExecutionError> {
+    pub async fn haustier_by_id(&self, id: Uuid) -> ResultReport<Haustier, RepositoryError> {
         let haustier = self
             .app
-            .execute_fn(async |ctx| ctx.uow.haustiere().find_by_id(HaustierId(id)).await)
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let haustier = uow.haustiere().find_by_id(HaustierId(id)).await?;
+                uow.commit().await?;
+                Ok(haustier)
+            })
             .await?
             .into_data();
         Ok(schema_haustier_from_domain(haustier))
@@ -102,10 +130,13 @@ impl YamsAppApi {
     pub async fn produkt_erstellen(
         &self,
         body: ProduktErstellung,
-    ) -> ResultReport<Produkt, ExecutionError> {
+    ) -> ResultReport<Produkt, ProduktErstellenFehler> {
         let produkt = self
             .app
-            .execute(ProduktErstellen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                ProduktErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, ProduktErstellenFehler::Erstellung))?,
+            )
             .await?;
         Ok(schema_produkt_from_domain(produkt))
     }
@@ -113,10 +144,13 @@ impl YamsAppApi {
     pub async fn behandlung_erstellen(
         &self,
         body: BehandlungErstellung,
-    ) -> ResultReport<Behandlung, ExecutionError> {
+    ) -> ResultReport<Behandlung, BehandlungErstellenFehler> {
         let behandlung = self
             .app
-            .execute(BehandlungErstellen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                BehandlungErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, BehandlungErstellenFehler::Erstellung))?,
+            )
             .await?;
         Ok(schema_behandlung_from_domain(behandlung))
     }
@@ -124,10 +158,13 @@ impl YamsAppApi {
     pub async fn leistung_aus_produkt_buchen(
         &self,
         body: LeistungAusProduktErstellung,
-    ) -> ResultReport<Leistung, ExecutionError> {
+    ) -> ResultReport<Leistung, LeistungAusProduktBuchenFehler> {
         let leistung = self
             .app
-            .execute(LeistungAusProduktBuchen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                LeistungAusProduktBuchen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungAusProduktBuchenFehler::Persistenz))?,
+            )
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }
@@ -135,10 +172,13 @@ impl YamsAppApi {
     pub async fn leistung_aus_behandlung_buchen(
         &self,
         body: LeistungAusBehandlungErstellung,
-    ) -> ResultReport<Leistung, ExecutionError> {
+    ) -> ResultReport<Leistung, LeistungAusBehandlungBuchenFehler> {
         let leistung = self
             .app
-            .execute(LeistungAusBehandlungBuchen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                LeistungAusBehandlungBuchen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungAusBehandlungBuchenFehler::Persistenz))?,
+            )
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }
@@ -146,10 +186,13 @@ impl YamsAppApi {
     pub async fn leistung_manuell_erfassen(
         &self,
         body: LeistungManuelleErstellung,
-    ) -> ResultReport<Leistung, ExecutionError> {
+    ) -> ResultReport<Leistung, LeistungManuellErfassenFehler> {
         let leistung = self
             .app
-            .execute(LeistungManuellErfassen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                LeistungManuellErfassen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungManuellErfassenFehler::Persistenz))?,
+            )
             .await?;
         Ok(schema_leistung_from_domain(leistung))
     }
@@ -157,7 +200,7 @@ impl YamsAppApi {
     pub async fn tagesabschluss_durchführen(
         &self,
         body: TagesabschlussErstellung,
-    ) -> ResultReport<Vec<Rechnung>, ExecutionError> {
+    ) -> ResultReport<Vec<Rechnung>, TagesabschlussDurchführenFehler> {
         let rechnungen = self
             .app
             .execute(TagesabschlussDurchführen::from(body))
@@ -171,14 +214,17 @@ impl YamsAppApi {
     pub async fn rechnungen_für_klient(
         &self,
         klient_id: Uuid,
-    ) -> ResultReport<Vec<Rechnung>, ExecutionError> {
+    ) -> ResultReport<Vec<Rechnung>, RepositoryError> {
         let rechnungen = self
             .app
             .execute_fn(async |ctx| {
-                ctx.uow
+                let uow = ctx.enter().await?;
+                let rechnungen = uow
                     .rechnungen()
                     .find_by_klient_id(KlientId(klient_id))
-                    .await
+                    .await?;
+                uow.commit().await?;
+                Ok(rechnungen)
             })
             .await?
             .into_iter()
@@ -191,7 +237,7 @@ impl YamsAppApi {
     pub async fn rechnung_pdf(
         &self,
         rechnung_id: Uuid,
-    ) -> ResultReport<ObjectStream, ExecutionError> {
+    ) -> ResultReport<ObjectStream, ObjectStoreError> {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
@@ -200,7 +246,7 @@ impl YamsAppApi {
             .await?;
         match pdf {
             Some(stream) => Ok(stream),
-            None => Err(Report::new(ExecutionError)
+            None => Err(Report::new(ObjectStoreError::Operation)
                 .attach("pdf not found")
                 .attach_opaque(StatusCode::NOT_FOUND)),
         }
@@ -210,7 +256,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         buchung_id: Uuid,
-    ) -> ResultReport<ObjectStream, ExecutionError> {
+    ) -> ResultReport<ObjectStream, ObjectStoreError> {
         let pdf = self
             .app
             .execute_fn(async move |ctx| {
@@ -224,7 +270,7 @@ impl YamsAppApi {
             .await?;
         match pdf {
             Some(stream) => Ok(stream),
-            None => Err(Report::new(ExecutionError)
+            None => Err(Report::new(ObjectStoreError::Operation)
                 .attach("pdf not found")
                 .attach_opaque(StatusCode::NOT_FOUND)),
         }
@@ -233,18 +279,26 @@ impl YamsAppApi {
     pub async fn seminar_erstellen(
         &self,
         body: SeminarErstellung,
-    ) -> ResultReport<Seminar, ExecutionError> {
+    ) -> ResultReport<Seminar, SeminarErstellenFehler> {
         let seminar = self
             .app
-            .execute(SeminarErstellen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                SeminarErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, SeminarErstellenFehler::Erstellung))?,
+            )
             .await?;
         Ok(schema_seminar_from_domain(seminar))
     }
 
-    pub async fn seminar_by_id(&self, id: Uuid) -> ResultReport<Seminar, ExecutionError> {
+    pub async fn seminar_by_id(&self, id: Uuid) -> ResultReport<Seminar, RepositoryError> {
         let seminar = self
             .app
-            .execute_fn(async |ctx| ctx.uow.seminare().find_by_id(SeminarId(id)).await)
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let seminar = uow.seminare().find_by_id(SeminarId(id)).await?;
+                uow.commit().await?;
+                Ok(seminar)
+            })
             .await?
             .into_data();
         Ok(schema_seminar_from_domain(seminar))
@@ -253,10 +307,13 @@ impl YamsAppApi {
     pub async fn seminar_termin_planen(
         &self,
         body: SeminarTerminErstellung,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarTerminPlanenFehler> {
         let termin = self
             .app
-            .execute(SeminarTerminPlanen::try_from(body).change_context(ExecutionError)?)
+            .execute(
+                SeminarTerminPlanen::try_from(body)
+                    .map_err(|e| bad_request(e, SeminarTerminPlanenFehler::Persistenz))?,
+            )
             .await?;
         Ok(schema_seminar_termin_from_domain(
             DomainSeminarTermin::from(termin),
@@ -266,14 +323,17 @@ impl YamsAppApi {
     pub async fn seminar_termin_by_id(
         &self,
         id: Uuid,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, RepositoryError> {
         let termin = self
             .app
             .execute_fn(async |ctx| {
-                ctx.uow
+                let uow = ctx.enter().await?;
+                let termin = uow
                     .seminar_termine()
                     .find_by_id(SeminarTerminId(id))
-                    .await
+                    .await?;
+                uow.commit().await?;
+                Ok(termin)
             })
             .await?
             .into_data();
@@ -284,10 +344,13 @@ impl YamsAppApi {
         &self,
         id: Uuid,
         body: SeminarTerminAktualisierung,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarTerminAktualisierenFehler> {
         let termin = self
             .app
-            .execute(body.into_use_case(id).change_context(ExecutionError)?)
+            .execute(
+                body.into_use_case(id)
+                    .map_err(|e| bad_request(e, SeminarTerminAktualisierenFehler::Persistenz))?,
+            )
             .await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }
@@ -296,12 +359,12 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         body: SeminarBuchungErstellung,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarBuchungAnlegenFehler> {
         let termin = self
             .app
             .execute(
                 body.into_use_case(termin_id)
-                    .change_context(ExecutionError)?,
+                    .map_err(|e| bad_request(e, SeminarBuchungAnlegenFehler::Persistenz))?,
             )
             .await?;
         Ok(schema_seminar_termin_from_domain(termin))
@@ -311,7 +374,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         buchung: Uuid,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarBuchungStornierenFehler> {
         let termin = self
             .app
             .execute(SeminarBuchungStornieren {
@@ -326,7 +389,7 @@ impl YamsAppApi {
         &self,
         termin_id: Uuid,
         body: SeminarTerminAbsage,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarTerminAbsagenFehler> {
         let termin = self.app.execute(body.into_use_case(termin_id)).await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }
@@ -334,7 +397,7 @@ impl YamsAppApi {
     pub async fn seminar_termin_abgehalten(
         &self,
         termin_id: Uuid,
-    ) -> ResultReport<SeminarTermin, ExecutionError> {
+    ) -> ResultReport<SeminarTermin, SeminarTerminAlsAbgehaltenMarkierenFehler> {
         let termin = self.app.execute(abgehalten_use_case(termin_id)).await?;
         Ok(schema_seminar_termin_from_domain(termin))
     }
@@ -342,7 +405,7 @@ impl YamsAppApi {
     pub async fn seminar_umsatz_vorschau(
         &self,
         termin_id: Uuid,
-    ) -> ResultReport<SeminarUmsatzVorschau, ExecutionError> {
+    ) -> ResultReport<SeminarUmsatzVorschau, SeminarUmsatzVorschauFehler> {
         let umsatz = self
             .app
             .execute(yams_core::service::SeminarUmsatzVorschau {
@@ -355,7 +418,7 @@ impl YamsAppApi {
     pub async fn seminar_umsatz_prognose(
         &self,
         stichtag: chrono::NaiveDate,
-    ) -> ResultReport<SeminarUmsatzPrognose, ExecutionError> {
+    ) -> ResultReport<SeminarUmsatzPrognose, SeminarUmsatzPrognoseBisDatumFehler> {
         let prognose = self
             .app
             .execute(SeminarUmsatzPrognoseBisDatum { stichtag })

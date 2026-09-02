@@ -2,7 +2,10 @@ use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
 use yams_core::service::KlientErstellen;
 
-use crate::{errors::ValidationError, schema::{Adresse, EmailAdresse, Mobilnummer}};
+use crate::{
+    errors::ValidationError,
+    schema::{Adresse, EmailAdresse, Mobilnummer},
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]

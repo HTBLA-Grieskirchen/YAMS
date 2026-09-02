@@ -103,7 +103,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.
 - **Price snapshots on Leistung** — `LeistungQuelle` stores booked prices (`einzelpreis`, `menge`, `preis`) so Tagesabschluss uses historical values, not current catalog prices.
 - **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version.
-- **UoW access modes** — `locked()` vs `shared()`. Multi-step ops use `ctx.to_locked()` + `checkpoint()`. **Rollback after checkpoint only reverts to last checkpoint.**
+- **UoW** — use cases call `ctx.enter()` for an owned UoW (borrows ctx, so parent ctx cannot be moved into a nested `perform`). Nested work uses `uow.subcontext()`; nested `enter` joins the outer TX and `commit` is a no-op. Drop of an uncommitted owned UoW does not call `rollback()` (async/fallible); the impl is dropped and SQLite aborts the TX. `#[must_use]` on `UnitOfWork`.
 - **Single linkage** — `Haustier.klient_id` is source of truth; no `haustier_ids` on `Klient`.
 
 **Repositories are dumb.** Ports persist and load domain types — no business logic (no `mark_abgerechnet` on repository). State transitions happen in domain/use cases; repos `update` the mutated entity.
@@ -113,7 +113,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Exception: newtype validation** — `EmailAdresse::new`, `Preis::new`, `Ländercode::from_str` return plain `Result<T, ValidationError>` — nothing cross-cutting can fail at construction.
 - **Preis arithmetic** — implement `Add`; addition of two `Preis` values cannot fail. Scaling is infallible `Mul`: `&Preis * &Menge` and `&Preis * &Ratio` (MwSt is a ratio, so `netto * 0.19`, never `/100`).
 
-Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` with UoW + clock access.
+Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` (ports + UoW provider). They `enter` / `commit` the UoW themselves.
 
 ### App & Orchestration
 
@@ -126,7 +126,7 @@ App::builder()
     .build()
 ```
 
-All business operations go through `App::execute(use_case)` or `App::execute_fn(closure)`. The orchestrator begins a UoW, runs the operation, commits on success, rolls back on failure.
+All business operations go through `App::execute(use_case)` or `App::execute_fn(closure)`. `App` only builds an `ExecutionContext`; the use case (or closure) enters and commits the UoW. The use-case `Result` is returned as-is — no `ExecutionError` wrap.
 
 ### UseCase Trait
 
@@ -143,10 +143,10 @@ One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `Ta
 
 Framework-agnostic API layer between driving adapters and core.
 
-- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchführen`, …). Translates domain → API schema DTOs.
+- **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchführen`, …). Translates domain → API schema DTOs. Use-case errors pass through.
 - **`schema/`** — German DTOs, JSON `camelCase` (`vorname`, `ländercode`, `mwst` as a `0..=1` ratio, e.g. `"0.20"` not `"20"`).
-- **`requests/`** — inbound request types with `TryFrom` into use-case inputs. Domain validation is `change_context(ValidationError)` only; HTTP status codes are **not** attached yet (no 422 mapping).
-- **`errors/`** — `Report<E>` → structured JSON error trees for HTTP responses. Without a `StatusCode` on the report, `TypicalJsonResponse` currently falls back to 500.
+- **`requests/`** — inbound request types with `TryFrom` into use-case inputs. Domain validation is `change_context(ValidationError)` only; HTTP status for validation is attached as `StatusCode` at the API boundary.
+- **`errors/`** — `Report<E>` → structured JSON error trees. `YamsApiSpec` resolves HTTP status: attached `StatusCode` on the report, else `HttpStatusMapping` on the current context (`None` default), else 500.
 
 ### Feature Flags
 
@@ -167,7 +167,7 @@ Single repository adapter (SQLite via libsql). Name may become more specific whe
 
 - **No ORM** — manual row parsing and saving. Lean, explicit, some boilerplate. DRY and AI assistance keep it manageable.
 - **`SQLiteInstance`** — factory: `local(path)`, `in_memory()`, `in_temp_dir()`
-- **`SQLiteUnitOfWork`** — implements `UnitOfWorkProvider` + `UnitOfWorkImpl`; checkpoint = commit + new deferred transaction
+- **`SQLiteUnitOfWork`** — implements `UnitOfWorkProvider` + `UnitOfWorkImpl`
 - **`repos/`** — `SQLiteKlientRepository`, `SQLiteHaustierRepository`, …
 - **`migrations/`** — versioned SQL via `molting` framework (`v0001_initial.rs`, …)
 
@@ -186,7 +186,7 @@ Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapt
 
 ## Error Handling
 
-`error_stack::Report` throughout. Core defines `ResultReport<T, E> = Result<T, Report<E>>` and `ErrorReportExt` for contextualizing `thiserror` enums. Orchestration chains context on failure (`ExecutionError`, rollback errors via `.expand()` / `.push()`). API layer maps `Report<E>` to `StructuredError` for JSON responses.
+`error_stack::Report` throughout. Core defines `ResultReport<T, E> = Result<T, Report<E>>` and `ErrorReportExt` for contextualizing `thiserror` enums. `App::execute` returns the use-case report. API layer maps `Report<E>` to `StructuredError` and HTTP status as above.
 
 ## Testing Strategy
 
@@ -211,6 +211,7 @@ Persistence proves adapter conformance by running the same case suite against re
 
 - **mise** (`mise.toml`) — Rust toolchain, Node 22, env vars (`DATABASE_URL`, `FRONTEND_DIR`, `OPENAPI_SPEC`), task includes from `tasks/`
 - **Rust nightly pinned** — `rust-toolchain.toml` uses `nightly-2026-07-02`; do not bump without testing (newer nightlies break poem-openapi lifetime capturing across await)
+- **cargo-nextest** — `cargo nextest` for running tests
 - **Key tasks**: `test:backend` (`cargo test`), `build:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri`
 - **Formatting/linting**: `fmt:rust`, `lint:crates` (clippy), `fmt:biome` (frontend)
 

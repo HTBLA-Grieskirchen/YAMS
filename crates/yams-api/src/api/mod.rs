@@ -23,6 +23,9 @@ use yams_core::{
         SeminarTerminAlsAbgehaltenMarkierenFehler, SeminarTerminPlanen, SeminarTerminPlanenFehler,
         SeminarUmsatzPrognoseBisDatum, SeminarUmsatzPrognoseBisDatumFehler,
         SeminarUmsatzVorschauFehler, TagesabschlussDurchführen, TagesabschlussDurchführenFehler,
+        AlleBehandlungenAuflisten, AlleHaustiereAuflisten, AlleKlientenAuflisten,
+        AlleLeistungenAuflisten, AlleProdukteAuflisten, AlleRechnungenAuflisten,
+        AlleSeminareAuflisten, AlleSeminarTermineAuflisten, AufgelisteterKlient, AuflistenFehler,
         rechnung_pdf_laden, teilnahme_pdf_laden,
     },
     uow::Versioned,
@@ -41,6 +44,7 @@ use crate::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
         SeminarUmsatzPrognose, SeminarUmsatzVorschau, schema_behandlung_from_domain,
         schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
+        schema_leistung_from_domain_leistung,
         schema_produkt_from_domain, schema_prognose_from_domain, schema_rechnung_from_domain,
         schema_rechnung_from_domain_rechnung, schema_seminar_from_domain,
         schema_seminar_termin_from_domain, schema_umsatz_from_domain,
@@ -98,18 +102,70 @@ impl YamsAppApi {
         Ok(schema_haustier_from_domain(haustier))
     }
 
-    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, RepositoryError> {
-        let haustiere = self
-            .app
-            .execute_fn(async |ctx| {
-                let uow = ctx.enter().await?;
-                let result = uow.haustiere().find_all().await;
-                uow.finish(result, RepositoryError::OperationFailed).await
-            })
-            .await?
+    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, AuflistenFehler> {
+        let haustiere = self.app.execute(AlleHaustiereAuflisten).await?;
+        Ok(haustiere
             .into_iter()
-            .map(Versioned::into_data);
-        Ok(haustiere.map(schema_haustier_from_domain).collect())
+            .map(schema_haustier_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_klienten(&self) -> ResultReport<Vec<Klient>, AuflistenFehler> {
+        let klienten = self.app.execute(AlleKlientenAuflisten).await?;
+        Ok(klienten
+            .into_iter()
+            .map(|AufgelisteterKlient { klient, haustiere }| {
+                schema_klient_from_domain(klient, haustiere)
+            })
+            .collect())
+    }
+
+    pub async fn alle_produkte(&self) -> ResultReport<Vec<Produkt>, AuflistenFehler> {
+        let produkte = self.app.execute(AlleProdukteAuflisten).await?;
+        Ok(produkte
+            .into_iter()
+            .map(schema_produkt_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_behandlungen(&self) -> ResultReport<Vec<Behandlung>, AuflistenFehler> {
+        let behandlungen = self.app.execute(AlleBehandlungenAuflisten).await?;
+        Ok(behandlungen
+            .into_iter()
+            .map(schema_behandlung_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_leistungen(&self) -> ResultReport<Vec<Leistung>, AuflistenFehler> {
+        let leistungen = self.app.execute(AlleLeistungenAuflisten).await?;
+        Ok(leistungen
+            .into_iter()
+            .map(schema_leistung_from_domain_leistung)
+            .collect())
+    }
+
+    pub async fn alle_rechnungen(&self) -> ResultReport<Vec<Rechnung>, AuflistenFehler> {
+        let rechnungen = self.app.execute(AlleRechnungenAuflisten).await?;
+        Ok(rechnungen
+            .into_iter()
+            .map(schema_rechnung_from_domain_rechnung)
+            .collect())
+    }
+
+    pub async fn alle_seminare(&self) -> ResultReport<Vec<Seminar>, AuflistenFehler> {
+        let seminare = self.app.execute(AlleSeminareAuflisten).await?;
+        Ok(seminare
+            .into_iter()
+            .map(schema_seminar_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_seminar_termine(&self) -> ResultReport<Vec<SeminarTermin>, AuflistenFehler> {
+        let termine = self.app.execute(AlleSeminarTermineAuflisten).await?;
+        Ok(termine
+            .into_iter()
+            .map(schema_seminar_termin_from_domain)
+            .collect())
     }
 
     pub async fn haustier_by_id(&self, id: Uuid) -> ResultReport<Haustier, RepositoryError> {

@@ -61,6 +61,29 @@ impl ProduktRepository for SQLiteProduktRepository {
         produkt_from_row(&row)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Produkt>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                "SELECT id, name, beschreibung, einzelpreis, mwst, _version FROM produkte ORDER BY name",
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut produkte = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            produkte.push(produkt_from_row(&row)?);
+        }
+        Ok(produkte)
+    }
+
     async fn create(&self, new: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
         let id = ProduktId(Uuid::new_v4());
         let produkt = Versioned::init(Produkt::neu(id, new).change_context(RepositoryError::Data)?);

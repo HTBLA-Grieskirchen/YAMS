@@ -184,7 +184,7 @@ App::execute / execute_fn          (span, use_case name)
 4. New ports (non-repo): add an `Instrumented*` wrapper in `instrumented.rs` and wire it in `ExecutionContext`.
 5. Persistence/fake adapters stay free of spans; optional `debug!` events only when useful and not duplicated by wrappers.
 
-**Server bootstrap** — `backend/server/src/tracing_setup.rs` initializes `tracing-subscriber` with `EnvFilter::from_default_env()`, defaulting to `info`. Tune with `RUST_LOG`, e.g. `RUST_LOG=yams_core=debug` or `trace` for repository read spans.
+**Server bootstrap** — `backend/server/src/tracing_setup.rs` initializes `tracing-subscriber` with `EnvFilter::from_env` on `YAMS_LOG_LEVEL` (default `info` when unset), e.g. `YAMS_LOG_LEVEL=debug` or `trace` for repository read spans.
 
 ## yams-api — Public Interface
 

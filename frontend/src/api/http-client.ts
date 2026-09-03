@@ -11,6 +11,11 @@ import type {
   LeistungAusProduktErstellung,
   LeistungManuelleErstellung,
   ProduktErstellung,
+  SeminarBuchungErstellung,
+  SeminarErstellung,
+  SeminarTerminAbsage,
+  SeminarTerminAktualisierung,
+  SeminarTerminErstellung,
   TagesabschlussErstellung,
 } from "./types";
 
@@ -55,6 +60,34 @@ export class HttpYamsApi implements YamsApi {
 
   async alleHaustiere() {
     return unwrap(await this.client.GET("/haustier"));
+  }
+
+  async alleKlienten() {
+    return unwrap(await this.client.GET("/klient", {}));
+  }
+
+  async alleProdukte() {
+    return unwrap(await this.client.GET("/produkt", {}));
+  }
+
+  async alleBehandlungen() {
+    return unwrap(await this.client.GET("/behandlung", {}));
+  }
+
+  async alleLeistungen() {
+    return unwrap(await this.client.GET("/leistung", {}));
+  }
+
+  async alleRechnungen() {
+    return unwrap(await this.client.GET("/rechnungen", {}));
+  }
+
+  async alleSeminare() {
+    return unwrap(await this.client.GET("/seminar", {}));
+  }
+
+  async alleSeminarTermine() {
+    return unwrap(await this.client.GET("/seminar-termin", {}));
   }
 
   async haustierById(id: string) {
@@ -139,6 +172,106 @@ export class HttpYamsApi implements YamsApi {
           parseAs: "blob",
         },
       ),
+    );
+  }
+
+  async seminarErstellen(body: SeminarErstellung) {
+    return unwrap(
+      await this.client.POST("/seminar", {
+        body,
+      }),
+    );
+  }
+
+  async seminarById(id: string) {
+    return unwrap(
+      await this.client.GET("/seminar/{id}", {
+        params: { path: { id } },
+      }),
+    );
+  }
+
+  async seminarTerminPlanen(body: SeminarTerminErstellung) {
+    return unwrap(
+      await this.client.POST("/seminar-termin", {
+        body,
+      }),
+    );
+  }
+
+  async seminarTerminById(id: string) {
+    return unwrap(
+      await this.client.GET("/seminar-termin/{id}", {
+        params: { path: { id } },
+      }),
+    );
+  }
+
+  async seminarTerminAktualisieren(
+    id: string,
+    body: SeminarTerminAktualisierung,
+  ) {
+    return unwrap(
+      await this.client.PUT("/seminar-termin/{id}", {
+        params: { path: { id } },
+        body,
+      }),
+    );
+  }
+
+  async seminarBuchungAnlegen(
+    terminId: string,
+    body: SeminarBuchungErstellung,
+  ) {
+    return unwrap(
+      await this.client.POST("/seminar-termin/{id}/buchung", {
+        params: { path: { id: terminId } },
+        body,
+      }),
+    );
+  }
+
+  async seminarBuchungStornieren(terminId: string, buchungId: string) {
+    return unwrap(
+      await this.client.POST(
+        "/seminar-termin/{id}/buchung/{buchung_id}/storno",
+        {
+          params: { path: { id: terminId, buchung_id: buchungId } },
+        },
+      ),
+    );
+  }
+
+  async seminarTerminAbsagen(terminId: string, body: SeminarTerminAbsage) {
+    return unwrap(
+      await this.client.POST("/seminar-termin/{id}/absagen", {
+        params: { path: { id: terminId } },
+        body,
+      }),
+    );
+  }
+
+  async seminarTerminAbgehalten(terminId: string) {
+    return unwrap(
+      await this.client.POST("/seminar-termin/{id}/abgehalten", {
+        params: { path: { id: terminId } },
+      }),
+    );
+  }
+
+  async seminarUmsatzVorschau(terminId: string) {
+    return unwrap(
+      await this.client.GET("/seminar-termin/{id}/umsatz", {
+        params: { path: { id: terminId } },
+      }),
+    );
+  }
+
+  async seminarUmsatzPrognose(stichtag: string) {
+    return unwrap(
+      await this.client.GET("/seminar-prognose", {
+        params: { query: { stichtag } },
+      }),
     );
   }
 }

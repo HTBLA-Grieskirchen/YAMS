@@ -230,6 +230,17 @@ impl KlientRepository for FakeKlientenRepository {
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Klient>>> {
+        let data = self.datastore.klienten.lock().unwrap();
+        let mut klienten: Vec<_> = data.values().cloned().collect();
+        klienten.sort_by(|a, b| {
+            a.nachname()
+                .cmp(b.nachname())
+                .then_with(|| a.vorname().cmp(b.vorname()))
+        });
+        Ok(klienten)
+    }
+
     async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
         let mut data = self.datastore.klienten.lock().unwrap();
@@ -365,6 +376,13 @@ impl ProduktRepository for FakeProdukteRepository {
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Produkt>>> {
+        let data = self.datastore.produkte.lock().unwrap();
+        let mut produkte: Vec<_> = data.values().cloned().collect();
+        produkte.sort_by(|a, b| a.name().cmp(b.name()));
+        Ok(produkte)
+    }
+
     async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>> {
         let id = ProduktId(Uuid::new_v4());
         let mut data = self.datastore.produkte.lock().unwrap();
@@ -391,6 +409,13 @@ impl BehandlungRepository for FakeBehandlungenRepository {
     async fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>> {
         let data = self.datastore.behandlungen.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Behandlung>>> {
+        let data = self.datastore.behandlungen.lock().unwrap();
+        let mut behandlungen: Vec<_> = data.values().cloned().collect();
+        behandlungen.sort_by(|a, b| a.name().cmp(b.name()));
+        Ok(behandlungen)
     }
 
     async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
@@ -430,6 +455,13 @@ impl LeistungRepository for FakeLeistungenRepository {
     async fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>> {
         let data = self.datastore.leistungen.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Leistung>>> {
+        let data = self.datastore.leistungen.lock().unwrap();
+        let mut leistungen: Vec<_> = data.values().cloned().collect();
+        leistungen.sort_by_key(|l| l.id().0);
+        Ok(leistungen)
     }
 
     async fn find_offene_by_datum(
@@ -495,6 +527,13 @@ impl RechnungRepository for FakeRechnungenRepository {
         Ok(max + 1)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
+        let data = self.datastore.rechnungen.lock().unwrap();
+        let mut rechnungen: Vec<_> = data.values().cloned().collect();
+        rechnungen.sort_by_key(|r| r.rechnungsnummer());
+        Ok(rechnungen)
+    }
+
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
@@ -523,6 +562,13 @@ impl SeminarRepository for FakeSeminareRepository {
     async fn find_by_id(&self, id: SeminarId) -> RepositoryResult<Versioned<Seminar>> {
         let data = self.datastore.seminare.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Seminar>>> {
+        let data = self.datastore.seminare.lock().unwrap();
+        let mut seminare: Vec<_> = data.values().cloned().collect();
+        seminare.sort_by(|a, b| a.titel().cmp(b.titel()));
+        Ok(seminare)
     }
 
     async fn create(&self, seminar: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>> {
@@ -567,6 +613,13 @@ impl SeminarTerminRepository for FakeSeminarTermineRepository {
     async fn find_by_id(&self, id: SeminarTerminId) -> RepositoryResult<Versioned<SeminarTermin>> {
         let data = self.datastore.seminar_termine.lock().unwrap();
         Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<SeminarTermin>>> {
+        let data = self.datastore.seminar_termine.lock().unwrap();
+        let mut termine: Vec<_> = data.values().cloned().collect();
+        termine.sort_by(|a, b| a.zeitraum().beginn().cmp(&b.zeitraum().beginn()));
+        Ok(termine)
     }
 
     async fn find_by_seminar_id(

@@ -170,6 +170,54 @@ impl RechnungRepository for SQLiteRechnungRepository {
         Ok(nummer as u64)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Rechnung>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.\"stückzahl\", p.mwst FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id ORDER BY r.rechnungsnummer, p.id",
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut rechnungen: Vec<Versioned<Rechnung>> = Vec::new();
+        let mut current_header: Option<RechnungRowData> = None;
+        let mut current_positionen: Vec<Rechnungsposition> = Vec::new();
+
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            let header = parse_rechnung_header(&row)?;
+            let is_new_rechnung = current_header.as_ref().is_none_or(|h| h.id != header.id);
+
+            if is_new_rechnung {
+                if let Some(prev_header) = current_header {
+                    let version = prev_header.version;
+                    let geladen = geladene_rechnung_from_parts(&prev_header, current_positionen)?;
+                    rechnungen.push(Versioned::new(version, geladen));
+                    current_positionen = Vec::new();
+                }
+                current_header = Some(header);
+            }
+
+            if let Ok(position) = parse_position_from_row(&row) {
+                current_positionen.push(position);
+            }
+        }
+
+        if let Some(header) = current_header {
+            let version = header.version;
+            let geladen = geladene_rechnung_from_parts(&header, current_positionen)?;
+            rechnungen.push(Versioned::new(version, geladen));
+        }
+
+        Ok(rechnungen)
+    }
+
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,

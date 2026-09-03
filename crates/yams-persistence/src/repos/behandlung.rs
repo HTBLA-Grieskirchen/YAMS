@@ -62,6 +62,29 @@ impl BehandlungRepository for SQLiteBehandlungRepository {
         behandlung_from_row(&row)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Behandlung>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                "SELECT id, name, beschreibung, standardpreis, mwst, _version FROM behandlungen ORDER BY name",
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut behandlungen = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            behandlungen.push(behandlung_from_row(&row)?);
+        }
+        Ok(behandlungen)
+    }
+
     async fn create(&self, new: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>> {
         let id = BehandlungId(Uuid::new_v4());
         let behandlung =

@@ -1,9 +1,20 @@
 export { useYamsApiReady } from "./use-yams-api-ready";
 export {
+  useAlleBehandlungenQuery,
   useAlleHaustiereQuery,
+  useAlleKlientenQuery,
+  useAlleLeistungenQuery,
+  useAlleProdukteQuery,
+  useAlleRechnungenQuery,
+  useAlleSeminareQuery,
+  useAlleSeminarTermineQuery,
   useHaustierByIdQuery,
   useHealthQuery,
   useRechnungenFürKlientQuery,
+  useSeminarByIdQuery,
+  useSeminarTerminByIdQuery,
+  useSeminarUmsatzPrognoseQuery,
+  useSeminarUmsatzVorschauQuery,
 } from "./queries";
 export {
   useBehandlungErstellenMutation,
@@ -13,5 +24,12 @@ export {
   useLeistungAusProduktBuchenMutation,
   useLeistungManuellErfassenMutation,
   useProduktErstellenMutation,
+  useSeminarBuchungAnlegenMutation,
+  useSeminarBuchungStornierenMutation,
+  useSeminarErstellenMutation,
+  useSeminarTerminAbgehaltenMutation,
+  useSeminarTerminAbsagenMutation,
+  useSeminarTerminAktualisierenMutation,
+  useSeminarTerminPlanenMutation,
   useTagesabschlussDurchführenMutation,
 } from "./mutations";

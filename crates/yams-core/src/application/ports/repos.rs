@@ -17,6 +17,7 @@ pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;
 #[async_trait]
 pub trait KlientRepository: Send + Sync {
     async fn find_by_id(&self, id: KlientId) -> RepositoryResult<Versioned<Klient>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Klient>>>;
     async fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>>;
     async fn update(&self, klient: &mut Versioned<Klient>) -> RepositoryResult<()>;
     async fn delete(&self, klient: Versioned<Klient>) -> RepositoryResult<()>;
@@ -38,18 +39,21 @@ pub trait HaustierRepository: Send + Sync {
 #[async_trait]
 pub trait ProduktRepository: Send + Sync {
     async fn find_by_id(&self, id: ProduktId) -> RepositoryResult<Versioned<Produkt>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Produkt>>>;
     async fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>>;
 }
 
 #[async_trait]
 pub trait BehandlungRepository: Send + Sync {
     async fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Behandlung>>>;
     async fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>>;
 }
 
 #[async_trait]
 pub trait LeistungRepository: Send + Sync {
     async fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Leistung>>>;
     async fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>>;
     async fn find_offene_by_datum(
         &self,
@@ -62,6 +66,7 @@ pub trait LeistungRepository: Send + Sync {
 pub trait RechnungRepository: Send + Sync {
     async fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>>;
     async fn nächste_rechnungsnummer(&self) -> RepositoryResult<u64>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
     async fn find_by_klient_id(
         &self,
         klient_id: KlientId,
@@ -71,6 +76,7 @@ pub trait RechnungRepository: Send + Sync {
 #[async_trait]
 pub trait SeminarRepository: Send + Sync {
     async fn find_by_id(&self, id: SeminarId) -> RepositoryResult<Versioned<Seminar>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Seminar>>>;
     async fn create(&self, seminar: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>>;
     async fn update(&self, seminar: &mut Versioned<Seminar>) -> RepositoryResult<()>;
 }
@@ -78,6 +84,7 @@ pub trait SeminarRepository: Send + Sync {
 #[async_trait]
 pub trait SeminarTerminRepository: Send + Sync {
     async fn find_by_id(&self, id: SeminarTerminId) -> RepositoryResult<Versioned<SeminarTermin>>;
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<SeminarTermin>>>;
     async fn find_by_seminar_id(
         &self,
         seminar_id: SeminarId,

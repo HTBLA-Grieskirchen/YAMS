@@ -2,6 +2,7 @@ mod abrechnung;
 mod behandlung;
 mod haustier;
 mod klient;
+mod listen;
 mod produkt;
 mod seminar;
 

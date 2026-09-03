@@ -14,13 +14,14 @@ mod v0004_leistungen_quelle_mwst;
 
 type Registry = MigrationRegistry<dyn UpMigration<libsql::Transaction, libsql::Error>>;
 
+const LATEST_MIGRATION_VERSION: usize = 4;
+
 pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
     let mut registry: Registry = MigrationRegistry::new();
     registry.add(v0001_initial::Migration);
     registry.add(v0002_deutsches_schema::Migration);
     registry.add(v0003_seminar::Migration);
     registry.add(v0004_leistungen_quelle_mwst::Migration);
-    registry.add(v0004_leistungen_quelle_mwst::V5);
     registry
 });
 
@@ -57,7 +58,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteConnection {
                 return Ok(None);
             };
             let version: Option<u64> = row.get(0)?;
-            Ok(version.map(|v| v as usize))
+            Ok(version.map(|v| (v as usize).min(LATEST_MIGRATION_VERSION)))
         })
     }
 

@@ -5,9 +5,13 @@ use yams_api::{
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
-        ProduktErstellung, TagesabschlussErstellung,
+        ProduktErstellung, SeminarBuchungErstellung, SeminarErstellung, SeminarTerminAbsage,
+        SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
     },
-    schema::{Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung},
+    schema::{
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
+        SeminarUmsatzPrognose, SeminarUmsatzVorschau,
+    },
 };
 use yams_core::ResultReport;
 
@@ -34,6 +38,43 @@ pub async fn haustier_erstellen(
 #[tauri::command]
 pub async fn alle_haustiere(ctx: State<'_, YamsAppApi>) -> Result<Vec<Haustier>, String> {
     map_report(ctx.alle_haustiere().await)
+}
+
+#[tauri::command]
+pub async fn alle_klienten(ctx: State<'_, YamsAppApi>) -> Result<Vec<Klient>, String> {
+    map_report(ctx.alle_klienten().await)
+}
+
+#[tauri::command]
+pub async fn alle_produkte(ctx: State<'_, YamsAppApi>) -> Result<Vec<Produkt>, String> {
+    map_report(ctx.alle_produkte().await)
+}
+
+#[tauri::command]
+pub async fn alle_behandlungen(ctx: State<'_, YamsAppApi>) -> Result<Vec<Behandlung>, String> {
+    map_report(ctx.alle_behandlungen().await)
+}
+
+#[tauri::command]
+pub async fn alle_leistungen(ctx: State<'_, YamsAppApi>) -> Result<Vec<Leistung>, String> {
+    map_report(ctx.alle_leistungen().await)
+}
+
+#[tauri::command]
+pub async fn alle_rechnungen(ctx: State<'_, YamsAppApi>) -> Result<Vec<Rechnung>, String> {
+    map_report(ctx.alle_rechnungen().await)
+}
+
+#[tauri::command]
+pub async fn alle_seminare(ctx: State<'_, YamsAppApi>) -> Result<Vec<Seminar>, String> {
+    map_report(ctx.alle_seminare().await)
+}
+
+#[tauri::command]
+pub async fn alle_seminar_termine(
+    ctx: State<'_, YamsAppApi>,
+) -> Result<Vec<SeminarTermin>, String> {
+    map_report(ctx.alle_seminar_termine().await)
 }
 
 #[tauri::command]
@@ -115,4 +156,93 @@ pub async fn teilnahmebestätigung_pdf(
     yams_core::ports::collect_object(stream)
         .await
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn seminar_erstellen(
+    erstellung: SeminarErstellung,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<Seminar, String> {
+    map_report(ctx.seminar_erstellen(erstellung).await)
+}
+
+#[tauri::command]
+pub async fn seminar_by_id(id: Uuid, ctx: State<'_, YamsAppApi>) -> Result<Seminar, String> {
+    map_report(ctx.seminar_by_id(id).await)
+}
+
+#[tauri::command]
+pub async fn seminar_termin_planen(
+    erstellung: SeminarTerminErstellung,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_termin_planen(erstellung).await)
+}
+
+#[tauri::command]
+pub async fn seminar_termin_by_id(
+    id: Uuid,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_termin_by_id(id).await)
+}
+
+#[tauri::command]
+pub async fn seminar_termin_aktualisieren(
+    id: Uuid,
+    aktualisierung: SeminarTerminAktualisierung,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_termin_aktualisieren(id, aktualisierung).await)
+}
+
+#[tauri::command]
+pub async fn seminar_buchung_anlegen(
+    termin_id: Uuid,
+    erstellung: SeminarBuchungErstellung,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_buchung_anlegen(termin_id, erstellung).await)
+}
+
+#[tauri::command]
+pub async fn seminar_buchung_stornieren(
+    termin_id: Uuid,
+    buchung_id: Uuid,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_buchung_stornieren(termin_id, buchung_id).await)
+}
+
+#[tauri::command]
+pub async fn seminar_termin_absagen(
+    termin_id: Uuid,
+    absage: SeminarTerminAbsage,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_termin_absagen(termin_id, absage).await)
+}
+
+#[tauri::command]
+pub async fn seminar_termin_abgehalten(
+    termin_id: Uuid,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarTermin, String> {
+    map_report(ctx.seminar_termin_abgehalten(termin_id).await)
+}
+
+#[tauri::command]
+pub async fn seminar_umsatz_vorschau(
+    termin_id: Uuid,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarUmsatzVorschau, String> {
+    map_report(ctx.seminar_umsatz_vorschau(termin_id).await)
+}
+
+#[tauri::command]
+pub async fn seminar_umsatz_prognose(
+    stichtag: chrono::NaiveDate,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<SeminarUmsatzPrognose, String> {
+    map_report(ctx.seminar_umsatz_prognose(stichtag).await)
 }

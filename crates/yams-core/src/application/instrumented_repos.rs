@@ -73,6 +73,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: KlientId) -> RepositoryResult<Versioned<Klient>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Klient>>>;
         #[instrument(skip(self, klient), level = "debug", err(Debug))]
         fn create(&self, klient: NeuerKlient) -> RepositoryResult<Versioned<Klient>>;
         #[instrument(skip(self, klient), level = "debug", err(Debug))]
@@ -109,6 +111,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: ProduktId) -> RepositoryResult<Versioned<Produkt>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Produkt>>>;
         #[instrument(skip(self, produkt), level = "debug", err(Debug))]
         fn create(&self, produkt: NeuesProdukt) -> RepositoryResult<Versioned<Produkt>>;
     ]
@@ -121,6 +125,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: BehandlungId) -> RepositoryResult<Versioned<Behandlung>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Behandlung>>>;
         #[instrument(skip(self, behandlung), level = "debug", err(Debug))]
         fn create(&self, behandlung: NeueBehandlung) -> RepositoryResult<Versioned<Behandlung>>;
     ]
@@ -133,6 +139,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, leistung), level = "debug", err(Debug))]
         fn create(&self, leistung: NeueLeistung) -> RepositoryResult<Versioned<LeistungOffen>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Leistung>>>;
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: LeistungId) -> RepositoryResult<Versioned<Leistung>>;
         #[instrument(skip(self, datum), %datum, level = "trace", err(Debug))]
@@ -151,6 +159,8 @@ impl_instrumented_repo!(
         fn create(&self, rechnung: RechnungOffen) -> RepositoryResult<Versioned<RechnungOffen>>;
         #[instrument(skip(self), level = "trace", err(Debug))]
         fn nächste_rechnungsnummer(&self) -> RepositoryResult<u64>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
         #[instrument(skip(self, klient_id), fields(klient_id = ?klient_id), level = "trace", err(Debug))]
         fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
     ]
@@ -163,6 +173,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: SeminarId) -> RepositoryResult<Versioned<Seminar>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<Seminar>>>;
         #[instrument(skip(self, seminar), level = "debug", err(Debug))]
         fn create(&self, seminar: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>>;
         #[instrument(skip(self, seminar), level = "debug", err(Debug))]
@@ -177,6 +189,8 @@ impl_instrumented_repo!(
     methods: [
         #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
         fn find_by_id(&self, id: SeminarTerminId) -> RepositoryResult<Versioned<SeminarTermin>>;
+        #[instrument(skip(self), level = "trace", err(Debug))]
+        fn find_all(&self) -> RepositoryResult<Vec<Versioned<SeminarTermin>>>;
         #[instrument(skip(self, seminar_id), fields(seminar_id = ?seminar_id), level = "trace", err(Debug))]
         fn find_by_seminar_id(&self, seminar_id: SeminarId) -> RepositoryResult<Vec<Versioned<SeminarTermin>>>;
         #[instrument(skip(self, stichtag), %stichtag, level = "trace", err(Debug))]

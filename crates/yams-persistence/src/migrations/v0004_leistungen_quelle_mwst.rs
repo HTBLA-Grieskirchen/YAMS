@@ -1,5 +1,4 @@
 pub struct Migration;
-pub struct V5;
 
 use async_trait::async_trait;
 use molting::UpMigration;
@@ -12,23 +11,8 @@ impl UpMigration<libsql::Transaction, libsql::Error> for Migration {
 
     fn description(&self) -> Option<&'static str> {
         Some(
-            "Align MwSt columns: rename leftover *_prozentsatz names and add leistungen.quelle_mwst if missing",
+            "Align MwSt columns (rename *_prozentsatz), add leistungen.quelle_mwst if missing, convert percentage values to ratio",
         )
-    }
-
-    async fn up(&self, transaction: &mut libsql::Transaction) -> Result<(), libsql::Error> {
-        migrate(transaction).await
-    }
-}
-
-#[async_trait]
-impl UpMigration<libsql::Transaction, libsql::Error> for V5 {
-    fn version(&self) -> usize {
-        5
-    }
-
-    fn description(&self) -> Option<&'static str> {
-        Some("Idempotent repeat of v0004 (covers databases that applied the old add-only v0004)")
     }
 
     async fn up(&self, transaction: &mut libsql::Transaction) -> Result<(), libsql::Error> {
@@ -64,6 +48,13 @@ async fn migrate(transaction: &mut libsql::Transaction) -> Result<(), libsql::Er
             )
             .await?;
     }
+
+    normalize_mwst_column(transaction, "produkte", "mwst").await?;
+    normalize_mwst_column(transaction, "behandlungen", "mwst").await?;
+    normalize_mwst_column(transaction, "rechnungspositionen", "mwst").await?;
+    normalize_mwst_column(transaction, "seminare", "mwst").await?;
+    normalize_mwst_column(transaction, "leistungen", "quelle_mwst").await?;
+
     Ok(())
 }
 
@@ -97,6 +88,31 @@ async fn align_column(
         }
         (false, true) | (false, false) => {}
     }
+    Ok(())
+}
+
+/// Values stored as whole-number percentages (e.g. `19.00` for 19 %) are divided by 100.
+async fn normalize_mwst_column(
+    transaction: &mut libsql::Transaction,
+    table: &str,
+    column: &str,
+) -> Result<(), libsql::Error> {
+    if !table_exists(transaction, table).await?
+        || !column_exists(transaction, table, column).await?
+    {
+        return Ok(());
+    }
+
+    transaction
+        .execute(
+            &format!(
+                "UPDATE {table} SET {column} = printf('%g', CAST({column} AS REAL) / 100.0) \
+                 WHERE CAST({column} AS REAL) > 1"
+            ),
+            (),
+        )
+        .await?;
+
     Ok(())
 }
 
@@ -223,12 +239,25 @@ mod tests {
         )
         .await
         .unwrap();
+        conn.execute(
+            "INSERT INTO produkte (id, mwst_prozentsatz) VALUES ('a', '20.00')",
+            (),
+        )
+        .await
+        .unwrap();
 
         apply(&conn).await;
 
         let names = columns(&conn, "produkte").await;
         assert!(names.contains(&"mwst".into()));
         assert!(!names.contains(&"mwst_prozentsatz".into()));
+
+        let mut rows = conn
+            .query("SELECT mwst FROM produkte WHERE id = 'a'", ())
+            .await
+            .unwrap();
+        let row = rows.next().await.unwrap().unwrap();
+        assert_eq!(row.get::<String>(0).unwrap(), "0.2");
     }
 
     #[pollster::test]
@@ -262,5 +291,63 @@ mod tests {
 
         let names = columns(&conn, "leistungen").await;
         assert!(names.contains(&"quelle_mwst".into()));
+    }
+
+    #[pollster::test]
+    async fn converts_percentage_mwst_to_ratio() {
+        let conn = memory().await;
+        conn.execute(
+            "CREATE TABLE produkte (id TEXT PRIMARY KEY, mwst TEXT NOT NULL)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO produkte (id, mwst) VALUES ('a', '20.00'), ('b', '0.20'), ('c', '19.00')",
+            (),
+        )
+        .await
+        .unwrap();
+
+        apply(&conn).await;
+
+        let mut rows = conn
+            .query("SELECT id, mwst FROM produkte WHERE id IN ('a', 'b', 'c')", ())
+            .await
+            .unwrap();
+        let mut values = std::collections::BTreeMap::new();
+        while let Some(row) = rows.next().await.unwrap() {
+            values.insert(row.get::<String>(0).unwrap(), row.get::<String>(1).unwrap());
+        }
+        assert_eq!(values.get("a").unwrap(), "0.2");
+        assert_eq!(values.get("b").unwrap(), "0.20");
+        assert_eq!(values.get("c").unwrap(), "0.19");
+    }
+
+    #[pollster::test]
+    async fn idempotent_when_already_ratio() {
+        let conn = memory().await;
+        conn.execute(
+            "CREATE TABLE leistungen (id TEXT PRIMARY KEY, quelle_mwst TEXT NOT NULL)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO leistungen (id, quelle_mwst) VALUES ('x', '0.20')",
+            (),
+        )
+        .await
+        .unwrap();
+
+        apply(&conn).await;
+        apply(&conn).await;
+
+        let mut rows = conn
+            .query("SELECT quelle_mwst FROM leistungen", ())
+            .await
+            .unwrap();
+        let row = rows.next().await.unwrap().unwrap();
+        assert_eq!(row.get::<String>(0).unwrap(), "0.20");
     }
 }

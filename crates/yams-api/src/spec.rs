@@ -153,6 +153,11 @@ impl YamsApiSpec {
         self.app_api.klient_erstellen(body.0).await.into()
     }
 
+    #[oai(path = "/klient", method = "get")]
+    async fn alle_klienten(&self) -> TypicalJsonResponse<Vec<Klient>> {
+        self.app_api.alle_klienten().await.into()
+    }
+
     #[oai(path = "/haustier", method = "post")]
     async fn haustier_erstellen(
         &self,
@@ -179,12 +184,22 @@ impl YamsApiSpec {
         self.app_api.produkt_erstellen(body.0).await.into()
     }
 
+    #[oai(path = "/produkt", method = "get")]
+    async fn alle_produkte(&self) -> TypicalJsonResponse<Vec<Produkt>> {
+        self.app_api.alle_produkte().await.into()
+    }
+
     #[oai(path = "/behandlung", method = "post")]
     async fn behandlung_erstellen(
         &self,
         body: Json<BehandlungErstellung>,
     ) -> TypicalJsonResponse<Behandlung> {
         self.app_api.behandlung_erstellen(body.0).await.into()
+    }
+
+    #[oai(path = "/behandlung", method = "get")]
+    async fn alle_behandlungen(&self) -> TypicalJsonResponse<Vec<Behandlung>> {
+        self.app_api.alle_behandlungen().await.into()
     }
 
     #[oai(path = "/leistung/produkt", method = "post")]
@@ -217,12 +232,22 @@ impl YamsApiSpec {
         self.app_api.leistung_manuell_erfassen(body.0).await.into()
     }
 
+    #[oai(path = "/leistung", method = "get")]
+    async fn alle_leistungen(&self) -> TypicalJsonResponse<Vec<Leistung>> {
+        self.app_api.alle_leistungen().await.into()
+    }
+
     #[oai(path = "/tagesabschluss", method = "post")]
     async fn tagesabschluss_durchführen(
         &self,
         body: Json<TagesabschlussErstellung>,
     ) -> TypicalJsonResponse<Vec<Rechnung>> {
         self.app_api.tagesabschluss_durchführen(body.0).await.into()
+    }
+
+    #[oai(path = "/rechnungen", method = "get")]
+    async fn alle_rechnungen(&self) -> TypicalJsonResponse<Vec<Rechnung>> {
+        self.app_api.alle_rechnungen().await.into()
     }
 
     #[oai(path = "/rechnung/:klient_id", method = "get")]
@@ -246,6 +271,11 @@ impl YamsApiSpec {
         self.app_api.seminar_erstellen(body.0).await.into()
     }
 
+    #[oai(path = "/seminar", method = "get")]
+    async fn alle_seminare(&self) -> TypicalJsonResponse<Vec<Seminar>> {
+        self.app_api.alle_seminare().await.into()
+    }
+
     #[oai(path = "/seminar/:id", method = "get")]
     async fn seminar_by_id(&self, id: Path<Uuid>) -> TypicalJsonResponse<Seminar> {
         self.app_api.seminar_by_id(id.0).await.into()
@@ -257,6 +287,11 @@ impl YamsApiSpec {
         body: Json<SeminarTerminErstellung>,
     ) -> TypicalJsonResponse<SeminarTermin> {
         self.app_api.seminar_termin_planen(body.0).await.into()
+    }
+
+    #[oai(path = "/seminar-termin", method = "get")]
+    async fn alle_seminar_termine(&self) -> TypicalJsonResponse<Vec<SeminarTermin>> {
+        self.app_api.alle_seminar_termine().await.into()
     }
 
     #[oai(path = "/seminar-termin/:id", method = "get")]

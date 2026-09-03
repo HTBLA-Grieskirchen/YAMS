@@ -133,6 +133,29 @@ impl LeistungRepository for SQLiteLeistungRepository {
         leistung_from_row(&row)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Leistung>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                &format!("{LEISTUNG_SELECT} ORDER BY leistungsdatum DESC, id"),
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut leistungen = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            leistungen.push(leistung_from_row(&row)?);
+        }
+        Ok(leistungen)
+    }
+
     async fn find_offene_by_datum(
         &self,
         datum: NaiveDate,

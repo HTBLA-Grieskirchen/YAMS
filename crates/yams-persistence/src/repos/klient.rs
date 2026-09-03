@@ -83,6 +83,29 @@ impl KlientRepository for SQLiteKlientRepository {
         klient_from_row(&row)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Klient>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                "SELECT id, vorname, nachname, geburtstag, email, mobilnummer, kundennummer, einwilligung, postleitzahl, stadt, \"straße_und_hausnummer\", \"ländercode\", _version FROM klienten ORDER BY nachname, vorname",
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut klienten = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            klienten.push(klient_from_row(&row)?);
+        }
+        Ok(klienten)
+    }
+
     async fn create(&self, new: NeuerKlient) -> RepositoryResult<Versioned<Klient>> {
         let id = KlientId(Uuid::new_v4());
         let klient = Versioned::init(Klient::neu(id, new).change_context(RepositoryError::Data)?);

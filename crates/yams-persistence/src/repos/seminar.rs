@@ -71,6 +71,29 @@ impl SeminarRepository for SQLiteSeminarRepository {
         seminar_from_row(&row)
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<Seminar>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let mut rows = tx
+            .query(
+                "SELECT id, titel, beschreibung, \"teilnahmegebühr_basis\", mwst, standarddauer_ms, _version FROM seminare ORDER BY titel",
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut seminare = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            seminare.push(seminar_from_row(&row)?);
+        }
+        Ok(seminare)
+    }
+
     async fn create(&self, new: NeuesSeminar) -> RepositoryResult<Versioned<Seminar>> {
         let id = SeminarId(Uuid::new_v4());
         let seminar = Versioned::init(Seminar::neu(id, new).change_context(RepositoryError::Data)?);

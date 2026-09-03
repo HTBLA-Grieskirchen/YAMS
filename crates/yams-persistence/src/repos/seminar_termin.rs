@@ -260,6 +260,28 @@ impl SeminarTerminRepository for SQLiteSeminarTerminRepository {
         load_termin(tx, &row).await
     }
 
+    async fn find_all(&self) -> RepositoryResult<Vec<Versioned<SeminarTermin>>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+        let mut rows = tx
+            .query(
+                &format!("{TERMIN_SELECT} ORDER BY beginn"),
+                (),
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut termine = Vec::new();
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            termine.push(load_termin(tx, &row).await?);
+        }
+        Ok(termine)
+    }
+
     async fn find_by_seminar_id(
         &self,
         seminar_id: SeminarId,

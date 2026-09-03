@@ -14,7 +14,7 @@ use yams_core::service::{
     SeminarBuchungStornierenFehler, SeminarErstellenFehler, SeminarTerminAbsagenFehler,
     SeminarTerminAktualisierenFehler, SeminarTerminAlsAbgehaltenMarkierenFehler,
     SeminarTerminPlanenFehler, SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
-    TagesabschlussDurchführenFehler,
+    TagesabschlussDurchführenFehler, AuflistenFehler,
 };
 
 use super::ValidationError;
@@ -204,6 +204,14 @@ impl HttpStatusMapping for LeistungManuellErfassenFehler {
     fn http_status(&self) -> Option<StatusCode> {
         match self {
             LeistungManuellErfassenFehler::Persistenz => None,
+        }
+    }
+}
+
+impl HttpStatusMapping for AuflistenFehler {
+    fn http_status(&self) -> Option<StatusCode> {
+        match self {
+            AuflistenFehler::Persistenz => None,
         }
     }
 }

@@ -11,7 +11,6 @@ mod v0001_initial;
 mod v0002_deutsches_schema;
 mod v0003_seminar;
 mod v0004_leistungen_quelle_mwst;
-mod v0005_rename_mwst_prozentsatz;
 
 type Registry = MigrationRegistry<dyn UpMigration<libsql::Transaction, libsql::Error>>;
 
@@ -21,7 +20,7 @@ pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
     registry.add(v0002_deutsches_schema::Migration);
     registry.add(v0003_seminar::Migration);
     registry.add(v0004_leistungen_quelle_mwst::Migration);
-    registry.add(v0005_rename_mwst_prozentsatz::Migration);
+    registry.add(v0004_leistungen_quelle_mwst::V5);
     registry
 });
 

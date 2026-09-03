@@ -1,8 +1,7 @@
+use poem::http::StatusCode;
 use serde_json::json;
 
-use super::{
-    YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder, json_decimal,
-};
+use super::{YamsApiTestClient, assert_status_ok, base_app_builder, json_decimal};
 use rust_decimal::Decimal;
 
 #[pollster::test]
@@ -41,7 +40,7 @@ async fn produkt_erstellen_rejects_negative_preis() {
         )
         .await;
 
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[pollster::test]
@@ -60,5 +59,5 @@ async fn produkt_erstellen_rejects_mwst_greater_than_one() {
         )
         .await;
 
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }

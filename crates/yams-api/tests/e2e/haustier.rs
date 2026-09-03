@@ -1,3 +1,4 @@
+use poem::http::StatusCode;
 use serde_json::{Value, json};
 
 use super::{YamsApiTestClient, assert_status_ok, base_app_builder};
@@ -52,4 +53,22 @@ async fn haustier_erstellen_is_listed_and_fetchable() {
     assert_status_ok(status);
     assert_eq!(alle.as_array().unwrap().len(), 1);
     assert_eq!(alle[0]["id"], haustier_id);
+}
+
+#[pollster::test]
+async fn haustier_erstellen_unknown_klient_is_not_found() {
+    let api = YamsApiTestClient::new(base_app_builder().await);
+    let (status, _) = api
+        .post_json(
+            "/api/haustier",
+            json!({
+                "name": "Bello",
+                "geburtstag": "2020-06-15",
+                "tierart": "Hund",
+                "beschreibung": "Mischling",
+                "klientId": "00000000-0000-0000-0000-000000000000",
+            }),
+        )
+        .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

@@ -14,7 +14,7 @@ use yams_core::{App, ThreadSafeError, ports::ObjectStream};
 
 use crate::{
     api::YamsAppApi,
-    errors::{HttpStatusMapping, InternalServerError, StructuredError},
+    errors::{HttpStatusMapping, InternalServerError, StructuredError, status_from_report},
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
@@ -139,15 +139,6 @@ impl<C: ThreadSafeError + HttpStatusMapping> From<Result<ObjectStream, Report<C>
             }
         }
     }
-}
-
-fn status_from_report<C: ThreadSafeError + HttpStatusMapping>(error: &Report<C>) -> StatusCode {
-    error
-        .request_value::<StatusCode>()
-        .next()
-        .or_else(|| error.downcast_ref::<StatusCode>().copied())
-        .or_else(|| error.current_context().http_status())
-        .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
 }
 
 #[OpenApi]

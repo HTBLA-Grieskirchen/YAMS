@@ -1,6 +1,7 @@
+use poem::http::StatusCode;
 use serde_json::{Value, json};
 
-use super::{YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder};
+use super::{YamsApiTestClient, assert_status_ok, base_app_builder};
 
 fn klient_body(kundennummer: u64) -> Value {
     json!({
@@ -46,7 +47,7 @@ async fn klient_erstellen_rejects_invalid_email() {
     body["email"] = json!("not-an-email");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[pollster::test]
@@ -56,7 +57,7 @@ async fn klient_erstellen_rejects_empty_name() {
     body["vorname"] = json!("");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[pollster::test]
@@ -66,5 +67,5 @@ async fn klient_erstellen_rejects_invalid_ländercode() {
     body["adresse"]["ländercode"] = json!("US");
 
     let (status, _) = api.post_json("/api/klient", body).await;
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }

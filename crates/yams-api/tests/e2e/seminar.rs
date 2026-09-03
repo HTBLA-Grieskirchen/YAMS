@@ -1,9 +1,8 @@
+use poem::http::StatusCode;
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
-use super::{
-    YamsApiTestClient, assert_status_ok, assert_status_rejected, base_app_builder, json_decimal,
-};
+use super::{YamsApiTestClient, assert_status_ok, base_app_builder, json_decimal};
 
 fn klient_body(kundennummer: u64, email: &str) -> Value {
     json!({
@@ -141,7 +140,7 @@ async fn seminar_rejects_empty_titel() {
             }),
         )
         .await;
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
 #[pollster::test]
@@ -171,5 +170,14 @@ async fn absage_blocks_abgehalten_via_api() {
             termin["id"].as_str().unwrap()
         ))
         .await;
-    assert_status_rejected(status);
+    assert_eq!(status, StatusCode::CONFLICT);
+}
+
+#[pollster::test]
+async fn unknown_seminar_is_not_found() {
+    let api = YamsApiTestClient::new(base_app_builder().await);
+    let (status, _) = api
+        .get_json("/api/seminar/00000000-0000-0000-0000-000000000000")
+        .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

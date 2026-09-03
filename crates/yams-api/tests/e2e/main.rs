@@ -109,13 +109,6 @@ pub fn assert_status_ok(status: StatusCode) {
     assert_eq!(status, StatusCode::OK, "expected 200 OK, got {status}");
 }
 
-pub fn assert_status_rejected(status: StatusCode) {
-    assert!(
-        !status.is_success(),
-        "expected a rejected HTTP status, got {status}"
-    );
-}
-
 pub fn json_decimal(value: &Value) -> Decimal {
     match value {
         Value::String(text) => Decimal::from_str(text).expect("decimal string"),

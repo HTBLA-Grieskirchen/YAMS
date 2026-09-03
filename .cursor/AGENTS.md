@@ -146,7 +146,7 @@ Framework-agnostic API layer between driving adapters and core.
 - **`YamsAppApi`** — wraps `Arc<App>`, exposes typed methods (`klient_erstellen`, `haustier_erstellen`, `tagesabschluss_durchführen`, …). Translates domain → API schema DTOs. Use-case errors pass through.
 - **`schema/`** — German DTOs, JSON `camelCase` (`vorname`, `ländercode`, `mwst` as a `0..=1` ratio, e.g. `"0.20"` not `"20"`).
 - **`requests/`** — inbound request types with `TryFrom` into use-case inputs. Domain validation is `change_context(ValidationError)` only; HTTP status for validation is attached as `StatusCode` at the API boundary.
-- **`errors/`** — `Report<E>` → structured JSON error trees. `YamsApiSpec` resolves HTTP status: attached `StatusCode` on the report, else `HttpStatusMapping` on the current context (`None` default), else 500.
+- **`errors/`** — `Report<E>` → structured JSON error trees. `YamsApiSpec` resolves HTTP status: attached `StatusCode` on the report, else `HttpStatusMapping` on the current context, else the first nested mapped context (domain / other use-case / repository), else 500. Persistence wrappers (`Persistenz`, `Erstellung`, `Invariante`, `Rechnung`) return `None` so the cause can speak. Not-found → 404, wrong aggregate state / booking conflict → 409, request validation → 400, unprocessable invoice contents → 422, permission → 403, connection → 503.
 
 ### Feature Flags
 

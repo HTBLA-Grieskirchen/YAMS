@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use tracing::debug;
 
 use crate::ResultReport;
 use crate::ports::{PdfDokument, PdfRenderError, PdfRenderer};
@@ -16,6 +17,7 @@ pub struct BlankPdfRenderer;
 #[async_trait]
 impl PdfRenderer for BlankPdfRenderer {
     async fn rendern(&self, _dokument: &PdfDokument) -> ResultReport<Vec<u8>, PdfRenderError> {
+        debug!(bytes_len = BLANK_PDF.len(), "blank pdf renderer");
         Ok(BLANK_PDF.to_vec())
     }
 }

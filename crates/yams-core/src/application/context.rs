@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
+    application::instrumented::{InstrumentedObjectStore, InstrumentedPdfRenderer},
     application::uow::{UnitOfWork, UnitOfWorkImpl, UnitOfWorkProvider},
     ports::{Clock, ObjectStore, PdfRenderer, RepositoryResult},
 };
+use tracing::instrument;
 
 #[derive(Clone, Copy)]
 enum ExecutionSource<'a> {
@@ -30,8 +32,8 @@ impl<'a> ExecutionContext<'a> {
         Self {
             source: ExecutionSource::Root(provider),
             clock,
-            object_store,
-            pdf_renderer,
+            object_store: InstrumentedObjectStore::new(object_store),
+            pdf_renderer: InstrumentedPdfRenderer::new(pdf_renderer),
         }
     }
 
@@ -44,8 +46,8 @@ impl<'a> ExecutionContext<'a> {
         Self {
             source: ExecutionSource::Nested(uow),
             clock,
-            object_store,
-            pdf_renderer,
+            object_store: InstrumentedObjectStore::new(object_store),
+            pdf_renderer: InstrumentedPdfRenderer::new(pdf_renderer),
         }
     }
 
@@ -75,6 +77,7 @@ impl<'a> ExecutionContext<'a> {
     /// Start a unit of work. Returned UoW borrows `self`, so this context cannot be
     /// moved into a nested `perform` until the UoW is committed or rolled back.
     /// Nested contexts (from [`ExecutionContext::sub`]) join the outer transaction.
+    #[instrument(skip(self), level = "debug", err(Debug))]
     pub async fn enter(&self) -> RepositoryResult<UnitOfWork<'_>> {
         match self.source {
             ExecutionSource::Root(provider) => {

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use error_stack::{IntoReport, Report, ResultExt};
+use tracing::info;
 
 use crate::{
     application::uow::Versioned,
@@ -53,6 +54,12 @@ impl UseCase<Klient> for KlientErstellen {
             .map_err(IntoReport::into_report)
             .change_context(KlientErstellenFehler::Erstellung);
 
-        uow.finish(result, KlientErstellenFehler::Erstellung).await
+        let klient = uow.finish(result, KlientErstellenFehler::Erstellung).await?;
+        info!(
+            id = ?klient.id(),
+            kundennummer = klient.kundennummer(),
+            "klient angelegt"
+        );
+        Ok(klient)
     }
 }

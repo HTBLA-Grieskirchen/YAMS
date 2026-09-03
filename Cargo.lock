@@ -8190,6 +8190,7 @@ dependencies = [
  "futures",
  "pollster",
  "tempdir",
+ "tracing",
  "yams-core",
 ]
 
@@ -8248,6 +8249,7 @@ dependencies = [
  "pollster",
  "rust_decimal",
  "thiserror 2.0.20",
+ "tracing",
  "typst",
  "typst-as-lib",
  "typst-layout",

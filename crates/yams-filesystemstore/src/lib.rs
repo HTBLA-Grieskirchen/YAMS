@@ -10,6 +10,7 @@ use std::task::{Context, Poll};
 use async_trait::async_trait;
 use error_stack::Report;
 use futures::Stream;
+use tracing::debug;
 use tempdir::TempDir;
 use yams_core::{
     ErrorReportExt, ResultReport,
@@ -89,14 +90,21 @@ impl ObjectStore for FileSystemObjectStore {
             fs::create_dir_all(parent).contextualize(ObjectStoreError::Operation)?;
         }
         fs::write(path, bytes).contextualize(ObjectStoreError::Operation)?;
+        debug!(key, bytes_len = bytes.len(), "filesystem object store put");
         Ok(())
     }
 
     async fn get(&self, key: &str) -> ResultReport<Option<ObjectStream>, ObjectStoreError> {
         let path = self.path_for(key)?;
         match File::open(path) {
-            Ok(file) => Ok(Some(Box::pin(FileStream { file }))),
-            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Ok(file) => {
+                debug!(key, "filesystem object store get");
+                Ok(Some(Box::pin(FileStream { file })))
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+                debug!(key, found = false, "filesystem object store get");
+                Ok(None)
+            }
             Err(err) => Err(err).contextualize(ObjectStoreError::Operation),
         }
     }
@@ -104,7 +112,10 @@ impl ObjectStore for FileSystemObjectStore {
     async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
         let path = self.path_for(key)?;
         match fs::remove_file(path) {
-            Ok(()) => Ok(()),
+            Ok(()) => {
+                debug!(key, "filesystem object store delete");
+                Ok(())
+            }
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
                 Err(Report::new(ObjectStoreError::AlreadyDeleted))
             }

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use chrono::NaiveDate;
 use error_stack::{IntoReport, Report, ResultExt};
+use tracing::info;
 
 use crate::{
     ResultReport,
@@ -59,8 +60,15 @@ impl UseCase<Haustier> for HaustierErstellen {
         }
         .await;
 
-        uow.finish(result, HaustierErstellenFehler::Persistenz)
-            .await
+        let haustier = uow
+            .finish(result, HaustierErstellenFehler::Persistenz)
+            .await?;
+        info!(
+            id = ?haustier.id(),
+            klient_id = ?haustier.klient_id(),
+            "haustier angelegt"
+        );
+        Ok(haustier)
     }
 }
 
@@ -111,6 +119,7 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
             .change_context(HaustierErstellenFehler::Persistenz)
             .map_err(|e| e.expand())?;
 
+        info!(anzahl = haustiere.len(), "haustiere angelegt");
         Ok(haustiere)
     }
 }

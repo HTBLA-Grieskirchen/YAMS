@@ -3,6 +3,7 @@ use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
 use rustc_hash::FxHashMap;
 use std::ops::DerefMut;
+use tracing::{debug, info};
 
 use crate::{
     application::uow::Versioned,
@@ -56,7 +57,9 @@ impl UseCase<Produkt> for ProduktErstellen {
             .map(Versioned::into_data)
             .change_context(ProduktErstellenFehler::Erstellung);
 
-        uow.finish(result, ProduktErstellenFehler::Erstellung).await
+        let produkt = uow.finish(result, ProduktErstellenFehler::Erstellung).await?;
+        debug!(id = ?produkt.id(), name = produkt.name(), "produkt angelegt");
+        Ok(produkt)
     }
 }
 
@@ -96,8 +99,11 @@ impl UseCase<Behandlung> for BehandlungErstellen {
             .map(Versioned::into_data)
             .change_context(BehandlungErstellenFehler::Erstellung);
 
-        uow.finish(result, BehandlungErstellenFehler::Erstellung)
-            .await
+        let behandlung = uow
+            .finish(result, BehandlungErstellenFehler::Erstellung)
+            .await?;
+        debug!(id = ?behandlung.id(), name = behandlung.name(), "behandlung angelegt");
+        Ok(behandlung)
     }
 }
 
@@ -154,8 +160,15 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
         }
         .await;
 
-        uow.finish(result, LeistungAusProduktBuchenFehler::Persistenz)
-            .await
+        let leistung = uow
+            .finish(result, LeistungAusProduktBuchenFehler::Persistenz)
+            .await?;
+        info!(
+            id = ?leistung.id(),
+            klient_id = ?leistung.klient_id(),
+            "leistung aus produkt gebucht"
+        );
+        Ok(leistung)
     }
 }
 
@@ -215,8 +228,15 @@ impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
         }
         .await;
 
-        uow.finish(result, LeistungAusBehandlungBuchenFehler::Persistenz)
-            .await
+        let leistung = uow
+            .finish(result, LeistungAusBehandlungBuchenFehler::Persistenz)
+            .await?;
+        info!(
+            id = ?leistung.id(),
+            klient_id = ?leistung.klient_id(),
+            "leistung aus behandlung gebucht"
+        );
+        Ok(leistung)
     }
 }
 
@@ -262,8 +282,15 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
             .map(Versioned::into_data)
             .change_context(LeistungManuellErfassenFehler::Persistenz);
 
-        uow.finish(result, LeistungManuellErfassenFehler::Persistenz)
-            .await
+        let leistung = uow
+            .finish(result, LeistungManuellErfassenFehler::Persistenz)
+            .await?;
+        info!(
+            id = ?leistung.id(),
+            klient_id = ?leistung.klient_id(),
+            "leistung manuell erfasst"
+        );
+        Ok(leistung)
     }
 }
 
@@ -295,6 +322,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             Some(datum) => datum,
             None => ctx.clock().today(),
         };
+        info!(%abschlussdatum, "tagesabschluss gestartet");
 
         let uow = ctx
             .enter()
@@ -309,6 +337,11 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             uow.finish(result, TagesabschlussDurchführenFehler::Persistenz)
                 .await?
         };
+        info!(
+            %abschlussdatum,
+            leistungen = leistungen.len(),
+            "offene leistungen geladen"
+        );
 
         let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> = FxHashMap::default();
         for leistung in leistungen {
@@ -317,6 +350,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 .or_default()
                 .push(leistung);
         }
+        info!(%abschlussdatum, klienten = gruppen.len(), "rechnungsgruppen gebildet");
 
         let mut rechnungen = Vec::new();
         for (klient_id, gruppen_leistungen) in gruppen {
@@ -418,9 +452,21 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             )
             .await?;
 
-            rechnungen.push(persisted.into_data());
+            let rechnung = persisted.into_data();
+            info!(
+                %abschlussdatum,
+                klient_id = ?rechnung.klient_id(),
+                rechnungsnummer = rechnung.rechnungsnummer(),
+                "rechnung erstellt"
+            );
+            rechnungen.push(rechnung);
         }
 
+        info!(
+            %abschlussdatum,
+            rechnungen = rechnungen.len(),
+            "tagesabschluss abgeschlossen"
+        );
         Ok(rechnungen)
     }
 }

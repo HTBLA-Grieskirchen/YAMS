@@ -20,6 +20,7 @@ typst-as-lib = { version = "0.16", features = ["typst-kit-fonts", "typst-kit-emb
 typst-pdf = "0.15"
 typst-layout = "0.15"
 typst = "0.15"
+tracing = { workspace = true }
 
 [dev-dependencies]
 pollster = { version = "0.4.0", features = ["macro"] }

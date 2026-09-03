@@ -5,12 +5,15 @@ use crate::ports::{Clock, ObjectStore, PdfRenderer};
 use crate::service::UseCase;
 use crate::uow::UnitOfWorkProvider;
 use error_stack::IntoReport;
+use tracing::instrument;
 
 pub mod uow;
 
 mod context;
 pub mod ports;
 pub use context::ExecutionContext;
+
+mod instrumented;
 
 mod errors;
 pub use errors::ErrorReportExt;
@@ -31,7 +34,11 @@ pub struct App {
 pub use app_builder::{SetClock, SetUowProvider};
 
 impl App {
-    #[inline(always)]
+    #[instrument(
+        skip(self, use_case),
+        fields(use_case = std::any::type_name::<U>()),
+        err(Debug)
+    )]
     pub async fn execute<U: UseCase<O> + Send, O>(
         &self,
         use_case: U,
@@ -39,6 +46,7 @@ impl App {
         use_case.perform(self.new_execution_context()).await
     }
 
+    #[instrument(skip(self, f), fields(execute_fn = true), err(Debug))]
     pub async fn execute_fn<F, O, E: ThreadSafeError>(&self, f: F) -> ResultReport<O, E>
     where
         for<'a> F: AsyncFnOnce(ExecutionContext<'a>) -> ResultReport<O, E> + Send,

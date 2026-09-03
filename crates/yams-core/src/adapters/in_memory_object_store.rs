@@ -2,6 +2,7 @@ use std::sync::Mutex;
 
 use async_trait::async_trait;
 use rustc_hash::FxHashMap;
+use tracing::debug;
 
 use crate::ResultReport;
 use crate::ports::{ObjectStore, ObjectStoreError, ObjectStream, once_stream};
@@ -25,6 +26,7 @@ impl ObjectStore for InMemoryObjectStore {
             .lock()
             .expect("in-memory object store mutex")
             .insert(key.to_string(), bytes.to_vec());
+        debug!(key, bytes_len = bytes.len(), "in-memory object store put");
         Ok(())
     }
 
@@ -35,6 +37,7 @@ impl ObjectStore for InMemoryObjectStore {
             .expect("in-memory object store mutex")
             .get(key)
             .cloned();
+        debug!(key, found = bytes.is_some(), "in-memory object store get");
         Ok(bytes.map(once_stream))
     }
 
@@ -45,7 +48,10 @@ impl ObjectStore for InMemoryObjectStore {
             .expect("in-memory object store mutex")
             .remove(key)
         {
-            Some(_) => Ok(()),
+            Some(_) => {
+                debug!(key, "in-memory object store delete");
+                Ok(())
+            }
             None => Err(Report::new(ObjectStoreError::AlreadyDeleted)),
         }
     }

@@ -11,6 +11,7 @@ use crate::ports::{
 };
 use crate::service::praxis::praxis;
 use error_stack::Report;
+use tracing::{instrument, warn};
 
 pub fn rechnung_object_key(id: &RechnungId) -> String {
     format!("rechnungen/{}.pdf", id.0)
@@ -99,10 +100,13 @@ pub fn teilnahme_dokument<S>(
 
 pub async fn objekt_löschen_best_effort(store: &dyn ObjectStore, keys: &[String]) {
     for key in keys {
-        let _ = store.ensure_deleted(key).await;
+        if let Err(error) = store.ensure_deleted(key).await {
+            warn!(key, error = ?error, "objekt-löschung fehlgeschlagen");
+        }
     }
 }
 
+#[instrument(skip(store, keys, result), fields(keys = keys.len()), level = "debug")]
 pub async fn mit_objekt_rollback<T, E: ThreadSafeError>(
     store: &dyn ObjectStore,
     keys: &[String],
@@ -114,6 +118,12 @@ pub async fn mit_objekt_rollback<T, E: ThreadSafeError>(
     result
 }
 
+#[instrument(
+    skip(renderer, store, jobs, on_pdf, on_store),
+    fields(jobs = jobs.len()),
+    level = "debug",
+    err(Debug)
+)]
 pub async fn pdfs_rendern_und_ablegen<E: ThreadSafeError + Clone>(
     renderer: &dyn PdfRenderer,
     store: &dyn ObjectStore,
@@ -139,6 +149,7 @@ pub async fn pdfs_rendern_und_ablegen<E: ThreadSafeError + Clone>(
     Ok(stored)
 }
 
+#[instrument(skip(uow, result, persistenz, store, keys), fields(keys = keys.len()), level = "debug", err(Debug))]
 pub async fn nach_pdf_persistieren<T, E: ThreadSafeError + Clone>(
     uow: UnitOfWork<'_>,
     result: Result<T, Report<E>>,

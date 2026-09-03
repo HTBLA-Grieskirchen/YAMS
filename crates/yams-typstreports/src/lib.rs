@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Datelike, NaiveDate, Timelike, Utc};
 use error_stack::{Report, ResultExt};
 use rust_decimal::prelude::ToPrimitive;
+use tracing::debug;
 use typst::foundations::{Array, Datetime, Dict, IntoValue, Value};
 use typst_as_lib::TypstEngine;
 use typst_as_lib::typst_kit_options::TypstKitFontOptions;
@@ -56,13 +57,19 @@ impl Default for TypstPdfRenderer {
 #[async_trait]
 impl PdfRenderer for TypstPdfRenderer {
     async fn rendern(&self, dokument: &PdfDokument) -> ResultReport<Vec<u8>, PdfRenderError> {
+        let kind = match dokument {
+            PdfDokument::Rechnung(_) => "rechnung",
+            PdfDokument::Teilnahmebestätigung(_) => "teilnahme",
+        };
         let engine = self.engine.lock().expect("typst engine mutex");
         let doc = compile_paged(&engine, dokument)?;
-        typst_pdf::pdf(&doc, &typst_pdf::PdfOptions::default()).map_err(|err| {
+        let bytes = typst_pdf::pdf(&doc, &typst_pdf::PdfOptions::default()).map_err(|err| {
             Report::new(PdfRenderError::Rendering)
                 .attach(format!("{err:?}"))
                 .attach("typst pdf export failed")
-        })
+        })?;
+        debug!(kind, bytes_len = bytes.len(), "typst pdf renderer");
+        Ok(bytes)
     }
 }
 

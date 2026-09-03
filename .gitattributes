@@ -1,0 +1,2 @@
+# Keep generated graphify artifacts out of review diffs.
+graphify-out/** -diff

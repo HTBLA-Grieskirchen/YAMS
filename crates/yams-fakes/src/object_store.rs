@@ -57,4 +57,12 @@ impl ObjectStore for FakeObjectStore {
             .cloned();
         Ok(bytes.map(once_stream))
     }
+
+    async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
+        self.inner
+            .lock()
+            .expect("fake object store mutex")
+            .remove(key);
+        Ok(())
+    }
 }

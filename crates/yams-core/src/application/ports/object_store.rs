@@ -17,6 +17,7 @@ pub enum ObjectStoreError {
 pub trait ObjectStore: Send + Sync {
     async fn put(&self, key: &str, bytes: &[u8]) -> ResultReport<(), ObjectStoreError>;
     async fn get(&self, key: &str) -> ResultReport<Option<ObjectStream>, ObjectStoreError>;
+    async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError>;
 }
 
 pub async fn collect_object(mut stream: ObjectStream) -> Result<Vec<u8>, ObjectStoreError> {

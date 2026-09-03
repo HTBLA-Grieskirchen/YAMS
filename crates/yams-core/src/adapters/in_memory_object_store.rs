@@ -36,6 +36,14 @@ impl ObjectStore for InMemoryObjectStore {
             .cloned();
         Ok(bytes.map(once_stream))
     }
+
+    async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
+        self.inner
+            .lock()
+            .expect("in-memory object store mutex")
+            .remove(key);
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -64,5 +72,19 @@ mod tests {
         store.put("k", b"two").await.unwrap();
         let stream = store.get("k").await.unwrap().unwrap();
         assert_eq!(collect_object(stream).await.unwrap(), b"two");
+    }
+
+    #[pollster::test]
+    async fn delete_removes_object() {
+        let store = InMemoryObjectStore::new();
+        store.put("k", b"gone").await.unwrap();
+        store.delete("k").await.unwrap();
+        assert!(store.get("k").await.unwrap().is_none());
+    }
+
+    #[pollster::test]
+    async fn delete_missing_is_ok() {
+        let store = InMemoryObjectStore::new();
+        store.delete("missing").await.unwrap();
     }
 }

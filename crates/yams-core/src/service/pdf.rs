@@ -1,13 +1,16 @@
 use crate::ResultReport;
+use crate::application::ThreadSafeError;
+use crate::application::uow::UnitOfWork;
 use crate::domain::{
     Klient, Preis, RechnungId, RechnungIn, Seminar, SeminarBuchung, SeminarBuchungId,
-    SeminarTerminAbgehalten, SeminarTerminId,
+    SeminarTerminId, SeminarTerminIn,
 };
 use crate::ports::{
-    Klientbericht, ObjectStore, ObjectStoreError, ObjectStream, PdfDokument, Rechnungsbericht,
-    Rechnungspositionsbericht, Teilnahmebestätigung,
+    Klientbericht, ObjectStore, ObjectStoreError, ObjectStream, PdfDokument, PdfRenderer,
+    Rechnungsbericht, Rechnungspositionsbericht, Teilnahmebestätigung,
 };
 use crate::service::praxis::praxis;
+use error_stack::Report;
 
 pub fn rechnung_object_key(id: &RechnungId) -> String {
     format!("rechnungen/{}.pdf", id.0)
@@ -75,8 +78,8 @@ pub fn rechnungsdokument<S>(rechnung: &RechnungIn<S>, klient: &Klient) -> PdfDok
     })
 }
 
-pub fn teilnahme_dokument(
-    termin: &SeminarTerminAbgehalten,
+pub fn teilnahme_dokument<S>(
+    termin: &SeminarTerminIn<S>,
     seminar: &Seminar,
     buchung: &SeminarBuchung,
     klient: &Klient,
@@ -92,6 +95,58 @@ pub fn teilnahme_dokument(
         ort_name: termin.ort().ort_name().map(str::to_string),
         ort_adresse: termin.ort().adresse().cloned(),
     })
+}
+
+pub async fn objekt_löschen_best_effort(store: &dyn ObjectStore, keys: &[String]) {
+    for key in keys {
+        let _ = store.delete(key).await;
+    }
+}
+
+pub async fn mit_objekt_rollback<T, E: ThreadSafeError>(
+    store: &dyn ObjectStore,
+    keys: &[String],
+    result: Result<T, Report<E>>,
+) -> Result<T, Report<E>> {
+    if result.is_err() {
+        objekt_löschen_best_effort(store, keys).await;
+    }
+    result
+}
+
+pub async fn pdfs_rendern_und_ablegen<E: ThreadSafeError + Clone>(
+    renderer: &dyn PdfRenderer,
+    store: &dyn ObjectStore,
+    jobs: Vec<(String, PdfDokument)>,
+    on_pdf: E,
+    on_store: E,
+) -> Result<Vec<String>, Report<E>> {
+    let mut stored = Vec::new();
+    for (key, dokument) in jobs {
+        let pdf = match renderer.rendern(&dokument).await {
+            Ok(pdf) => pdf,
+            Err(error) => {
+                objekt_löschen_best_effort(store, &stored).await;
+                return Err(error.change_context(on_pdf));
+            }
+        };
+        if let Err(error) = store.put(&key, &pdf).await {
+            objekt_löschen_best_effort(store, &stored).await;
+            return Err(error.change_context(on_store));
+        }
+        stored.push(key);
+    }
+    Ok(stored)
+}
+
+pub async fn nach_pdf_persistieren<T, E: ThreadSafeError + Clone>(
+    uow: UnitOfWork<'_>,
+    result: Result<T, Report<E>>,
+    persistenz: E,
+    store: &dyn ObjectStore,
+    keys: &[String],
+) -> Result<T, Report<E>> {
+    mit_objekt_rollback(store, keys, uow.finish(result, persistenz).await).await
 }
 
 #[cfg(test)]

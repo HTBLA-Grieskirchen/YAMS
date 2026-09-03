@@ -14,7 +14,10 @@ use crate::{
     },
     service::{
         ExecutionContext, UseCase,
-        pdf::{teilnahme_dokument, teilnahme_object_key},
+        pdf::{
+            mit_objekt_rollback, nach_pdf_persistieren, pdfs_rendern_und_ablegen,
+            teilnahme_dokument, teilnahme_object_key,
+        },
     },
 };
 
@@ -339,7 +342,7 @@ pub struct SeminarTerminAlsAbgehaltenMarkieren {
     pub termin_id: SeminarTerminId,
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone, Copy)]
 pub enum SeminarTerminAlsAbgehaltenMarkierenFehler {
     #[error("persistenzfehler")]
     Persistenz,
@@ -375,6 +378,71 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             .enter()
             .await
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+        let result = async {
+            let termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id.clone())
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::TerminNichtGefunden)?;
+
+            let geplant = match termin.cloned_data() {
+                SeminarTermin::Geplant(geplant) => geplant,
+                _ => {
+                    return Err(Report::new(
+                        SeminarTerminAlsAbgehaltenMarkierenFehler::NichtGeplant,
+                    ));
+                }
+            };
+
+            let seminar = uow
+                .seminare()
+                .find_by_id(geplant.seminar_id().clone())
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::SeminarNichtGefunden)?
+                .into_data();
+
+            let mut pdf_jobs = Vec::new();
+            for buchung in geplant.bestätigte_buchungen() {
+                let klient = uow
+                    .klienten()
+                    .find_by_id(buchung.klient_id().clone())
+                    .await
+                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden)?
+                    .into_data();
+                let dokument = teilnahme_dokument(&geplant, &seminar, buchung, &klient);
+                pdf_jobs.push((
+                    teilnahme_object_key(geplant.id(), buchung.id()),
+                    dokument,
+                ));
+            }
+
+            Ok(pdf_jobs)
+        }
+        .await;
+        let pdf_jobs = uow
+            .finish(
+                result,
+                SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz,
+            )
+            .await?;
+
+        let stored = pdfs_rendern_und_ablegen(
+            ctx.pdf_renderer(),
+            ctx.object_store(),
+            pdf_jobs,
+            SeminarTerminAlsAbgehaltenMarkierenFehler::Pdf,
+            SeminarTerminAlsAbgehaltenMarkierenFehler::Speicher,
+        )
+        .await?;
+
+        let uow = mit_objekt_rollback(
+            ctx.object_store(),
+            &stored,
+            ctx.enter()
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz),
+        )
+        .await?;
         let result = async {
             let mut termin = uow
                 .seminar_termine()
@@ -418,48 +486,17 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
                 .await
                 .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
 
-            let mut pdf_jobs = Vec::new();
-            if let SeminarTermin::Abgehalten(abgehalten) = &*termin {
-                for buchung in abgehalten.bestätigte_buchungen() {
-                    let klient = uow
-                        .klienten()
-                        .find_by_id(buchung.klient_id().clone())
-                        .await
-                        .change_context(
-                            SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden,
-                        )?
-                        .into_data();
-                    let dokument = teilnahme_dokument(abgehalten, &seminar, buchung, &klient);
-                    pdf_jobs.push((
-                        teilnahme_object_key(abgehalten.id(), buchung.id()),
-                        dokument,
-                    ));
-                }
-            }
-
-            Ok((termin.into_data(), pdf_jobs))
+            Ok(termin.into_data())
         }
         .await;
-        let (termin, pdf_jobs) = uow
-            .finish(
-                result,
-                SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz,
-            )
-            .await?;
-
-        for (object_key, dokument) in pdf_jobs {
-            let pdf = ctx
-                .pdf_renderer()
-                .rendern(&dokument)
-                .await
-                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Pdf)?;
-            ctx.object_store()
-                .put(&object_key, &pdf)
-                .await
-                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Speicher)?;
-        }
-
-        Ok(termin)
+        nach_pdf_persistieren(
+            uow,
+            result,
+            SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz,
+            ctx.object_store(),
+            &stored,
+        )
+        .await
     }
 }
 

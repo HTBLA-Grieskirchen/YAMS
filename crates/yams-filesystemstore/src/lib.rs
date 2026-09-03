@@ -99,6 +99,15 @@ impl ObjectStore for FileSystemObjectStore {
             Err(err) => Err(err).contextualize(ObjectStoreError::Operation),
         }
     }
+
+    async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
+        let path = self.path_for(key)?;
+        match fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(err) => Err(err).contextualize(ObjectStoreError::Operation),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -136,5 +145,19 @@ mod tests {
         store.put("k", b"two").await.unwrap();
         let stream = store.get("k").await.unwrap().unwrap();
         assert_eq!(collect_object(stream).await.unwrap(), b"two");
+    }
+
+    #[pollster::test]
+    async fn delete_removes_object() {
+        let store = FileSystemObjectStore::in_temp_dir().unwrap();
+        store.put("rechnungen/a.pdf", b"pdf").await.unwrap();
+        store.delete("rechnungen/a.pdf").await.unwrap();
+        assert!(store.get("rechnungen/a.pdf").await.unwrap().is_none());
+    }
+
+    #[pollster::test]
+    async fn delete_missing_is_ok() {
+        let store = FileSystemObjectStore::in_temp_dir().unwrap();
+        store.delete("rechnungen/missing.pdf").await.unwrap();
     }
 }

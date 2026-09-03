@@ -13,7 +13,10 @@ use crate::{
     },
     service::{
         ExecutionContext, UseCase,
-        pdf::{rechnung_object_key, rechnungsdokument},
+        pdf::{
+            mit_objekt_rollback, nach_pdf_persistieren, pdfs_rendern_und_ablegen,
+            rechnung_object_key, rechnungsdokument,
+        },
     },
 };
 
@@ -269,7 +272,7 @@ pub struct TagesabschlussDurchführen {
     pub abschlussdatum: Option<NaiveDate>,
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone, Copy)]
 pub enum TagesabschlussDurchführenFehler {
     #[error("persistenzfehler")]
     Persistenz,
@@ -317,7 +320,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
 
         let mut rechnungen = Vec::new();
         for (klient_id, gruppen_leistungen) in gruppen {
-            let mut versioned_leistungen: Vec<Versioned<Leistung>> = gruppen_leistungen
+            let versioned_leistungen: Vec<Versioned<Leistung>> = gruppen_leistungen
                 .into_iter()
                 .map(|l| Versioned::new(l.v(), Leistung::from(l.cloned_data())))
                 .collect();
@@ -334,6 +337,7 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                     .await
                     .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
+                let mut versioned_leistungen = versioned_leistungen;
                 let rechnung = {
                     let mut leistung_refs: Vec<&mut Leistung> = versioned_leistungen
                         .iter_mut()
@@ -351,6 +355,41 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                     })?
                 };
 
+                let klient = uow
+                    .klienten()
+                    .find_by_id(klient_id)
+                    .await
+                    .change_context(TagesabschlussDurchführenFehler::KlientNichtGefunden)?
+                    .into_data();
+                let dokument = rechnungsdokument(&rechnung, &klient);
+                let object_key = rechnung_object_key(rechnung.id());
+                Ok((rechnung, versioned_leistungen, dokument, object_key))
+            }
+            .await;
+
+            let (rechnung, versioned_leistungen, dokument, object_key) = uow
+                .finish(result, TagesabschlussDurchführenFehler::Persistenz)
+                .await?;
+
+            let stored = pdfs_rendern_und_ablegen(
+                ctx.pdf_renderer(),
+                ctx.object_store(),
+                vec![(object_key, dokument)],
+                TagesabschlussDurchführenFehler::Pdf,
+                TagesabschlussDurchführenFehler::Speicher,
+            )
+            .await?;
+
+            let uow = mit_objekt_rollback(
+                ctx.object_store(),
+                &stored,
+                ctx.enter()
+                    .await
+                    .change_context(TagesabschlussDurchführenFehler::Persistenz),
+            )
+            .await?;
+
+            let result = async {
                 let persisted = uow
                     .rechnungen()
                     .create(rechnung)
@@ -366,31 +405,18 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                     }
                 }
 
-                let klient = uow
-                    .klienten()
-                    .find_by_id(klient_id)
-                    .await
-                    .change_context(TagesabschlussDurchführenFehler::KlientNichtGefunden)?
-                    .into_data();
-                let dokument = rechnungsdokument(&*persisted, &klient);
-                let object_key = rechnung_object_key(persisted.id());
-                Ok((persisted, dokument, object_key))
+                Ok(persisted)
             }
             .await;
 
-            let (persisted, dokument, object_key) = uow
-                .finish(result, TagesabschlussDurchführenFehler::Persistenz)
-                .await?;
-
-            let pdf = ctx
-                .pdf_renderer()
-                .rendern(&dokument)
-                .await
-                .change_context(TagesabschlussDurchführenFehler::Pdf)?;
-            ctx.object_store()
-                .put(&object_key, &pdf)
-                .await
-                .change_context(TagesabschlussDurchführenFehler::Speicher)?;
+            let persisted = nach_pdf_persistieren(
+                uow,
+                result,
+                TagesabschlussDurchführenFehler::Persistenz,
+                ctx.object_store(),
+                &stored,
+            )
+            .await?;
 
             rechnungen.push(persisted.into_data());
         }

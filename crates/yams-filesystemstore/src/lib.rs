@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use async_trait::async_trait;
+use error_stack::Report;
 use futures::Stream;
 use tempdir::TempDir;
 use yams_core::{
@@ -104,7 +105,9 @@ impl ObjectStore for FileSystemObjectStore {
         let path = self.path_for(key)?;
         match fs::remove_file(path) {
             Ok(()) => Ok(()),
-            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+                Err(Report::new(ObjectStoreError::AlreadyDeleted))
+            }
             Err(err) => Err(err).contextualize(ObjectStoreError::Operation),
         }
     }
@@ -156,8 +159,21 @@ mod tests {
     }
 
     #[pollster::test]
-    async fn delete_missing_is_ok() {
+    async fn delete_missing_is_already_deleted() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
-        store.delete("rechnungen/missing.pdf").await.unwrap();
+        let err = store.delete("rechnungen/missing.pdf").await.unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            ObjectStoreError::AlreadyDeleted
+        ));
+    }
+
+    #[pollster::test]
+    async fn ensure_deleted_swallows_already_deleted() {
+        let store = FileSystemObjectStore::in_temp_dir().unwrap();
+        store
+            .ensure_deleted("rechnungen/missing.pdf")
+            .await
+            .unwrap();
     }
 }

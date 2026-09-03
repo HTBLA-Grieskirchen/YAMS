@@ -5,6 +5,7 @@ use rustc_hash::FxHashMap;
 
 use crate::ResultReport;
 use crate::ports::{ObjectStore, ObjectStoreError, ObjectStream, once_stream};
+use error_stack::Report;
 
 #[derive(Default)]
 pub struct InMemoryObjectStore {
@@ -38,11 +39,15 @@ impl ObjectStore for InMemoryObjectStore {
     }
 
     async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
-        self.inner
+        match self
+            .inner
             .lock()
             .expect("in-memory object store mutex")
-            .remove(key);
-        Ok(())
+            .remove(key)
+        {
+            Some(_) => Ok(()),
+            None => Err(Report::new(ObjectStoreError::AlreadyDeleted)),
+        }
     }
 }
 
@@ -83,8 +88,18 @@ mod tests {
     }
 
     #[pollster::test]
-    async fn delete_missing_is_ok() {
+    async fn delete_missing_is_already_deleted() {
         let store = InMemoryObjectStore::new();
-        store.delete("missing").await.unwrap();
+        let err = store.delete("missing").await.unwrap_err();
+        assert!(matches!(
+            err.current_context(),
+            ObjectStoreError::AlreadyDeleted
+        ));
+    }
+
+    #[pollster::test]
+    async fn ensure_deleted_swallows_already_deleted() {
+        let store = InMemoryObjectStore::new();
+        store.ensure_deleted("missing").await.unwrap();
     }
 }

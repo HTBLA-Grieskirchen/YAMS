@@ -59,10 +59,14 @@ impl ObjectStore for FakeObjectStore {
     }
 
     async fn delete(&self, key: &str) -> ResultReport<(), ObjectStoreError> {
-        self.inner
+        match self
+            .inner
             .lock()
             .expect("fake object store mutex")
-            .remove(key);
-        Ok(())
+            .remove(key)
+        {
+            Some(_) => Ok(()),
+            None => Err(ObjectStoreError::AlreadyDeleted.into()),
+        }
     }
 }

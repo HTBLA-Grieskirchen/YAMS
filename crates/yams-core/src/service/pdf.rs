@@ -99,7 +99,7 @@ pub fn teilnahme_dokument<S>(
 
 pub async fn objekt_löschen_best_effort(store: &dyn ObjectStore, keys: &[String]) {
     for key in keys {
-        let _ = store.delete(key).await;
+        let _ = store.ensure_deleted(key).await;
     }
 }
 

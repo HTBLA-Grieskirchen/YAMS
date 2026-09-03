@@ -100,6 +100,7 @@ impl HttpStatusMapping for ObjectStoreError {
     fn http_status(&self) -> Option<StatusCode> {
         match self {
             ObjectStoreError::Operation => Some(StatusCode::INTERNAL_SERVER_ERROR),
+            ObjectStoreError::AlreadyDeleted => Some(StatusCode::NOT_FOUND),
         }
     }
 }
@@ -393,6 +394,10 @@ mod tests {
         );
         assert_eq!(
             status(TagesabschlussDurchführenFehler::KlientNichtGefunden),
+            StatusCode::NOT_FOUND
+        );
+        assert_eq!(
+            status(ObjectStoreError::AlreadyDeleted),
             StatusCode::NOT_FOUND
         );
         assert_eq!(

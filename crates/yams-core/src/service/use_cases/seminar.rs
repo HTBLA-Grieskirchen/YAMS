@@ -410,10 +410,7 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
                     .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden)?
                     .into_data();
                 let dokument = teilnahme_dokument(&geplant, &seminar, buchung, &klient);
-                pdf_jobs.push((
-                    teilnahme_object_key(geplant.id(), buchung.id()),
-                    dokument,
-                ));
+                pdf_jobs.push((teilnahme_object_key(geplant.id(), buchung.id()), dokument));
             }
 
             Ok(pdf_jobs)

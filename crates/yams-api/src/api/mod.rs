@@ -324,10 +324,7 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let result = uow
-                    .seminar_termine()
-                    .find_by_id(SeminarTerminId(id))
-                    .await;
+                let result = uow.seminar_termine().find_by_id(SeminarTerminId(id)).await;
                 uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?

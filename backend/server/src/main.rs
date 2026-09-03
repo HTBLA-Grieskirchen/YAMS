@@ -99,7 +99,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
             || origin == "tauri://localhost"
     });
 
-    let tracing = Tracing::default().combine(RequestId::new().reuse_id(ReuseId::Use));
+    let tracing = Tracing.combine(RequestId::new().reuse_id(ReuseId::Use));
 
     let app = Route::new()
         .nest("/swagger", api_service.swagger_ui())

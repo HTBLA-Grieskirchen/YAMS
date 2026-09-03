@@ -92,11 +92,7 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
 
         let mut errors = Option::<Report<[HaustierErstellenFehler]>>::None;
         let mut haustiere = Vec::with_capacity(self.haustiere.len());
-        for fut in self
-            .haustiere
-            .into_iter()
-            .map(|h| h.perform(ctx.sub(&uow)))
-        {
+        for fut in self.haustiere.into_iter().map(|h| h.perform(ctx.sub(&uow))) {
             match fut.await {
                 Ok(haustier) => haustiere.push(haustier),
                 Err(e) => match &mut errors {

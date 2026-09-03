@@ -53,7 +53,6 @@ impl UseCase<Klient> for KlientErstellen {
             .map_err(IntoReport::into_report)
             .change_context(KlientErstellenFehler::Erstellung);
 
-        uow.finish(result, KlientErstellenFehler::Erstellung)
-            .await
+        uow.finish(result, KlientErstellenFehler::Erstellung).await
     }
 }

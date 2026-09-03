@@ -84,6 +84,8 @@ yams-core/src/
 │   ├── ports/        # Clock, KlientRepository, HaustierRepository, …
 │   ├── uow.rs        # UnitOfWork facade, Versioned<T>
 │   ├── context.rs    # ExecutionContext
+│   ├── instrumented.rs       # Port/UoW tracing wrappers
+│   ├── instrumented_repos.rs # Repository tracing wrappers
 │   └── mod.rs        # App, orchestration (begin → execute → commit/rollback)
 └── adapters/         # Default port implementations (e.g. system_clock.rs)
 ```
@@ -138,6 +140,51 @@ pub trait UseCase<Output> {
 ```
 
 One use case per business operation (`KlientErstellen`, `HaustierErstellen`, `TagesabschlussDurchführen`, …).
+
+### Tracing & instrumentation
+
+Observability is layered at **boundaries**, not inside use-case `perform` methods. All wrappers live in `application/instrumented.rs` and `application/instrumented_repos.rs`. Default adapters (`adapters/`, `yams-filesystemstore`, `yams-typstreports`) add lightweight `tracing` **events** only — no duplicate spans where a wrapper already instruments the port.
+
+**Span hierarchy (typical `App::execute` call):**
+
+```
+App::execute / execute_fn          (span, use_case name)
+└── ExecutionContext::enter        (debug span)
+    └── repository ops             (trace/debug spans per method)
+    └── InstrumentedObjectStore    (debug spans: put/get/delete)
+    └── InstrumentedPdfRenderer    (debug span: rendern)
+└── InstrumentedUnitOfWork         (debug spans: commit / rollback)
+```
+
+**Where instrumentation is applied**
+
+| Layer | Location | What |
+|-------|----------|------|
+| App entry | `application/mod.rs` | `#[instrument]` on `execute` / `execute_fn` |
+| UoW begin | `context.rs` | `#[instrument]` on `enter` |
+| UoW commit/rollback | `InstrumentedUnitOfWork` | debug spans (not on public `UnitOfWork::commit`) |
+| Repositories | `Instrumented*Repository` in `instrumented_repos.rs` | trace reads, debug writes; wired via pinned `RepoStorage` inside `InstrumentedUnitOfWork` |
+| Object store / PDF | `InstrumentedObjectStore`, `InstrumentedPdfRenderer` | debug spans; wrapped in `ExecutionContext::root` / `nested` |
+| Default adapters | `InMemoryObjectStore`, `BlankPdfRenderer`, `SystemClock`, … | `debug!` / `trace!` events inside impl (complement spans, avoid `#[instrument]` on adapters) |
+| Use cases | `service/use_cases/` | `info!` / `debug!` **events** on business milestones — **no** `#[instrument]` on `perform` |
+
+**Log levels**
+
+| Level | Use for |
+|-------|---------|
+| `info` | Use-case business milestones (entity created, Tagesabschluss progress, …) |
+| `debug` | Transaction commit/rollback, port I/O (store, PDF), repository writes |
+| `trace` | Repository reads, `SystemClock` (`now` / `today`) |
+
+**Rules for contributors**
+
+1. **Do not** add `#[instrument]` to use-case `perform` — `App::execute` already names the use case.
+2. **Do not** add spans on public `UnitOfWork` — wrap at `InstrumentedUnitOfWork` / repository / port boundaries.
+3. New repository traits: add an `Instrumented*Repository` in `instrumented_repos.rs` (macro `impl_instrumented_repo!`) and return it from `InstrumentedUnitOfWork`.
+4. New ports (non-repo): add an `Instrumented*` wrapper in `instrumented.rs` and wire it in `ExecutionContext`.
+5. Persistence/fake adapters stay free of spans; optional `debug!` events only when useful and not duplicated by wrappers.
+
+**Server bootstrap** — `backend/server/src/tracing_setup.rs` initializes `tracing-subscriber` with `EnvFilter::from_default_env()`, defaulting to `info`. Tune with `RUST_LOG`, e.g. `RUST_LOG=yams_core=debug` or `trace` for repository read spans.
 
 ## yams-api — Public Interface
 

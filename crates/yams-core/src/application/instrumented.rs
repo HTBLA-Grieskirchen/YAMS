@@ -1,9 +1,11 @@
+use std::pin::Pin;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use tracing::instrument;
 
 use crate::ResultReport;
+use crate::application::instrumented_repos::RepoStorage;
 use crate::application::uow::UnitOfWorkImpl;
 use crate::ports::{
     BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository, ObjectStore,
@@ -72,66 +74,80 @@ impl PdfRenderer for InstrumentedPdfRenderer {
 }
 
 pub struct InstrumentedUnitOfWork {
-    inner: Option<Box<dyn UnitOfWorkImpl>>,
+    storage: Pin<Box<RepoStorage>>,
 }
 
 impl InstrumentedUnitOfWork {
     pub fn wrap(inner: Box<dyn UnitOfWorkImpl>) -> Box<dyn UnitOfWorkImpl> {
         Box::new(Self {
-            inner: Some(inner),
+            storage: RepoStorage::new(inner),
         })
-    }
-
-    fn inner(&self) -> &dyn UnitOfWorkImpl {
-        self.inner
-            .as_deref()
-            .expect("unit of work already concluded")
     }
 }
 
 #[async_trait]
 impl UnitOfWorkImpl for InstrumentedUnitOfWork {
     #[instrument(skip(self), level = "debug", err(Debug))]
-    async fn commit(mut self: Box<Self>) -> RepositoryResult<()> {
-        let inner = self.inner.take().expect("unit of work already concluded");
-        inner.commit().await
+    async fn commit(self: Box<Self>) -> RepositoryResult<()> {
+        let RepoStorage {
+            klienten: _,
+            haustiere: _,
+            produkte: _,
+            behandlungen: _,
+            leistungen: _,
+            rechnungen: _,
+            seminare: _,
+            seminar_termine: _,
+            uow,
+        } = *Pin::into_inner(self.storage);
+        uow.commit().await
     }
 
     #[instrument(skip(self), level = "debug", err(Debug))]
-    async fn rollback(mut self: Box<Self>) -> RepositoryResult<()> {
-        let inner = self.inner.take().expect("unit of work already concluded");
-        inner.rollback().await
+    async fn rollback(self: Box<Self>) -> RepositoryResult<()> {
+        let RepoStorage {
+            klienten: _,
+            haustiere: _,
+            produkte: _,
+            behandlungen: _,
+            leistungen: _,
+            rechnungen: _,
+            seminare: _,
+            seminar_termine: _,
+            uow,
+        } = *Pin::into_inner(self.storage);
+        uow.rollback().await
     }
 
     fn klienten(&self) -> &dyn KlientRepository {
-        self.inner().klienten()
+        &self.storage.klienten
     }
 
     fn haustiere(&self) -> &dyn HaustierRepository {
-        self.inner().haustiere()
+        &self.storage.haustiere
     }
 
     fn produkte(&self) -> &dyn ProduktRepository {
-        self.inner().produkte()
+        &self.storage.produkte
     }
 
     fn behandlungen(&self) -> &dyn BehandlungRepository {
-        self.inner().behandlungen()
+        &self.storage.behandlungen
     }
 
     fn leistungen(&self) -> &dyn LeistungRepository {
-        self.inner().leistungen()
+        &self.storage.leistungen
     }
 
     fn rechnungen(&self) -> &dyn RechnungRepository {
-        self.inner().rechnungen()
+        &self.storage.rechnungen
     }
 
     fn seminare(&self) -> &dyn SeminarRepository {
-        self.inner().seminare()
+        &self.storage.seminare
     }
 
     fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
-        self.inner().seminar_termine()
+        &self.storage.seminar_termine
     }
 }

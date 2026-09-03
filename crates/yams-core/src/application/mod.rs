@@ -14,6 +14,7 @@ pub mod ports;
 pub use context::ExecutionContext;
 
 mod instrumented;
+mod instrumented_repos;
 
 mod errors;
 pub use errors::ErrorReportExt;

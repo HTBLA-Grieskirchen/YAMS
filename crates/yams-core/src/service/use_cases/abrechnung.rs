@@ -41,7 +41,7 @@ impl UseCase<Produkt> for ProduktErstellen {
             .await
             .change_context(ProduktErstellenFehler::Erstellung)?;
 
-        let produkt = uow
+        let result = uow
             .produkte()
             .create(NeuesProdukt::neu(
                 self.name,
@@ -51,13 +51,10 @@ impl UseCase<Produkt> for ProduktErstellen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(ProduktErstellenFehler::Erstellung)?;
+            .change_context(ProduktErstellenFehler::Erstellung);
 
-        uow.commit()
+        uow.finish(result, ProduktErstellenFehler::Erstellung)
             .await
-            .change_context(ProduktErstellenFehler::Erstellung)?;
-
-        Ok(produkt)
     }
 }
 
@@ -85,7 +82,7 @@ impl UseCase<Behandlung> for BehandlungErstellen {
             .await
             .change_context(BehandlungErstellenFehler::Erstellung)?;
 
-        let behandlung = uow
+        let result = uow
             .behandlungen()
             .create(NeueBehandlung::neu(
                 self.name,
@@ -95,13 +92,10 @@ impl UseCase<Behandlung> for BehandlungErstellen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(BehandlungErstellenFehler::Erstellung)?;
+            .change_context(BehandlungErstellenFehler::Erstellung);
 
-        uow.commit()
+        uow.finish(result, BehandlungErstellenFehler::Erstellung)
             .await
-            .change_context(BehandlungErstellenFehler::Erstellung)?;
-
-        Ok(behandlung)
     }
 }
 
@@ -132,35 +126,34 @@ impl UseCase<LeistungOffen> for LeistungAusProduktBuchen {
             .await
             .change_context(LeistungAusProduktBuchenFehler::Persistenz)?;
 
-        let produkt = uow
-            .produkte()
-            .find_by_id(self.produkt_id.clone())
-            .await
-            .change_context(LeistungAusProduktBuchenFehler::ProduktNichtGefunden)?;
+        let result = async {
+            let produkt = uow
+                .produkte()
+                .find_by_id(self.produkt_id.clone())
+                .await
+                .change_context(LeistungAusProduktBuchenFehler::ProduktNichtGefunden)?;
 
-        let leistung = uow
-            .leistungen()
-            .create(NeueLeistung::neu(
-                self.klient_id,
-                self.haustier_id,
-                produkt.name(),
-                self.leistungsdatum,
-                LeistungQuelle::Produkt {
-                    produkt_id: self.produkt_id,
-                    menge: self.menge,
-                    einzelpreis: produkt.einzelpreis().clone(),
-                    mwst: produkt.mwst().clone(),
-                },
-            ))
-            .await
-            .map(Versioned::into_data)
-            .change_context(LeistungAusProduktBuchenFehler::Persistenz)?;
+            uow.leistungen()
+                .create(NeueLeistung::neu(
+                    self.klient_id,
+                    self.haustier_id,
+                    produkt.name(),
+                    self.leistungsdatum,
+                    LeistungQuelle::Produkt {
+                        produkt_id: self.produkt_id,
+                        menge: self.menge,
+                        einzelpreis: produkt.einzelpreis().clone(),
+                        mwst: produkt.mwst().clone(),
+                    },
+                ))
+                .await
+                .map(Versioned::into_data)
+                .change_context(LeistungAusProduktBuchenFehler::Persistenz)
+        }
+        .await;
 
-        uow.commit()
+        uow.finish(result, LeistungAusProduktBuchenFehler::Persistenz)
             .await
-            .change_context(LeistungAusProduktBuchenFehler::Persistenz)?;
-
-        Ok(leistung)
     }
 }
 
@@ -191,38 +184,37 @@ impl UseCase<LeistungOffen> for LeistungAusBehandlungBuchen {
             .await
             .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)?;
 
-        let behandlung = uow
-            .behandlungen()
-            .find_by_id(self.behandlung_id.clone())
+        let result = async {
+            let behandlung = uow
+                .behandlungen()
+                .find_by_id(self.behandlung_id.clone())
+                .await
+                .change_context(LeistungAusBehandlungBuchenFehler::BehandlungNichtGefunden)?;
+
+            let preis = self
+                .preis_override
+                .unwrap_or_else(|| behandlung.standardpreis().clone());
+
+            uow.leistungen()
+                .create(NeueLeistung::neu(
+                    self.klient_id,
+                    self.haustier_id,
+                    behandlung.name(),
+                    self.leistungsdatum,
+                    LeistungQuelle::Behandlung {
+                        behandlung_id: self.behandlung_id,
+                        preis,
+                        mwst: behandlung.mwst().clone(),
+                    },
+                ))
+                .await
+                .map(Versioned::into_data)
+                .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)
+        }
+        .await;
+
+        uow.finish(result, LeistungAusBehandlungBuchenFehler::Persistenz)
             .await
-            .change_context(LeistungAusBehandlungBuchenFehler::BehandlungNichtGefunden)?;
-
-        let preis = self
-            .preis_override
-            .unwrap_or_else(|| behandlung.standardpreis().clone());
-
-        let leistung = uow
-            .leistungen()
-            .create(NeueLeistung::neu(
-                self.klient_id,
-                self.haustier_id,
-                behandlung.name(),
-                self.leistungsdatum,
-                LeistungQuelle::Behandlung {
-                    behandlung_id: self.behandlung_id,
-                    preis,
-                    mwst: behandlung.mwst().clone(),
-                },
-            ))
-            .await
-            .map(Versioned::into_data)
-            .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)?;
-
-        uow.commit()
-            .await
-            .change_context(LeistungAusBehandlungBuchenFehler::Persistenz)?;
-
-        Ok(leistung)
     }
 }
 
@@ -252,7 +244,7 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
             .await
             .change_context(LeistungManuellErfassenFehler::Persistenz)?;
 
-        let leistung = uow
+        let result = uow
             .leistungen()
             .create(NeueLeistung::neu(
                 self.klient_id,
@@ -266,13 +258,10 @@ impl UseCase<LeistungOffen> for LeistungManuellErfassen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(LeistungManuellErfassenFehler::Persistenz)?;
+            .change_context(LeistungManuellErfassenFehler::Persistenz);
 
-        uow.commit()
+        uow.finish(result, LeistungManuellErfassenFehler::Persistenz)
             .await
-            .change_context(LeistungManuellErfassenFehler::Persistenz)?;
-
-        Ok(leistung)
     }
 }
 
@@ -309,14 +298,15 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             .enter()
             .await
             .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
-        let leistungen = uow
-            .leistungen()
-            .find_offene_by_datum(abschlussdatum)
-            .await
-            .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
-        uow.commit()
-            .await
-            .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+        let leistungen = {
+            let result = uow
+                .leistungen()
+                .find_offene_by_datum(abschlussdatum)
+                .await
+                .change_context(TagesabschlussDurchführenFehler::Persistenz);
+            uow.finish(result, TagesabschlussDurchführenFehler::Persistenz)
+                .await?
+        };
 
         let mut gruppen: FxHashMap<KlientId, Vec<Versioned<LeistungOffen>>> = FxHashMap::default();
         for leistung in leistungen {
@@ -338,55 +328,60 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
                 .await
                 .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-            let rechnungsnummer = uow
-                .rechnungen()
-                .nächste_rechnungsnummer()
-                .await
-                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+            let result = async {
+                let rechnungsnummer = uow
+                    .rechnungen()
+                    .nächste_rechnungsnummer()
+                    .await
+                    .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-            let rechnung = {
-                let mut leistung_refs: Vec<&mut Leistung> = versioned_leistungen
-                    .iter_mut()
-                    .map(DerefMut::deref_mut)
-                    .collect();
+                let rechnung = {
+                    let mut leistung_refs: Vec<&mut Leistung> = versioned_leistungen
+                        .iter_mut()
+                        .map(DerefMut::deref_mut)
+                        .collect();
 
-                RechnungOffen::aus_leistungen(
-                    klient_id.clone(),
-                    rechnungsnummer,
-                    abschlussdatum,
-                    &mut leistung_refs,
-                )
-                .map_err(|report| {
-                    report.change_context(TagesabschlussDurchführenFehler::Rechnung)
-                })?
-            };
+                    RechnungOffen::aus_leistungen(
+                        klient_id.clone(),
+                        rechnungsnummer,
+                        abschlussdatum,
+                        &mut leistung_refs,
+                    )
+                    .map_err(|report| {
+                        report.change_context(TagesabschlussDurchführenFehler::Rechnung)
+                    })?
+                };
 
-            let persisted = uow
-                .rechnungen()
-                .create(rechnung)
-                .await
-                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+                let persisted = uow
+                    .rechnungen()
+                    .create(rechnung)
+                    .await
+                    .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
 
-            for mut versioned in versioned_leistungen {
-                if matches!(*versioned, Leistung::Abgerechnet(_)) {
-                    uow.leistungen()
-                        .update(&mut versioned)
-                        .await
-                        .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+                for mut versioned in versioned_leistungen {
+                    if matches!(*versioned, Leistung::Abgerechnet(_)) {
+                        uow.leistungen()
+                            .update(&mut versioned)
+                            .await
+                            .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+                    }
                 }
-            }
 
-            let klient = uow
-                .klienten()
-                .find_by_id(klient_id)
-                .await
-                .change_context(TagesabschlussDurchführenFehler::KlientNichtGefunden)?
-                .into_data();
-            let dokument = rechnungsdokument(&*persisted, &klient);
-            let object_key = rechnung_object_key(persisted.id());
-            uow.commit()
-                .await
-                .change_context(TagesabschlussDurchführenFehler::Persistenz)?;
+                let klient = uow
+                    .klienten()
+                    .find_by_id(klient_id)
+                    .await
+                    .change_context(TagesabschlussDurchführenFehler::KlientNichtGefunden)?
+                    .into_data();
+                let dokument = rechnungsdokument(&*persisted, &klient);
+                let object_key = rechnung_object_key(persisted.id());
+                Ok((persisted, dokument, object_key))
+            }
+            .await;
+
+            let (persisted, dokument, object_key) = uow
+                .finish(result, TagesabschlussDurchführenFehler::Persistenz)
+                .await?;
 
             let pdf = ctx
                 .pdf_renderer()

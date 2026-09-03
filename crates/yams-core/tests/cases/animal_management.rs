@@ -73,12 +73,8 @@ async fn test_haustier() {
     let haustiere = app
         .execute_fn::<_, _, RepositoryError>(async |ctx| {
             let uow = ctx.enter().await?;
-            let haustiere = uow
-                .haustiere()
-                .find_by_klient_id(klient.id().clone())
-                .await?;
-            uow.commit().await?;
-            Ok(haustiere)
+            let result = uow.haustiere().find_by_klient_id(klient.id().clone()).await;
+            uow.finish(result, RepositoryError::OperationFailed).await
         })
         .await
         .unwrap();

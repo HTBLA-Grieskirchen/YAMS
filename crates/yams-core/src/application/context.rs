@@ -61,27 +61,27 @@ impl<'a> ExecutionContext<'a> {
         self.pdf_renderer.as_ref()
     }
 
+    /// Nested context that joins `uow`'s transaction and copies this context's ports.
+    /// Nested `enter` returns a locked UoW; `commit` / `rollback` are no-ops.
+    pub fn sub<'u>(&self, uow: &'u UnitOfWork<'_>) -> ExecutionContext<'u> {
+        ExecutionContext::nested(
+            uow.as_impl(),
+            Arc::clone(&self.clock),
+            Arc::clone(&self.object_store),
+            Arc::clone(&self.pdf_renderer),
+        )
+    }
+
     /// Start a unit of work. Returned UoW borrows `self`, so this context cannot be
-    /// moved into a nested `perform` until the UoW is committed, rolled back, or dropped.
-    /// Nested contexts (from [`UnitOfWork::subcontext`]) join the outer transaction;
-    /// their `commit` / `rollback` are no-ops.
+    /// moved into a nested `perform` until the UoW is committed or rolled back.
+    /// Nested contexts (from [`ExecutionContext::sub`]) join the outer transaction.
     pub async fn enter(&self) -> RepositoryResult<UnitOfWork<'_>> {
         match self.source {
             ExecutionSource::Root(provider) => {
                 let implementation = provider.begin().await?;
-                Ok(UnitOfWork::owned(
-                    implementation,
-                    Arc::clone(&self.clock),
-                    Arc::clone(&self.object_store),
-                    Arc::clone(&self.pdf_renderer),
-                ))
+                Ok(UnitOfWork::owned(implementation))
             }
-            ExecutionSource::Nested(inner) => Ok(UnitOfWork::locked(
-                inner,
-                Arc::clone(&self.clock),
-                Arc::clone(&self.object_store),
-                Arc::clone(&self.pdf_renderer),
-            )),
+            ExecutionSource::Nested(inner) => Ok(UnitOfWork::locked(inner)),
         }
     }
 }

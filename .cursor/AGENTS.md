@@ -103,7 +103,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Derived values as getters** — `Leistung::betrag()` from `LeistungQuelle`; `Rechnung::gesamtbetrag_brutto()` from `Rechnungspositionen`. No stored duplicates that can drift.
 - **Price snapshots on Leistung** — `LeistungQuelle` stores booked prices (`einzelpreis`, `menge`, `preis`) so Tagesabschluss uses historical values, not current catalog prices.
 - **Versioned concurrency** — `Versioned<T>` bundles entity + optimistic-lock version.
-- **UoW** — use cases call `ctx.enter()` for an owned UoW (borrows ctx, so parent ctx cannot be moved into a nested `perform`). Nested work uses `uow.subcontext()`; nested `enter` joins the outer TX and `commit` is a no-op. Drop of an uncommitted owned UoW does not call `rollback()` (async/fallible); the impl is dropped and SQLite aborts the TX. `#[must_use]` on `UnitOfWork`.
+- **UoW** — use cases call `ctx.enter()` for an owned UoW (borrows ctx). Nested work uses `ctx.sub(&uow)` (ports stay on the context). Nested `enter` joins the outer TX; nested `commit`/`rollback` are no-ops. Collect work without `?` across the UoW, then `uow.finish(result, commit_context)` (commit on `Ok`, rollback on `Err`). Drop panics if neither `commit` nor `rollback` ran. `#[must_use]` on `UnitOfWork`.
 - **Single linkage** — `Haustier.klient_id` is source of truth; no `haustier_ids` on `Klient`.
 
 **Repositories are dumb.** Ports persist and load domain types — no business logic (no `mark_abgerechnet` on repository). State transitions happen in domain/use cases; repos `update` the mutated entity.
@@ -113,7 +113,7 @@ Ports are `async_trait` traits; all repository and use-case I/O is async.
 - **Exception: newtype validation** — `EmailAdresse::new`, `Preis::new`, `Ländercode::from_str` return plain `Result<T, ValidationError>` — nothing cross-cutting can fail at construction.
 - **Preis arithmetic** — implement `Add`; addition of two `Preis` values cannot fail. Scaling is infallible `Mul`: `&Preis * &Menge` and `&Preis * &Ratio` (MwSt is a ratio, so `netto * 0.19`, never `/100`).
 
-Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` (ports + UoW provider). They `enter` / `commit` the UoW themselves.
+Domain may depend on ports directly (e.g. `Clock`). Use cases receive an `ExecutionContext` (ports + UoW provider). They `enter` / `finish` the UoW themselves.
 
 ### App & Orchestration
 
@@ -126,7 +126,7 @@ App::builder()
     .build()
 ```
 
-All business operations go through `App::execute(use_case)` or `App::execute_fn(closure)`. `App` only builds an `ExecutionContext`; the use case (or closure) enters and commits the UoW. The use-case `Result` is returned as-is — no `ExecutionError` wrap.
+All business operations go through `App::execute(use_case)` or `App::execute_fn(closure)`. `App` only builds an `ExecutionContext`; the use case (or closure) enters and finishes the UoW. The use-case `Result` is returned as-is — no `ExecutionError` wrap.
 
 ### UseCase Trait
 

@@ -103,9 +103,8 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let haustiere = uow.haustiere().find_all().await?;
-                uow.commit().await?;
-                Ok(haustiere)
+                let result = uow.haustiere().find_all().await;
+                uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?
             .into_iter()
@@ -118,9 +117,8 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let haustier = uow.haustiere().find_by_id(HaustierId(id)).await?;
-                uow.commit().await?;
-                Ok(haustier)
+                let result = uow.haustiere().find_by_id(HaustierId(id)).await;
+                uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?
             .into_data();
@@ -219,12 +217,11 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let rechnungen = uow
+                let result = uow
                     .rechnungen()
                     .find_by_klient_id(KlientId(klient_id))
-                    .await?;
-                uow.commit().await?;
-                Ok(rechnungen)
+                    .await;
+                uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?
             .into_iter()
@@ -295,9 +292,8 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let seminar = uow.seminare().find_by_id(SeminarId(id)).await?;
-                uow.commit().await?;
-                Ok(seminar)
+                let result = uow.seminare().find_by_id(SeminarId(id)).await;
+                uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?
             .into_data();
@@ -328,12 +324,11 @@ impl YamsAppApi {
             .app
             .execute_fn(async |ctx| {
                 let uow = ctx.enter().await?;
-                let termin = uow
+                let result = uow
                     .seminar_termine()
                     .find_by_id(SeminarTerminId(id))
-                    .await?;
-                uow.commit().await?;
-                Ok(termin)
+                    .await;
+                uow.finish(result, RepositoryError::OperationFailed).await
             })
             .await?
             .into_data();

@@ -1,111 +1,117 @@
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
 
 use async_trait::async_trait;
+use error_stack::{Report, ResultExt};
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
-use crate::application::context::ExecutionContext;
+use crate::application::ThreadSafeError;
 use crate::ports::{
-    BehandlungRepository, Clock, HaustierRepository, KlientRepository, LeistungRepository,
-    ObjectStore, PdfRenderer, ProduktRepository, RechnungRepository, RepositoryResult,
-    SeminarRepository, SeminarTerminRepository,
+    BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
+    ProduktRepository, RechnungRepository, RepositoryResult, SeminarRepository,
+    SeminarTerminRepository,
 };
 
 /// Active unit of work. `commit` / `rollback` consume it.
 ///
-/// Drop does **not** call [`UnitOfWorkImpl::rollback`] (async, fallible). An uncommitted
-/// owned UoW just drops the impl; SQLite's transaction Drop aborts the TX and swallows errors.
-/// Nested (locked) UoWs do not own the TX.
+/// Drop panics if neither `commit` nor `rollback` ran (forgotten conclusion).
+/// Does **not** call [`UnitOfWorkImpl::rollback`] — that is async and fallible.
 #[must_use = "UnitOfWork must be committed or rolled back"]
 pub struct UnitOfWork<'a> {
-    implementation: Box<dyn UnitOfWorkImpl + 'a>,
-    clock: Arc<dyn Clock>,
-    object_store: Arc<dyn ObjectStore>,
-    pdf_renderer: Arc<dyn PdfRenderer>,
+    implementation: Option<Box<dyn UnitOfWorkImpl + 'a>>,
 }
 
 impl<'a> UnitOfWork<'a> {
-    pub(super) fn owned(
-        implementation: Box<dyn UnitOfWorkImpl + 'a>,
-        clock: Arc<dyn Clock>,
-        object_store: Arc<dyn ObjectStore>,
-        pdf_renderer: Arc<dyn PdfRenderer>,
-    ) -> Self {
+    pub(crate) fn owned(implementation: Box<dyn UnitOfWorkImpl + 'a>) -> Self {
         Self {
-            implementation,
-            clock,
-            object_store,
-            pdf_renderer,
+            implementation: Some(implementation),
         }
     }
 
-    pub(super) fn locked(
-        inner: &'a dyn UnitOfWorkImpl,
-        clock: Arc<dyn Clock>,
-        object_store: Arc<dyn ObjectStore>,
-        pdf_renderer: Arc<dyn PdfRenderer>,
-    ) -> Self {
+    pub(crate) fn locked(inner: &'a dyn UnitOfWorkImpl) -> Self {
         Self {
-            implementation: Box::new(LockedUnitOfWorkImpl { inner }),
-            clock,
-            object_store,
-            pdf_renderer,
+            implementation: Some(Box::new(LockedUnitOfWorkImpl { inner })),
         }
     }
 
-    /// Nested execution context that joins this transaction.
-    /// Nested `enter` returns a locked UoW; `commit` / `rollback` are no-ops.
-    /// Borrows `self`, so this UoW cannot be committed until the nested context is dropped.
-    pub fn subcontext(&self) -> ExecutionContext<'_> {
-        ExecutionContext::nested(
-            self.implementation.as_ref(),
-            Arc::clone(&self.clock),
-            Arc::clone(&self.object_store),
-            Arc::clone(&self.pdf_renderer),
-        )
+    pub(crate) fn as_impl(&self) -> &dyn UnitOfWorkImpl {
+        self.implementation
+            .as_deref()
+            .expect("UnitOfWork already committed or rolled back")
     }
 }
 
 impl UnitOfWork<'_> {
-    pub async fn commit(self) -> RepositoryResult<()> {
-        self.implementation.commit().await
+    pub async fn commit(mut self) -> RepositoryResult<()> {
+        self.take_impl().commit().await
     }
 
-    pub async fn rollback(self) -> RepositoryResult<()> {
-        self.implementation.rollback().await
+    pub async fn rollback(mut self) -> RepositoryResult<()> {
+        self.take_impl().rollback().await
+    }
+
+    /// Commit on `Ok`, rollback on `Err`. Use this instead of `?` between `enter` and conclude.
+    pub async fn finish<T, C: ThreadSafeError>(
+        self,
+        result: Result<T, Report<C>>,
+        commit_context: C,
+    ) -> Result<T, Report<C>> {
+        match result {
+            Ok(value) => {
+                self.commit().await.change_context(commit_context)?;
+                Ok(value)
+            }
+            Err(error) => {
+                let _ = self.rollback().await;
+                Err(error)
+            }
+        }
+    }
+
+    fn take_impl(&mut self) -> Box<dyn UnitOfWorkImpl + '_> {
+        self.implementation
+            .take()
+            .expect("UnitOfWork already committed or rolled back")
     }
 
     pub fn klienten(&self) -> &dyn KlientRepository {
-        self.implementation.klienten()
+        self.as_impl().klienten()
     }
 
     pub fn haustiere(&self) -> &dyn HaustierRepository {
-        self.implementation.haustiere()
+        self.as_impl().haustiere()
     }
 
     pub fn produkte(&self) -> &dyn ProduktRepository {
-        self.implementation.produkte()
+        self.as_impl().produkte()
     }
 
     pub fn behandlungen(&self) -> &dyn BehandlungRepository {
-        self.implementation.behandlungen()
+        self.as_impl().behandlungen()
     }
 
     pub fn leistungen(&self) -> &dyn LeistungRepository {
-        self.implementation.leistungen()
+        self.as_impl().leistungen()
     }
 
     pub fn rechnungen(&self) -> &dyn RechnungRepository {
-        self.implementation.rechnungen()
+        self.as_impl().rechnungen()
     }
 
     pub fn seminare(&self) -> &dyn SeminarRepository {
-        self.implementation.seminare()
+        self.as_impl().seminare()
     }
 
     pub fn seminar_termine(&self) -> &dyn SeminarTerminRepository {
-        self.implementation.seminar_termine()
+        self.as_impl().seminar_termine()
+    }
+}
+
+impl Drop for UnitOfWork<'_> {
+    fn drop(&mut self) {
+        if self.implementation.is_some() && !std::thread::panicking() {
+            panic!("UnitOfWork dropped without commit or rollback");
+        }
     }
 }
 

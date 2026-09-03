@@ -50,9 +50,8 @@ async fn parallel_execute_fn_survives_wal_connection_init() {
                 writer_app
                     .execute_fn::<_, _, RepositoryError>(async |ctx| {
                         let uow = ctx.enter().await?;
-                        let klient = uow.klienten().create(neuer_klient(10_000 + round)).await?;
-                        uow.commit().await?;
-                        Ok(klient)
+                        let result = uow.klienten().create(neuer_klient(10_000 + round)).await;
+                        uow.finish(result, RepositoryError::OperationFailed).await
                     })
                     .await
                     .expect("writer execute_fn must not fail with database locked");
@@ -63,9 +62,8 @@ async fn parallel_execute_fn_survives_wal_connection_init() {
                 opener_app
                     .execute_fn::<_, _, RepositoryError>(async |ctx| {
                         let uow = ctx.enter().await?;
-                        let klient = uow.klienten().create(neuer_klient(50_000 + round)).await?;
-                        uow.commit().await?;
-                        Ok(klient)
+                        let result = uow.klienten().create(neuer_klient(50_000 + round)).await;
+                        uow.finish(result, RepositoryError::OperationFailed).await
                     })
                     .await
                     .expect("opener execute_fn must not fail with database locked / WAL init");

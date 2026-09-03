@@ -36,7 +36,7 @@ impl UseCase<Klient> for KlientErstellen {
             .await
             .change_context(KlientErstellenFehler::Erstellung)?;
 
-        let klient = uow
+        let result = uow
             .klienten()
             .create(NeuerKlient::neu(
                 self.vorname,
@@ -51,12 +51,9 @@ impl UseCase<Klient> for KlientErstellen {
             .await
             .map(Versioned::into_data)
             .map_err(IntoReport::into_report)
-            .change_context(KlientErstellenFehler::Erstellung)?;
+            .change_context(KlientErstellenFehler::Erstellung);
 
-        uow.commit()
+        uow.finish(result, KlientErstellenFehler::Erstellung)
             .await
-            .change_context(KlientErstellenFehler::Erstellung)?;
-
-        Ok(klient)
     }
 }

@@ -41,7 +41,7 @@ impl UseCase<Seminar> for SeminarErstellen {
             .enter()
             .await
             .change_context(SeminarErstellenFehler::Erstellung)?;
-        let seminar = uow
+        let result = uow
             .seminare()
             .create(NeuesSeminar::neu(
                 self.titel,
@@ -52,11 +52,8 @@ impl UseCase<Seminar> for SeminarErstellen {
             ))
             .await
             .map(Versioned::into_data)
-            .change_context(SeminarErstellenFehler::Erstellung)?;
-        uow.commit()
-            .await
-            .change_context(SeminarErstellenFehler::Erstellung)?;
-        Ok(seminar)
+            .change_context(SeminarErstellenFehler::Erstellung);
+        uow.finish(result, SeminarErstellenFehler::Erstellung).await
     }
 }
 
@@ -85,26 +82,26 @@ impl UseCase<SeminarTerminGeplant> for SeminarTerminPlanen {
             .enter()
             .await
             .change_context(SeminarTerminPlanenFehler::Persistenz)?;
-        uow.seminare()
-            .find_by_id(self.seminar_id.clone())
-            .await
-            .change_context(SeminarTerminPlanenFehler::SeminarNichtGefunden)?;
+        let result = async {
+            uow.seminare()
+                .find_by_id(self.seminar_id.clone())
+                .await
+                .change_context(SeminarTerminPlanenFehler::SeminarNichtGefunden)?;
 
-        let termin = uow
-            .seminar_termine()
-            .create(NeuerSeminarTermin::neu(
-                self.seminar_id,
-                self.zeitraum,
-                self.ort,
-                self.max_teilnehmer,
-            ))
+            uow.seminar_termine()
+                .create(NeuerSeminarTermin::neu(
+                    self.seminar_id,
+                    self.zeitraum,
+                    self.ort,
+                    self.max_teilnehmer,
+                ))
+                .await
+                .map(Versioned::into_data)
+                .change_context(SeminarTerminPlanenFehler::Persistenz)
+        }
+        .await;
+        uow.finish(result, SeminarTerminPlanenFehler::Persistenz)
             .await
-            .map(Versioned::into_data)
-            .change_context(SeminarTerminPlanenFehler::Persistenz)?;
-        uow.commit()
-            .await
-            .change_context(SeminarTerminPlanenFehler::Persistenz)?;
-        Ok(termin)
     }
 }
 
@@ -137,30 +134,31 @@ impl UseCase<SeminarTermin> for SeminarTerminAktualisieren {
             .enter()
             .await
             .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
-        let mut termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
+        let result = async {
+            let mut termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarTerminAktualisierenFehler::TerminNichtGefunden)?;
+
+            // TODO: Benachrichtigung an Teilnehmer
+            let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+                return Err(Report::new(SeminarTerminAktualisierenFehler::NichtGeplant));
+            };
+            geplant
+                .aktualisieren(self.ort, self.zeitraum, self.max_teilnehmer)
+                .change_context(SeminarTerminAktualisierenFehler::Invariante)?;
+
+            uow.seminar_termine()
+                .update(&mut termin)
+                .await
+                .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
+
+            Ok(termin.into_data())
+        }
+        .await;
+        uow.finish(result, SeminarTerminAktualisierenFehler::Persistenz)
             .await
-            .change_context(SeminarTerminAktualisierenFehler::TerminNichtGefunden)?;
-
-        // TODO: Benachrichtigung an Teilnehmer
-        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
-            return Err(Report::new(SeminarTerminAktualisierenFehler::NichtGeplant));
-        };
-        geplant
-            .aktualisieren(self.ort, self.zeitraum, self.max_teilnehmer)
-            .change_context(SeminarTerminAktualisierenFehler::Invariante)?;
-
-        uow.seminar_termine()
-            .update(&mut termin)
-            .await
-            .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
-
-        uow.commit()
-            .await
-            .change_context(SeminarTerminAktualisierenFehler::Persistenz)?;
-
-        Ok(termin.into_data())
     }
 }
 
@@ -194,34 +192,35 @@ impl UseCase<SeminarTermin> for SeminarBuchungAnlegen {
             .enter()
             .await
             .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
-        uow.klienten()
-            .find_by_id(self.klient_id.clone())
+        let result = async {
+            uow.klienten()
+                .find_by_id(self.klient_id.clone())
+                .await
+                .change_context(SeminarBuchungAnlegenFehler::KlientNichtGefunden)?;
+
+            let mut termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarBuchungAnlegenFehler::TerminNichtGefunden)?;
+
+            let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+                return Err(Report::new(SeminarBuchungAnlegenFehler::NichtGeplant));
+            };
+            geplant
+                .buchung_anlegen(self.klient_id, self.rabatt)
+                .change_context(SeminarBuchungAnlegenFehler::Invariante)?;
+
+            uow.seminar_termine()
+                .update(&mut termin)
+                .await
+                .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
+
+            Ok(termin.into_data())
+        }
+        .await;
+        uow.finish(result, SeminarBuchungAnlegenFehler::Persistenz)
             .await
-            .change_context(SeminarBuchungAnlegenFehler::KlientNichtGefunden)?;
-
-        let mut termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
-            .await
-            .change_context(SeminarBuchungAnlegenFehler::TerminNichtGefunden)?;
-
-        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
-            return Err(Report::new(SeminarBuchungAnlegenFehler::NichtGeplant));
-        };
-        geplant
-            .buchung_anlegen(self.klient_id, self.rabatt)
-            .change_context(SeminarBuchungAnlegenFehler::Invariante)?;
-
-        uow.seminar_termine()
-            .update(&mut termin)
-            .await
-            .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
-
-        uow.commit()
-            .await
-            .change_context(SeminarBuchungAnlegenFehler::Persistenz)?;
-
-        Ok(termin.into_data())
     }
 }
 
@@ -253,29 +252,30 @@ impl UseCase<SeminarTermin> for SeminarBuchungStornieren {
             .enter()
             .await
             .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
-        let mut termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
+        let result = async {
+            let mut termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarBuchungStornierenFehler::TerminNichtGefunden)?;
+
+            let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
+                return Err(Report::new(SeminarBuchungStornierenFehler::NichtGeplant));
+            };
+            geplant
+                .buchung_stornieren(&self.buchung_id, now)
+                .change_context(SeminarBuchungStornierenFehler::Invariante)?;
+
+            uow.seminar_termine()
+                .update(&mut termin)
+                .await
+                .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
+
+            Ok(termin.into_data())
+        }
+        .await;
+        uow.finish(result, SeminarBuchungStornierenFehler::Persistenz)
             .await
-            .change_context(SeminarBuchungStornierenFehler::TerminNichtGefunden)?;
-
-        let SeminarTermin::Geplant(geplant) = termin.deref_mut() else {
-            return Err(Report::new(SeminarBuchungStornierenFehler::NichtGeplant));
-        };
-        geplant
-            .buchung_stornieren(&self.buchung_id, now)
-            .change_context(SeminarBuchungStornierenFehler::Invariante)?;
-
-        uow.seminar_termine()
-            .update(&mut termin)
-            .await
-            .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
-
-        uow.commit()
-            .await
-            .change_context(SeminarBuchungStornierenFehler::Persistenz)?;
-
-        Ok(termin.into_data())
     }
 }
 
@@ -305,30 +305,31 @@ impl UseCase<SeminarTermin> for SeminarTerminAbsagen {
             .enter()
             .await
             .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
-        let mut termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
+        let result = async {
+            let mut termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarTerminAbsagenFehler::TerminNichtGefunden)?;
+
+            let geplant = match termin.cloned_data() {
+                SeminarTermin::Geplant(geplant) => geplant,
+                _ => {
+                    return Err(Report::new(SeminarTerminAbsagenFehler::NichtGeplant));
+                }
+            };
+            *termin.deref_mut() = SeminarTermin::from(geplant.absagen(self.grund, now));
+
+            uow.seminar_termine()
+                .update(&mut termin)
+                .await
+                .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
+
+            Ok(termin.into_data())
+        }
+        .await;
+        uow.finish(result, SeminarTerminAbsagenFehler::Persistenz)
             .await
-            .change_context(SeminarTerminAbsagenFehler::TerminNichtGefunden)?;
-
-        let geplant = match termin.cloned_data() {
-            SeminarTermin::Geplant(geplant) => geplant,
-            _ => {
-                return Err(Report::new(SeminarTerminAbsagenFehler::NichtGeplant));
-            }
-        };
-        *termin.deref_mut() = SeminarTermin::from(geplant.absagen(self.grund, now));
-
-        uow.seminar_termine()
-            .update(&mut termin)
-            .await
-            .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
-
-        uow.commit()
-            .await
-            .change_context(SeminarTerminAbsagenFehler::Persistenz)?;
-
-        Ok(termin.into_data())
     }
 }
 
@@ -367,69 +368,77 @@ impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
             .enter()
             .await
             .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
-        let mut termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
-            .await
-            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::TerminNichtGefunden)?;
+        let result = async {
+            let mut termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::TerminNichtGefunden)?;
 
-        let geplant = match termin.cloned_data() {
-            SeminarTermin::Geplant(geplant) => geplant,
-            _ => {
-                return Err(Report::new(
-                    SeminarTerminAlsAbgehaltenMarkierenFehler::NichtGeplant,
-                ));
+            let geplant = match termin.cloned_data() {
+                SeminarTermin::Geplant(geplant) => geplant,
+                _ => {
+                    return Err(Report::new(
+                        SeminarTerminAlsAbgehaltenMarkierenFehler::NichtGeplant,
+                    ));
+                }
+            };
+
+            let seminar = uow
+                .seminare()
+                .find_by_id(geplant.seminar_id().clone())
+                .await
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::SeminarNichtGefunden)?
+                .into_data();
+
+            let mut mapping = FxHashMap::default();
+            for (buchung_id, neue_leistung) in geplant.teilnahmeleistungen(&seminar) {
+                let offen = uow
+                    .leistungen()
+                    .create(neue_leistung)
+                    .await
+                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+                mapping.insert(buchung_id, offen.id().clone());
             }
-        };
 
-        let seminar = uow
-            .seminare()
-            .find_by_id(geplant.seminar_id().clone())
-            .await
-            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::SeminarNichtGefunden)?
-            .into_data();
+            let abgehalten = geplant
+                .als_abgehalten(now, mapping)
+                .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Invariante)?;
+            *termin.deref_mut() = SeminarTermin::from(abgehalten);
 
-        let mut mapping = FxHashMap::default();
-        for (buchung_id, neue_leistung) in geplant.teilnahmeleistungen(&seminar) {
-            let offen = uow
-                .leistungen()
-                .create(neue_leistung)
+            uow.seminar_termine()
+                .update(&mut termin)
                 .await
                 .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
-            mapping.insert(buchung_id, offen.id().clone());
-        }
 
-        let abgehalten = geplant
-            .als_abgehalten(now, mapping)
-            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Invariante)?;
-        *termin.deref_mut() = SeminarTermin::from(abgehalten);
-
-        uow.seminar_termine()
-            .update(&mut termin)
-            .await
-            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
-
-        let mut pdf_jobs = Vec::new();
-        if let SeminarTermin::Abgehalten(abgehalten) = &*termin {
-            for buchung in abgehalten.bestätigte_buchungen() {
-                let klient = uow
-                    .klienten()
-                    .find_by_id(buchung.klient_id().clone())
-                    .await
-                    .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden)?
-                    .into_data();
-                let dokument = teilnahme_dokument(abgehalten, &seminar, buchung, &klient);
-                pdf_jobs.push((
-                    teilnahme_object_key(abgehalten.id(), buchung.id()),
-                    dokument,
-                ));
+            let mut pdf_jobs = Vec::new();
+            if let SeminarTermin::Abgehalten(abgehalten) = &*termin {
+                for buchung in abgehalten.bestätigte_buchungen() {
+                    let klient = uow
+                        .klienten()
+                        .find_by_id(buchung.klient_id().clone())
+                        .await
+                        .change_context(
+                            SeminarTerminAlsAbgehaltenMarkierenFehler::KlientNichtGefunden,
+                        )?
+                        .into_data();
+                    let dokument = teilnahme_dokument(abgehalten, &seminar, buchung, &klient);
+                    pdf_jobs.push((
+                        teilnahme_object_key(abgehalten.id(), buchung.id()),
+                        dokument,
+                    ));
+                }
             }
-        }
 
-        let termin = termin.into_data();
-        uow.commit()
-            .await
-            .change_context(SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz)?;
+            Ok((termin.into_data(), pdf_jobs))
+        }
+        .await;
+        let (termin, pdf_jobs) = uow
+            .finish(
+                result,
+                SeminarTerminAlsAbgehaltenMarkierenFehler::Persistenz,
+            )
+            .await?;
 
         for (object_key, dokument) in pdf_jobs {
             let pdf = ctx
@@ -541,18 +550,19 @@ impl UseCase<SeminarUmsatzVorschauErgebnis> for SeminarUmsatzVorschau {
             .enter()
             .await
             .change_context(SeminarUmsatzVorschauFehler::Persistenz)?;
-        let termin = uow
-            .seminar_termine()
-            .find_by_id(self.termin_id)
-            .await
-            .change_context(SeminarUmsatzVorschauFehler::TerminNichtGefunden)?
-            .into_data();
+        let result = async {
+            let termin = uow
+                .seminar_termine()
+                .find_by_id(self.termin_id)
+                .await
+                .change_context(SeminarUmsatzVorschauFehler::TerminNichtGefunden)?
+                .into_data();
 
-        let ergebnis = umsatz_für_termin(&uow, &termin).await?;
-        uow.commit()
+            umsatz_für_termin(&uow, &termin).await
+        }
+        .await;
+        uow.finish(result, SeminarUmsatzVorschauFehler::Persistenz)
             .await
-            .change_context(SeminarUmsatzVorschauFehler::Persistenz)?;
-        Ok(ergebnis)
     }
 }
 
@@ -653,43 +663,49 @@ impl UseCase<SeminarUmsatzPrognose> for SeminarUmsatzPrognoseBisDatum {
             .enter()
             .await
             .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
-        let termine = uow
-            .seminar_termine()
-            .find_nicht_vollständig_abgerechnet_bis(self.stichtag)
-            .await
-            .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
+        let result = async {
+            let termine = uow
+                .seminar_termine()
+                .find_nicht_vollständig_abgerechnet_bis(self.stichtag)
+                .await
+                .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
 
-        let mut ergebnisse = Vec::new();
-        for termin in termine {
-            match umsatz_für_termin(&uow, &termin).await {
-                Ok(ergebnis) => ergebnisse.push(ergebnis),
-                Err(err)
-                    if matches!(err.current_context(), SeminarUmsatzVorschauFehler::Abgesagt) =>
-                {
-                    continue;
-                }
-                Err(err) => {
-                    return Err(err.change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz));
+            let mut ergebnisse = Vec::new();
+            for termin in termine {
+                match umsatz_für_termin(&uow, &termin).await {
+                    Ok(ergebnis) => ergebnisse.push(ergebnis),
+                    Err(err)
+                        if matches!(
+                            err.current_context(),
+                            SeminarUmsatzVorschauFehler::Abgesagt
+                        ) =>
+                    {
+                        continue;
+                    }
+                    Err(err) => {
+                        return Err(
+                            err.change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)
+                        );
+                    }
                 }
             }
+
+            let gesamt_netto = ergebnisse
+                .iter()
+                .fold(Preis::zero(), |acc, t| acc + t.gesamt_netto.clone());
+            let gesamt_brutto = ergebnisse
+                .iter()
+                .fold(Preis::zero(), |acc, t| acc + t.gesamt_brutto.clone());
+
+            Ok(SeminarUmsatzPrognose {
+                stichtag: self.stichtag,
+                termine: ergebnisse,
+                gesamt_netto,
+                gesamt_brutto,
+            })
         }
-
-        let gesamt_netto = ergebnisse
-            .iter()
-            .fold(Preis::zero(), |acc, t| acc + t.gesamt_netto.clone());
-        let gesamt_brutto = ergebnisse
-            .iter()
-            .fold(Preis::zero(), |acc, t| acc + t.gesamt_brutto.clone());
-
-        uow.commit()
+        .await;
+        uow.finish(result, SeminarUmsatzPrognoseBisDatumFehler::Persistenz)
             .await
-            .change_context(SeminarUmsatzPrognoseBisDatumFehler::Persistenz)?;
-
-        Ok(SeminarUmsatzPrognose {
-            stichtag: self.stichtag,
-            termine: ergebnisse,
-            gesamt_netto,
-            gesamt_brutto,
-        })
     }
 }

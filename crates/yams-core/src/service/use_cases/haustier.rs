@@ -35,30 +35,32 @@ impl UseCase<Haustier> for HaustierErstellen {
             .await
             .change_context(HaustierErstellenFehler::Persistenz)?;
 
-        uow.klienten()
-            .find_by_id(self.klient_id.clone())
-            .await
-            .change_context(HaustierErstellenFehler::KlientNichtGefunden(
-                self.klient_id.clone(),
-            ))?;
+        let result = async {
+            uow.klienten()
+                .find_by_id(self.klient_id.clone())
+                .await
+                .change_context(HaustierErstellenFehler::KlientNichtGefunden(
+                    self.klient_id.clone(),
+                ))?;
 
-        let haustier = uow
-            .haustiere()
-            .create(NeuesHaustier::neu(
-                self.klient_id,
-                self.name,
-                self.geburtstag,
-                self.tierart,
-                self.beschreibung,
-            ))
-            .await
-            .change_context(HaustierErstellenFehler::Persistenz)?;
+            let haustier = uow
+                .haustiere()
+                .create(NeuesHaustier::neu(
+                    self.klient_id,
+                    self.name,
+                    self.geburtstag,
+                    self.tierart,
+                    self.beschreibung,
+                ))
+                .await
+                .change_context(HaustierErstellenFehler::Persistenz)?;
 
-        uow.commit()
-            .await
-            .change_context(HaustierErstellenFehler::Persistenz)?;
+            Ok(haustier.into_data())
+        }
+        .await;
 
-        Ok(haustier.into_data())
+        uow.finish(result, HaustierErstellenFehler::Persistenz)
+            .await
     }
 }
 
@@ -93,7 +95,7 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
         for fut in self
             .haustiere
             .into_iter()
-            .map(|h| h.perform(uow.subcontext()))
+            .map(|h| h.perform(ctx.sub(&uow)))
         {
             match fut.await {
                 Ok(haustier) => haustiere.push(haustier),
@@ -104,6 +106,7 @@ impl UseCase<Vec<Haustier>> for VieleHaustiereErstellen {
             }
         }
         if let Some(errors) = errors {
+            let _ = uow.rollback().await;
             return Err(errors);
         }
 

@@ -3,8 +3,10 @@ use std::sync::Arc;
 use chrono::{TimeZone, Utc};
 use rust_decimal::Decimal;
 use yams_core::domain::{
-    Adresse, Klient, Ländercode, Preis, Ratio, Seminar, SeminarOrt, SeminarTermin, Zeitraum,
+    Adresse, Klient, Leistung, LeistungId, Ländercode, Preis, Ratio, Seminar, SeminarOrt,
+    SeminarTermin, Zeitraum,
 };
+use yams_core::ports::RepositoryError;
 use yams_core::service::{
     KlientErstellen, SeminarBuchungAnlegen, SeminarBuchungStornieren, SeminarErstellen,
     SeminarTerminAbsagen, SeminarTerminAktualisieren, SeminarTerminAlsAbgehaltenMarkieren,
@@ -94,6 +96,25 @@ async fn termin(app: &yams_core::App, seminar: &Seminar, max: Option<u32>) -> Se
     )
 }
 
+async fn load_leistung(app: &yams_core::App, id: LeistungId) -> Leistung {
+    app.execute_fn::<_, _, RepositoryError>(async move |ctx| {
+        let uow = ctx.enter().await?;
+        let result = uow.leistungen().find_by_id(id).await;
+        uow.finish(result, RepositoryError::OperationFailed)
+            .await
+            .map(|versioned| versioned.into_data())
+    })
+    .await
+    .unwrap()
+}
+
+fn assert_offen_mwst(leistung: &Leistung, expected: Decimal) {
+    match leistung {
+        Leistung::Offen(offen) => assert_eq!(offen.quelle().mwst().value(), expected),
+        other => panic!("expected offen, got {other:?}"),
+    }
+}
+
 #[pollster::test]
 async fn seminar_buchung_rabatt_wird_abgehalten_und_abgerechnet() {
     let app = Arc::new(base_app_builder().await.build());
@@ -122,7 +143,11 @@ async fn seminar_buchung_rabatt_wird_abgehalten_und_abgerechnet() {
         panic!("expected abgehalten");
     };
     let buchung_id = abgehalten.buchungen()[0].id().clone();
-    assert!(abgehalten.leistung_fuer_buchung(&buchung_id).is_some());
+    let leistung_id = abgehalten
+        .leistung_fuer_buchung(&buchung_id)
+        .expect("buchung must map to leistung")
+        .clone();
+    assert_offen_mwst(&load_leistung(&app, leistung_id).await, Decimal::new(20, 2));
 
     let rechnungen = app
         .execute(TagesabschlussDurchführen {
@@ -403,7 +428,11 @@ async fn abgehalten_maps_every_confirmed_buchung() {
     assert_eq!(bestätigt.len(), 2);
     assert_eq!(abgehalten.leistungen().len(), 2);
     for buchung_id in &bestätigt {
-        assert!(abgehalten.leistung_fuer_buchung(buchung_id).is_some());
+        let leistung_id = abgehalten
+            .leistung_fuer_buchung(buchung_id)
+            .expect("buchung must map to leistung")
+            .clone();
+        assert_offen_mwst(&load_leistung(&app, leistung_id).await, Decimal::new(20, 2));
     }
 }
 

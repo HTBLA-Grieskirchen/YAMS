@@ -3,6 +3,7 @@ use chrono::NaiveDate;
 use error_stack::{Report, ResultExt};
 use rustc_hash::FxHashMap;
 use std::ops::DerefMut;
+use tracing::{info, instrument};
 
 use crate::{
     application::uow::Versioned,
@@ -333,7 +334,7 @@ impl UseCase<SeminarTermin> for SeminarTerminAbsagen {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SeminarTerminAlsAbgehaltenMarkieren {
     pub termin_id: SeminarTerminId,
 }
@@ -362,6 +363,12 @@ pub enum SeminarTerminAlsAbgehaltenMarkierenFehler {
 impl UseCase<SeminarTermin> for SeminarTerminAlsAbgehaltenMarkieren {
     type Error = Report<SeminarTerminAlsAbgehaltenMarkierenFehler>;
 
+    #[instrument(
+        skip(ctx),
+        fields(use_case = "SeminarTerminAlsAbgehaltenMarkieren"),
+        ret,
+        err(Debug)
+    )]
     async fn perform(self, ctx: ExecutionContext<'_>) -> Result<SeminarTermin, Self::Error> {
         let now = ctx.clock().now();
         let uow = ctx

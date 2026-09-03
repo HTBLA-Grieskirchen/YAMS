@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    application::instrumented::{InstrumentedObjectStore, InstrumentedPdfRenderer},
+    application::instrumented::{
+        InstrumentedObjectStore, InstrumentedPdfRenderer, InstrumentedUnitOfWork,
+    },
     application::uow::{UnitOfWork, UnitOfWorkImpl, UnitOfWorkProvider},
     ports::{Clock, ObjectStore, PdfRenderer, RepositoryResult},
 };
@@ -81,7 +83,8 @@ impl<'a> ExecutionContext<'a> {
     pub async fn enter(&self) -> RepositoryResult<UnitOfWork<'_>> {
         match self.source {
             ExecutionSource::Root(provider) => {
-                let implementation = provider.begin().await?;
+                let implementation =
+                    InstrumentedUnitOfWork::wrap(provider.begin().await?);
                 Ok(UnitOfWork::owned(implementation))
             }
             ExecutionSource::Nested(inner) => Ok(UnitOfWork::locked(inner)),

@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use error_stack::{FrameKind, Report, ResultExt};
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use tracing::instrument;
 
 use crate::application::ThreadSafeError;
 use crate::ports::{
@@ -43,12 +42,10 @@ impl<'a> UnitOfWork<'a> {
 }
 
 impl UnitOfWork<'_> {
-    #[instrument(skip(self), level = "debug", err(Debug))]
     pub async fn commit(mut self) -> RepositoryResult<()> {
         self.take_impl().commit().await
     }
 
-    #[instrument(skip(self), level = "debug", err(Debug))]
     pub async fn rollback(mut self) -> RepositoryResult<()> {
         self.take_impl().rollback().await
     }

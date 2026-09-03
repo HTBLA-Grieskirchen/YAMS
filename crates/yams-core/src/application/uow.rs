@@ -1,14 +1,14 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{ControlFlow, Deref, DerefMut};
 
 use async_trait::async_trait;
-use error_stack::{Report, ResultExt};
+use error_stack::{FrameKind, Report, ResultExt};
 use std::cmp::Ordering;
 use std::fmt::Debug;
 
 use crate::application::ThreadSafeError;
 use crate::ports::{
     BehandlungRepository, HaustierRepository, KlientRepository, LeistungRepository,
-    ProduktRepository, RechnungRepository, RepositoryResult, SeminarRepository,
+    ProduktRepository, RechnungRepository, RepositoryError, RepositoryResult, SeminarRepository,
     SeminarTerminRepository,
 };
 
@@ -50,22 +50,52 @@ impl UnitOfWork<'_> {
         self.take_impl().rollback().await
     }
 
-    /// Commit on `Ok`, rollback on `Err`. Use this instead of `?` between `enter` and conclude.
-    pub async fn finish<T, C: ThreadSafeError>(
+    /// Commit on `Ok`, rollback on `Err`. Pass a function to translate a `Report<RepositoryError>` from commit into a `Report<C>`.
+    #[inline]
+    pub async fn finish_with<T, C, F>(
         self,
         result: Result<T, Report<C>>,
-        commit_context: C,
-    ) -> Result<T, Report<C>> {
+        context_from_commit: F,
+    ) -> Result<T, Report<C>>
+    where
+        C: ThreadSafeError,
+        F: FnOnce(&Report<RepositoryError>) -> C,
+    {
         match result {
             Ok(value) => {
-                self.commit().await.change_context(commit_context)?;
+                self.commit().await.map_err(|e| {
+                    let new_context = context_from_commit(&e);
+                    e.change_context(new_context)
+                })?;
                 Ok(value)
             }
-            Err(error) => {
-                let _ = self.rollback().await;
+            Err(mut error) => {
+                if let Err(_rollback_error) = self.rollback().await {
+                    // Atach the rollback report to the outer error
+                    let _ = error.frames_mut(|frame| {
+                        let FrameKind::Context(_) = frame.kind() else {
+                            return ControlFlow::Continue(());
+                        };
+
+                        // Cannot attach right now because report does not support
+                        // TODO: Somehow fix this later (upstream feat)
+
+                        ControlFlow::Break(())
+                    });
+                }
                 Err(error)
             }
         }
+    }
+
+    /// Commit on `Ok`, rollback on `Err`. Pass a function to translate a `Report<RepositoryError>` from commit into a `Report<C>`.
+    #[inline]
+    pub fn finish<T, C: ThreadSafeError>(
+        self,
+        result: Result<T, Report<C>>,
+        context: C,
+    ) -> impl Future<Output = Result<T, Report<C>>> {
+        self.finish_with(result, |_| context)
     }
 
     fn take_impl(&mut self) -> Box<dyn UnitOfWorkImpl + '_> {

@@ -14,8 +14,6 @@ mod v0004_leistungen_quelle_mwst;
 
 type Registry = MigrationRegistry<dyn UpMigration<libsql::Transaction, libsql::Error>>;
 
-const LATEST_MIGRATION_VERSION: usize = 4;
-
 pub static MIGRATIONS: LazyLock<Registry> = LazyLock::new(|| {
     let mut registry: Registry = MigrationRegistry::new();
     registry.add(v0001_initial::Migration);
@@ -58,7 +56,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteConnection {
                 return Ok(None);
             };
             let version: Option<u64> = row.get(0)?;
-            Ok(version.map(|v| (v as usize).min(LATEST_MIGRATION_VERSION)))
+            Ok(version.map(|v| v as usize))
         })
     }
 

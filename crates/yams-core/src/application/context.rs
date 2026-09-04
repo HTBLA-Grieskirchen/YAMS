@@ -83,8 +83,7 @@ impl<'a> ExecutionContext<'a> {
     pub async fn enter(&self) -> RepositoryResult<UnitOfWork<'_>> {
         match self.source {
             ExecutionSource::Root(provider) => {
-                let implementation =
-                    InstrumentedUnitOfWork::wrap(provider.begin().await?);
+                let implementation = InstrumentedUnitOfWork::wrap(provider.begin().await?);
                 Ok(UnitOfWork::owned(implementation))
             }
             ExecutionSource::Nested(inner) => Ok(UnitOfWork::locked(inner)),

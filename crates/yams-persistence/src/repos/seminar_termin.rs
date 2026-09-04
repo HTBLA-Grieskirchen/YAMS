@@ -264,10 +264,7 @@ impl SeminarTerminRepository for SQLiteSeminarTerminRepository {
         let mut guard = self.tx.lock().await;
         let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
         let mut rows = tx
-            .query(
-                &format!("{TERMIN_SELECT} ORDER BY beginn"),
-                (),
-            )
+            .query(&format!("{TERMIN_SELECT} ORDER BY beginn"), ())
             .await
             .contextualize_with(libsql_error_to_persistence_error)?;
 

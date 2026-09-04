@@ -8,13 +8,13 @@ use yams_core::domain::{
 };
 use yams_core::ports::{ObjectStoreError, RepositoryError};
 use yams_core::service::{
-    BehandlungErstellenFehler, HaustierErstellenFehler, KlientErstellenFehler,
+    AuflistenFehler, BehandlungErstellenFehler, HaustierErstellenFehler, KlientErstellenFehler,
     LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchenFehler,
     LeistungManuellErfassenFehler, ProduktErstellenFehler, SeminarBuchungAnlegenFehler,
     SeminarBuchungStornierenFehler, SeminarErstellenFehler, SeminarTerminAbsagenFehler,
     SeminarTerminAktualisierenFehler, SeminarTerminAlsAbgehaltenMarkierenFehler,
     SeminarTerminPlanenFehler, SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
-    TagesabschlussDurchführenFehler, AuflistenFehler,
+    TagesabschlussDurchführenFehler,
 };
 
 use super::ValidationError;

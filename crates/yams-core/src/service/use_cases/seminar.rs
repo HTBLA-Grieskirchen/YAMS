@@ -57,7 +57,9 @@ impl UseCase<Seminar> for SeminarErstellen {
             .await
             .map(Versioned::into_data)
             .change_context(SeminarErstellenFehler::Erstellung);
-        let seminar = uow.finish(result, SeminarErstellenFehler::Erstellung).await?;
+        let seminar = uow
+            .finish(result, SeminarErstellenFehler::Erstellung)
+            .await?;
         info!(id = ?seminar.id(), titel = seminar.titel(), "seminar angelegt");
         Ok(seminar)
     }
@@ -106,7 +108,9 @@ impl UseCase<SeminarTerminGeplant> for SeminarTerminPlanen {
                 .change_context(SeminarTerminPlanenFehler::Persistenz)
         }
         .await;
-        let termin = uow.finish(result, SeminarTerminPlanenFehler::Persistenz).await?;
+        let termin = uow
+            .finish(result, SeminarTerminPlanenFehler::Persistenz)
+            .await?;
         info!(
             id = ?termin.id(),
             seminar_id = ?termin.seminar_id(),
@@ -236,7 +240,9 @@ impl UseCase<SeminarTermin> for SeminarBuchungAnlegen {
             Ok(termin.into_data())
         }
         .await;
-        let termin = uow.finish(result, SeminarBuchungAnlegenFehler::Persistenz).await?;
+        let termin = uow
+            .finish(result, SeminarBuchungAnlegenFehler::Persistenz)
+            .await?;
         info!(
             termin_id = ?termin_id,
             klient_id = ?klient_id,
@@ -360,7 +366,9 @@ impl UseCase<SeminarTermin> for SeminarTerminAbsagen {
             Ok(termin.into_data())
         }
         .await;
-        let termin = uow.finish(result, SeminarTerminAbsagenFehler::Persistenz).await?;
+        let termin = uow
+            .finish(result, SeminarTerminAbsagenFehler::Persistenz)
+            .await?;
         info!(termin_id = ?termin_id, "seminartermin abgesagt");
         Ok(termin)
     }

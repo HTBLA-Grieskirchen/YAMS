@@ -57,7 +57,9 @@ impl UseCase<Produkt> for ProduktErstellen {
             .map(Versioned::into_data)
             .change_context(ProduktErstellenFehler::Erstellung);
 
-        let produkt = uow.finish(result, ProduktErstellenFehler::Erstellung).await?;
+        let produkt = uow
+            .finish(result, ProduktErstellenFehler::Erstellung)
+            .await?;
         debug!(id = ?produkt.id(), name = produkt.name(), "produkt angelegt");
         Ok(produkt)
     }

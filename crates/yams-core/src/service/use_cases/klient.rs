@@ -54,7 +54,9 @@ impl UseCase<Klient> for KlientErstellen {
             .map_err(IntoReport::into_report)
             .change_context(KlientErstellenFehler::Erstellung);
 
-        let klient = uow.finish(result, KlientErstellenFehler::Erstellung).await?;
+        let klient = uow
+            .finish(result, KlientErstellenFehler::Erstellung)
+            .await?;
         info!(
             id = ?klient.id(),
             kundennummer = klient.kundennummer(),

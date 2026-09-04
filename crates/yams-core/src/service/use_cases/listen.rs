@@ -2,10 +2,7 @@ use async_trait::async_trait;
 use error_stack::{Report, ResultExt};
 
 use crate::{
-    ResultReport,
-    domain::{
-        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
-    },
+    domain::{Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin},
     service::{ExecutionContext, UseCase},
     uow::Versioned,
 };

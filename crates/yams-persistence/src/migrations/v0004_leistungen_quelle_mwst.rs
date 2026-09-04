@@ -312,7 +312,10 @@ mod tests {
         apply(&conn).await;
 
         let mut rows = conn
-            .query("SELECT id, mwst FROM produkte WHERE id IN ('a', 'b', 'c')", ())
+            .query(
+                "SELECT id, mwst FROM produkte WHERE id IN ('a', 'b', 'c')",
+                (),
+            )
             .await
             .unwrap();
         let mut values = std::collections::BTreeMap::new();

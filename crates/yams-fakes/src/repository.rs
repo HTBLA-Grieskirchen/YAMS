@@ -618,7 +618,7 @@ impl SeminarTerminRepository for FakeSeminarTermineRepository {
     async fn find_all(&self) -> RepositoryResult<Vec<Versioned<SeminarTermin>>> {
         let data = self.datastore.seminar_termine.lock().unwrap();
         let mut termine: Vec<_> = data.values().cloned().collect();
-        termine.sort_by(|a, b| a.zeitraum().beginn().cmp(&b.zeitraum().beginn()));
+        termine.sort_by_key(|a| a.zeitraum().beginn());
         Ok(termine)
     }
 

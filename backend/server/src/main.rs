@@ -1,6 +1,6 @@
+mod config;
 mod tracing_setup;
 
-use clap::Parser;
 use error_stack::{Report, ResultExt};
 use poem::http::StatusCode;
 use poem::middleware::{CatchPanic, Compression, Cors, Middleware, RequestId, ReuseId, Tracing};
@@ -14,30 +14,6 @@ use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
 use yams_persistence::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Config {
-    /// IP address to bind to
-    #[arg(long, env = "BIND_ADDRESS", default_value = "127.0.0.1")]
-    bind_address: String,
-
-    /// Port to bind to
-    #[arg(long, env = "PORT", default_value = "3000")]
-    port: u16,
-
-    /// Subpath this service is hosted on
-    #[arg(long, env = "SUBPATH", default_value = "/")]
-    subpath: String,
-
-    /// Database URL
-    #[arg(long, env = "DATABASE_URL", default_value = "yams.db")]
-    database_url: String,
-
-    /// Directory for object store
-    #[arg(long, env = "OBJECT_STORE_DIR", default_value = "objects.local/")]
-    object_store_dir: String,
-}
 
 #[derive(Debug, Error)]
 #[error("Backend server fatal error")]
@@ -57,7 +33,7 @@ fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
 #[tokio::main]
 async fn main() -> Result<(), Report<BackendServerError>> {
     init_tracing();
-    let config = Config::parse();
+    let config = config::load().change_context(BackendServerError)?;
 
     let mut adapter = SQLiteInstance::local(&config.database_url)
         .await
@@ -67,9 +43,8 @@ async fn main() -> Result<(), Report<BackendServerError>> {
         .await
         .change_context(BackendServerError)?;
 
-    let object_store_dir = std::path::PathBuf::from(config.object_store_dir);
     let object_store =
-        FileSystemObjectStore::new(object_store_dir).change_context(BackendServerError)?;
+        FileSystemObjectStore::new(config.object_store_dir).change_context(BackendServerError)?;
     let app = App::builder()
         .uow_provider(Box::new(adapter))
         .object_store(Arc::new(object_store))

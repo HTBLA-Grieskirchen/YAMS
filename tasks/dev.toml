@@ -2,6 +2,9 @@
 
 ["dev:server"]
 description = "Start backend dev server (default :3000/api)"
+env.YAMS_CONFIG_PATH = "{{config_root}}/backend/config.dev.json"
+env.YAMS_DATABASE_URL = "{{config_root}}/sqlite.local/yams.db"
+env.YAMS_OBJECT_STORE_DIR = "{{config_root}}/objects.local/"
 run = "cargo run -p yams-server"
 
 ["dev:frontend"]
@@ -15,36 +18,40 @@ description = "Next.js on :3001 (pair with dev:server on :3000)"
 dir = "{{env.FRONTEND_DIR}}"
 run = "npm run dev -- --port 3001"
 
-["dev:tauri_"]
-hide = true
-dir = "{{env.FRONTEND_DIR}}"
-env.YAMS_DEV = "1"
-run = "npm run tauri dev"
-
 ["dev:tauri"]
-description = "Start Tauri dev"
+description = "Start Tauri dev (embedded by default; pass --remote for server mode)"
 dir = "{{env.FRONTEND_DIR}}"
+usage = """
+flag "-r --remote" env="YAMS_TAURI_REMOTE" help="Use remote server config instead of embedded backend"
+"""
+env.YAMS_DEV = "1"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${usage_remote:-false}" = "true" ]; then
+  export YAMS_CONFIG_PATH="{{config_root}}/frontend/config.remote.dev.json"
+else
+  export YAMS_CONFIG_PATH="{{config_root}}/frontend/config.embedded.dev.json"
+  export YAMS_DATABASE_URL="{{config_root}}/sqlite.local/yams.db"
+  export YAMS_OBJECT_STORE_DIR="{{config_root}}/objects.local/"
+fi
+exec npm run tauri dev
+"""
+
+["dev:tauri+embedded"]
+description = "Start Tauri dev with embedded backend and Next.js"
 run = [
-    {tasks = ["dev:tauri_", "dev:frontend"]}
+    {tasks = ["dev:tauri", "dev:frontend"]}
 ]
 
-# TODO: implement all these variants
 ["dev:tauri+server"]
-description = "Start Tauri dev with standalone backend dev server"
-env.YAMS_DEV = "1"
-depends = ["tmp:print-env"]
+description = "Start Tauri dev with standalone backend dev server and Next.js"
+run = [
+    {tasks = ["dev:server", "dev:tauri --remote", "dev:frontend"]}
+]
 
 ["dev:frontend+server"]
 description = "Next.js (:3001) + yams-server (:3000/api)"
 depends = ["dev:server", "dev:frontend-remote"]
 env.NEXT_PUBLIC_YAMS_API_URL = "http://127.0.0.1:3000/api"
-
-["dev:tauri+embedded"]
-description = "Start Tauri dev with embedded backend"
-env.YAMS_DEV = "1"
-run = [{task = "tmp:print-env"}]
-
-["tmp:print-env"]
-description = "Print the environment variables"
-run = "env"
-
+env.NEXT_PUBLIC_YAMS_DEV = "1"

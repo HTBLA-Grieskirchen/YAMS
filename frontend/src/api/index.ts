@@ -1,24 +1,35 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 
+import browserConfig from "@/yams-config.json";
 import { HttpYamsApi } from "./http-client";
 import { TauriYamsApi } from "./tauri-client";
 import type { FrontendConfig } from "./types";
-import type { DeploymentMode, YamsApi } from "./yams-api";
+import type { YamsApi } from "./yams-api";
 
 const DEFAULT_REMOTE_API_URL = "http://127.0.0.1:3000/api";
 
+let cachedConfig: FrontendConfig | null = null;
 let cachedApi: YamsApi | null = null;
 
-function envDeploymentMode(): DeploymentMode | undefined {
-  const value = process.env.NEXT_PUBLIC_YAMS_MODE;
-  if (value === "embedded" || value === "remote") {
-    return value;
-  }
-  return undefined;
-}
+type BrowserConfigFile = {
+  remoteApiUrl?: string;
+  dev?: boolean;
+};
 
 function envRemoteApiUrl(): string | undefined {
   return process.env.NEXT_PUBLIC_YAMS_API_URL;
+}
+
+function envDev(): boolean | undefined {
+  const value = process.env.NEXT_PUBLIC_YAMS_DEV;
+  if (value === undefined) {
+    return undefined;
+  }
+  return (
+    value === "1" ||
+    value.toLowerCase() === "true" ||
+    value.toLowerCase() === "yes"
+  );
 }
 
 function normalizeApiBaseUrl(url: string): string {
@@ -29,44 +40,25 @@ function normalizeApiBaseUrl(url: string): string {
   return `${trimmed}/api`;
 }
 
-async function tauriFrontendConfig(): Promise<FrontendConfig | null> {
-  if (!isTauri()) {
-    return null;
-  }
-  return invoke<FrontendConfig>("frontend_config");
+function loadBrowserConfig(): FrontendConfig {
+  const file = browserConfig as BrowserConfigFile;
+  const remoteApiUrl = normalizeApiBaseUrl(
+    envRemoteApiUrl() ?? file.remoteApiUrl ?? DEFAULT_REMOTE_API_URL,
+  );
+  const dev = envDev() ?? file.dev ?? false;
+  return { mode: "remote", remoteApiUrl, dev };
 }
 
-export async function resolveDeploymentMode(): Promise<DeploymentMode> {
-  const forced = envDeploymentMode();
-  if (forced) {
-    return forced;
+export async function loadFrontendConfig(): Promise<FrontendConfig> {
+  if (cachedConfig) {
+    return cachedConfig;
   }
 
-  if (isTauri()) {
-    const config = await tauriFrontendConfig();
-    if (config?.remoteDatabaseLocation) {
-      return "remote";
-    }
-    return "embedded";
-  }
+  cachedConfig = isTauri()
+    ? await invoke<FrontendConfig>("frontend_config")
+    : loadBrowserConfig();
 
-  return "remote";
-}
-
-export async function resolveRemoteApiBaseUrl(): Promise<string> {
-  const fromEnv = envRemoteApiUrl();
-  if (fromEnv) {
-    return normalizeApiBaseUrl(fromEnv);
-  }
-
-  if (isTauri()) {
-    const config = await tauriFrontendConfig();
-    if (config?.remoteDatabaseLocation) {
-      return normalizeApiBaseUrl(config.remoteDatabaseLocation);
-    }
-  }
-
-  return DEFAULT_REMOTE_API_URL;
+  return cachedConfig;
 }
 
 export async function createYamsApi(): Promise<YamsApi> {
@@ -74,20 +66,18 @@ export async function createYamsApi(): Promise<YamsApi> {
     return cachedApi;
   }
 
-  const mode = await resolveDeploymentMode();
-
-  if (mode === "embedded") {
-    cachedApi = new TauriYamsApi();
-  } else {
-    const baseUrl = await resolveRemoteApiBaseUrl();
-    cachedApi = new HttpYamsApi(baseUrl);
-  }
+  const config = await loadFrontendConfig();
+  cachedApi =
+    config.mode === "embedded"
+      ? new TauriYamsApi()
+      : new HttpYamsApi(normalizeApiBaseUrl(config.remoteApiUrl));
 
   return cachedApi;
 }
 
 export function resetYamsApiCache(): void {
   cachedApi = null;
+  cachedConfig = null;
 }
 
 export async function getYamsApi(): Promise<YamsApi> {

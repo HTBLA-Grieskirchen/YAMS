@@ -37,6 +37,6 @@ export type StructuredError = components["schemas"]["StructuredError"];
 export type TagesabschlussErstellung =
   components["schemas"]["TagesabschlussErstellung"];
 
-export type FrontendConfig = {
-  remoteDatabaseLocation?: string | null;
-};
+export type FrontendConfig =
+  | { mode: "embedded"; dev: boolean }
+  | { mode: "remote"; remoteApiUrl: string; dev: boolean };

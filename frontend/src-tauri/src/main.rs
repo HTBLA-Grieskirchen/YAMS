@@ -1,5 +1,4 @@
 use error_stack::Report;
-use std::path::Path;
 use std::sync::Arc;
 use tauri::Manager;
 use yams_api::YamsAppApi;
@@ -12,47 +11,51 @@ mod commands;
 mod config;
 mod tracing_setup;
 
-use crate::config::{YAMSFileConfig, YAMSFrontendConfig};
+use crate::config::{DeploymentMode, FrontendConfigDto};
 
 #[tauri::command]
-fn frontend_config(config: tauri::State<'_, YAMSFrontendConfig>) -> YAMSFrontendConfig {
+fn frontend_config(config: tauri::State<'_, FrontendConfigDto>) -> FrontendConfigDto {
     (*config).clone()
 }
 
 fn main() {
     tracing_setup::init_tracing(&config::log_dir());
 
-    let (backend_config, _frontend_config) = YAMSFileConfig::load();
+    let config = config::load().expect("failed to load Tauri config");
 
     tauri::Builder::default()
         .setup(move |tauri_app| {
-            // Initialize LibSQL Adapter using config
-            let db_url = &backend_config.local_database_location;
-            let db_instance = tauri::async_runtime::block_on(async {
-                let mut sqlite = SQLiteInstance::local(db_url).await?;
-                sqlite.migrate_to_latest().await?;
-                Ok::<_, Report<RepositoryError>>(sqlite)
-            })
-            .expect("failed to initialize LibSQL adapter");
+            match &config.deployment {
+                DeploymentMode::Embedded {
+                    database_url,
+                    object_store_dir,
+                } => {
+                    let db_instance = tauri::async_runtime::block_on(async {
+                        let mut sqlite = SQLiteInstance::local(database_url).await?;
+                        sqlite.migrate_to_latest().await?;
+                        Ok::<_, Report<RepositoryError>>(sqlite)
+                    })
+                    .expect("failed to initialize LibSQL adapter");
 
-            let pdf_dir = Path::new(db_url)
-                .parent()
-                .unwrap_or(Path::new("."))
-                .join("pdfs");
-            let object_store =
-                FileSystemObjectStore::new(pdf_dir).expect("failed to initialize pdf object store");
-            let app = App::builder()
-                .uow_provider(Box::new(db_instance))
-                .object_store(Arc::new(object_store))
-                .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
-                .build();
-            let api = YamsAppApi::new(app);
+                    let object_store = FileSystemObjectStore::new(object_store_dir)
+                        .expect("failed to initialize object store");
+                    let app = App::builder()
+                        .uow_provider(Box::new(db_instance))
+                        .object_store(Arc::new(object_store))
+                        .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
+                        .build();
+                    let api = YamsAppApi::new(app);
 
-            tauri_app.manage(api.inner_app());
-            tauri_app.manage(api);
+                    tauri_app.manage(api.inner_app());
+                    tauri_app.manage(api);
+                }
+                DeploymentMode::Remote { remote_api_url } => {
+                    tracing::info!(%remote_api_url, "Tauri running in remote mode; skipping embedded backend");
+                }
+            }
 
-            tauri_app.manage(backend_config);
-            tauri_app.manage(_frontend_config);
+            tauri_app.manage(config.frontend_dto());
+            tauri_app.manage(config);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

@@ -224,12 +224,26 @@ Generic async migration framework used by yams-persistence. Provides `UpMigratio
 
 ## Deployment Modes
 
-| Mode       | Entry point          | How core is reached        |
-|------------|----------------------|----------------------------|
-| Server     | `backend/server/`    | Poem routes → `YamsAppApi` |
-| Embedded   | `frontend/src-tauri/` | Tauri commands → `YamsAppApi` |
+| Mode | Entry point | How core is reached |
+|------|-------------|---------------------|
+| Server | `backend/server/` | Poem routes → `YamsAppApi` |
+| Tauri + embedded | `frontend/src-tauri/` with `mode: embedded` | Tauri commands → `YamsAppApi` |
+| Tauri + server | `frontend/src-tauri/` with `mode: remote` | Next.js HTTP client → `yams-server` (no in-process DB) |
+| Standalone frontend | Next.js only | HTTP client → `yams-server` |
 
-Both wire the same `App` + `SQLiteInstance` + migrations. Only the driving adapter differs.
+Embedded server and `yams-server` both wire the same `App` + `SQLiteInstance` + migrations. Remote Tauri skips backend setup.
+
+### Config resolution
+
+Same order everywhere: **config path → file → env (→ CLI on server)**. `YAMS_DEV` is a boolean UX flag (TanStack Query devtools); it does **not** rewrite paths.
+
+| Runtime | Path | File | Overlay |
+|---------|------|------|---------|
+| `yams-server` | `YAMS_CONFIG_PATH` / `--config-path`, default `yams-server.json` in cwd | `backend/config.dev.json` in mise | env then CLI (`YAMS_DATABASE_URL`, `YAMS_OBJECT_STORE_DIR`, `BIND_ADDRESS`, `PORT`, `SUBPATH`) |
+| Tauri | `YAMS_CONFIG_PATH`, default `{ProjectDirs}/yams.json` | tagged `mode` enum (`embedded` needs `databaseUrl`+`objectStoreDir`; `remote` needs `remoteApiUrl`) | env (`YAMS_MODE`, matching path/URL vars, `YAMS_DEV`) |
+| Browser | — | `src/yams-config.json` (static import) | `NEXT_PUBLIC_YAMS_API_URL`, `NEXT_PUBLIC_YAMS_DEV` |
+
+In Tauri, Next.js reads config **only** from the `frontend_config` invoke. Browser env vars are ignored there.
 
 ## Error Handling
 
@@ -256,10 +270,10 @@ Persistence proves adapter conformance by running the same case suite against re
 
 ## Tooling
 
-- **mise** (`mise.toml`) — Rust toolchain, Node 22, env vars (`DATABASE_URL`, `FRONTEND_DIR`, `OPENAPI_SPEC`), task includes from `tasks/`
+- **mise** (`mise.toml`) — Rust toolchain, Node 22, env vars (`FRONTEND_DIR`, `OPENAPI_SPEC`), task includes from `tasks/`
 - **Rust nightly pinned** — `rust-toolchain.toml` uses `nightly-2026-07-02`; do not bump without testing (newer nightlies break poem-openapi lifetime capturing across await)
 - **cargo-nextest** — `cargo nextest` for running tests
-- **Key tasks**: `test:backend` (`cargo test`), `build:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri`
+- **Key tasks**: `test:backend` (`cargo test`), `build:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri` (embedded), `dev:tauri+server`, `dev:frontend+server`
 - **Formatting/linting**: `fmt:rust`, `lint:crates` (clippy), `fmt:biome` (frontend)
 
 ## Frontend
@@ -269,7 +283,7 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 ### API layer
 
 - **`YamsApi`** (`src/api/yams-api.ts`) — framework-agnostic interface mirroring `YamsAppApi`.
-- **Adapters** — `HttpYamsApi` (openapi-fetch + schema paths) for remote mode; `TauriYamsApi` (invoke) for embedded mode. Mode from `NEXT_PUBLIC_YAMS_MODE`, `isTauri()`, or `frontend_config.remoteDatabaseLocation`.
+- **Adapters** — `HttpYamsApi` (openapi-fetch + schema paths) for remote mode; `TauriYamsApi` (invoke) for embedded mode. In Tauri, mode comes only from `frontend_config` (tagged `{ mode: "embedded" | "remote" }`). In the browser, static `src/yams-config.json` plus `NEXT_PUBLIC_YAMS_API_URL` / `NEXT_PUBLIC_YAMS_DEV`.
 - **Bootstrap** — `YamsApiProvider` resolves adapter once; components never choose HTTP vs Tauri themselves.
 
 ### TanStack Query (server state)
@@ -294,7 +308,7 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 
 `QueryClientProvider` wraps `YamsApiProvider` in `src/app/providers.tsx`.
 
-**Remote dev (browser + `yams-server`)** — Next and the API must use different ports (`mise run dev:frontend+server`: API `:3000`, Next `:3001`). Cross-origin fetch requires CORS on `yams-server` (localhost / 127.0.0.1). Set `NEXT_PUBLIC_YAMS_API_URL` when the API is not at `http://127.0.0.1:3000/api`. Use matching hostnames (`localhost` vs `127.0.0.1`) in the browser URL and API URL.
+**Remote dev (browser + `yams-server`)** — Next and the API must use different ports (`mise run dev:frontend+server`: API `:3000`, Next `:3001`). Cross-origin fetch requires CORS on `yams-server` (localhost / 127.0.0.1). Set `NEXT_PUBLIC_YAMS_API_URL` (or edit `src/yams-config.json`) when the API is not at `http://127.0.0.1:3000/api`. Use matching hostnames (`localhost` vs `127.0.0.1`) in the browser URL and API URL.
 
 ## Conventions for Contributors
 

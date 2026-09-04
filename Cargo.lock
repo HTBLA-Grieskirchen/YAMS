@@ -3268,7 +3268,9 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "pollster",
+ "test-log",
  "thiserror 2.0.20",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -5292,6 +5294,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "symlink"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7973cce6668464ea31f176d85b13c7ab3bba2cb3b77a2ed26abd7801688010a"
+
+[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5741,6 +5749,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-log"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b9c218384242b5c89b68303ab6f6fc53a312d923f0c14dc6bb860c6aeee40f1"
+dependencies = [
+ "test-log-macros",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "test-log-core"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c26ef8b00e4d382e59f6a8ddb3cd790b3a5bb29f21a358a9a69ea2f29f13f27b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "test-log-macros"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "944ad38adcbb71eaa682c56bceeb079e4ca82b4b3edc2a0fde5cb297b77dac8d"
+dependencies = [
+ "syn 2.0.119",
+ "test-log-core",
+]
+
+[[package]]
 name = "thin-vec"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6108,6 +6147,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-appender"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "050686193eb999b4bb3bc2acfa891a13da00f79734704c4b8b4ef1a10b368a3c"
+dependencies = [
+ "crossbeam-channel",
+ "symlink",
+ "thiserror 2.0.20",
+ "time",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tracing-attributes"
 version = "0.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6140,6 +6192,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-serde"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "704b1aeb7be0d0a84fc9828cae51dab5970fee5088f83d1dd7ee6f6246fc6ff1"
+dependencies = [
+ "serde",
+ "tracing-core",
+]
+
+[[package]]
 name = "tracing-subscriber"
 version = "0.3.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6149,12 +6211,15 @@ dependencies = [
  "nu-ansi-term",
  "once_cell",
  "regex-automata",
+ "serde",
+ "serde_json",
  "sharded-slab",
  "smallvec",
  "thread_local",
  "tracing",
  "tracing-core",
  "tracing-log",
+ "tracing-serde",
 ]
 
 [[package]]
@@ -7705,6 +7770,9 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-shell",
  "thiserror 2.0.20",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
  "url",
  "uuid",
  "yams-api",
@@ -7729,7 +7797,9 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
+ "test-log",
  "thiserror 2.0.20",
+ "tracing-subscriber",
  "uuid",
  "yams-core",
  "yams-fakes",
@@ -7750,8 +7820,10 @@ dependencies = [
  "pollster",
  "rust_decimal",
  "rustc-hash 2.1.3",
+ "test-log",
  "thiserror 2.0.20",
  "tracing",
+ "tracing-subscriber",
  "uuid",
  "yams-fakes",
 ]
@@ -7776,7 +7848,9 @@ dependencies = [
  "futures",
  "pollster",
  "tempdir",
+ "test-log",
  "tracing",
+ "tracing-subscriber",
  "yams-core",
 ]
 
@@ -7796,7 +7870,9 @@ dependencies = [
  "rustc-hash 2.1.3",
  "serde",
  "tempdir",
+ "test-log",
  "thiserror 2.0.20",
+ "tracing-subscriber",
  "uuid",
  "yams-core",
  "yams-fakes",
@@ -7834,8 +7910,10 @@ dependencies = [
  "error-stack",
  "pollster",
  "rust_decimal",
+ "test-log",
  "thiserror 2.0.20",
  "tracing",
+ "tracing-subscriber",
  "typst",
  "typst-as-lib",
  "typst-layout",

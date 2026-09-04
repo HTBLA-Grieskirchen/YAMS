@@ -129,20 +129,20 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn produkt_rejects_empty_name() {
         let err = produkt("", Ratio::zero()).unwrap_err();
         assert!(matches!(err.current_context(), ProduktFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn produkt_accepts_zero_mwst() {
         let produkt = produkt("Futter", Ratio::zero()).unwrap();
         assert_eq!(produkt.mwst().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn produkt_ratio_greater_than_one_cannot_exist() {
         assert!(Ratio::new(Decimal::new(101, 2)).is_err());
     }

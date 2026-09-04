@@ -6,7 +6,7 @@ use yams_core::domain::{Adresse, Ländercode};
 use yams_core::ports::RepositoryError;
 use yams_core::service::KlientErstellen;
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_klient() {
     let app = base_app_builder().await.build();
     let app = Arc::new(app);

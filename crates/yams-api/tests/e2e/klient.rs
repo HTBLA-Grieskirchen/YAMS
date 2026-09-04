@@ -21,7 +21,7 @@ fn klient_body(kundennummer: u64) -> Value {
     })
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn klient_erstellen_returns_camelcase_utf8_json() {
     let api = YamsApiTestClient::new(base_app_builder().await);
 
@@ -40,7 +40,7 @@ async fn klient_erstellen_returns_camelcase_utf8_json() {
     assert!(body.get("straßeUndHausnummer").is_none());
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn klient_erstellen_rejects_invalid_email() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let mut body = klient_body(1001);
@@ -50,7 +50,7 @@ async fn klient_erstellen_rejects_invalid_email() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn klient_erstellen_rejects_empty_name() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let mut body = klient_body(1001);
@@ -60,7 +60,7 @@ async fn klient_erstellen_rejects_empty_name() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn klient_erstellen_rejects_invalid_ländercode() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let mut body = klient_body(1001);

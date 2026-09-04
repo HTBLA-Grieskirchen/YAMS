@@ -31,7 +31,9 @@ poem = "3.0"
 poem-openapi = { version = "5.1.16", features = ["swagger-ui", "uuid", "redoc"] }
 http = "1.5.0"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+test-log = { version = "0.2", default-features = false, features = ["trace"] }
 
 [profile.release]
 panic = "abort" # Strip expensive panic clean-up logic

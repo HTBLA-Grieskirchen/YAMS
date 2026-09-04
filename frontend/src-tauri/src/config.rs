@@ -17,6 +17,10 @@ fn project_dirs() -> ProjectDirs {
     ProjectDirs::from("at", "HTL Grieskirchen", "YAMS").expect("unsupported OS")
 }
 
+pub fn log_dir() -> PathBuf {
+    project_dirs().data_dir().join("logs")
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct YAMSFileConfig {

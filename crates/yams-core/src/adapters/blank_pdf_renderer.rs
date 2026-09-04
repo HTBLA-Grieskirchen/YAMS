@@ -71,7 +71,7 @@ mod tests {
         })
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn blank_renderer_returns_pdf_prefix() {
         let bytes = BlankPdfRenderer.rendern(&dummy_rechnung()).await.unwrap();
         assert!(bytes.starts_with(b"%PDF"));

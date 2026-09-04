@@ -4,7 +4,7 @@ use serde_json::json;
 use super::{YamsApiTestClient, assert_status_ok, base_app_builder, json_decimal};
 use rust_decimal::Decimal;
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn behandlung_erstellen_returns_mwst_ratio() {
     let api = YamsApiTestClient::new(base_app_builder().await);
 
@@ -24,7 +24,7 @@ async fn behandlung_erstellen_returns_mwst_ratio() {
     assert_eq!(json_decimal(&behandlung["mwst"]), Decimal::new(19, 2));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn behandlung_erstellen_rejects_empty_name() {
     let api = YamsApiTestClient::new(base_app_builder().await);
 

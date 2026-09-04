@@ -10,7 +10,7 @@ use super::common::{FakeMigrationTarget, FakeUpMigration, TestError};
 
 // ---------- MigrationError ----------
 
-#[test]
+#[test_log::test]
 fn migration_error_runner_error_display() {
     // Arrange
     let err = MigrationError::<TestError>::RunnerError(TestError::GetVersionFailed);
@@ -20,7 +20,7 @@ fn migration_error_runner_error_display() {
     assert!(s.contains("runner") && s.contains("get_version_failed"));
 }
 
-#[test]
+#[test_log::test]
 fn migration_error_migration_failed_display() {
     // Arrange
     let err = MigrationError::MigrationFailed {
@@ -33,7 +33,7 @@ fn migration_error_migration_failed_display() {
     assert!(s.contains("42") && s.contains("apply_failed"));
 }
 
-#[test]
+#[test_log::test]
 fn migration_error_version_mismatch_display() {
     // Arrange
     let err = MigrationError::<TestError>::VersionMismatch {
@@ -46,7 +46,7 @@ fn migration_error_version_mismatch_display() {
     assert!(s.contains("1") && s.contains("2") && s.contains("mismatch"));
 }
 
-#[test]
+#[test_log::test]
 fn migration_error_down_not_supported_display() {
     // Arrange
     let err = MigrationError::<TestError>::DownMigrationNotSupported;
@@ -56,7 +56,7 @@ fn migration_error_down_not_supported_display() {
     assert!(s.to_lowercase().contains("down") && s.to_lowercase().contains("not supported"));
 }
 
-#[test]
+#[test_log::test]
 fn migration_error_runner_error_source() {
     // Arrange
     let inner = TestError::GetVersionFailed;
@@ -70,7 +70,7 @@ fn migration_error_runner_error_source() {
 
 // ---------- Box<dyn UpMigration> delegation ----------
 
-#[test]
+#[test_log::test]
 fn box_dyn_up_migration_delegates_version_and_up() {
     // Arrange: wrap concrete migration in Box<dyn UpMigration>
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -87,7 +87,7 @@ fn box_dyn_up_migration_delegates_version_and_up() {
     assert_eq!(log.lock().unwrap().as_slice(), &[(7, true)]);
 }
 
-#[test]
+#[test_log::test]
 fn box_dyn_up_migration_description_delegation() {
     // Arrange
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -100,7 +100,7 @@ fn box_dyn_up_migration_description_delegation() {
 
 // ---------- Arc<dyn UpMigration> in registry ----------
 
-#[test]
+#[test_log::test]
 fn arc_dyn_up_migration_in_registry_applies_correctly() {
     // Arrange: add Arc-wrapped migration to registry
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -120,7 +120,7 @@ fn arc_dyn_up_migration_in_registry_applies_correctly() {
 
 // ---------- UpMigration::description default ----------
 
-#[test]
+#[test_log::test]
 fn up_migration_description_default_is_none() {
     // Arrange: FakeUpMigration::new does not set description
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -132,7 +132,7 @@ fn up_migration_description_default_is_none() {
 
 // ---------- Edge: empty registry apply ----------
 
-#[test]
+#[test_log::test]
 fn empty_registry_apply_with_target_none_leaves_version_unchanged() {
     // Arrange: no migrations, target None -> current 0, target 0, no apply_migration calls
     let registry: MigrationRegistry<dyn UpMigration<(), TestError>> = MigrationRegistry::new();

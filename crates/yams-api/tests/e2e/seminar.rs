@@ -42,7 +42,7 @@ fn termin_body(seminar_id: &Value) -> Value {
     })
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn seminar_flow_books_holds_and_forecasts() {
     let api = YamsApiTestClient::new(base_app_builder().await);
 
@@ -125,7 +125,7 @@ async fn seminar_flow_books_holds_and_forecasts() {
     );
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn seminar_rejects_empty_titel() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, _) = api
@@ -143,7 +143,7 @@ async fn seminar_rejects_empty_titel() {
     assert_eq!(status, StatusCode::BAD_REQUEST);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn absage_blocks_abgehalten_via_api() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, seminar) = api.post_json("/api/seminar", seminar_body()).await;
@@ -173,7 +173,7 @@ async fn absage_blocks_abgehalten_via_api() {
     assert_eq!(status, StatusCode::CONFLICT);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn unknown_seminar_is_not_found() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, _) = api

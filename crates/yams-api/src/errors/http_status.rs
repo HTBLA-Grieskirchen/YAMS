@@ -350,19 +350,19 @@ mod tests {
         status_from_report(&Report::new(inner).change_context(outer))
     }
 
-    #[test]
+    #[test_log::test]
     fn attached_status_wins() {
         let error =
             Report::new(HaustierErstellenFehler::Persistenz).attach_opaque(StatusCode::NOT_FOUND);
         assert_eq!(status_from_report(&error), StatusCode::NOT_FOUND);
     }
 
-    #[test]
+    #[test_log::test]
     fn validation_is_bad_request() {
         assert_eq!(status(ValidationError), StatusCode::BAD_REQUEST);
     }
 
-    #[test]
+    #[test_log::test]
     fn repository_variants() {
         assert_eq!(status(RepositoryError::NotFound), StatusCode::NOT_FOUND);
         assert_eq!(
@@ -384,7 +384,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn use_case_not_found_and_conflict() {
         assert_eq!(
             status(HaustierErstellenFehler::KlientNichtGefunden(KlientId(
@@ -450,7 +450,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn persistenz_falls_through_to_repository() {
         assert_eq!(
             wrapped(
@@ -486,7 +486,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn invariante_falls_through_to_domain() {
         assert_eq!(
             wrapped(
@@ -518,7 +518,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn prognose_preserves_vorschau_status() {
         assert_eq!(
             wrapped(
@@ -536,7 +536,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn domain_construction_is_bad_request() {
         assert_eq!(status(KlientFehler::NameLeer), StatusCode::BAD_REQUEST);
         assert_eq!(status(SeminarFehler::TitelLeer), StatusCode::BAD_REQUEST);
@@ -546,7 +546,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn infrastructure_failures_are_500() {
         assert_eq!(
             status(TagesabschlussDurchführenFehler::Pdf),

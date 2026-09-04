@@ -35,12 +35,12 @@ impl Menge {
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn menge_accepts_zero() {
         assert_eq!(Menge::new(Decimal::ZERO).unwrap().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn menge_accepts_positive() {
         assert_eq!(
             Menge::new(Decimal::new(2, 0)).unwrap().value(),
@@ -48,7 +48,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn menge_rejects_negative() {
         assert!(Menge::new(Decimal::new(-1, 0)).is_err());
     }

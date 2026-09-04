@@ -21,7 +21,7 @@ fn klient_body(kundennummer: u64) -> Value {
     })
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn tagesabschluss_returns_rechnungen_as_json() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let abschlussdatum = "2026-08-23";

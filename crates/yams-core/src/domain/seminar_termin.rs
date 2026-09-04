@@ -587,7 +587,7 @@ mod tests {
         Ratio::new(Decimal::new(20, 2)).unwrap()
     }
 
-    #[test]
+    #[test_log::test]
     fn buchung_anlegen_enforces_capacity() {
         let mut termin = geplant(Some(1));
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -598,7 +598,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn buchung_anlegen_rejects_duplicate_klient() {
         let mut termin = geplant(None);
         let klient = klient();
@@ -612,7 +612,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn storno_frees_slot_and_allows_rebook() {
         let mut termin = geplant(Some(1));
         let klient = klient();
@@ -625,7 +625,7 @@ mod tests {
         assert_eq!(termin.buchungen().len(), 2);
     }
 
-    #[test]
+    #[test_log::test]
     fn storno_rejects_already_storniert() {
         let mut termin = geplant(None);
         let buchung_id = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -637,7 +637,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn aktualisieren_rejects_max_below_confirmed() {
         let mut termin = geplant(Some(2));
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -651,7 +651,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn als_abgehalten_maps_confirmed_only() {
         let mut termin = geplant(None);
         let bestätigt = termin.buchung_anlegen(klient(), rabatt_20()).unwrap();
@@ -670,7 +670,7 @@ mod tests {
         assert!(abgehalten.leistung_fuer_buchung(&storniert).is_none());
     }
 
-    #[test]
+    #[test_log::test]
     fn als_abgehalten_rejects_incomplete_mapping() {
         let mut termin = geplant(None);
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -683,7 +683,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn absagen_archives_buchungen() {
         let mut termin = geplant(None);
         termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -692,7 +692,7 @@ mod tests {
         assert_eq!(abgesagt.buchungen().len(), 1);
     }
 
-    #[test]
+    #[test_log::test]
     fn als_abgehalten_maps_all_confirmed() {
         let mut termin = geplant(None);
         let erste = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -708,7 +708,7 @@ mod tests {
         assert_eq!(abgehalten.leistungen().len(), 2);
     }
 
-    #[test]
+    #[test_log::test]
     fn als_abgehalten_rejects_extra_mapping_keys() {
         let mut termin = geplant(None);
         let bestätigt = termin.buchung_anlegen(klient(), Ratio::zero()).unwrap();
@@ -723,7 +723,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn teilnahmeleistungen_full_rabatt_is_zero() {
         let seminar = seminar();
         let mut termin = geplant(None);
@@ -732,7 +732,7 @@ mod tests {
         assert_eq!(leistungen[0].1.quelle().betrag().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn teilnahmeleistungen_applies_rabatt_snapshot() {
         let seminar = seminar();
         let mut termin = geplant(None);

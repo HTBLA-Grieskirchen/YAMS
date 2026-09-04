@@ -9,7 +9,7 @@ use super::common::{FakeDownMigration, FakeMigrationTarget, TestError, arc_down}
 
 // ---------- Apply up (same as UpMigration registry) ----------
 
-#[test]
+#[test_log::test]
 fn down_registry_apply_up_to_latest_applies_all_migrations() {
     // Arrange: DownMigration registry used for up
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -33,7 +33,7 @@ fn down_registry_apply_up_to_latest_applies_all_migrations() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn down_registry_apply_when_current_equals_target_is_no_op() {
     // Arrange
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -52,7 +52,7 @@ fn down_registry_apply_when_current_equals_target_is_no_op() {
 
 // ---------- Apply down ----------
 
-#[test]
+#[test_log::test]
 fn apply_down_from_current_to_lower_target_applies_down_migrations() {
     // Arrange: current 3, target 0; migrations 1, 2, 3
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -76,7 +76,7 @@ fn apply_down_from_current_to_lower_target_applies_down_migrations() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn apply_down_from_current_to_mid_target_applies_only_relevant_down() {
     // Arrange: current 5, target 2; migrations 1..5
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -99,7 +99,7 @@ fn apply_down_from_current_to_mid_target_applies_only_relevant_down() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn apply_down_one_step_from_2_to_1() {
     // Arrange: current 2, target 1
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -119,7 +119,7 @@ fn apply_down_one_step_from_2_to_1() {
     assert_eq!(log.lock().unwrap().as_slice(), &[(2, false)]);
 }
 
-#[test]
+#[test_log::test]
 fn apply_down_from_one_to_none() {
     // Arrange: current 1, target None -> in get_versions target_version.unwrap_or(latest_ver)
     // So target None means "latest" for up. For down, we're going from current to *lower*.
@@ -142,7 +142,7 @@ fn apply_down_from_one_to_none() {
 
 // ---------- Down registry: runner errors ----------
 
-#[test]
+#[test_log::test]
 fn down_registry_get_current_version_error_propagates() {
     // Arrange
     let registry: MigrationRegistry<dyn DownMigration<(), TestError>> = MigrationRegistry::new();
@@ -161,7 +161,7 @@ fn down_registry_get_current_version_error_propagates() {
     ));
 }
 
-#[test]
+#[test_log::test]
 fn down_registry_apply_down_failure_propagates_as_migration_failed() {
     // Arrange: current 2, target 0; fail on first down (version 2)
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -190,7 +190,7 @@ fn down_registry_apply_down_failure_propagates_as_migration_failed() {
 
 // ---------- From<Vec> for DownMigration registry ----------
 
-#[test]
+#[test_log::test]
 fn down_registry_from_vec_sorts_and_applies_down_correctly() {
     // Arrange: from vec out of order
     let log = Arc::new(Mutex::new(Vec::new()));

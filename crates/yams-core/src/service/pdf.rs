@@ -165,7 +165,7 @@ mod tests {
     use super::*;
     use uuid::Uuid;
 
-    #[test]
+    #[test_log::test]
     fn rechnung_key_uses_uuid() {
         let id = RechnungId(Uuid::nil());
         assert_eq!(
@@ -174,7 +174,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn teilnahme_key_nests_termin_and_buchung() {
         let termin = SeminarTerminId(Uuid::nil());
         let buchung = SeminarBuchungId(Uuid::from_u128(1));

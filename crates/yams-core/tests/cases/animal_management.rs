@@ -8,7 +8,7 @@ use yams_core::{
     service::{HaustierErstellen, KlientErstellen, VieleHaustiereErstellen},
 };
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_haustier() {
     let app = base_app_builder().await.build();
     let app = Arc::new(app);

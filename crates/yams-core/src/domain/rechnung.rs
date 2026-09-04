@@ -328,7 +328,7 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn rechnungsposition_berechnet_mwst_korrekt() {
         let position = position("Untersuchung", 100, 1);
 
@@ -337,7 +337,7 @@ mod tests {
         assert_eq!(position.gesamtpreis_brutto().value(), Decimal::new(119, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn rechnungsposition_mit_stückzahl_multipliziert_netto() {
         let position = position("Futter", 25, 2);
 
@@ -346,7 +346,7 @@ mod tests {
         assert_eq!(position.gesamtpreis_brutto().value(), Decimal::new(595, 1));
     }
 
-    #[test]
+    #[test_log::test]
     fn rechnungsposition_zero_mwst_brutto_equals_netto() {
         let position = Rechnungsposition::neu(
             "Netto".into(),
@@ -361,7 +361,7 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn rechnung_offen_rejects_empty_positionen() {
         let err = RechnungOffen::neu(
             RechnungId(Uuid::new_v4()),
@@ -375,7 +375,7 @@ mod tests {
         assert!(matches!(err, RechnungFehler::KeineLeistungen));
     }
 
-    #[test]
+    #[test_log::test]
     fn aus_leistungen_rejects_klient_mismatch() {
         let klient = KlientId(Uuid::new_v4());
         let other = KlientId(Uuid::new_v4());
@@ -395,7 +395,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn aus_leistungen_skips_already_abgerechnet() {
         let klient = KlientId(Uuid::new_v4());
         let mut billed = leistung_offen(klient.clone(), "Alt", 10);
@@ -417,7 +417,7 @@ mod tests {
         ));
     }
 
-    #[test]
+    #[test_log::test]
     fn aus_leistungen_maps_seminar_quelle() {
         let klient = KlientId(Uuid::new_v4());
         let mut seminar = Leistung::from(

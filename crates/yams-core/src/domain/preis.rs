@@ -79,12 +79,12 @@ impl Mul<&Ratio> for &Preis {
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn preis_zero_is_zero() {
         assert_eq!(Preis::zero().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn preis_add_sums_values() {
         let a = Preis::new(Decimal::new(1250, 2)).unwrap();
         let b = Preis::new(Decimal::new(750, 2)).unwrap();
@@ -92,7 +92,7 @@ mod tests {
         assert_eq!((a + b).value(), Decimal::new(20, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn preis_times_menge_scales_value() {
         let preis = Preis::new(Decimal::new(25, 0)).unwrap();
         let menge = Menge::new(Decimal::new(2, 0)).unwrap();
@@ -100,7 +100,7 @@ mod tests {
         assert_eq!((&preis * &menge).value(), Decimal::new(50, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn preis_times_ratio_scales_value() {
         let preis = Preis::new(Decimal::new(100, 0)).unwrap();
         let mwst = Ratio::new(Decimal::new(20, 2)).unwrap();
@@ -108,12 +108,12 @@ mod tests {
         assert_eq!((&preis * &mwst).value(), Decimal::new(20, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn preis_new_rejects_negative() {
         assert!(Preis::new(Decimal::new(-1, 0)).is_err());
     }
 
-    #[test]
+    #[test_log::test]
     fn nach_rabatt_zero_keeps_basis() {
         let preis = Preis::new(Decimal::new(100, 0)).unwrap();
         assert_eq!(
@@ -122,14 +122,14 @@ mod tests {
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn nach_rabatt_twenty_percent() {
         let preis = Preis::new(Decimal::new(100, 0)).unwrap();
         let rabatt = Ratio::new(Decimal::new(20, 2)).unwrap();
         assert_eq!(preis.nach_rabatt(&rabatt).value(), Decimal::new(80, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn nach_rabatt_full_is_zero() {
         let preis = Preis::new(Decimal::new(100, 0)).unwrap();
         assert_eq!(preis.nach_rabatt(&Ratio::one()).value(), Decimal::ZERO);

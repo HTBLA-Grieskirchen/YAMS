@@ -115,7 +115,7 @@ fn assert_offen_mwst(leistung: &Leistung, expected: Decimal) {
     }
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn seminar_buchung_rabatt_wird_abgehalten_und_abgerechnet() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -166,7 +166,7 @@ async fn seminar_buchung_rabatt_wird_abgehalten_und_abgerechnet() {
     );
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn stornierte_buchung_wird_nicht_abgerechnet() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -202,7 +202,7 @@ async fn stornierte_buchung_wird_nicht_abgerechnet() {
     assert!(abgehalten.leistungen().is_empty());
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn absage_blockiert_abgehalten() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -224,7 +224,7 @@ async fn absage_blockiert_abgehalten() {
     assert!(format!("{err:?}").contains("nicht geplant"));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn zweites_abgehalten_schlägt_fehl() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -245,7 +245,7 @@ async fn zweites_abgehalten_schlägt_fehl() {
     assert!(format!("{err:?}").contains("nicht geplant"));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn kapazität_und_doppelbuchung() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -282,7 +282,7 @@ async fn kapazität_und_doppelbuchung() {
     assert!(format!("{full:?}").contains("invarianten"));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn aktualisieren_nur_geplant() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -324,7 +324,7 @@ async fn aktualisieren_nur_geplant() {
     assert!(format!("{err:?}").contains("nicht geplant"));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn umsatz_vorschau_und_prognose() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -388,7 +388,7 @@ async fn umsatz_vorschau_und_prognose() {
     assert_eq!(prognose.gesamt_netto.value(), Decimal::new(180, 0));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn abgehalten_maps_every_confirmed_buchung() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -436,7 +436,7 @@ async fn abgehalten_maps_every_confirmed_buchung() {
     }
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn zwei_klienten_erzeugen_zwei_rechnungen() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -474,7 +474,7 @@ async fn zwei_klienten_erzeugen_zwei_rechnungen() {
     assert_eq!(rechnungen.len(), 2);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn voller_rabatt_ergibt_null_betrag() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -509,7 +509,7 @@ async fn voller_rabatt_ergibt_null_betrag() {
     assert_eq!(rechnungen[0].gesamtbetrag_brutto().value(), Decimal::ZERO);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn storno_erlaubt_erneute_buchung_desselben_klienten() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -562,7 +562,7 @@ async fn storno_erlaubt_erneute_buchung_desselben_klienten() {
     assert_eq!(abgehalten.leistungen().len(), 1);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn abgehalten_schreibt_teilnahme_pdf_für_bestätigte_buchungen() {
     let (app, store, renderer) = app_with_pdf_fakes().await;
     let seminar = seminar(&app).await;
@@ -628,7 +628,7 @@ async fn abgehalten_schreibt_teilnahme_pdf_für_bestätigte_buchungen() {
     );
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn aktualisieren_blockiert_nach_abgehalten() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -652,7 +652,7 @@ async fn aktualisieren_blockiert_nach_abgehalten() {
     assert!(format!("{err:?}").contains("nicht geplant"));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn vorschau_abgehalten_zählt_nur_offene_leistungen() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;
@@ -698,7 +698,7 @@ async fn vorschau_abgehalten_zählt_nur_offene_leistungen() {
     assert_eq!(danach.gesamt_netto.value(), Decimal::ZERO);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn prognose_enthält_abgehalten_offen_und_schließt_abgesagt_aus() {
     let app = Arc::new(base_app_builder().await.build());
     let seminar = seminar(&app).await;

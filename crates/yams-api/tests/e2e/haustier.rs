@@ -21,7 +21,7 @@ fn klient_body(kundennummer: u64) -> Value {
     })
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn haustier_erstellen_is_listed_and_fetchable() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, klient) = api.post_json("/api/klient", klient_body(2001)).await;
@@ -55,7 +55,7 @@ async fn haustier_erstellen_is_listed_and_fetchable() {
     assert_eq!(alle[0]["id"], haustier_id);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn haustier_erstellen_unknown_klient_is_not_found() {
     let api = YamsApiTestClient::new(base_app_builder().await);
     let (status, _) = api

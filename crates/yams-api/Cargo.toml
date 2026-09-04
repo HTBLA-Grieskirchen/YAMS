@@ -45,6 +45,8 @@ yams-persistence = { path = "../yams-persistence" }
 yams-fakes = { path = "../yams-fakes" }
 yams-filesystemstore = { path = "../yams-filesystemstore" }
 yams-typstreports = { path = "../yams-typstreports" }
+test-log = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 [[bin]]
 name = "export_spec"

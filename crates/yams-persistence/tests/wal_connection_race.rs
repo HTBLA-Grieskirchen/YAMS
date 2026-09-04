@@ -33,7 +33,7 @@ fn neuer_klient(kundennummer: u64) -> NeuerKlient {
     )
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn parallel_execute_fn_survives_wal_connection_init() {
     let app = app().await;
 

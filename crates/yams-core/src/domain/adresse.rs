@@ -44,21 +44,21 @@ pub struct Adresse {
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn ländercode_from_str_accepts_at_de_ch() {
         assert_eq!(Ländercode::from_str("AT").unwrap(), Ländercode::AT);
         assert_eq!(Ländercode::from_str("DE").unwrap(), Ländercode::DE);
         assert_eq!(Ländercode::from_str("CH").unwrap(), Ländercode::CH);
     }
 
-    #[test]
+    #[test_log::test]
     fn ländercode_as_str_roundtrip() {
         for code in [Ländercode::AT, Ländercode::DE, Ländercode::CH] {
             assert_eq!(Ländercode::from_str(code.as_str()).unwrap(), code);
         }
     }
 
-    #[test]
+    #[test_log::test]
     fn ländercode_rejects_unknown_code() {
         assert!(Ländercode::from_str("US").is_err());
         assert!(Ländercode::from_str("de").is_err());

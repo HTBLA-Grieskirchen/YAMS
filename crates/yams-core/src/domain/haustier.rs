@@ -141,7 +141,7 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn haustier_rejects_empty_name() {
         let err = Haustier::neu(
             HaustierId(Uuid::new_v4()),
@@ -152,7 +152,7 @@ mod tests {
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn haustier_neu_keeps_klient_id() {
         let klient_id = KlientId(Uuid::new_v4());
         let haustier = Haustier::neu(
@@ -164,7 +164,7 @@ mod tests {
         assert_eq!(haustier.name(), "Bello");
     }
 
-    #[test]
+    #[test_log::test]
     fn haustier_from_parts_rejects_empty_name() {
         let err = Haustier::from_parts(
             HaustierId(Uuid::new_v4()),

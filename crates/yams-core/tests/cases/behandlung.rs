@@ -8,7 +8,7 @@ fn mwst_19() -> Ratio {
     Ratio::new(Decimal::new(19, 2)).unwrap()
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_behandlung_erstellen() {
     let app = base_app_builder().await.build();
 
@@ -26,7 +26,7 @@ async fn test_behandlung_erstellen() {
     assert_eq!(behandlung.mwst().value(), Decimal::new(19, 2));
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_behandlung_erstellen_rejects_empty_name() {
     let app = base_app_builder().await.build();
 

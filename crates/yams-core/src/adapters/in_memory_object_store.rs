@@ -62,7 +62,7 @@ mod tests {
     use super::*;
     use crate::ports::collect_object;
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn put_then_get_roundtrip() {
         let store = InMemoryObjectStore::new();
         store.put("a/b", b"hello").await.unwrap();
@@ -70,13 +70,13 @@ mod tests {
         assert_eq!(collect_object(stream).await.unwrap(), b"hello");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn get_missing_is_none() {
         let store = InMemoryObjectStore::new();
         assert!(store.get("missing").await.unwrap().is_none());
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn put_overwrites() {
         let store = InMemoryObjectStore::new();
         store.put("k", b"one").await.unwrap();
@@ -85,7 +85,7 @@ mod tests {
         assert_eq!(collect_object(stream).await.unwrap(), b"two");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn delete_removes_object() {
         let store = InMemoryObjectStore::new();
         store.put("k", b"gone").await.unwrap();
@@ -93,7 +93,7 @@ mod tests {
         assert!(store.get("k").await.unwrap().is_none());
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn delete_missing_is_already_deleted() {
         let store = InMemoryObjectStore::new();
         let err = store.delete("missing").await.unwrap_err();
@@ -103,7 +103,7 @@ mod tests {
         ));
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn ensure_deleted_swallows_already_deleted() {
         let store = InMemoryObjectStore::new();
         store.ensure_deleted("missing").await.unwrap();

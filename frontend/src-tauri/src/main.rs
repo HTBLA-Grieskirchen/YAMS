@@ -10,6 +10,7 @@ use yams_typstreports::TypstPdfRenderer;
 
 mod commands;
 mod config;
+mod tracing_setup;
 
 use crate::config::{YAMSFileConfig, YAMSFrontendConfig};
 
@@ -19,6 +20,8 @@ fn frontend_config(config: tauri::State<'_, YAMSFrontendConfig>) -> YAMSFrontend
 }
 
 fn main() {
+    tracing_setup::init_tracing(&config::log_dir());
+
     let (backend_config, _frontend_config) = YAMSFileConfig::load();
 
     tauri::Builder::default()

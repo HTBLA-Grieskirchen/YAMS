@@ -35,19 +35,19 @@ impl Ratio {
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn ratio_accepts_zero_and_one() {
         assert_eq!(Ratio::new(Decimal::ZERO).unwrap().value(), Decimal::ZERO);
         assert_eq!(Ratio::new(Decimal::ONE).unwrap().value(), Decimal::ONE);
     }
 
-    #[test]
+    #[test_log::test]
     fn ratio_rejects_greater_than_one() {
         assert!(Ratio::new(Decimal::new(101, 2)).is_err());
         assert!(Ratio::new(Decimal::new(2, 0)).is_err());
     }
 
-    #[test]
+    #[test_log::test]
     fn ratio_rejects_negative() {
         assert!(Ratio::new(Decimal::new(-1, 2)).is_err());
     }

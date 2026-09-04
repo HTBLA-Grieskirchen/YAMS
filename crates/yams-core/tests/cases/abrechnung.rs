@@ -146,7 +146,7 @@ async fn setup_abrechnung_on(app: Arc<yams_core::App>) -> AbrechnungSetup {
     }
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss() {
     let setup = setup_abrechnung_fixture().await;
 
@@ -189,7 +189,7 @@ async fn test_tagesabschluss() {
     );
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss_zweiter_lauf_ohne_offene_leistungen() {
     let setup = setup_abrechnung_fixture().await;
 
@@ -212,7 +212,7 @@ async fn test_tagesabschluss_zweiter_lauf_ohne_offene_leistungen() {
     assert!(zweiter_abschluss.is_empty());
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss_tage_nach_leistungen_mit_fake_clock() {
     let leistungsdatum = NaiveDate::from_ymd_opt(2026, 8, 20).unwrap();
     let heute = NaiveDate::from_ymd_opt(2026, 8, 23).unwrap();
@@ -295,7 +295,7 @@ async fn test_tagesabschluss_tage_nach_leistungen_mit_fake_clock() {
     assert_eq!(rechnungen_heute[0].rechnungsdatum(), heute);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss_ignores_leistungen_on_other_dates() {
     let setup = setup_abrechnung_fixture().await;
     let other_day = NaiveDate::from_ymd_opt(2026, 8, 22).unwrap();
@@ -311,7 +311,7 @@ async fn test_tagesabschluss_ignores_leistungen_on_other_dates() {
     assert!(rechnungen.is_empty());
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss_empty_day_returns_no_rechnungen() {
     let app = Arc::new(base_app_builder().await.build());
     let rechnungen = app
@@ -323,7 +323,7 @@ async fn test_tagesabschluss_empty_day_returns_no_rechnungen() {
     assert!(rechnungen.is_empty());
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn test_tagesabschluss_incremental_reclose_bills_only_new_leistung() {
     let setup = setup_abrechnung_fixture().await;
 
@@ -373,7 +373,7 @@ async fn test_tagesabschluss_incremental_reclose_bills_only_new_leistung() {
     assert!(second[0].rechnungsnummer() > max_nummer);
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn tagesabschluss_schreibt_pdfs_und_ruft_renderer_mit_rechnungsdaten() {
     let (app, store, renderer) = app_with_pdf_fakes().await;
     let setup = setup_abrechnung_on(app).await;

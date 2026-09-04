@@ -216,7 +216,7 @@ fn hof_adresse() -> Adresse {
     }
 }
 
-#[test]
+#[test_log::test]
 fn renders_rechnung_pdf() {
     let rendered = generate(&sample_rechnung());
     assert_valid_pdf(&rendered);
@@ -235,7 +235,7 @@ fn renders_rechnung_pdf() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn renders_teilnahme_pdf() {
     let rendered = generate(&sample_teilnahme());
     assert_valid_pdf(&rendered);
@@ -254,7 +254,7 @@ fn renders_teilnahme_pdf() {
     assert_absent(&rendered.text, &["Adresse:"]);
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_empty_positionen_still_renders() {
     let rendered = generate(&rechnung(
         1,
@@ -272,7 +272,7 @@ fn rechnung_empty_positionen_still_renders() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_zero_vat_and_zero_totals() {
     let rendered = generate(&rechnung(
         7,
@@ -292,7 +292,7 @@ fn rechnung_zero_vat_and_zero_totals() {
     assert_contains(&rendered.text, &["Geschenk", "0 %"]);
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_full_vat_and_fractional_quantity() {
     let rendered = generate(&rechnung(
         8,
@@ -307,7 +307,7 @@ fn rechnung_full_vat_and_fractional_quantity() {
     assert_contains(&rendered.text, &["Öl", "1.5", "100 %"]);
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_formats_cents_with_comma() {
     let rendered = generate(&rechnung(
         9,
@@ -327,7 +327,7 @@ fn rechnung_formats_cents_with_comma() {
     assert_contains(&rendered.text, &["12,5 €", "20 %"]);
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_survives_umlauts_and_typst_markup_in_fields() {
     let mut klient = klient_named("Jörg", "Müller-Straße", 9);
     klient.adresse.straße_und_hausnummer = "Gasse #1 * 2 $x$ [y]".into();
@@ -358,7 +358,7 @@ fn rechnung_survives_umlauts_and_typst_markup_in_fields() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn rechnung_many_positions_span_pages() {
     let positionen = (0..40)
         .map(|i| {
@@ -388,7 +388,7 @@ fn rechnung_many_positions_span_pages() {
     assert_contains(&rendered.text, &["Position 00", "Position 39"]);
 }
 
-#[test]
+#[test_log::test]
 fn teilnahme_omits_location_when_unset() {
     let rendered = generate(&teilnahme(
         "Hufseminar",
@@ -403,7 +403,7 @@ fn teilnahme_omits_location_when_unset() {
     assert_absent(&rendered.text, &["Ort:", "Adresse:"]);
 }
 
-#[test]
+#[test_log::test]
 fn teilnahme_shows_address_without_name() {
     let rendered = generate(&teilnahme(
         "Hufseminar",
@@ -418,7 +418,7 @@ fn teilnahme_shows_address_without_name() {
     assert_absent(&rendered.text, &["Ort:"]);
 }
 
-#[test]
+#[test_log::test]
 fn teilnahme_shows_name_and_address() {
     let rendered = generate(&teilnahme(
         "Hufseminar",
@@ -442,7 +442,7 @@ fn teilnahme_shows_name_and_address() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn teilnahme_keeps_markup_characters_in_title() {
     let rendered = generate(&teilnahme(
         "Kurs #1: *Hufe* $a$ [AT]",

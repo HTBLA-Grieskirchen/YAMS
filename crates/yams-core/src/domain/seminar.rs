@@ -157,14 +157,14 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn seminar_rejects_empty_titel() {
         let err = seminar("  ").unwrap_err();
         assert!(matches!(err.current_context(), SeminarFehler::TitelLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn seminar_accepts_titel_and_rabatt() {
         let seminar = seminar("Hufseminar").unwrap();
         let rabatt = Ratio::new(Decimal::new(20, 2)).unwrap();

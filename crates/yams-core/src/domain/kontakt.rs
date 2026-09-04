@@ -90,40 +90,40 @@ impl AsRef<str> for Mobilnummer {
 mod tests {
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn email_accepts_valid_address() {
         let email = EmailAdresse::new("anna@muster.de").unwrap();
         assert_eq!(email.as_ref(), "anna@muster.de");
     }
 
-    #[test]
+    #[test_log::test]
     fn email_rejects_missing_at() {
         assert!(EmailAdresse::new("anna.muster.de").is_err());
     }
 
-    #[test]
+    #[test_log::test]
     fn email_rejects_missing_dot() {
         assert!(EmailAdresse::new("anna@musterde").is_err());
     }
 
-    #[test]
+    #[test_log::test]
     fn mobilnummer_accepts_digits() {
         let nummer = Mobilnummer::new("1234567890").unwrap();
         assert_eq!(nummer.as_ref(), "1234567890");
     }
 
-    #[test]
+    #[test_log::test]
     fn mobilnummer_accepts_plus_prefix() {
         let nummer = Mobilnummer::new("+431234567890").unwrap();
         assert_eq!(nummer.as_ref(), "+431234567890");
     }
 
-    #[test]
+    #[test_log::test]
     fn mobilnummer_rejects_too_short() {
         assert!(Mobilnummer::new("123456").is_err());
     }
 
-    #[test]
+    #[test_log::test]
     fn mobilnummer_rejects_non_digits() {
         assert!(Mobilnummer::new("+43 699 12345678").is_err());
         assert!(Mobilnummer::new("abc1234567").is_err());

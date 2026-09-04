@@ -129,7 +129,7 @@ mod tests {
     use super::*;
     use yams_core::ports::collect_object;
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn put_get_roundtrip() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         store.put("rechnungen/a.pdf", b"pdf-bytes").await.unwrap();
@@ -137,13 +137,13 @@ mod tests {
         assert_eq!(collect_object(stream).await.unwrap(), b"pdf-bytes");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn missing_is_none() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         assert!(store.get("nope").await.unwrap().is_none());
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn rejects_parent_segment() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         assert!(store.put("../escape", b"x").await.is_err());
@@ -152,7 +152,7 @@ mod tests {
         assert!(store.put("", b"x").await.is_err());
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn overwrites_existing() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         store.put("k", b"one").await.unwrap();
@@ -161,7 +161,7 @@ mod tests {
         assert_eq!(collect_object(stream).await.unwrap(), b"two");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn delete_removes_object() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         store.put("rechnungen/a.pdf", b"pdf").await.unwrap();
@@ -169,7 +169,7 @@ mod tests {
         assert!(store.get("rechnungen/a.pdf").await.unwrap().is_none());
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn delete_missing_is_already_deleted() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         let err = store.delete("rechnungen/missing.pdf").await.unwrap_err();
@@ -179,7 +179,7 @@ mod tests {
         ));
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn ensure_deleted_swallows_already_deleted() {
         let store = FileSystemObjectStore::in_temp_dir().unwrap();
         store

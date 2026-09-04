@@ -132,20 +132,20 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn behandlung_rejects_empty_name() {
         let err = behandlung("", Ratio::one()).unwrap_err();
         assert!(matches!(err.current_context(), BehandlungFehler::NameLeer));
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn behandlung_accepts_zero_mwst() {
         let behandlung = behandlung("Untersuchung", Ratio::zero()).unwrap();
         assert_eq!(behandlung.mwst().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn behandlung_accepts_full_mwst() {
         let behandlung = behandlung("Untersuchung", Ratio::one()).unwrap();
         assert_eq!(behandlung.mwst().value(), Decimal::ONE);

@@ -224,7 +224,7 @@ mod tests {
         )
     }
 
-    #[test]
+    #[test_log::test]
     fn klient_rejects_empty_vorname() {
         let err = neu(
             "",
@@ -237,7 +237,7 @@ mod tests {
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn klient_rejects_invalid_email_with_attach() {
         let err = Klient::from_parts(
             KlientId(Uuid::new_v4()),
@@ -255,7 +255,7 @@ mod tests {
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn klient_rejects_invalid_mobilnummer_with_attach() {
         let err = Klient::from_parts(
             KlientId(Uuid::new_v4()),

@@ -9,7 +9,7 @@ use super::common::{FakeMigrationTarget, FakeUpMigration, TestError, arc_up};
 
 // ---------- Registry construction ----------
 
-#[test]
+#[test_log::test]
 fn registry_default_is_empty() {
     // Arrange: use Default for MigrationRegistry<dyn UpMigration<(), TestError>>
     // Act
@@ -22,7 +22,7 @@ fn registry_default_is_empty() {
     assert_eq!(target.current_version(), None);
 }
 
-#[test]
+#[test_log::test]
 fn registry_new_is_empty() {
     // Arrange & Act
     let registry: MigrationRegistry<dyn UpMigration<(), TestError>> = MigrationRegistry::new();
@@ -34,7 +34,7 @@ fn registry_new_is_empty() {
     assert_eq!(target.current_version(), None);
 }
 
-#[test]
+#[test_log::test]
 fn registry_from_vec_sorts_by_version() {
     // Arrange: create migrations out of order (3, 1, 2)
     let log = Arc::new(Mutex::new(Vec::<(usize, bool)>::new()));
@@ -57,7 +57,7 @@ fn registry_from_vec_sorts_by_version() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn add_migration_out_of_order_results_in_sorted_apply_order() {
     // Arrange: add migrations in order 2, 1, 3
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -81,7 +81,7 @@ fn add_migration_out_of_order_results_in_sorted_apply_order() {
 
 // ---------- Apply up: current == target (no-op) ----------
 
-#[test]
+#[test_log::test]
 fn apply_when_current_equals_target_none_is_no_op() {
     // Arrange: target at 0, no migrations, target_version None -> current 0, target 0
     let registry: MigrationRegistry<dyn UpMigration<(), TestError>> = MigrationRegistry::new();
@@ -95,7 +95,7 @@ fn apply_when_current_equals_target_none_is_no_op() {
     assert_eq!(target.current_version(), Some(0));
 }
 
-#[test]
+#[test_log::test]
 fn apply_when_current_equals_target_some_is_no_op() {
     // Arrange: one migration v1, target already at 1
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -112,7 +112,7 @@ fn apply_when_current_equals_target_some_is_no_op() {
     assert_eq!(target.current_version(), Some(1));
 }
 
-#[test]
+#[test_log::test]
 fn apply_when_current_equals_latest_target_none_is_no_op() {
     // Arrange: migrations 1, 2, 3; target at 3
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -134,7 +134,7 @@ fn apply_when_current_equals_latest_target_none_is_no_op() {
 
 // ---------- Apply up: from None (no migrations applied yet) ----------
 
-#[test]
+#[test_log::test]
 fn apply_from_none_to_latest_applies_all_migrations() {
     // Arrange
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -157,7 +157,7 @@ fn apply_from_none_to_latest_applies_all_migrations() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn apply_from_none_to_specific_target_applies_only_up_to_target() {
     // Arrange: migrations 1..5, target_version Some(3)
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -179,7 +179,7 @@ fn apply_from_none_to_specific_target_applies_only_up_to_target() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn apply_migration_with_description_runs_successfully() {
     // Arrange: migration with description (output not asserted)
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -200,7 +200,7 @@ fn apply_migration_with_description_runs_successfully() {
     assert_eq!(log.lock().unwrap().as_slice(), &[(1, true)]);
 }
 
-#[test]
+#[test_log::test]
 fn apply_from_none_to_target_zero_leaves_none_and_applies_nothing() {
     // Arrange: get_current_version returns None -> current 0; target Some(0) -> target 0
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -219,7 +219,7 @@ fn apply_from_none_to_target_zero_leaves_none_and_applies_nothing() {
 
 // ---------- Apply up: from some version to higher ----------
 
-#[test]
+#[test_log::test]
 fn apply_from_mid_to_latest_applies_only_pending() {
     // Arrange: current 1, migrations 1, 2, 3
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -239,7 +239,7 @@ fn apply_from_mid_to_latest_applies_only_pending() {
     assert_eq!(log.lock().unwrap().as_slice(), &[(2, true), (3, true)]);
 }
 
-#[test]
+#[test_log::test]
 fn apply_from_mid_to_mid_applies_only_in_range() {
     // Arrange: current 2, target Some(4), migrations 1..=5
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -260,7 +260,7 @@ fn apply_from_mid_to_mid_applies_only_in_range() {
 
 // ---------- UpMigration-only registry: target < current -> DownMigrationNotSupported ----------
 
-#[test]
+#[test_log::test]
 fn apply_target_lower_than_current_returns_down_migration_not_supported() {
     // Arrange: UpMigration-only registry, current 3, target Some(1)
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -283,7 +283,7 @@ fn apply_target_lower_than_current_returns_down_migration_not_supported() {
     assert!(log.lock().unwrap().is_empty());
 }
 
-#[test]
+#[test_log::test]
 fn apply_target_zero_when_current_nonzero_returns_down_migration_not_supported() {
     // Arrange
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -304,7 +304,7 @@ fn apply_target_zero_when_current_nonzero_returns_down_migration_not_supported()
 
 // ---------- Runner errors ----------
 
-#[test]
+#[test_log::test]
 fn get_current_version_error_propagates_as_runner_error() {
     // Arrange
     let registry: MigrationRegistry<dyn UpMigration<(), TestError>> = MigrationRegistry::new();
@@ -323,7 +323,7 @@ fn get_current_version_error_propagates_as_runner_error() {
     ));
 }
 
-#[test]
+#[test_log::test]
 fn apply_migration_error_propagates_as_migration_failed() {
     // Arrange: one migration, target will fail on first apply
     let log = Arc::new(Mutex::new(Vec::new()));
@@ -346,7 +346,7 @@ fn apply_migration_error_propagates_as_migration_failed() {
     assert_eq!(target.current_version(), None);
 }
 
-#[test]
+#[test_log::test]
 fn apply_migration_error_on_second_migration_stops_chain() {
     // Arrange: two migrations; target fails on the second apply_migration call
     let log = Arc::new(Mutex::new(Vec::new()));

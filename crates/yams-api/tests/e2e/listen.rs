@@ -20,7 +20,7 @@ fn klient_body(kundennummer: u64) -> serde_json::Value {
     })
 }
 
-#[pollster::test]
+#[test_log::test(pollster::test)]
 async fn listen_endpoints_return_created_entities() {
     let api = YamsApiTestClient::new(base_app_builder().await);
 

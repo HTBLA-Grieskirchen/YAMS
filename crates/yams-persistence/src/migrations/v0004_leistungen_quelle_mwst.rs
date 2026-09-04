@@ -176,7 +176,7 @@ mod tests {
         db.connect().unwrap()
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn merge_drops_quelle_mwst_prozentsatz_so_insert_matches_repo() {
         let conn = memory().await;
         conn.execute_batch(
@@ -230,7 +230,7 @@ mod tests {
         .expect("repo INSERT must not hit quelle_mwst_prozentsatz NOT NULL");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn rename_only_prozentsatz_column_when_new_name_absent() {
         let conn = memory().await;
         conn.execute(
@@ -260,7 +260,7 @@ mod tests {
         assert_eq!(row.get::<String>(0).unwrap(), "0.2");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn already_aligned_schema_is_noop() {
         let conn = memory().await;
         conn.execute(
@@ -277,7 +277,7 @@ mod tests {
         assert!(names.contains(&"quelle_mwst".into()));
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn adds_quelle_mwst_when_neither_column_exists() {
         let conn = memory().await;
         conn.execute(
@@ -293,7 +293,7 @@ mod tests {
         assert!(names.contains(&"quelle_mwst".into()));
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn converts_percentage_mwst_to_ratio() {
         let conn = memory().await;
         conn.execute(
@@ -327,7 +327,7 @@ mod tests {
         assert_eq!(values.get("c").unwrap(), "0.19");
     }
 
-    #[pollster::test]
+    #[test_log::test(pollster::test)]
     async fn idempotent_when_already_ratio() {
         let conn = memory().await;
         conn.execute(

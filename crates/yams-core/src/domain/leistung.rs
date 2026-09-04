@@ -266,7 +266,7 @@ mod tests {
 
     use super::*;
 
-    #[test]
+    #[test_log::test]
     fn produkt_betrag_multiplies_menge() {
         let quelle = LeistungQuelle::Produkt {
             produkt_id: ProduktId(Uuid::new_v4()),
@@ -278,7 +278,7 @@ mod tests {
         assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn behandlung_betrag_uses_snapshot_preis() {
         let quelle = LeistungQuelle::Behandlung {
             behandlung_id: BehandlungId(Uuid::new_v4()),
@@ -289,7 +289,7 @@ mod tests {
         assert_eq!(quelle.betrag().value(), Decimal::new(50, 0));
     }
 
-    #[test]
+    #[test_log::test]
     fn seminar_betrag_uses_nach_rabatt() {
         let quelle = LeistungQuelle::Seminar {
             termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
@@ -303,7 +303,7 @@ mod tests {
         assert_eq!(quelle.mwst().value(), Decimal::new(20, 2));
     }
 
-    #[test]
+    #[test_log::test]
     fn seminar_betrag_full_rabatt_is_zero() {
         let quelle = LeistungQuelle::Seminar {
             termin_id: crate::domain::SeminarTerminId(Uuid::new_v4()),
@@ -316,7 +316,7 @@ mod tests {
         assert_eq!(quelle.betrag().value(), Decimal::ZERO);
     }
 
-    #[test]
+    #[test_log::test]
     fn leistung_rejects_empty_beschreibung() {
         let err = LeistungOffen::neu(
             LeistungId(Uuid::new_v4()),
@@ -339,7 +339,7 @@ mod tests {
         assert!(format!("{err:?}").contains(CONSTRUCTING));
     }
 
-    #[test]
+    #[test_log::test]
     fn mark_abgerechnet_sets_rechnung_id() {
         let rechnung_id = RechnungId(Uuid::new_v4());
         let offen = LeistungOffen::neu(

@@ -3,7 +3,11 @@
 import { type FormEvent, useEffect, useState } from "react";
 
 import { useSeminarTerminPlanenMutation } from "@/api/hooks";
-import type { Seminar, SeminarTermin, SeminarTerminErstellung } from "@/api/types";
+import type {
+  Seminar,
+  SeminarTermin,
+  SeminarTerminErstellung,
+} from "@/api/types";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {

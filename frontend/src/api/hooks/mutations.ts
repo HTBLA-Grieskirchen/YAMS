@@ -198,7 +198,9 @@ export function useSeminarTerminPlanenMutation() {
         yamsKeys.seminarTermine.detail(termin.id),
         termin,
       );
-      queryClient.invalidateQueries({ queryKey: yamsKeys.seminarTermine.all() });
+      queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
     },
   });
 }

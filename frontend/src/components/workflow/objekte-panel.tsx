@@ -1,16 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
-
-import { Alert } from "@/components/ui/alert";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import type { ReactNode } from "react";
 import {
   useAlleBehandlungenQuery,
   useAlleHaustiereQuery,
@@ -21,6 +12,14 @@ import {
   useAlleSeminareQuery,
   useAlleSeminarTermineQuery,
 } from "@/api/hooks";
+import { Alert } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type EntityListProps<T> = {
   title: string;
@@ -112,7 +111,8 @@ export function ObjektePanel() {
               {haustier.name} ({haustier.tierart})
             </p>
             <p className="text-sm text-zinc-500">
-              Geb. {haustier.geburtstag} · Klient {haustier.klientId.slice(0, 8)}…
+              Geb. {haustier.geburtstag} · Klient{" "}
+              {haustier.klientId.slice(0, 8)}…
             </p>
           </>
         )}

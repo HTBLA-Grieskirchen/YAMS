@@ -53,7 +53,8 @@ export function KatalogForm({
 }: KatalogFormProps) {
   const produktMutation = useProduktErstellenMutation();
   const behandlungMutation = useBehandlungErstellenMutation();
-  const [produktForm, setProduktForm] = useState<ProduktErstellung>(defaultProdukt);
+  const [produktForm, setProduktForm] =
+    useState<ProduktErstellung>(defaultProdukt);
   const [behandlungForm, setBehandlungForm] =
     useState<BehandlungErstellung>(defaultBehandlung);
 
@@ -110,7 +111,10 @@ export function KatalogForm({
                     required
                   />
                 </Field>
-                <Field label="Einzelpreis" hint="Dezimal als String, z. B. 24.99">
+                <Field
+                  label="Einzelpreis"
+                  hint="Dezimal als String, z. B. 24.99"
+                >
                   <Input
                     value={produktForm.einzelpreis}
                     onChange={(e) =>
@@ -122,7 +126,10 @@ export function KatalogForm({
                     required
                   />
                 </Field>
-                <Field label="MwSt" hint="Anteil 0–1 als String, z. B. 0.20 für 20%">
+                <Field
+                  label="MwSt"
+                  hint="Anteil 0–1 als String, z. B. 0.20 für 20%"
+                >
                   <Input
                     value={produktForm.mwst}
                     onChange={(e) =>
@@ -204,7 +211,9 @@ export function KatalogForm({
                 </Field>
               </div>
               {behandlungMutation.error ? (
-                <Alert variant="error">{String(behandlungMutation.error)}</Alert>
+                <Alert variant="error">
+                  {String(behandlungMutation.error)}
+                </Alert>
               ) : null}
               <Button type="submit" disabled={behandlungMutation.isPending}>
                 {behandlungMutation.isPending

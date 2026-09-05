@@ -7757,34 +7757,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "yams"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "directories",
- "error-stack",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-fs",
- "tauri-plugin-shell",
- "test-log",
- "thiserror 2.0.20",
- "toml 1.1.5+spec-1.1.0",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "url",
- "uuid",
- "yams-api",
- "yams-core",
- "yams-filesystemstore",
- "yams-persistence",
- "yams-typstreports",
-]
-
-[[package]]
 name = "yams-api"
 version = "0.1.0"
 dependencies = [
@@ -7898,6 +7870,34 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "uuid",
+ "yams-api",
+ "yams-core",
+ "yams-filesystemstore",
+ "yams-persistence",
+ "yams-typstreports",
+]
+
+[[package]]
+name = "yams-tauri"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "directories",
+ "error-stack",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-fs",
+ "tauri-plugin-shell",
+ "test-log",
+ "thiserror 2.0.20",
+ "toml 1.1.5+spec-1.1.0",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "url",
  "uuid",
  "yams-api",
  "yams-core",

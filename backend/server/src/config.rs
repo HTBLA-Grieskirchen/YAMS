@@ -23,7 +23,7 @@ pub enum ConfigError {
 #[serde(rename_all = "camelCase", default)]
 pub struct ServerConfig {
     pub bind_address: String,
-    pub port: u16,
+    pub bind_port: u16,
     pub subpath: String,
     pub database_url: String,
     pub object_store_dir: PathBuf,
@@ -34,10 +34,10 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             bind_address: "127.0.0.1".into(),
-            port: 3000,
+            bind_port: 3000,
             subpath: "/".into(),
             database_url: "yams.db".into(),
-            object_store_dir: PathBuf::from("objects.local/"),
+            object_store_dir: PathBuf::from("storage/"),
             log_dir: None,
         }
     }
@@ -51,12 +51,12 @@ pub struct Cli {
     pub config_path: Option<PathBuf>,
 
     /// IP address to bind to
-    #[arg(long, env = "BIND_ADDRESS")]
+    #[arg(long, env = "YAMS_BIND_ADDRESS")]
     pub bind_address: Option<String>,
 
     /// Port to bind to
-    #[arg(long, env = "PORT")]
-    pub port: Option<u16>,
+    #[arg(long, env = "YAMS_BIND_PORT")]
+    pub bind_port: Option<u16>,
 
     /// Subpath this service is hosted on
     #[arg(long, env = "SUBPATH")]
@@ -133,8 +133,8 @@ fn overlay(mut config: ServerConfig, cli: &Cli) -> ServerConfig {
     if let Some(bind_address) = &cli.bind_address {
         config.bind_address = bind_address.clone();
     }
-    if let Some(port) = cli.port {
-        config.port = port;
+    if let Some(bind_port) = cli.bind_port {
+        config.bind_port = bind_port;
     }
     if let Some(subpath) = &cli.subpath {
         config.subpath = subpath.clone();
@@ -182,7 +182,7 @@ mod tests {
     fn file_values_used_when_no_overlay() {
         let file = ServerConfig {
             database_url: "from-file.db".into(),
-            port: 4000,
+            bind_port: 4000,
             ..ServerConfig::default()
         };
         assert_eq!(overlay(file.clone(), &Cli::default()), file);
@@ -192,18 +192,18 @@ mod tests {
     fn env_or_cli_overlay_beats_file() {
         let file = ServerConfig {
             database_url: "from-file.db".into(),
-            port: 4000,
+            bind_port: 4000,
             bind_address: "0.0.0.0".into(),
             ..ServerConfig::default()
         };
         let cli = Cli {
             database_url: Some("from-env.db".into()),
-            port: Some(5000),
+            bind_port: Some(5000),
             ..Cli::default()
         };
         let resolved = overlay(file, &cli);
         assert_eq!(resolved.database_url, "from-env.db");
-        assert_eq!(resolved.port, 5000);
+        assert_eq!(resolved.bind_port, 5000);
         assert_eq!(resolved.bind_address, "0.0.0.0");
     }
 
@@ -298,7 +298,7 @@ logDir = "server-logs/"
                 "databaseUrl": "file.db",
                 "objectStoreDir": "objects/",
                 "bindAddress": "10.0.0.1",
-                "port": 1234,
+                "bindPort": 1234,
                 "subpath": "/yams/"
             }"#,
         )
@@ -308,7 +308,7 @@ logDir = "server-logs/"
         assert_eq!(loaded.database_url, "file.db");
         assert_eq!(loaded.object_store_dir, PathBuf::from("objects/"));
         assert_eq!(loaded.bind_address, "10.0.0.1");
-        assert_eq!(loaded.port, 1234);
+        assert_eq!(loaded.bind_port, 1234);
         assert_eq!(loaded.subpath, "/yams/");
 
         std::fs::remove_dir_all(&dir).ok();

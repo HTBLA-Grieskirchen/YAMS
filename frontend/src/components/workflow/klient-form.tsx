@@ -149,7 +149,9 @@ export function KlientForm({ klient, onCreated }: KlientFormProps) {
               <Field label="Postleitzahl">
                 <Input
                   value={form.adresse.postleitzahl}
-                  onChange={(e) => updateAdresse("postleitzahl", e.target.value)}
+                  onChange={(e) =>
+                    updateAdresse("postleitzahl", e.target.value)
+                  }
                   required
                 />
               </Field>

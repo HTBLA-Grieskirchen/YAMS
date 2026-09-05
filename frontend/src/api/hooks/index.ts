@@ -1,21 +1,3 @@
-export { useYamsApiReady } from "./use-yams-api-ready";
-export {
-  useAlleBehandlungenQuery,
-  useAlleHaustiereQuery,
-  useAlleKlientenQuery,
-  useAlleLeistungenQuery,
-  useAlleProdukteQuery,
-  useAlleRechnungenQuery,
-  useAlleSeminareQuery,
-  useAlleSeminarTermineQuery,
-  useHaustierByIdQuery,
-  useHealthQuery,
-  useRechnungenFürKlientQuery,
-  useSeminarByIdQuery,
-  useSeminarTerminByIdQuery,
-  useSeminarUmsatzPrognoseQuery,
-  useSeminarUmsatzVorschauQuery,
-} from "./queries";
 export {
   useBehandlungErstellenMutation,
   useHaustierErstellenMutation,
@@ -33,3 +15,21 @@ export {
   useSeminarTerminPlanenMutation,
   useTagesabschlussDurchführenMutation,
 } from "./mutations";
+export {
+  useAlleBehandlungenQuery,
+  useAlleHaustiereQuery,
+  useAlleKlientenQuery,
+  useAlleLeistungenQuery,
+  useAlleProdukteQuery,
+  useAlleRechnungenQuery,
+  useAlleSeminareQuery,
+  useAlleSeminarTermineQuery,
+  useHaustierByIdQuery,
+  useHealthQuery,
+  useRechnungenFürKlientQuery,
+  useSeminarByIdQuery,
+  useSeminarTerminByIdQuery,
+  useSeminarUmsatzPrognoseQuery,
+  useSeminarUmsatzVorschauQuery,
+} from "./queries";
+export { useYamsApiReady } from "./use-yams-api-ready";

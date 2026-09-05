@@ -72,7 +72,9 @@ export function TagesabschlussForm({
             ) : null}
 
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Abschließen…" : "Tagesabschluss durchführen"}
+              {mutation.isPending
+                ? "Abschließen…"
+                : "Tagesabschluss durchführen"}
             </Button>
           </form>
         )}

@@ -206,7 +206,7 @@ Consumers:
 - **yams-server** — full features (OpenAPI HTTP + Swagger/ReDoc)
 - **src-tauri** — `default-features = false, features = ["serde"]` (IPC only, no poem)
 
-After schema or route changes, run `mise run build:openapi` to refresh `frontend/src/api/schema.d.ts`.
+After schema or route changes, run `mise run sync:openapi` to refresh `frontend/src/api/schema.d.ts`.
 
 ## yams-persistence — Driven Adapter
 
@@ -273,12 +273,12 @@ Persistence proves adapter conformance by running the same case suite against re
 - **mise** (`mise.toml`) — Rust toolchain, Node 22, env vars (`FRONTEND_DIR`, `OPENAPI_SPEC`), task includes from `tasks/`
 - **Rust nightly pinned** — `rust-toolchain.toml` uses `nightly-2026-07-02`; do not bump without testing (newer nightlies break poem-openapi lifetime capturing across await)
 - **cargo-nextest** — `cargo nextest` for running tests
-- **Key tasks**: `test:backend` (`cargo test`), `build:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri` (embedded), `dev:tauri+server`, `dev:frontend+server`
+- **Key tasks**: `test:backend` (`cargo test`), `sync:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri` (embedded), `dev:tauri+server`, `dev:frontend+server`
 - **Formatting/linting**: `fmt:rust`, `lint:crates` (clippy), `fmt:biome` (frontend)
 
 ## Frontend
 
-Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `frontend/src/api/schema.d.ts` (`mise run build:openapi`).
+Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `frontend/src/api/schema.d.ts` (`mise run sync:openapi`).
 
 ### API layer
 
@@ -313,7 +313,7 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 ## Conventions for Contributors
 
 1. **New feature?** Walk the vertical slice in order, German feature names (`seminar.rs`, not `model.rs`):
-   `domain/` (unit tests in the same file) → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → use-case case in `yams-core/tests/cases/` → API e2e in `yams-api/tests/e2e/` when the public surface changed → `mise run build:openapi` (if API surface changed).
+   `domain/` (unit tests in the same file) → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → use-case case in `yams-core/tests/cases/` → API e2e in `yams-api/tests/e2e/` when the public surface changed → `mise run sync:openapi` (if API surface changed).
 2. **Domain changes stay in core.** API DTOs are a separate translation layer; never leak serde/openapi concerns into core.
 3. **All mutations through `App::execute`.** No direct repo calls from adapters.
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.

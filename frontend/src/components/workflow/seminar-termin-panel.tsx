@@ -90,9 +90,7 @@ export function SeminarTerminPanel({
   }
 
   const mutationError =
-    abgehaltenMutation.error ??
-    absagenMutation.error ??
-    stornoMutation.error;
+    abgehaltenMutation.error ?? absagenMutation.error ?? stornoMutation.error;
 
   return (
     <Card>
@@ -130,7 +128,8 @@ export function SeminarTerminPanel({
                   {buchung.rabatt}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {buchung.status === "Bestätigt" && termin.status === "Geplant" ? (
+                  {buchung.status === "Bestätigt" &&
+                  termin.status === "Geplant" ? (
                     <Button
                       type="button"
                       variant="secondary"
@@ -147,9 +146,7 @@ export function SeminarTerminPanel({
                       disabled={pdfLoading === buchung.id}
                       onClick={() => downloadTeilnahmePdf(buchung.id)}
                     >
-                      {pdfLoading === buchung.id
-                        ? "PDF…"
-                        : "Teilnahme-PDF"}
+                      {pdfLoading === buchung.id ? "PDF…" : "Teilnahme-PDF"}
                     </Button>
                   ) : null}
                 </div>

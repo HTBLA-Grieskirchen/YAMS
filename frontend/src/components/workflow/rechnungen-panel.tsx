@@ -60,7 +60,9 @@ export function RechnungenPanel({
                 </div>
                 <p className="mt-1 text-sm">
                   Gesamt:{" "}
-                  <span className="font-mono">{rechnung.gesamtbetragBrutto}</span>{" "}
+                  <span className="font-mono">
+                    {rechnung.gesamtbetragBrutto}
+                  </span>{" "}
                   €
                 </p>
                 <ul className="mt-3 space-y-1 text-sm text-zinc-600 dark:text-zinc-400">

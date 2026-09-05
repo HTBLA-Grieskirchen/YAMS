@@ -36543,7 +36543,7 @@
       "_origin": "semantic",
       "community": 66,
       "community_name": "Integration Test Workflow",
-      "description": "Tool, env, and task orchestration via mise.toml; key tasks include test:backend, build:openapi, dev:server, dev:tauri",
+      "description": "Tool, env, and task orchestration via mise.toml; key tasks include test:backend, sync:openapi, dev:server, dev:tauri",
       "file_type": "concept",
       "norm_label": "mise",
       "source_file": ".cursor/AGENTS.md",

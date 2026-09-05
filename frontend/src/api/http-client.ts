@@ -2,7 +2,6 @@ import createClient from "openapi-fetch";
 
 import { ApiError } from "./errors";
 import type { paths } from "./schema";
-import type { YamsApi } from "./yams-api";
 import type {
   BehandlungErstellung,
   HaustierErstellung,
@@ -18,13 +17,11 @@ import type {
   SeminarTerminErstellung,
   TagesabschlussErstellung,
 } from "./types";
+import type { YamsApi } from "./yams-api";
 
 type JsonClient = ReturnType<typeof createClient<paths>>;
 
-async function unwrap<T>(result: {
-  data?: T;
-  error?: unknown;
-}): Promise<T> {
+async function unwrap<T>(result: { data?: T; error?: unknown }): Promise<T> {
   if (result.error !== undefined) {
     throw ApiError.fromUnknown(result.error);
   }

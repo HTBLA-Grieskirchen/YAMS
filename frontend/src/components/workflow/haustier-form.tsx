@@ -91,8 +91,8 @@ export function HaustierForm({
       <CardHeader>
         <CardTitle>2. Haustier anlegen (optional)</CardTitle>
         <CardDescription>
-          Verknüpft ein Haustier mit dem Klienten für Leistungen. Optional —
-          du kannst direkt zum Katalog weitergehen.
+          Verknüpft ein Haustier mit dem Klienten für Leistungen. Optional — du
+          kannst direkt zum Katalog weitergehen.
         </CardDescription>
       </CardHeader>
       <CardContent>

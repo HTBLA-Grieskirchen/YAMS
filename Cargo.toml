@@ -15,6 +15,8 @@ repository = "https://github.com/HTBLA-Grieskirchen/YAMS/"
 
 [workspace.dependencies]
 thiserror = "2.0.20"
+# Maybe switch to rootcause?
+# Or custom/snafu inspired solution
 error-stack = { version = "0.8.0", default-features = false, features = ["std"] }
 bon = { version   = "3.9.3" }
 async-trait = "0.1.92"

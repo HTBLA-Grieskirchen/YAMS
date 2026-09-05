@@ -60,7 +60,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
 
     let api_url = format!(
         "http://{}:{}{}api",
-        config.bind_address, config.port, subpath
+        config.bind_address, config.bind_port, subpath
     );
 
     // TODO: add dynamic version loading
@@ -98,7 +98,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     tracing::info!("Server started at {}", api_url);
     Server::new(TcpListener::bind(format!(
         "{}:{}",
-        config.bind_address, config.port
+        config.bind_address, config.bind_port
     )))
     .run(app)
     .await

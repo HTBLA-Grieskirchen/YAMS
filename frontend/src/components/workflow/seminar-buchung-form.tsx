@@ -91,11 +91,11 @@ export function SeminarBuchungForm({
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const updated = await mutation.mutateAsync({
-      terminId: termin!.id,
+      terminId: termin?.id,
       body: form!,
     });
     onBooked(updated);
-    setForm(defaultBuchung(klient!.id));
+    setForm(defaultBuchung(klient?.id));
   }
 
   return (

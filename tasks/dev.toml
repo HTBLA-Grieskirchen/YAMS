@@ -1,57 +1,38 @@
 #:schema https://mise.jdx.dev/schema/mise-task.json
 
 ["dev:server"]
-description = "Start backend dev server (default :3000/api)"
-env.YAMS_CONFIG_PATH = "{{ vars.REPO_ROOT }}/backend/config.dev.toml"
-env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
-env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/objects.local/"
-run = "cargo run -p yams-server"
+description = "Start backend dev server"
+env.YAMS_BIND_ADDRESS = "127.0.0.1"
+env.YAMS_BIND_PORT = 3000
+env.YAMS_LOG_DIR = "{{ vars.REPO_ROOT }}/data.local/logs/"
+env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/data.local/yams.db"
+env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/data.local/storage/"
+run = "cargo run -p yams-server --"
 
 ["dev:frontend"]
 description = "Start Next.js dev server"
 dir = "{{ vars.REPO_ROOT }}/frontend"
-run = "npm run dev"
+usage = """
+flag "--port <port>" help="Port to use for the dev server" default="3001"
+"""
+run = "npm run dev -- --port {{ usage.port }}"
 
-["dev:frontend-remote"]
+["dev:_tauri"]
+description = "Start Tauri dev"
 hide = true
-description = "Next.js on :3001 (pair with dev:server on :3000)"
 dir = "{{ vars.REPO_ROOT }}/frontend"
-run = "npm run dev -- --port 3001"
+run = "exec npm run tauri dev --"
 
 ["dev:tauri"]
-description = "Start Tauri dev (embedded by default; pass --remote for server mode)"
-dir = "{{ vars.REPO_ROOT }}/frontend"
-usage = """
-flag "-r --remote" env="YAMS_TAURI_REMOTE" help="Use remote server config instead of embedded backend"
-"""
-env.YAMS_DEV = "1"
-run = """
-#!/usr/bin/env bash
-set -euo pipefail
-if [ "${usage_remote:-false}" = "true" ]; then
-  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.remote.dev.toml"
-else
-  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.embedded.dev.toml"
-  export YAMS_DATABASE_URL="{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
-  export YAMS_OBJECT_STORE_DIR="{{ vars.REPO_ROOT }}/objects.local/"
-fi
-exec npm run tauri dev
-"""
-
-["dev:tauri+embedded"]
 description = "Start Tauri dev with embedded backend and Next.js"
-run = [
-    {tasks = ["dev:tauri", "dev:frontend"]}
-]
+env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/data.local/yams.db"
+env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/data.local/storage/"
+env.YAMS_REMOTE_API_URL = "http://localhost:3000/api"
+env.YAMS_LOG_DIR = "{{ vars.REPO_ROOT }}/data.local/logs/"
+usage = """
+flag "--mode <mode>" env="YAMS_MODE" help="Mode to use for the dev server" default="embedded"  {
+  choices "embedded" "remote"
+}
+"""
+run = { task = "dev:_tauri", env = { "YAMS_MODE" = "{{ usage.mode }}" } }
 
-["dev:tauri+server"]
-description = "Start Tauri dev with standalone backend dev server and Next.js"
-run = [
-    {tasks = ["dev:server", "dev:tauri --remote", "dev:frontend"]}
-]
-
-["dev:frontend+server"]
-description = "Next.js (:3001) + yams-server (:3000/api)"
-depends = ["dev:server", "dev:frontend-remote"]
-env.NEXT_PUBLIC_YAMS_API_URL = "http://127.0.0.1:3000/api"
-env.NEXT_PUBLIC_YAMS_DEV = "1"

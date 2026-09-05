@@ -8,7 +8,7 @@ export function useHealthQuery() {
 
   return useQuery({
     queryKey: yamsKeys.health(),
-    queryFn: () => api!.health(),
+    queryFn: () => api?.health(),
     enabled: isReady,
   });
 }
@@ -18,7 +18,7 @@ export function useAlleKlientenQuery() {
 
   return useQuery({
     queryKey: yamsKeys.klienten.list(),
-    queryFn: () => api!.alleKlienten(),
+    queryFn: () => api?.alleKlienten(),
     enabled: isReady,
   });
 }
@@ -28,7 +28,7 @@ export function useAlleHaustiereQuery() {
 
   return useQuery({
     queryKey: yamsKeys.haustiere.list(),
-    queryFn: () => api!.alleHaustiere(),
+    queryFn: () => api?.alleHaustiere(),
     enabled: isReady,
   });
 }
@@ -38,7 +38,7 @@ export function useAlleProdukteQuery() {
 
   return useQuery({
     queryKey: yamsKeys.produkte.list(),
-    queryFn: () => api!.alleProdukte(),
+    queryFn: () => api?.alleProdukte(),
     enabled: isReady,
   });
 }
@@ -48,7 +48,7 @@ export function useAlleBehandlungenQuery() {
 
   return useQuery({
     queryKey: yamsKeys.behandlungen.list(),
-    queryFn: () => api!.alleBehandlungen(),
+    queryFn: () => api?.alleBehandlungen(),
     enabled: isReady,
   });
 }
@@ -58,7 +58,7 @@ export function useAlleLeistungenQuery() {
 
   return useQuery({
     queryKey: yamsKeys.leistungen.list(),
-    queryFn: () => api!.alleLeistungen(),
+    queryFn: () => api?.alleLeistungen(),
     enabled: isReady,
   });
 }
@@ -68,7 +68,7 @@ export function useAlleRechnungenQuery() {
 
   return useQuery({
     queryKey: yamsKeys.rechnungen.list(),
-    queryFn: () => api!.alleRechnungen(),
+    queryFn: () => api?.alleRechnungen(),
     enabled: isReady,
   });
 }
@@ -78,7 +78,7 @@ export function useAlleSeminareQuery() {
 
   return useQuery({
     queryKey: yamsKeys.seminare.list(),
-    queryFn: () => api!.alleSeminare(),
+    queryFn: () => api?.alleSeminare(),
     enabled: isReady,
   });
 }
@@ -88,7 +88,7 @@ export function useAlleSeminarTermineQuery() {
 
   return useQuery({
     queryKey: yamsKeys.seminarTermine.list(),
-    queryFn: () => api!.alleSeminarTermine(),
+    queryFn: () => api?.alleSeminarTermine(),
     enabled: isReady,
   });
 }
@@ -98,7 +98,7 @@ export function useHaustierByIdQuery(id: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.haustiere.detail(id ?? ""),
-    queryFn: () => api!.haustierById(id!),
+    queryFn: () => api?.haustierById(id!),
     enabled: isReady && id !== undefined && id.length > 0,
   });
 }
@@ -108,7 +108,7 @@ export function useRechnungenFürKlientQuery(klientId: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.rechnungen.byKlient(klientId ?? ""),
-    queryFn: () => api!.rechnungenFürKlient(klientId!),
+    queryFn: () => api?.rechnungenFürKlient(klientId!),
     enabled: isReady && klientId !== undefined && klientId.length > 0,
   });
 }
@@ -118,7 +118,7 @@ export function useRechnungPdfQuery(id: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.rechnungen.pdf(id ?? ""),
-    queryFn: () => api!.rechnungPdf(id!),
+    queryFn: () => api?.rechnungPdf(id!),
     enabled: isReady && id !== undefined && id.length > 0,
   });
 }
@@ -130,8 +130,11 @@ export function useTeilnahmebestätigungPdfQuery(
   const { api, isReady } = useYamsApiReady();
 
   return useQuery({
-    queryKey: yamsKeys.teilnahmebestätigung.pdf(terminId ?? "", buchungId ?? ""),
-    queryFn: () => api!.teilnahmebestätigungPdf(terminId!, buchungId!),
+    queryKey: yamsKeys.teilnahmebestätigung.pdf(
+      terminId ?? "",
+      buchungId ?? "",
+    ),
+    queryFn: () => api?.teilnahmebestätigungPdf(terminId!, buchungId!),
     enabled:
       isReady &&
       terminId !== undefined &&
@@ -146,7 +149,7 @@ export function useSeminarByIdQuery(id: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.seminare.detail(id ?? ""),
-    queryFn: () => api!.seminarById(id!),
+    queryFn: () => api?.seminarById(id!),
     enabled: isReady && id !== undefined && id.length > 0,
   });
 }
@@ -156,7 +159,7 @@ export function useSeminarTerminByIdQuery(id: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.seminarTermine.detail(id ?? ""),
-    queryFn: () => api!.seminarTerminById(id!),
+    queryFn: () => api?.seminarTerminById(id!),
     enabled: isReady && id !== undefined && id.length > 0,
   });
 }
@@ -166,7 +169,7 @@ export function useSeminarUmsatzVorschauQuery(terminId: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.seminarTermine.umsatz(terminId ?? ""),
-    queryFn: () => api!.seminarUmsatzVorschau(terminId!),
+    queryFn: () => api?.seminarUmsatzVorschau(terminId!),
     enabled: isReady && terminId !== undefined && terminId.length > 0,
   });
 }
@@ -176,7 +179,7 @@ export function useSeminarUmsatzPrognoseQuery(stichtag: string | undefined) {
 
   return useQuery({
     queryKey: yamsKeys.seminarPrognose(stichtag ?? ""),
-    queryFn: () => api!.seminarUmsatzPrognose(stichtag!),
+    queryFn: () => api?.seminarUmsatzPrognose(stichtag!),
     enabled: isReady && stichtag !== undefined && stichtag.length > 0,
   });
 }

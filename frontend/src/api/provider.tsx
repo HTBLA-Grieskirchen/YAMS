@@ -10,10 +10,9 @@ import {
   useMemo,
   useState,
 } from "react";
-
-import { createYamsApi, loadFrontendConfig, resetYamsApiCache } from "./index";
-import type { FrontendConfig } from "./types";
-import type { DeploymentMode, YamsApi } from "./yams-api";
+import { DeploymentMode, getConfig } from "@/lib/config";
+import { createYamsApi, resetYamsApiCache } from "./index";
+import type { YamsApi } from "./yams-api";
 
 type YamsApiContextValue = {
   api: YamsApi | null;
@@ -26,21 +25,6 @@ type YamsApiContextValue = {
 };
 
 const YamsApiContext = createContext<YamsApiContextValue | null>(null);
-
-function configView(config: FrontendConfig): {
-  mode: DeploymentMode;
-  remoteApiBaseUrl: string | null;
-  dev: boolean;
-} {
-  if (config.mode === "remote") {
-    return {
-      mode: config.mode,
-      remoteApiBaseUrl: config.remoteApiUrl,
-      dev: config.dev,
-    };
-  }
-  return { mode: config.mode, remoteApiBaseUrl: null, dev: config.dev };
-}
 
 export function YamsApiProvider({ children }: { children: ReactNode }) {
   const [api, setApi] = useState<YamsApi | null>(null);
@@ -66,14 +50,17 @@ export function YamsApiProvider({ children }: { children: ReactNode }) {
       setError(null);
 
       try {
-        const config = await loadFrontendConfig();
-        const view = configView(config);
+        const config = await getConfig();
         const resolvedApi = await createYamsApi();
 
         if (!cancelled) {
-          setMode(view.mode);
-          setRemoteApiBaseUrl(view.remoteApiBaseUrl);
-          setDev(view.dev);
+          setMode(config.mode);
+          if (config.mode === DeploymentMode.Remote) {
+            setRemoteApiBaseUrl(config.remoteApiUrl);
+          } else {
+            setRemoteApiBaseUrl(null);
+          }
+          setDev(config.dev);
           setApi(resolvedApi);
         }
       } catch (bootstrapError) {

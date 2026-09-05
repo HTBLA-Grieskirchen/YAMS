@@ -38,5 +38,5 @@ Dev file used by mise: [`backend/config.dev.json`](config.dev.json). Mise also s
 To export the OpenAPI spec:
 
 ```bash
-mise run build:openapi
+mise run sync:openapi
 ```

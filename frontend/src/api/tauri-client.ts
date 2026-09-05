@@ -1,7 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 
 import { ApiError } from "./errors";
-import type { YamsApi } from "./yams-api";
 import type {
   Behandlung,
   BehandlungErstellung,
@@ -27,8 +26,12 @@ import type {
   SeminarUmsatzVorschau,
   TagesabschlussErstellung,
 } from "./types";
+import type { YamsApi } from "./yams-api";
 
-async function invokeCommand<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+async function invokeCommand<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
   try {
     return await invoke<T>(command, args);
   } catch (error) {
@@ -102,7 +105,9 @@ export class TauriYamsApi implements YamsApi {
   async leistungAusBehandlungBuchen(
     body: LeistungAusBehandlungErstellung,
   ): Promise<Leistung> {
-    return invokeCommand("leistung_aus_behandlung_buchen", { erstellung: body });
+    return invokeCommand("leistung_aus_behandlung_buchen", {
+      erstellung: body,
+    });
   }
 
   async leistungManuellErfassen(
@@ -199,11 +204,15 @@ export class TauriYamsApi implements YamsApi {
     return invokeCommand("seminar_termin_abgehalten", { termin_id: terminId });
   }
 
-  async seminarUmsatzVorschau(terminId: string): Promise<SeminarUmsatzVorschau> {
+  async seminarUmsatzVorschau(
+    terminId: string,
+  ): Promise<SeminarUmsatzVorschau> {
     return invokeCommand("seminar_umsatz_vorschau", { termin_id: terminId });
   }
 
-  async seminarUmsatzPrognose(stichtag: string): Promise<SeminarUmsatzPrognose> {
+  async seminarUmsatzPrognose(
+    stichtag: string,
+  ): Promise<SeminarUmsatzPrognose> {
     return invokeCommand("seminar_umsatz_prognose", { stichtag });
   }
 }

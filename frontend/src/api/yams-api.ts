@@ -36,13 +36,17 @@ export interface YamsApi {
   alleProdukte(): Promise<Produkt[]>;
   behandlungErstellen(body: BehandlungErstellung): Promise<Behandlung>;
   alleBehandlungen(): Promise<Behandlung[]>;
-  leistungAusProduktBuchen(body: LeistungAusProduktErstellung): Promise<Leistung>;
+  leistungAusProduktBuchen(
+    body: LeistungAusProduktErstellung,
+  ): Promise<Leistung>;
   leistungAusBehandlungBuchen(
     body: LeistungAusBehandlungErstellung,
   ): Promise<Leistung>;
   leistungManuellErfassen(body: LeistungManuelleErstellung): Promise<Leistung>;
   alleLeistungen(): Promise<Leistung[]>;
-  tagesabschlussDurchführen(body: TagesabschlussErstellung): Promise<Rechnung[]>;
+  tagesabschlussDurchführen(
+    body: TagesabschlussErstellung,
+  ): Promise<Rechnung[]>;
   alleRechnungen(): Promise<Rechnung[]>;
   rechnungenFürKlient(klientId: string): Promise<Rechnung[]>;
   rechnungPdf(id: string): Promise<Blob>;
@@ -73,5 +77,3 @@ export interface YamsApi {
   seminarUmsatzVorschau(terminId: string): Promise<SeminarUmsatzVorschau>;
   seminarUmsatzPrognose(stichtag: string): Promise<SeminarUmsatzPrognose>;
 }
-
-export type DeploymentMode = "embedded" | "remote";

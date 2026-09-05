@@ -12,12 +12,13 @@ import type {
   Seminar,
   SeminarTermin,
 } from "@/api/types";
+import { Button } from "@/components/ui/button";
 import { DeploymentStatus } from "@/components/workflow/deployment-status";
 import { HaustierForm } from "@/components/workflow/haustier-form";
-import { ObjektePanel } from "@/components/workflow/objekte-panel";
 import { KatalogForm } from "@/components/workflow/katalog-form";
 import { KlientForm } from "@/components/workflow/klient-form";
 import { LeistungForm } from "@/components/workflow/leistung-form";
+import { ObjektePanel } from "@/components/workflow/objekte-panel";
 import { RechnungenPanel } from "@/components/workflow/rechnungen-panel";
 import { SeminarBuchungForm } from "@/components/workflow/seminar-buchung-form";
 import { SeminarForm } from "@/components/workflow/seminar-form";
@@ -25,7 +26,6 @@ import { SeminarTerminForm } from "@/components/workflow/seminar-termin-form";
 import { SeminarTerminPanel } from "@/components/workflow/seminar-termin-panel";
 import { TagesabschlussForm } from "@/components/workflow/tagesabschluss-form";
 import { WorkflowSteps } from "@/components/workflow/workflow-steps";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 type TabId = "abrechnung" | "seminar" | "objekte";
@@ -61,7 +61,9 @@ export default function Home() {
   const [rechnungen, setRechnungen] = useState<Rechnung[]>([]);
 
   const [seminar, setSeminar] = useState<Seminar | null>(null);
-  const [seminarTermin, setSeminarTermin] = useState<SeminarTermin | null>(null);
+  const [seminarTermin, setSeminarTermin] = useState<SeminarTermin | null>(
+    null,
+  );
 
   const currentStep = deriveCurrentStep(
     klient,

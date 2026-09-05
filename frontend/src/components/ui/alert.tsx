@@ -16,11 +16,7 @@ const variantClasses: Record<AlertVariant, string> = {
     "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100",
 };
 
-export function Alert({
-  className,
-  variant = "info",
-  ...props
-}: AlertProps) {
+export function Alert({ className, variant = "info", ...props }: AlertProps) {
   return (
     <div
       className={cn(

@@ -9,7 +9,8 @@ export const yamsKeys = {
   haustiere: {
     all: () => [...yamsKeys.root, "haustiere"] as const,
     list: () => [...yamsKeys.haustiere.all(), "list"] as const,
-    detail: (id: string) => [...yamsKeys.haustiere.all(), "detail", id] as const,
+    detail: (id: string) =>
+      [...yamsKeys.haustiere.all(), "detail", id] as const,
   },
   produkte: {
     all: () => [...yamsKeys.root, "produkte"] as const,

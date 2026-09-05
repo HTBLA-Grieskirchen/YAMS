@@ -285,14 +285,8 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
     };
     let target = env.mode.unwrap_or(current);
 
-    let has_embedded_env = env.database_url.is_some() || env.object_store_dir.is_some();
-    let has_remote_env = env.remote_api_url.is_some();
-
     match target {
         ModeKind::Embedded => {
-            if has_remote_env {
-                return Err(ConfigError::RemoteEnvInEmbeddedMode);
-            }
             let (database_url, object_store_dir) = match config.deployment {
                 DeploymentMode::Embedded {
                     database_url,
@@ -316,16 +310,10 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
                     object_store_dir,
                 },
                 dev: env.dev.unwrap_or(config.dev),
-                log_dir: resolve_log_dir_overlay(
-                    Some(config.log_dir),
-                    env.log_dir,
-                ),
+                log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
             })
         }
         ModeKind::Remote => {
-            if has_embedded_env {
-                return Err(ConfigError::EmbeddedEnvInRemoteMode);
-            }
             let remote_api_url = match config.deployment {
                 DeploymentMode::Remote { remote_api_url } => match env.remote_api_url {
                     Some(value) => parse_url(&value)?,
@@ -339,10 +327,7 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
             Ok(TauriConfig {
                 deployment: DeploymentMode::Remote { remote_api_url },
                 dev: env.dev.unwrap_or(config.dev),
-                log_dir: resolve_log_dir_overlay(
-                    Some(config.log_dir),
-                    env.log_dir,
-                ),
+                log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
             })
         }
     }

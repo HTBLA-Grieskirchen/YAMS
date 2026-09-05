@@ -12,10 +12,10 @@ $([ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
 '''
 
 ["lint:check:ts"]
-description = "Compile the typescript code"
+description = "Check the frontend types"
 dir = "{{ vars.REPO_ROOT }}/frontend"
 depends = [
-  "build:openapi --release"
+  "sync:openapi --release"
 ]
 run = "npm run check:ts"
 
@@ -24,11 +24,12 @@ description = "Lint frontend"
 dir = "{{ vars.REPO_ROOT }}/frontend"
 usage = """
 flag "--fix" env="YAMS_LINT_FIX" help="Apply all lint suggestions"
+flag "--allow-unsafe" env="YAMS_LINT_FIX_UNSAFE" help="Allow unsafe lint suggestions"
 """
 run = """
 #!/usr/bin/env bash
 if [ "${usage_fix:-}" = "true" ]; then
-  npm run fix:lint
+  npm run fix:lint $([ "${usage_allow_unsafe:-}" = "true" ] && echo "-- --unsafe")
 else
   npm run check:lint
 fi

@@ -51,8 +51,11 @@ export function LeistungForm({
 
   const canBookProdukt = klient && produkt;
   const canBookBehandlung = klient && behandlung;
-  const defaultQuelle: LeistungQuelle =
-    canBookProdukt ? "produkt" : canBookBehandlung ? "behandlung" : "produkt";
+  const defaultQuelle: LeistungQuelle = canBookProdukt
+    ? "produkt"
+    : canBookBehandlung
+      ? "behandlung"
+      : "produkt";
 
   const [quelle, setQuelle] = useState<LeistungQuelle>(defaultQuelle);
   const [leistungsdatum, setLeistungsdatum] = useState(todayIsoDate());
@@ -103,8 +106,8 @@ export function LeistungForm({
           </p>
         ) : lastLeistung ? (
           <Alert variant="success">
-            Leistung gebucht: {lastLeistung.beschreibung} — {lastLeistung.betrag}{" "}
-            € (Status: {lastLeistung.status})
+            Leistung gebucht: {lastLeistung.beschreibung} —{" "}
+            {lastLeistung.betrag} € (Status: {lastLeistung.status})
           </Alert>
         ) : (
           <form className="space-y-4" onSubmit={handleSubmit}>
@@ -150,8 +153,8 @@ export function LeistungForm({
 
             {!isReady ? (
               <Alert variant="info">
-                Erstelle zuerst ein {quelle === "produkt" ? "Produkt" : "Behandlung"}{" "}
-                im Katalog.
+                Erstelle zuerst ein{" "}
+                {quelle === "produkt" ? "Produkt" : "Behandlung"} im Katalog.
               </Alert>
             ) : null}
 

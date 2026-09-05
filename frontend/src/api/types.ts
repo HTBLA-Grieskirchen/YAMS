@@ -2,7 +2,8 @@ import type { components } from "./schema";
 
 export type Adresse = components["schemas"]["Adresse"];
 export type Behandlung = components["schemas"]["Behandlung"];
-export type BehandlungErstellung = components["schemas"]["BehandlungErstellung"];
+export type BehandlungErstellung =
+  components["schemas"]["BehandlungErstellung"];
 export type Haustier = components["schemas"]["Haustier"];
 export type HaustierErstellung = components["schemas"]["HaustierErstellung"];
 export type Klient = components["schemas"]["Klient"];
@@ -36,7 +37,3 @@ export type SeminarUmsatzVorschau =
 export type StructuredError = components["schemas"]["StructuredError"];
 export type TagesabschlussErstellung =
   components["schemas"]["TagesabschlussErstellung"];
-
-export type FrontendConfig =
-  | { mode: "embedded"; dev: boolean }
-  | { mode: "remote"; remoteApiUrl: string; dev: boolean };

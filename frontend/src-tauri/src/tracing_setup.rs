@@ -9,6 +9,7 @@ static LOG_GUARD: OnceLock<tracing_appender::non_blocking::WorkerGuard> = OnceLo
 pub fn init_tracing(log_dir: &Path) {
     std::fs::create_dir_all(log_dir).expect("failed to create log directory");
 
+    // TODO: Infer file_name_prefix from crate name (also in backend)
     let file_appender = tracing_appender::rolling::daily(log_dir, "yams.json");
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
     LOG_GUARD.set(guard).ok();

@@ -2,7 +2,7 @@
 
 ["dev:server"]
 description = "Start backend dev server (default :3000/api)"
-env.YAMS_CONFIG_PATH = "{{ vars.REPO_ROOT }}/backend/config.dev.json"
+env.YAMS_CONFIG_PATH = "{{ vars.REPO_ROOT }}/backend/config.dev.toml"
 env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
 env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/objects.local/"
 run = "cargo run -p yams-server"
@@ -29,9 +29,9 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 if [ "${usage_remote:-false}" = "true" ]; then
-  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.remote.dev.json"
+  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.remote.dev.toml"
 else
-  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.embedded.dev.json"
+  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.embedded.dev.toml"
   export YAMS_DATABASE_URL="{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
   export YAMS_OBJECT_STORE_DIR="{{ vars.REPO_ROOT }}/objects.local/"
 fi

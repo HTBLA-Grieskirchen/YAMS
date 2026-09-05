@@ -16,11 +16,8 @@ pub enum ConfigError {
         path: String,
         source: std::io::Error,
     },
-    #[error("config file `{path}` is malformed: {source}")]
-    Malformed {
-        path: String,
-        source: serde_json::Error,
-    },
+    #[error("config file `{path}` is malformed: {message}")]
+    Malformed { path: String, message: String },
     #[error("YAMS_MODE=embedded requires YAMS_DATABASE_URL and YAMS_OBJECT_STORE_DIR")]
     EmbeddedEnvIncomplete,
     #[error("YAMS_MODE=remote requires YAMS_REMOTE_API_URL")]
@@ -56,11 +53,22 @@ pub fn resolve_log_dir() -> PathBuf {
 
 fn peek_log_dir_from_file(path: &Path) -> Option<PathBuf> {
     let contents = std::fs::read_to_string(path).ok()?;
-    let value: serde_json::Value = serde_json::from_str(&contents).ok()?;
-    value
-        .get("logDir")
-        .and_then(|v| v.as_str())
-        .map(PathBuf::from)
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("toml") => {
+            let value: toml::Value = toml::from_str(&contents).ok()?;
+            value
+                .get("logDir")
+                .and_then(|v| v.as_str())
+                .map(PathBuf::from)
+        }
+        _ => {
+            let value: serde_json::Value = serde_json::from_str(&contents).ok()?;
+            value
+                .get("logDir")
+                .and_then(|v| v.as_str())
+                .map(PathBuf::from)
+        }
+    }
 }
 
 fn resolve_log_dir_overlay(file: Option<PathBuf>, env: Option<PathBuf>) -> PathBuf {
@@ -232,18 +240,18 @@ fn parse_bool(value: &str) -> bool {
 
 fn load_file(path: &Path, explicit: bool) -> Result<TauriConfig, ConfigError> {
     match std::fs::read_to_string(path) {
-        Ok(contents) => match serde_json::from_str::<TauriFileConfig>(&contents) {
+        Ok(contents) => match parse_config_file::<TauriFileConfig>(path, &contents) {
             Ok(file) => Ok(TauriConfig::from(file)),
-            Err(source) => {
+            Err(message) => {
                 if explicit {
                     Err(ConfigError::Malformed {
                         path: path.display().to_string(),
-                        source,
+                        message,
                     })
                 } else {
                     tracing::warn!(
                         path = %path.display(),
-                        error = %source,
+                        error = %message,
                         "config file is malformed; using defaults"
                     );
                     Ok(TauriConfig::production_default())
@@ -342,6 +350,20 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
 
 fn parse_url(value: &str) -> Result<Url, ConfigError> {
     Url::parse(value).map_err(|err| ConfigError::InvalidRemoteApiUrl(err.to_string()))
+}
+
+fn parse_config_file<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    contents: &str,
+) -> Result<T, String> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("toml") => toml::from_str(contents).map_err(|err| err.to_string()),
+        Some("json") => serde_json::from_str(contents).map_err(|err| err.to_string()),
+        Some(ext) => Err(format!(
+            "unsupported config format `.{ext}`; use `.json` or `.toml`"
+        )),
+        None => serde_json::from_str(contents).map_err(|err| err.to_string()),
+    }
 }
 
 #[cfg(test)]
@@ -509,6 +531,23 @@ mod tests {
                 "objectStoreDir": "objects/",
                 "logDir": "/var/log/yams"
             }"#,
+            )
+            .unwrap(),
+        );
+        assert_eq!(config.log_dir, PathBuf::from("/var/log/yams"));
+    }
+
+    #[test_log::test]
+    fn deserializes_log_dir_from_toml_file() {
+        let config = TauriConfig::from(
+            parse_config_file::<TauriFileConfig>(
+                Path::new("config.toml"),
+                r#"
+mode = "embedded"
+databaseUrl = "yams.db"
+objectStoreDir = "objects/"
+logDir = "/var/log/yams"
+"#,
             )
             .unwrap(),
         );

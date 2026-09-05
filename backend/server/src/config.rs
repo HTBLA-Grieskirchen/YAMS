@@ -15,11 +15,8 @@ pub enum ConfigError {
         path: String,
         source: std::io::Error,
     },
-    #[error("config file `{path}` is malformed: {source}")]
-    Malformed {
-        path: String,
-        source: serde_json::Error,
-    },
+    #[error("config file `{path}` is malformed: {message}")]
+    Malformed { path: String, message: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -49,7 +46,7 @@ impl Default for ServerConfig {
 #[derive(Debug, Parser, Default, PartialEq, Eq)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Path to the JSON config file
+    /// Path to the config file (`.json` or `.toml`)
     #[arg(long = "config-path", env = "YAMS_CONFIG_PATH")]
     pub config_path: Option<PathBuf>,
 
@@ -94,18 +91,18 @@ pub fn resolve(cli: Cli) -> Result<ServerConfig, ConfigError> {
 
 fn load_file(path: &Path, explicit: bool) -> Result<ServerConfig, ConfigError> {
     match std::fs::read_to_string(path) {
-        Ok(contents) => match serde_json::from_str(&contents) {
+        Ok(contents) => match parse_config_file::<ServerConfig>(path, &contents) {
             Ok(config) => Ok(config),
-            Err(source) => {
+            Err(message) => {
                 if explicit {
                     Err(ConfigError::Malformed {
                         path: path.display().to_string(),
-                        source,
+                        message,
                     })
                 } else {
                     tracing::warn!(
                         path = %path.display(),
-                        error = %source,
+                        error = %message,
                         "config file is malformed; using defaults"
                     );
                     Ok(ServerConfig::default())
@@ -152,6 +149,20 @@ fn overlay(mut config: ServerConfig, cli: &Cli) -> ServerConfig {
         config.log_dir = Some(log_dir.clone());
     }
     config
+}
+
+fn parse_config_file<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    contents: &str,
+) -> Result<T, String> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("toml") => toml::from_str(contents).map_err(|err| err.to_string()),
+        Some("json") => serde_json::from_str(contents).map_err(|err| err.to_string()),
+        Some(ext) => Err(format!(
+            "unsupported config format `.{ext}`; use `.json` or `.toml`"
+        )),
+        None => serde_json::from_str(contents).map_err(|err| err.to_string()),
+    }
 }
 
 #[cfg(test)]
@@ -222,6 +233,31 @@ mod tests {
             r#"{
                 "logDir": "server-logs/"
             }"#,
+        )
+        .unwrap();
+
+        let loaded = load_file(&path, true).unwrap();
+        assert_eq!(loaded.log_dir, Some(PathBuf::from("server-logs/")));
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test_log::test]
+    fn loads_log_dir_from_toml_file() {
+        let dir = std::env::temp_dir().join(format!(
+            "yams-server-config-log-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("config.toml");
+        std::fs::write(
+            &path,
+            r#"
+logDir = "server-logs/"
+"#,
         )
         .unwrap();
 

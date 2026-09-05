@@ -1,0 +1,5 @@
+mode = "embedded"
+databaseUrl = "sqlite.local/yams.db"
+objectStoreDir = "objects.local/"
+dev = true
+logDir = "logs.local/frontend"

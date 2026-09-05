@@ -32,8 +32,8 @@ fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
 
 #[tokio::main]
 async fn main() -> Result<(), Report<BackendServerError>> {
-    init_tracing();
     let config = config::load().change_context(BackendServerError)?;
+    init_tracing(config.log_target, &config.log_dir);
 
     let mut adapter = SQLiteInstance::local(&config.database_url)
         .await

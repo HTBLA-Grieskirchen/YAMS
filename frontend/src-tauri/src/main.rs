@@ -19,7 +19,7 @@ fn frontend_config(config: tauri::State<'_, FrontendConfigDto>) -> FrontendConfi
 }
 
 fn main() {
-    tracing_setup::init_tracing(&config::log_dir());
+    tracing_setup::init_tracing(&config::resolve_log_dir());
 
     let config = config::load().expect("failed to load Tauri config");
 

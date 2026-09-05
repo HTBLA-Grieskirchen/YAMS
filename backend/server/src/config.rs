@@ -6,6 +6,16 @@ use thiserror::Error;
 
 const DEFAULT_CONFIG_FILE: &str = "yams-server.json";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, clap::ValueEnum)]
+#[serde(rename_all = "camelCase")]
+pub enum LogTarget {
+    #[default]
+    Disabled,
+    Stdout,
+    File,
+    Both,
+}
+
 #[derive(Debug, Error)]
 pub enum ConfigError {
     #[error("config file `{path}` does not exist")]
@@ -30,6 +40,8 @@ pub struct ServerConfig {
     pub subpath: String,
     pub database_url: String,
     pub object_store_dir: PathBuf,
+    pub log_target: LogTarget,
+    pub log_dir: PathBuf,
 }
 
 impl Default for ServerConfig {
@@ -40,6 +52,8 @@ impl Default for ServerConfig {
             subpath: "/".into(),
             database_url: "yams.db".into(),
             object_store_dir: PathBuf::from("objects.local/"),
+            log_target: LogTarget::Disabled,
+            log_dir: PathBuf::from("logs/"),
         }
     }
 }
@@ -70,6 +84,14 @@ pub struct Cli {
     /// Directory for object store
     #[arg(long, env = "YAMS_OBJECT_STORE_DIR")]
     pub object_store_dir: Option<PathBuf>,
+
+    /// Log output target (`disabled`, `stdout`, `file`, `both`)
+    #[arg(long, env = "YAMS_LOG_TARGET")]
+    pub log_target: Option<LogTarget>,
+
+    /// Directory for rotated JSON log files
+    #[arg(long, env = "YAMS_LOG_DIR")]
+    pub log_dir: Option<PathBuf>,
 }
 
 pub fn load() -> Result<ServerConfig, ConfigError> {
@@ -142,6 +164,12 @@ fn overlay(mut config: ServerConfig, cli: &Cli) -> ServerConfig {
     if let Some(object_store_dir) = &cli.object_store_dir {
         config.object_store_dir = object_store_dir.clone();
     }
+    if let Some(log_target) = cli.log_target {
+        config.log_target = log_target;
+    }
+    if let Some(log_dir) = &cli.log_dir {
+        config.log_dir = log_dir.clone();
+    }
     config
 }
 
@@ -185,6 +213,45 @@ mod tests {
         assert_eq!(resolved.database_url, "from-env.db");
         assert_eq!(resolved.port, 5000);
         assert_eq!(resolved.bind_address, "0.0.0.0");
+    }
+
+    #[test_log::test]
+    fn overlays_log_settings() {
+        let cli = Cli {
+            log_target: Some(LogTarget::Both),
+            log_dir: Some(PathBuf::from("/var/log/yams")),
+            ..Cli::default()
+        };
+        let resolved = cli_overlay(cli);
+        assert_eq!(resolved.log_target, LogTarget::Both);
+        assert_eq!(resolved.log_dir, PathBuf::from("/var/log/yams"));
+    }
+
+    #[test_log::test]
+    fn loads_log_settings_from_json_file() {
+        let dir = std::env::temp_dir().join(format!(
+            "yams-server-config-log-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("config.json");
+        std::fs::write(
+            &path,
+            r#"{
+                "logTarget": "file",
+                "logDir": "server-logs/"
+            }"#,
+        )
+        .unwrap();
+
+        let loaded = load_file(&path, true).unwrap();
+        assert_eq!(loaded.log_target, LogTarget::File);
+        assert_eq!(loaded.log_dir, PathBuf::from("server-logs/"));
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test_log::test]

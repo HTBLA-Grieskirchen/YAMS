@@ -12,15 +12,15 @@
     "semantic_hash": ""
   },
   "backend/server/Cargo.toml": {
-    "mtime": 1788527080.8677459,
-    "seen": 1788527772.0560591,
-    "ast_hash": "756039be2f8d4b22ec5182d9f25f62cb",
+    "mtime": 1788569280.5542936,
+    "seen": 1788569379.3067403,
+    "ast_hash": "f9dac385a588c79f8e34ffaca2ac77d5",
     "semantic_hash": ""
   },
   "backend/server/src/main.rs": {
-    "mtime": 1788527080.8637457,
-    "seen": 1788527772.0560722,
-    "ast_hash": "4bb3fbf9d6f2fe1958dd2a38c4811723",
+    "mtime": 1788569280.2462933,
+    "seen": 1788569379.306754,
+    "ast_hash": "483b5348e8f4223b56e86a93591dee45",
     "semantic_hash": ""
   },
   "crates/molting/Cargo.toml": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "frontend/src-tauri/src/config.rs": {
-    "mtime": 1788527748.92761,
-    "seen": 1788527772.0853605,
-    "ast_hash": "b80786e7f093ec710ade9ccdc70b7565",
+    "mtime": 1788569271.3422825,
+    "seen": 1788569379.3571289,
+    "ast_hash": "09b85bb1973bd66c12a84338ae6bafd6",
     "semantic_hash": ""
   },
   "frontend/src-tauri/src/main.rs": {
-    "mtime": 1788527161.023727,
-    "seen": 1788527772.0853636,
-    "ast_hash": "cada94779a71f920861c5c8f5de6d01b",
+    "mtime": 1788569268.7942815,
+    "seen": 1788569379.3571343,
+    "ast_hash": "52fd8c51777ed681bdc7d1d8fbebdbc8",
     "semantic_hash": ""
   },
   "frontend/src-tauri/tauri.conf.json": {
@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   ".cursor/AGENTS.md": {
-    "mtime": 1788527256.1677146,
-    "seen": 1788527772.0882425,
-    "ast_hash": "2b50fc5a9e14166c52c2e256aabdbcc8",
+    "mtime": 1788566411.4347122,
+    "seen": 1788569379.3631473,
+    "ast_hash": "83c135bfdcf86e946a29ef19e09dba6c",
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
@@ -954,15 +954,15 @@
     "semantic_hash": "b534f3ed19379703206188683b8af023"
   },
   "backend/README.md": {
-    "mtime": 1788527267.2877126,
-    "seen": 1788527772.0884707,
-    "ast_hash": "9aaeaa93fb698c5e20786ce96a7ecc55",
+    "mtime": 1788565651.021609,
+    "seen": 1788569379.3635747,
+    "ast_hash": "c0660185cfd9af2bbf9e830a7dd5e09d",
     "semantic_hash": ""
   },
   "frontend/README.md": {
-    "mtime": 1788527267.4117126,
-    "seen": 1788527772.088474,
-    "ast_hash": "a8fd244430cc45f158f7f6bbd80d0b24",
+    "mtime": 1788566418.9410095,
+    "seen": 1788569379.3635807,
+    "ast_hash": "10782dcee98dd27fe97da612abaca220",
     "semantic_hash": ""
   },
   "specs/backend_hexagonal.md": {
@@ -972,9 +972,9 @@
     "semantic_hash": ""
   },
   "specs/frontend_migration.md": {
-    "mtime": 1788527260.5517137,
-    "seen": 1788527772.0887232,
-    "ast_hash": "4cfc4c56303f88ae138198cbe480a6ee",
+    "mtime": 1788566411.7867124,
+    "seen": 1788569379.3639035,
+    "ast_hash": "82847cf31d171f3c1feda183075e7269",
     "semantic_hash": ""
   },
   "resources/Energetik_Sabine_Einverst\u00e4ndnis.pdf": {
@@ -1362,9 +1362,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/index.ts": {
-    "mtime": 1788527713.6436598,
-    "seen": 1788527772.085854,
-    "ast_hash": "d9380e66c2c9147190994c1470617aaf",
+    "mtime": 1788566398.2747197,
+    "seen": 1788569379.358232,
+    "ast_hash": "804d6140d094647a2798491f9dffd4e2",
     "semantic_hash": ""
   },
   "frontend/src/api/provider.tsx": {
@@ -1674,9 +1674,9 @@
     "semantic_hash": ""
   },
   "backend/server/src/tracing_setup.rs": {
-    "mtime": 1788499140.4761117,
-    "seen": 1788512272.6854587,
-    "ast_hash": "69e0e0ba296e5f5682e6e231ffaf54e6",
+    "mtime": 1788569279.6742923,
+    "seen": 1788569379.3067589,
+    "ast_hash": "bb8af45131e62c84f730f373e3e5fcf1",
     "semantic_hash": ""
   },
   "crates/yams-core/src/adapters/blank_pdf_renderer.rs": {
@@ -1842,26 +1842,26 @@
     "semantic_hash": ""
   },
   "backend/server/src/config.rs": {
-    "mtime": 1788527078.6677468,
-    "seen": 1788527772.0560663,
-    "ast_hash": "e3de60a53c6dbd7036b0711e8924ad9f",
+    "mtime": 1788569277.3422906,
+    "seen": 1788569379.3067489,
+    "ast_hash": "d79c3d6b9cb8b7f010e840933ffb6c44",
     "semantic_hash": ""
   },
-  "frontend/config.embedded.json": {
+  "frontend/config.embedded.dev.json": {
     "mtime": 1788527197.91172,
-    "seen": 1788527772.0850635,
+    "seen": 1788569379.356037,
     "ast_hash": "6cdd4e15c9cad510435c0a8a4879ff4e",
     "semantic_hash": ""
   },
-  "frontend/config.remote.json": {
+  "frontend/config.remote.dev.json": {
     "mtime": 1788527198.26372,
-    "seen": 1788527772.0850694,
+    "seen": 1788569379.3560464,
     "ast_hash": "5c5f3ffbc6d44706dd3ab5e8f65a3464",
     "semantic_hash": ""
   },
-  "frontend/public/yams-config.json": {
-    "mtime": 1788527179.3757255,
-    "seen": 1788527772.0852318,
+  "frontend/src/yams-config.json": {
+    "mtime": 1788566398.4507186,
+    "seen": 1788569379.3627057,
     "ast_hash": "75d27dcb366cb4c89b24f261d949aa38",
     "semantic_hash": ""
   }

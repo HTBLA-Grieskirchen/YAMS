@@ -39,8 +39,32 @@ pub fn project_dirs() -> ProjectDirs {
     ProjectDirs::from("at", "HTL Grieskirchen", "YAMS").expect("unsupported OS")
 }
 
-pub fn log_dir() -> PathBuf {
+pub fn default_log_dir() -> PathBuf {
     project_dirs().data_dir().join("logs")
+}
+
+/// Resolve log directory before tracing init (env beats config file beats default).
+pub fn resolve_log_dir() -> PathBuf {
+    if let Some(dir) = std::env::var_os("YAMS_LOG_DIR") {
+        return PathBuf::from(dir);
+    }
+    let path = std::env::var_os("YAMS_CONFIG_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(default_config_path);
+    peek_log_dir_from_file(&path).unwrap_or_else(default_log_dir)
+}
+
+fn peek_log_dir_from_file(path: &Path) -> Option<PathBuf> {
+    let contents = std::fs::read_to_string(path).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&contents).ok()?;
+    value
+        .get("logDir")
+        .and_then(|v| v.as_str())
+        .map(PathBuf::from)
+}
+
+fn resolve_log_dir_overlay(file: Option<PathBuf>, env: Option<PathBuf>) -> PathBuf {
+    env.or(file).unwrap_or_else(default_log_dir)
 }
 
 fn default_config_path() -> PathBuf {
@@ -62,6 +86,7 @@ pub enum DeploymentMode {
 pub struct TauriConfig {
     pub deployment: DeploymentMode,
     pub dev: bool,
+    pub log_dir: PathBuf,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -73,12 +98,16 @@ enum TauriFileConfig {
         object_store_dir: PathBuf,
         #[serde(default)]
         dev: bool,
+        #[serde(default)]
+        log_dir: Option<PathBuf>,
     },
     #[serde(rename_all = "camelCase")]
     Remote {
         remote_api_url: Url,
         #[serde(default)]
         dev: bool,
+        #[serde(default)]
+        log_dir: Option<PathBuf>,
     },
 }
 
@@ -89,19 +118,23 @@ impl From<TauriFileConfig> for TauriConfig {
                 database_url,
                 object_store_dir,
                 dev,
+                log_dir,
             } => Self {
                 deployment: DeploymentMode::Embedded {
                     database_url,
                     object_store_dir,
                 },
                 dev,
+                log_dir: log_dir.unwrap_or_else(default_log_dir),
             },
             TauriFileConfig::Remote {
                 remote_api_url,
                 dev,
+                log_dir,
             } => Self {
                 deployment: DeploymentMode::Remote { remote_api_url },
                 dev,
+                log_dir: log_dir.unwrap_or_else(default_log_dir),
             },
         }
     }
@@ -116,6 +149,7 @@ impl TauriConfig {
                 object_store_dir: data.join("objects"),
             },
             dev: false,
+            log_dir: default_log_dir(),
         }
     }
 
@@ -150,6 +184,7 @@ struct EnvOverlay {
     object_store_dir: Option<PathBuf>,
     remote_api_url: Option<String>,
     dev: Option<bool>,
+    log_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -179,6 +214,7 @@ fn env_overlay() -> Result<EnvOverlay, ConfigError> {
         dev: std::env::var("YAMS_DEV")
             .ok()
             .map(|value| parse_bool(&value)),
+        log_dir: std::env::var_os("YAMS_LOG_DIR").map(PathBuf::from),
     })
 }
 
@@ -272,6 +308,10 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
                     object_store_dir,
                 },
                 dev: env.dev.unwrap_or(config.dev),
+                log_dir: resolve_log_dir_overlay(
+                    Some(config.log_dir),
+                    env.log_dir,
+                ),
             })
         }
         ModeKind::Remote => {
@@ -291,6 +331,10 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
             Ok(TauriConfig {
                 deployment: DeploymentMode::Remote { remote_api_url },
                 dev: env.dev.unwrap_or(config.dev),
+                log_dir: resolve_log_dir_overlay(
+                    Some(config.log_dir),
+                    env.log_dir,
+                ),
             })
         }
     }
@@ -311,6 +355,7 @@ mod tests {
                 object_store_dir: PathBuf::from("objects/"),
             },
             dev: false,
+            log_dir: default_log_dir(),
         }
     }
 
@@ -320,6 +365,7 @@ mod tests {
                 remote_api_url: Url::parse("http://127.0.0.1:3000/api").unwrap(),
             },
             dev: true,
+            log_dir: default_log_dir(),
         }
     }
 
@@ -344,6 +390,7 @@ mod tests {
                     object_store_dir: PathBuf::from("objects/"),
                 },
                 dev: true,
+                log_dir: default_log_dir(),
             }
         );
     }
@@ -450,6 +497,35 @@ mod tests {
         )
         .unwrap();
         assert!(resolved.dev);
+    }
+
+    #[test_log::test]
+    fn deserializes_log_dir_from_file() {
+        let config = TauriConfig::from(
+            serde_json::from_str::<TauriFileConfig>(
+                r#"{
+                "mode": "embedded",
+                "databaseUrl": "yams.db",
+                "objectStoreDir": "objects/",
+                "logDir": "/var/log/yams"
+            }"#,
+            )
+            .unwrap(),
+        );
+        assert_eq!(config.log_dir, PathBuf::from("/var/log/yams"));
+    }
+
+    #[test_log::test]
+    fn overlays_log_dir_from_env() {
+        let resolved = overlay(
+            embedded_file(),
+            EnvOverlay {
+                log_dir: Some(PathBuf::from("/tmp/yams-logs")),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(resolved.log_dir, PathBuf::from("/tmp/yams-logs"));
     }
 
     #[test_log::test]

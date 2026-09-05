@@ -13,7 +13,7 @@ $([ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
 
 ["lint:check:ts"]
 description = "Compile the typescript code"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 depends = [
   "build:openapi --release"
 ]
@@ -21,7 +21,7 @@ run = "npm run check:ts"
 
 ["lint:frontend"]
 description = "Lint frontend"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 usage = """
 flag "--fix" env="YAMS_LINT_FIX" help="Apply all lint suggestions"
 """

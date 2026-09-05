@@ -2,25 +2,25 @@
 
 ["dev:server"]
 description = "Start backend dev server (default :3000/api)"
-env.YAMS_CONFIG_PATH = "{{config_root}}/backend/config.dev.json"
-env.YAMS_DATABASE_URL = "{{config_root}}/sqlite.local/yams.db"
-env.YAMS_OBJECT_STORE_DIR = "{{config_root}}/objects.local/"
+env.YAMS_CONFIG_PATH = "{{ vars.REPO_ROOT }}/backend/config.dev.json"
+env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
+env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/objects.local/"
 run = "cargo run -p yams-server"
 
 ["dev:frontend"]
 description = "Start Next.js dev server"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 run = "npm run dev"
 
 ["dev:frontend-remote"]
 hide = true
 description = "Next.js on :3001 (pair with dev:server on :3000)"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 run = "npm run dev -- --port 3001"
 
 ["dev:tauri"]
 description = "Start Tauri dev (embedded by default; pass --remote for server mode)"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 usage = """
 flag "-r --remote" env="YAMS_TAURI_REMOTE" help="Use remote server config instead of embedded backend"
 """
@@ -29,11 +29,11 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 if [ "${usage_remote:-false}" = "true" ]; then
-  export YAMS_CONFIG_PATH="{{config_root}}/frontend/config.remote.dev.json"
+  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.remote.dev.json"
 else
-  export YAMS_CONFIG_PATH="{{config_root}}/frontend/config.embedded.dev.json"
-  export YAMS_DATABASE_URL="{{config_root}}/sqlite.local/yams.db"
-  export YAMS_OBJECT_STORE_DIR="{{config_root}}/objects.local/"
+  export YAMS_CONFIG_PATH="{{ vars.REPO_ROOT }}/frontend/config.embedded.dev.json"
+  export YAMS_DATABASE_URL="{{ vars.REPO_ROOT }}/sqlite.local/yams.db"
+  export YAMS_OBJECT_STORE_DIR="{{ vars.REPO_ROOT }}/objects.local/"
 fi
 exec npm run tauri dev
 """

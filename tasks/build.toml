@@ -2,7 +2,7 @@
 
 ["build:openapi"]
 description = "Sync OpenAPI spec from backend to frontend"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 usage = """
 flag "--release" env="YAMS_BUILD_OPENAPI_RELEASE" help="Build the OpenAPI spec in release mode"
 """
@@ -18,13 +18,13 @@ run = "cargo build --release -p yams-server"
 
 ["build:frontend"]
 description = "Build the Next.js frontend"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 depends = ["build:openapi --release"]
 run = "npm run build"
 
 ["build:tauri"]
 description = "Build Tauri app"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 depends = ["build:frontend"]
 run = "npm run tauri build"
 

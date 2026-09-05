@@ -2,7 +2,7 @@
 
 ["fmt:biome"]
 description = "Format the frontend code with biome"
-dir = "{{env.FRONTEND_DIR}}"
+dir = "{{ vars.REPO_ROOT }}/frontend"
 usage = """
 flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
 """

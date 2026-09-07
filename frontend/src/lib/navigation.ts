@@ -28,6 +28,18 @@ export type NavCategory = {
   items: NavItem[];
 };
 
+/** Strip trailing slash so `/klient/` matches `/klient` (Next `trailingSlash: true`). */
+export function normalizePath(path: string): string {
+  if (path.length > 1 && path.endsWith("/")) {
+    return path.slice(0, -1);
+  }
+  return path;
+}
+
+export function isExactPath(pathname: string, href: string): boolean {
+  return normalizePath(pathname) === normalizePath(href);
+}
+
 export const paths = {
   home: "/",
   klienten: "/klient",
@@ -170,7 +182,7 @@ export function breadcrumbsForPathname(
 }
 
 export function navActionsForPathname(pathname: string): NavAction[] {
-  if (pathname === paths.klienten) {
+  if (isExactPath(pathname, paths.klienten)) {
     return [{ label: "Neu", href: paths.klientNeu }];
   }
 
@@ -182,8 +194,14 @@ export function isNavItemActive(
   href: string,
   recursive = true,
 ): boolean {
+  const normalizedPath = normalizePath(pathname);
+  const normalizedHref = normalizePath(href);
+
   if (recursive) {
-    return pathname === href || pathname.startsWith(`${href}/`);
+    return (
+      normalizedPath === normalizedHref ||
+      normalizedPath.startsWith(`${normalizedHref}/`)
+    );
   }
-  return pathname === href;
+  return normalizedPath === normalizedHref;
 }

@@ -9,16 +9,6 @@
   --primary: #059669;
 }
 
-:root.dark,
-:root[data-theme="dark"] {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --surface: #09090b;
-  --surface-muted: #18181b;
-  --border: #27272a;
-  --primary: #10b981;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -36,7 +26,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     --background: #09090b;
     --foreground: #fafafa;
     --surface: #09090b;

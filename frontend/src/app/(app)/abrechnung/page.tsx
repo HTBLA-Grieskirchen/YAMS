@@ -1,5 +1,5 @@
-import { AbrechnungWorkflow } from "@/components/abrechnung/abrechnung-workflow";
+import { AbrechnungPanel } from "@/components/abrechnung/abrechnung-panel";
 
 export default function AbrechnungPage() {
-  return <AbrechnungWorkflow />;
+  return <AbrechnungPanel />;
 }

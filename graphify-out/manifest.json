@@ -882,9 +882,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/schema.d.ts": {
-    "mtime": 1788792338.7312038,
-    "seen": 1788793528.0395114,
-    "ast_hash": "b347f7a9435e3fc4fb6e1af5ac57eeb3",
+    "mtime": 1788793916.0709715,
+    "seen": 1788793922.7662005,
+    "ast_hash": "055218c810a442d30854022851edc7ef",
     "semantic_hash": ""
   },
   "frontend/src/app/layout.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   ".cursor/AGENTS.md": {
-    "mtime": 1788793494.4589806,
-    "seen": 1788793528.0401707,
-    "ast_hash": "177387db172d5b4f5da2eb55bd976a00",
+    "mtime": 1788793905.1229584,
+    "seen": 1788793922.7699735,
+    "ast_hash": "2df9e42701bc3e1c9a0cdb0c637a2f3f",
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
@@ -1782,9 +1782,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/seminar-buchung-form.tsx": {
-    "mtime": 1788792338.735204,
-    "seen": 1788793528.0399055,
-    "ast_hash": "ace5a40727823d6ae6146cefd68b148a",
+    "mtime": 1788793531.279038,
+    "seen": 1788793922.7683463,
+    "ast_hash": "100089bcc9052f00350d9d6f82dd0150",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/seminar-form.tsx": {
@@ -1836,9 +1836,9 @@
     "semantic_hash": ""
   },
   "frontend/src/app/(app)/abrechnung/page.tsx": {
-    "mtime": 1788793486.9869864,
-    "seen": 1788793528.0395172,
-    "ast_hash": "e9703e3d01f158a3235eecda94ff729e",
+    "mtime": 1788793896.8189583,
+    "seen": 1788793922.766295,
+    "ast_hash": "4fdd56547536a0257874a84400c0060d",
     "semantic_hash": ""
   },
   "frontend/src/app/(app)/katalog/page.tsx": {
@@ -1866,9 +1866,9 @@
     "semantic_hash": ""
   },
   "frontend/src/app/(app)/layout.tsx": {
-    "mtime": 1788793484.082996,
-    "seen": 1788793528.0395231,
-    "ast_hash": "6c5529912cb6837db3f22b9a80ea472a",
+    "mtime": 1788793897.8909574,
+    "seen": 1788793922.766452,
+    "ast_hash": "45665559c979c57f29389a89d0add9c4",
     "semantic_hash": ""
   },
   "frontend/src/app/(app)/objekte/page.tsx": {
@@ -1887,12 +1887,6 @@
     "mtime": 1788793486.534988,
     "seen": 1788793528.0395277,
     "ast_hash": "82f26b87db02b513629a56705cc8016a",
-    "semantic_hash": ""
-  },
-  "frontend/src/components/abrechnung/abrechnung-workflow.tsx": {
-    "mtime": 1788793481.254999,
-    "seen": 1788793528.0396078,
-    "ast_hash": "e0dd5d8e69a1c3be8eb9142b5c88b9f0",
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/katalog-overview.tsx": {
@@ -1931,16 +1925,10 @@
     "ast_hash": "9358ae795c4bbe205bfa983fe3a548b6",
     "semantic_hash": ""
   },
-  "frontend/src/components/layout/sidebar-footer.tsx": {
-    "mtime": 1788793443.1350474,
-    "seen": 1788793528.039616,
-    "ast_hash": "bddb6cbf3cb29c2c65b2efc0004134d4",
-    "semantic_hash": ""
-  },
   "frontend/src/components/layout/sidebar.tsx": {
-    "mtime": 1788793443.1350474,
-    "seen": 1788793528.0396173,
-    "ast_hash": "06a84142d8f5a15997b46bceb9d0a74d",
+    "mtime": 1788793900.0069566,
+    "seen": 1788793922.7668262,
+    "ast_hash": "0d1251bece7f8f119a04576f7f636693",
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/seminar-overview.tsx": {
@@ -1986,21 +1974,21 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/navigation.ts": {
-    "mtime": 1788793413.179017,
-    "seen": 1788793528.0400467,
-    "ast_hash": "554d5c0e43f113559cc18cf767a226c1",
-    "semantic_hash": ""
-  },
-  "frontend/src/lib/theme.tsx": {
-    "mtime": 1788793418.5390236,
-    "seen": 1788793528.0400789,
-    "ast_hash": "bbd25ca858e7833756e538d7b45716bf",
+    "mtime": 1788793901.4789562,
+    "seen": 1788793922.769379,
+    "ast_hash": "2edd61eceacb52c4969b6a90284d0155",
     "semantic_hash": ""
   },
   "frontend/src/standalone-config.json": {
     "mtime": 1788792338.739204,
     "seen": 1788793528.0400798,
     "ast_hash": "f1ee1c4afcfffcf68d8f0197766b4304",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/abrechnung/abrechnung-panel.tsx": {
+    "mtime": 1788793896.51096,
+    "seen": 1788793922.7666187,
+    "ast_hash": "2d9f882f64daeff3ef85c510c00ce149",
     "semantic_hash": ""
   }
 }

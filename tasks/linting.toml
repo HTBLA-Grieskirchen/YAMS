@@ -7,8 +7,7 @@ flag "--allow-dirty" env="YAMS_LINT_FIX_DIRTY" help="Allow dirty working directo
 run = '''
 #!/usr/bin/env bash
 cargo clippy --workspace \
-$([ "${usage_fix:-}" = "true" ] && echo "--fix") \
-$([ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
+$([ "${usage_fix:-}" = "true" ] && echo "--fix" && $([ "${usage_allow_dirty:-}" = "true" ] && echo " --allow-dirty"))
 '''
 
 ["lint:check:ts"]

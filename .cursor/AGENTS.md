@@ -321,7 +321,7 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 | Entity tables with expandable rows | `components/klient/klient-table.tsx`, `components/ui/table.tsx` |
 | Card forms for create flows | `components/klient/klient-register-form.tsx` + workflow cards |
 | Events overview (filter/search/list) | `components/seminar/seminar-overview.tsx` |
-| Tabbed sub-areas | Katalog Produkte/Behandlungen tabs; workflows as dedicated routes |
+| Open Leistungen + Tagesabschluss | `components/abrechnung/abrechnung-panel.tsx` |
 
 **Philosophy**
 
@@ -329,9 +329,9 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 2. **Shell first** — every page renders inside `AppShell` (sidebar + breadcrumb navbar); page-specific actions come from `navActionsForPathname`.
 3. **German UL in UI** — labels match domain (`Klient`, `Behandlung`, `Tagesabschluss`); English only in code/comments.
 4. **Lists are scannable** — prefer sticky-header tables + inline expansion over card stacks for master data.
-5. **Workflows stay guided** — Abrechnung/Seminar keep step chips (`WorkflowSteps`) and sequential forms; entity CRUD lives on dedicated pages.
+5. **Workflows stay focused** — Abrechnung lists open Leistungen + Tagesabschluss action; Seminar keeps its own panel. No multi-step billing wizard in UI.
 6. **Server state via TanStack Query only** — pages consume hooks; no MobX/local mirrors of API lists.
-7. **Theme** — light/dark/system via `ThemeProvider` + CSS variables in `globals.css`; emerald primary accent.
+7. **No theme/language pickers** — single default styling; KIS over personalization chrome.
 
 **Key paths**
 

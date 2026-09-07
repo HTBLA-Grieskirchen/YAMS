@@ -149,10 +149,6 @@ export function navActionsForPathname(pathname: string): NavAction[] {
     return [{ label: "Neu", href: paths.klientNeu }];
   }
 
-  if (pathname === paths.seminar) {
-    return [{ label: "Abrechnung", href: paths.abrechnung }];
-  }
-
   return [];
 }
 

@@ -1,0 +1,7 @@
+[tools]
+"pipx:graphifyy" = "latest"
+"npm:diffx-cli" = "latest"
+
+[env]
+YAMS_LOG_LEVEL = "trace"
+YAMS_DEV = "1"

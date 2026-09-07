@@ -1848,9 +1848,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-table.tsx": {
-    "mtime": 1788795452.1787329,
-    "seen": 1788795530.0245988,
-    "ast_hash": "bf9fbfee058099ed4d6765f3e9876682",
+    "mtime": 1788795607.058723,
+    "seen": 1788795614.3367746,
+    "ast_hash": "bb484e141c2704725763ddde0accfbbb",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/app-shell.tsx": {
@@ -2010,9 +2010,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/haustier-create-form.tsx": {
-    "mtime": 1788795394.5987403,
-    "seen": 1788795530.0245442,
-    "ast_hash": "7f598825f095eed86c875e562b22632c",
+    "mtime": 1788795597.6027236,
+    "seen": 1788795614.3366978,
+    "ast_hash": "a78d1fe16c7a20a03dba9416ffe1b69c",
     "semantic_hash": ""
   },
   "frontend/src/components/leistung/leistung-buchen-form.tsx": {

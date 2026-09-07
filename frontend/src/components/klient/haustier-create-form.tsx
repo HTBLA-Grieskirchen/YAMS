@@ -19,9 +19,15 @@ const emptyHaustier = (klientId: string): HaustierErstellung => ({
 
 type HaustierCreateFormProps = {
   klientId: string;
+  embedded?: boolean;
+  onCreated?: () => void;
 };
 
-export function HaustierCreateForm({ klientId }: HaustierCreateFormProps) {
+export function HaustierCreateForm({
+  klientId,
+  embedded = false,
+  onCreated,
+}: HaustierCreateFormProps) {
   const mutation = useHaustierErstellenMutation();
   const [form, setForm] = useState<HaustierErstellung>(() =>
     emptyHaustier(klientId),
@@ -41,10 +47,18 @@ export function HaustierCreateForm({ klientId }: HaustierCreateFormProps) {
     const created = await mutation.mutateAsync(form);
     setSuccess(`${created.name} (${created.tierart}) registriert.`);
     setForm(emptyHaustier(klientId));
+    onCreated?.();
   }
 
   return (
-    <form className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800" onSubmit={handleSubmit}>
+    <form
+      className={
+        embedded
+          ? "space-y-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/40"
+          : "space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800"
+      }
+      onSubmit={handleSubmit}
+    >
       <h3 className="text-sm font-semibold">Haustier hinzufügen</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Name">

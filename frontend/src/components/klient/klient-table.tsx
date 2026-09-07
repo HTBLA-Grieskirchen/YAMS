@@ -7,13 +7,16 @@ import {
   ChevronUp,
   Mail,
   MoreVertical,
+  PawPrint,
   Phone,
   TriangleAlert,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { useAlleKlientenQuery } from "@/api/hooks";
 import type { Klient } from "@/api/types";
+import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -95,6 +98,12 @@ export function KlientTable() {
 
 function KlientTableRow({ klient }: { klient: Klient }) {
   const [expanded, setExpanded] = useState(false);
+  const [showHaustierForm, setShowHaustierForm] = useState(false);
+
+  function openHaustierForm() {
+    setExpanded(true);
+    setShowHaustierForm(true);
+  }
 
   return (
     <>
@@ -123,32 +132,17 @@ function KlientTableRow({ klient }: { klient: Klient }) {
             )}
           </button>
         </TableCell>
-        <TableCell>
-          <details className="relative">
-            <summary className="flex size-8 cursor-pointer list-none items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 [&::-webkit-details-marker]:hidden">
-              <MoreVertical className="size-4" />
-            </summary>
-            <div className="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
-              <Link
-                href={paths.klient(klient.id)}
-                className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                Akte öffnen
-              </Link>
-              <Link
-                href={paths.leistungForKlient(klient.id)}
-                className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                Leistung buchen
-              </Link>
-            </div>
-          </details>
+        <TableCell className="relative">
+          <RowActionsMenu
+            onHaustierAnlegen={openHaustierForm}
+            klientId={klient.id}
+          />
         </TableCell>
       </TableRow>
 
       {expanded ? (
         <TableRow className="bg-zinc-50 dark:bg-zinc-900/40">
-          <TableCell colSpan={6}>
+          <TableCell colSpan={6} className="overflow-visible">
             <div className="max-w-2xl space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
               <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
                 Weitere Informationen
@@ -181,9 +175,21 @@ function KlientTableRow({ klient }: { klient: Klient }) {
               )}
 
               <div>
-                <p className="mb-2 text-xs font-semibold tracking-wide text-zinc-500 uppercase">
-                  Haustiere
-                </p>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
+                    Haustiere
+                  </p>
+                  {!showHaustierForm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowHaustierForm(true)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+                    >
+                      <PawPrint className="size-3.5" />
+                      Haustier anlegen
+                    </button>
+                  ) : null}
+                </div>
                 {klient.haustiere.length === 0 ? (
                   <p className="text-sm text-zinc-500">Keine Haustiere.</p>
                 ) : (
@@ -200,10 +206,117 @@ function KlientTableRow({ klient }: { klient: Klient }) {
                   </ul>
                 )}
               </div>
+
+              {showHaustierForm ? (
+                <HaustierCreateForm klientId={klient.id} embedded />
+              ) : null}
             </div>
           </TableCell>
         </TableRow>
       ) : null}
+    </>
+  );
+}
+
+type RowActionsMenuProps = {
+  klientId: string;
+  onHaustierAnlegen: () => void;
+};
+
+function RowActionsMenu({ klientId, onHaustierAnlegen }: RowActionsMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeOnScroll() {
+      setOpen(false);
+    }
+
+    window.addEventListener("scroll", closeOnScroll, true);
+    window.addEventListener("resize", closeOnScroll);
+    return () => {
+      window.removeEventListener("scroll", closeOnScroll, true);
+      window.removeEventListener("resize", closeOnScroll);
+    };
+  }, [open]);
+
+  function toggleMenu() {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuStyle({
+        top: rect.bottom + 4,
+        left: Math.max(8, rect.right - 176),
+      });
+    }
+    setOpen((value) => !value);
+  }
+
+  function close() {
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={toggleMenu}
+        className="flex size-8 items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900"
+      >
+        <MoreVertical className="size-4" />
+      </button>
+
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                aria-label="Menü schließen"
+                className="fixed inset-0 z-40 cursor-default"
+                onClick={close}
+              />
+              <div
+                role="menu"
+                className="fixed z-50 w-44 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+                style={{ top: menuStyle.top, left: menuStyle.left }}
+              >
+                <Link
+                  href={paths.klient(klientId)}
+                  role="menuitem"
+                  className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  onClick={close}
+                >
+                  Akte öffnen
+                </Link>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  onClick={() => {
+                    close();
+                    onHaustierAnlegen();
+                  }}
+                >
+                  Haustier anlegen
+                </button>
+                <Link
+                  href={paths.leistungForKlient(klientId)}
+                  role="menuitem"
+                  className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  onClick={close}
+                >
+                  Leistung buchen
+                </Link>
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

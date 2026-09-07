@@ -1,3 +1,7 @@
 ["test:crates"]
 description = "Tests all the project crates"
 run = "cargo nextest run"
+
+["test"]
+description = "Run all project tests"
+depends = ["test:crates"]

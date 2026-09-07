@@ -22,10 +22,3 @@ includes = [
     "tasks/misc.toml",
     "tasks/build.toml"
 ]
-
-
-[tasks."build:tauri"]
-description = "Build Tauri app"
-depends = ["build:frontend"]
-dir = "{{ vars.REPO_ROOT }}/frontend"
-run = "npx tauri build"

@@ -846,9 +846,9 @@
     "semantic_hash": "239f3ebf717465dc636818a1a619398d"
   },
   "frontend/src-tauri/Cargo.toml": {
-    "mtime": 1788792338.739204,
-    "seen": 1788793528.039266,
-    "ast_hash": "280eb78125d42df4d841b9ad1da53467",
+    "mtime": 1788813586.284186,
+    "seen": 1788817178.4436758,
+    "ast_hash": "1c850fa2f2cf305b43c53f6e5528c8da",
     "semantic_hash": ""
   },
   "frontend/src-tauri/build.rs": {
@@ -873,12 +873,6 @@
     "mtime": 1788796708.4825578,
     "seen": 1788797054.1336312,
     "ast_hash": "3da600d4963f74c157c05ca71558bf2b",
-    "semantic_hash": ""
-  },
-  "frontend/src-tauri/tauri.conf.json": {
-    "mtime": 1788792338.739204,
-    "seen": 1788793528.0394022,
-    "ast_hash": "f8f1ac2a7cad9b9c7f68886de73d9448",
     "semantic_hash": ""
   },
   "frontend/src/app/layout.tsx": {
@@ -918,22 +912,10 @@
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
-    "mtime": 1770157391.7329109,
-    "seen": 1787489081.311072,
-    "ast_hash": "bc3872406f4b5a3b7e6788d11e55886d",
-    "semantic_hash": "bc3872406f4b5a3b7e6788d11e55886d"
-  },
-  ".github/workflows/smoke_tests.yml": {
-    "mtime": 1770157391.7329109,
-    "seen": 1787489081.311073,
-    "ast_hash": "11eef6c2631d49e11a65021d17a8c9e3",
-    "semantic_hash": "11eef6c2631d49e11a65021d17a8c9e3"
-  },
-  ".github/workflows/unit_tests.yml": {
-    "mtime": 1770157391.7329109,
-    "seen": 1787489081.3110738,
-    "ast_hash": "fe035a2d94343fe5f523eab3821f8da2",
-    "semantic_hash": "fe035a2d94343fe5f523eab3821f8da2"
+    "mtime": 1788817162.6556766,
+    "seen": 1788817178.45017,
+    "ast_hash": "83af02e694655454cd21d78c3d119bfe",
+    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1770157391.7329109,
@@ -1896,9 +1878,9 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/config.ts": {
-    "mtime": 1788798242.4310837,
-    "seen": 1788798318.396704,
-    "ast_hash": "a27738be2c2d9971ad2cfd67f0189d85",
+    "mtime": 1788798897.0862432,
+    "seen": 1788817178.4493175,
+    "ast_hash": "ae60d718aed8155cbcc25820d86d8b94",
     "semantic_hash": ""
   },
   "frontend/src/lib/format.ts": {
@@ -1926,8 +1908,8 @@
     "semantic_hash": ""
   },
   "frontend/src/api/schema.ts": {
-    "mtime": 1788798242.4550836,
-    "seen": 1788798318.394245,
+    "mtime": 1788815617.2198927,
+    "seen": 1788817178.444273,
     "ast_hash": "59d7f1d73fb7ba4a1daa13cc517ae686",
     "semantic_hash": ""
   },
@@ -2079,6 +2061,18 @@
     "mtime": 1788798242.4390836,
     "seen": 1788798318.3950615,
     "ast_hash": "45b00e23d95721d97187088c36f45e21",
+    "semantic_hash": ""
+  },
+  ".github/workflows/dev_ci.yml": {
+    "mtime": 1788817158.8276777,
+    "seen": 1788817178.4501598,
+    "ast_hash": "cb7bf0b2bd89e306e3c7c1427e39afee",
+    "semantic_hash": ""
+  },
+  ".github/workflows/main_ci.yml": {
+    "mtime": 1788817161.3756764,
+    "seen": 1788817178.4501653,
+    "ast_hash": "2c84611bb3370d297cc8b184c5f7b205",
     "semantic_hash": ""
   }
 }

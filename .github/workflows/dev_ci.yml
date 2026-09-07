@@ -1,0 +1,40 @@
+name: Dev CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+  push:
+    branches:
+      - dev
+  workflow_call:
+
+jobs:
+  verify:
+    name: Check and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            frontend/node_modules
+            ~/.local/share/mise/
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-yams-${{ hashFiles('mise.toml', 'rust-toolchain.toml', 'frontend/package-lock.json') }}
+
+      - name: Install mise
+        uses: jdx/mise-action@v4
+        with:
+          cache: true
+          cache_key: mise-v1-{{platform}}-{{file_hash}}
+
+      - name: Check formatting and linting
+        run: mise run check
+
+      - name: Run tests
+        run: mise run test

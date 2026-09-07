@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useKlientErstellenMutation } from "@/api/hooks";
+import { useKlientErstellenMutation, useYamsApiReady } from "@/api/hooks";
 import type { Klient, KlientErstellung } from "@/api/types";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ function defaultKlient(): KlientErstellung {
     geburtstag: "",
     email: "",
     mobilnummer: "",
-    kundennummer: Date.now() % 1_000_000,
+    kundennummer: Date.now(),
     einwilligung: false,
     adresse: {
       postleitzahl: "",
@@ -40,6 +40,7 @@ export function KlientRegisterForm({
   redirectOnSuccess = true,
 }: KlientRegisterFormProps) {
   const router = useRouter();
+  const { isReady, error: apiError } = useYamsApiReady();
   const mutation = useKlientErstellenMutation();
   const [form, setForm] = useState<KlientErstellung>(defaultKlient);
 
@@ -169,6 +170,8 @@ export function KlientRegisterForm({
         onChange={(e) => updateField("einwilligung", e.target.checked)}
       />
 
+      {apiError ? <Alert variant="error">{apiError}</Alert> : null}
+
       {mutation.error ? (
         <Alert variant="error">{String(mutation.error)}</Alert>
       ) : null}
@@ -177,7 +180,7 @@ export function KlientRegisterForm({
         <Button type="button" variant="secondary" onClick={() => router.back()}>
           Zurück
         </Button>
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" disabled={!isReady || mutation.isPending}>
           {mutation.isPending ? "Speichern…" : "Klient erstellen"}
         </Button>
       </div>

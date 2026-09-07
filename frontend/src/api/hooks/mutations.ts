@@ -5,6 +5,7 @@ import { getYamsApi } from "../index";
 import type {
   BehandlungErstellung,
   HaustierErstellung,
+  Klient,
   KlientErstellung,
   LeistungAusBehandlungErstellung,
   LeistungAusProduktErstellung,
@@ -21,17 +22,26 @@ import type {
 import { useYamsApiReady } from "./use-yams-api-ready";
 
 export function useKlientErstellenMutation() {
-  const { api } = useYamsApiReady();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (body: KlientErstellung) => {
-      if (!api) {
-        throw new Error("YamsApi is not ready");
-      }
+    mutationFn: async (body: KlientErstellung) => {
+      const api = await getYamsApi();
       return api.klientErstellen(body);
     },
-    onSuccess: () => {
+    onSuccess: (klient) => {
+      queryClient.setQueryData(
+        yamsKeys.klienten.list(),
+        (existing: Klient[] | undefined) => {
+          if (!existing) {
+            return [klient];
+          }
+          if (existing.some((entry) => entry.id === klient.id)) {
+            return existing;
+          }
+          return [...existing, klient];
+        },
+      );
       queryClient.invalidateQueries({ queryKey: yamsKeys.klienten.all() });
     },
   });

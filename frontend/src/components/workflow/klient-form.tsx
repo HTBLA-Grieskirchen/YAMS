@@ -23,7 +23,7 @@ type KlientFormProps = {
 };
 
 function defaultKlient(): KlientErstellung {
-  const kundennummer = Date.now() % 1_000_000;
+  const kundennummer = Date.now();
 
   return {
     vorname: "Maria",

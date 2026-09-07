@@ -206,7 +206,7 @@ Consumers:
 - **yams-server** — full features (OpenAPI HTTP + Swagger/ReDoc)
 - **src-tauri** — `default-features = false, features = ["serde"]` (IPC only, no poem)
 
-After schema or route changes, run `mise run sync:openapi` to refresh `frontend/src/api/schema.d.ts`.
+After schema or route changes, run `mise run sync:openapi` to refresh `frontend/src/api/schema.ts`.
 
 ## yams-persistence — Driven Adapter
 
@@ -273,12 +273,12 @@ Persistence proves adapter conformance by running the same case suite against re
 - **mise** (`mise.toml`) — Rust toolchain, Node 22, env vars (`FRONTEND_DIR`, `OPENAPI_SPEC`), task includes from `tasks/`
 - **Rust nightly pinned** — `rust-toolchain.toml` uses `nightly-2026-07-02`; do not bump without testing (newer nightlies break poem-openapi lifetime capturing across await)
 - **cargo-nextest** — `cargo nextest` for running tests
-- **Key tasks**: `test:backend` (`cargo test`), `sync:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.d.ts`), `dev:server`, `dev:tauri` (embedded), `dev:tauri+server`, `dev:frontend+server`
+- **Key tasks**: `test:backend` (`cargo test`), `sync:openapi` (export spec → `openapi-typescript` → `frontend/src/api/schema.ts`), `dev:server`, `dev:tauri` (embedded), `dev:tauri+server`, `dev:frontend+server`
 - **Formatting/linting**: `fmt:rust`, `lint:crates` (clippy), `fmt:biome` (frontend)
 
 ## Frontend
 
-Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `frontend/src/api/schema.d.ts` (`mise run sync:openapi`).
+Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. Static export (`output: "export"`) → `frontend/out/` for Tauri. OpenAPI types at `frontend/src/api/schema.ts` (`mise run sync:openapi`).
 
 ### API layer
 
@@ -325,8 +325,8 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 
 **Philosophy**
 
-1. **Route = task** — `/klient`, `/katalog`, `/seminar`, `/abrechnung`, `/objekte`; home redirects to `/klient`.
-2. **Shell first** — every page renders inside `AppShell` (sidebar + breadcrumb navbar); page-specific actions come from `navActionsForPathname`.
+1. **Route = task** — `/klient`, `/katalog`, `/seminar`, `/abrechnung`, `/objekte`; home redirects to `/klient`. Dynamic entity views use query params (`/klient/detail?id=…`) — no `[param]` segments (static export).
+2. **Shell first** — every page renders inside `AppShell` via root `layout.tsx` + `AppChrome`; page-specific actions come from `navActionsForPathname`.
 3. **German UL in UI** — labels match domain (`Klient`, `Behandlung`, `Tagesabschluss`); English only in code/comments.
 4. **Lists are scannable** — prefer sticky-header tables + inline expansion over card stacks for master data.
 5. **Workflows stay focused** — Abrechnung lists open Leistungen + Tagesabschluss action; Seminar keeps its own panel. No multi-step billing wizard in UI.
@@ -335,9 +335,9 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 
 **Key paths**
 
-- Layout shell: `frontend/src/app/(app)/layout.tsx`
+- Layout shell: `frontend/src/app/layout.tsx`, `frontend/src/components/layout/app-chrome.tsx`
 - Navigation config: `frontend/src/lib/navigation.ts`
-- Klient management: `frontend/src/app/(app)/klient/**`, `frontend/src/components/klient/**`
+- Klient management: `frontend/src/app/klient/**`, `frontend/src/components/klient/**`
 
 ## Conventions for Contributors
 

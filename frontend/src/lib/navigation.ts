@@ -30,7 +30,9 @@ export const paths = {
   home: "/",
   klienten: "/klient",
   klientNeu: "/klient/neu",
-  klient: (id: string) => `/klient/${encodeURIComponent(id)}`,
+  klientDetail: "/klient/detail",
+  klient: (id: string) =>
+    `/klient/detail?id=${encodeURIComponent(id)}`,
   katalog: "/katalog",
   seminar: "/seminar",
   abrechnung: "/abrechnung",
@@ -101,6 +103,7 @@ type BreadcrumbSegment = {
 const routeLabels: Record<string, string> = {
   klient: "Klient",
   neu: "Neu",
+  detail: "Detail",
   katalog: "Katalog",
   seminar: "Seminar",
   abrechnung: "Abrechnung",

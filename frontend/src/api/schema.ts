@@ -870,6 +870,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rechnungen/{id}/bezahlt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json; charset=utf-8": components["schemas"]["RechnungBezahltMarkieren"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["Rechnung"];
+                    };
+                };
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain; charset=utf-8": string;
+                    };
+                };
+                "4XX": {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json; charset=utf-8": components["schemas"]["StructuredError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/seminar": {
         parameters: {
             query?: never;
@@ -1872,6 +1928,11 @@ export interface components {
             status: components["schemas"]["RechnungStatus"];
             /** Format: naive-date */
             bezahltDatum?: string;
+        };
+        /** RechnungBezahltMarkieren */
+        RechnungBezahltMarkieren: {
+            /** Format: naive-date */
+            bezahltDatum: string;
         };
         /** @enum {string} */
         RechnungStatus: RechnungStatus;

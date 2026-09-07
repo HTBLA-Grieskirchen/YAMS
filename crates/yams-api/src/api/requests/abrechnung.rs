@@ -3,10 +3,11 @@ use error_stack::{Report, ResultExt};
 use rust_decimal::Decimal;
 use uuid::Uuid;
 use yams_core::{
-    domain::{BehandlungId, KlientId, Menge, Preis, ProduktId, Ratio},
+    domain::{BehandlungId, KlientId, Menge, Preis, ProduktId, Ratio, RechnungId},
     service::{
         BehandlungErstellen, LeistungAusBehandlungBuchen, LeistungAusProduktBuchen,
-        LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchführen,
+        LeistungManuellErfassen, ProduktErstellen, RechnungAlsBezahltMarkieren,
+        TagesabschlussDurchführen,
     },
 };
 
@@ -159,6 +160,25 @@ impl From<TagesabschlussErstellung> for TagesabschlussDurchführen {
         Self {
             abschlussdatum: value.abschlussdatum,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "openapi", derive(poem_openapi::Object))]
+#[cfg_attr(feature = "openapi", oai(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct RechnungBezahltMarkieren {
+    pub bezahlt_datum: NaiveDate,
+}
+
+pub fn into_rechnung_als_bezahlt_markieren(
+    rechnung_id: Uuid,
+    body: RechnungBezahltMarkieren,
+) -> RechnungAlsBezahltMarkieren {
+    RechnungAlsBezahltMarkieren {
+        rechnung_id: RechnungId(rechnung_id),
+        bezahlt_datum: body.bezahlt_datum,
     }
 }
 

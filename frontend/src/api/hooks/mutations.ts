@@ -15,6 +15,7 @@ import type {
   SeminarTerminAktualisierung,
   SeminarTerminErstellung,
   TagesabschlussErstellung,
+  RechnungBezahltMarkieren,
 } from "../types";
 import { useYamsApiReady } from "./use-yams-api-ready";
 
@@ -155,12 +156,40 @@ export function useTagesabschlussDurchführenMutation() {
     },
     onSuccess: (rechnungen) => {
       queryClient.invalidateQueries({ queryKey: yamsKeys.rechnungen.all() });
+      queryClient.invalidateQueries({ queryKey: yamsKeys.leistungen.all() });
       const klientIds = new Set(rechnungen.map((r) => r.klientId));
       for (const klientId of klientIds) {
         queryClient.invalidateQueries({
           queryKey: yamsKeys.rechnungen.byKlient(klientId),
         });
       }
+    },
+  });
+}
+
+export function useRechnungAlsBezahltMarkierenMutation() {
+  const { api } = useYamsApiReady();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      rechnungId,
+      body,
+    }: {
+      rechnungId: string;
+      body: RechnungBezahltMarkieren;
+    }) => {
+      if (!api) {
+        throw new Error("YamsApi is not ready");
+      }
+      return api.rechnungAlsBezahltMarkieren(rechnungId, body);
+    },
+    onSuccess: (rechnung) => {
+      queryClient.invalidateQueries({ queryKey: yamsKeys.rechnungen.all() });
+      queryClient.invalidateQueries({ queryKey: yamsKeys.leistungen.all() });
+      queryClient.invalidateQueries({
+        queryKey: yamsKeys.rechnungen.byKlient(rechnung.klientId),
+      });
     },
   });
 }

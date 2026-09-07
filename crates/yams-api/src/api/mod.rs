@@ -20,7 +20,8 @@ use yams_core::{
         KlientErstellen, KlientErstellenFehler, LeistungAusBehandlungBuchen,
         LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchen,
         LeistungAusProduktBuchenFehler, LeistungManuellErfassen, LeistungManuellErfassenFehler,
-        ProduktErstellen, ProduktErstellenFehler, SeminarBuchungAnlegenFehler,
+        ProduktErstellen, ProduktErstellenFehler, RechnungAlsBezahltMarkieren,
+        RechnungAlsBezahltMarkierenFehler, SeminarBuchungAnlegenFehler,
         SeminarBuchungStornieren, SeminarBuchungStornierenFehler, SeminarErstellen,
         SeminarErstellenFehler, SeminarTerminAbsagenFehler, SeminarTerminAktualisierenFehler,
         SeminarTerminAlsAbgehaltenMarkierenFehler, SeminarTerminPlanen, SeminarTerminPlanenFehler,
@@ -38,7 +39,8 @@ use crate::{
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
         ProduktErstellung, SeminarBuchungErstellung, SeminarErstellung, SeminarTerminAbsage,
         SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
-        abgehalten_use_case, buchung_id,
+        RechnungBezahltMarkieren, abgehalten_use_case, buchung_id,
+        into_rechnung_als_bezahlt_markieren,
     },
     schema::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
@@ -285,6 +287,18 @@ impl YamsAppApi {
         Ok(rechnungen
             .map(schema_rechnung_from_domain_rechnung)
             .collect())
+    }
+
+    pub async fn rechnung_als_bezahlt_markieren(
+        &self,
+        rechnung_id: Uuid,
+        body: RechnungBezahltMarkieren,
+    ) -> ResultReport<Rechnung, RechnungAlsBezahltMarkierenFehler> {
+        let rechnung = self
+            .app
+            .execute(into_rechnung_als_bezahlt_markieren(rechnung_id, body))
+            .await?;
+        Ok(schema_rechnung_from_domain_rechnung(rechnung))
     }
 
     pub async fn rechnung_pdf(

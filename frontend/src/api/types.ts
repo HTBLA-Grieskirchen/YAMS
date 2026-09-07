@@ -18,6 +18,8 @@ export type LeistungManuelleErstellung =
 export type Produkt = components["schemas"]["Produkt"];
 export type ProduktErstellung = components["schemas"]["ProduktErstellung"];
 export type Rechnung = components["schemas"]["Rechnung"];
+export type RechnungBezahltMarkieren =
+  components["schemas"]["RechnungBezahltMarkieren"];
 export type Seminar = components["schemas"]["Seminar"];
 export type SeminarBuchung = components["schemas"]["SeminarBuchung"];
 export type SeminarBuchungErstellung =

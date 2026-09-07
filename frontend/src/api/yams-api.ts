@@ -12,6 +12,7 @@ import type {
   Produkt,
   ProduktErstellung,
   Rechnung,
+  RechnungBezahltMarkieren,
   Seminar,
   SeminarBuchungErstellung,
   SeminarErstellung,
@@ -49,6 +50,10 @@ export interface YamsApi {
   ): Promise<Rechnung[]>;
   alleRechnungen(): Promise<Rechnung[]>;
   rechnungenFürKlient(klientId: string): Promise<Rechnung[]>;
+  rechnungAlsBezahltMarkieren(
+    id: string,
+    body: RechnungBezahltMarkieren,
+  ): Promise<Rechnung>;
   rechnungPdf(id: string): Promise<Blob>;
   teilnahmebestätigungPdf(terminId: string, buchungId: string): Promise<Blob>;
   seminarErstellen(body: SeminarErstellung): Promise<Seminar>;

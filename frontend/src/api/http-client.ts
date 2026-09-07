@@ -10,6 +10,7 @@ import type {
   LeistungAusProduktErstellung,
   LeistungManuelleErstellung,
   ProduktErstellung,
+  RechnungBezahltMarkieren,
   SeminarBuchungErstellung,
   SeminarErstellung,
   SeminarTerminAbsage,
@@ -149,6 +150,15 @@ export class HttpYamsApi implements YamsApi {
     return unwrap(
       await this.client.GET("/klient/{klient_id}/rechnungen", {
         params: { path: { klient_id: klientId } },
+      }),
+    );
+  }
+
+  async rechnungAlsBezahltMarkieren(id: string, body: RechnungBezahltMarkieren) {
+    return unwrap(
+      await this.client.POST("/rechnungen/{id}/bezahlt", {
+        params: { path: { id } },
+        body,
       }),
     );
   }

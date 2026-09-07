@@ -15,6 +15,7 @@ import type {
   Produkt,
   ProduktErstellung,
   Rechnung,
+  RechnungBezahltMarkieren,
   Seminar,
   SeminarBuchungErstellung,
   SeminarErstellung,
@@ -124,6 +125,16 @@ export class TauriYamsApi implements YamsApi {
 
   async rechnungenFürKlient(klientId: string): Promise<Rechnung[]> {
     return invokeCommand("rechnungen_für_klient", { klient_id: klientId });
+  }
+
+  async rechnungAlsBezahltMarkieren(
+    id: string,
+    body: RechnungBezahltMarkieren,
+  ): Promise<Rechnung> {
+    return invokeCommand("rechnung_als_bezahlt_markieren", {
+      id,
+      markierung: body,
+    });
   }
 
   async rechnungPdf(id: string): Promise<Blob> {

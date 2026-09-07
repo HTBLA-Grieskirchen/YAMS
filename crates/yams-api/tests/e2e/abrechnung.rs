@@ -175,6 +175,16 @@ async fn tagesabschluss_returns_rechnungen_as_json() {
         pdf.len()
     );
 
+    let (status, bezahlt) = api
+        .post_json(
+            &format!("/api/rechnungen/{rechnung_id}/bezahlt"),
+            json!({ "bezahltDatum": "2026-08-23" }),
+        )
+        .await;
+    assert_status_ok(status);
+    assert_eq!(bezahlt["status"], "Bezahlt");
+    assert_eq!(bezahlt["bezahltDatum"], "2026-08-23");
+
     let (status, _, _) = api
         .get_bytes("/api/rechnungen/00000000-0000-0000-0000-000000000000/pdf")
         .await;

@@ -10,7 +10,7 @@ use tracing::instrument;
 use crate::application::uow::{UnitOfWorkImpl, Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
+    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungId, RechnungOffen, Seminar, SeminarId, SeminarTermin,
     SeminarTerminGeplant, SeminarTerminId, behandlung::NeueBehandlung, haustier::NeuesHaustier,
     klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
     seminar_termin::NeuerSeminarTermin,
@@ -163,6 +163,10 @@ impl_instrumented_repo!(
         fn find_all(&self) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
         #[instrument(skip(self, klient_id), fields(klient_id = ?klient_id), level = "trace", err(Debug))]
         fn find_by_klient_id(&self, klient_id: KlientId) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
+        #[instrument(skip(self, id), fields(id = ?id), level = "trace", err(Debug))]
+        fn find_by_id(&self, id: RechnungId) -> RepositoryResult<Versioned<Rechnung>>;
+        #[instrument(skip(self, rechnung), level = "debug", err(Debug))]
+        fn update(&self, rechnung: &mut Versioned<Rechnung>) -> RepositoryResult<()>;
     ]
 );
 

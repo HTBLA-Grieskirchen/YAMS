@@ -159,6 +159,15 @@ pub async fn teilnahmebestaetigung_pdf(
 }
 
 #[tauri::command]
+pub async fn rechnung_als_bezahlt_markieren(
+    id: Uuid,
+    markierung: yams_api::requests::RechnungBezahltMarkieren,
+    ctx: State<'_, YamsAppApi>,
+) -> Result<Rechnung, String> {
+    map_report(ctx.rechnung_als_bezahlt_markieren(id, markierung).await)
+}
+
+#[tauri::command]
 pub async fn seminar_erstellen(
     erstellung: SeminarErstellung,
     ctx: State<'_, YamsAppApi>,

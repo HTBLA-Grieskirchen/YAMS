@@ -10,7 +10,7 @@ use uuid::Uuid;
 use yams_core::{
     domain::{
         Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-        LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId,
+        LeistungOffen, Produkt, ProduktId, Rechnung, RechnungId, RechnungOffen, Seminar, SeminarId,
         SeminarTermin, SeminarTerminGeplant, SeminarTerminId,
         behandlung::NeueBehandlung,
         haustier::NeuesHaustier,
@@ -544,6 +544,27 @@ impl RechnungRepository for FakeRechnungenRepository {
             .filter(|r| r.klient_id() == &klient_id)
             .cloned()
             .collect())
+    }
+
+    async fn find_by_id(&self, id: RechnungId) -> RepositoryResult<Versioned<Rechnung>> {
+        let data = self.datastore.rechnungen.lock().unwrap();
+        Ok(data.get(&id.0).cloned().ok_or(RepositoryError::NotFound)?)
+    }
+
+    async fn update(&self, rechnung: &mut Versioned<Rechnung>) -> RepositoryResult<()> {
+        let mut data = self.datastore.rechnungen.lock().unwrap();
+        let existing = data
+            .get_mut(&rechnung.id().0)
+            .ok_or(RepositoryError::NotFound)?;
+        if existing.v() != rechnung.v() {
+            Err(RepositoryError::VersionMismatch {
+                expected: existing.v(),
+                actual: Some(rechnung.v()),
+            })?;
+        }
+        *rechnung = rechnung.clone().incremented();
+        *existing = rechnung.clone();
+        Ok(())
     }
 }
 

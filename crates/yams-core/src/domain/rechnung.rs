@@ -197,6 +197,17 @@ impl RechnungOffen {
         )
         .map_err(Report::new)
     }
+
+    pub fn als_bezahlt(self, bezahlt_datum: NaiveDate) -> RechnungBezahlt {
+        RechnungIn {
+            id: self.id,
+            rechnungsnummer: self.rechnungsnummer,
+            klient_id: self.klient_id,
+            rechnungsdatum: self.rechnungsdatum,
+            positionen: self.positionen,
+            state: Bezahlt { bezahlt_datum },
+        }
+    }
 }
 
 impl RechnungBezahlt {

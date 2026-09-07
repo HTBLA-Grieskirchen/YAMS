@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
-use yams_core::domain::{Adresse, Klient, Ländercode, Menge, Preis, Ratio};
+use yams_core::domain::{Adresse, Klient, Ländercode, Menge, Preis, Ratio, Rechnung};
 use yams_core::service::{
     BehandlungErstellen, KlientErstellen, LeistungAusBehandlungBuchen, LeistungAusProduktBuchen,
-    LeistungManuellErfassen, ProduktErstellen, TagesabschlussDurchführen,
+    LeistungManuellErfassen, ProduktErstellen, RechnungAlsBezahltMarkieren,
+    TagesabschlussDurchführen,
 };
 
 use super::super::base_app_builder;
@@ -407,4 +408,43 @@ async fn tagesabschluss_schreibt_pdfs_und_ruft_renderer_mit_rechnungsdaten() {
             Some(FAKE_PDF)
         );
     }
+}
+
+#[test_log::test(pollster::test)]
+async fn rechnung_kann_als_bezahlt_markiert_werden() {
+    let setup = setup_abrechnung_fixture().await;
+    let rechnungen = setup
+        .app
+        .execute(TagesabschlussDurchführen {
+            abschlussdatum: Some(setup.abschlussdatum),
+        })
+        .await
+        .unwrap();
+
+    let offen = &rechnungen[0];
+    let bezahlt_datum = NaiveDate::from_ymd_opt(2026, 8, 24).unwrap();
+    let markiert = setup
+        .app
+        .execute(RechnungAlsBezahltMarkieren {
+            rechnung_id: offen.id().clone(),
+            bezahlt_datum,
+        })
+        .await
+        .unwrap();
+
+    match markiert {
+        Rechnung::Bezahlt(rechnung) => {
+            assert_eq!(rechnung.bezahlt_datum(), bezahlt_datum);
+        }
+        Rechnung::Offen(_) => panic!("expected bezahlte rechnung"),
+    }
+
+    let erneut = setup
+        .app
+        .execute(RechnungAlsBezahltMarkieren {
+            rechnung_id: offen.id().clone(),
+            bezahlt_datum,
+        })
+        .await;
+    assert!(erneut.is_err());
 }

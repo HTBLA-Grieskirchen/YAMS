@@ -6,7 +6,7 @@ use chrono::NaiveDate;
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungOffen, Seminar, SeminarId, SeminarTermin,
+    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungId, RechnungOffen, Seminar, SeminarId, SeminarTermin,
     SeminarTerminGeplant, SeminarTerminId, behandlung::NeueBehandlung, haustier::NeuesHaustier,
     klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
     seminar_termin::NeuerSeminarTermin,
@@ -71,6 +71,8 @@ pub trait RechnungRepository: Send + Sync {
         &self,
         klient_id: KlientId,
     ) -> RepositoryResult<Vec<Versioned<Rechnung>>>;
+    async fn find_by_id(&self, id: RechnungId) -> RepositoryResult<Versioned<Rechnung>>;
+    async fn update(&self, rechnung: &mut Versioned<Rechnung>) -> RepositoryResult<()>;
 }
 
 #[async_trait]

@@ -269,4 +269,72 @@ impl RechnungRepository for SQLiteRechnungRepository {
 
         Ok(rechnungen)
     }
+
+    async fn find_by_id(&self, id: RechnungId) -> RepositoryResult<Versioned<Rechnung>> {
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let id_str = id.0.to_string();
+        let mut rows = tx
+            .query(
+                "SELECT r.id, r.rechnungsnummer, r.klient_id, r.rechnungsdatum, r.status, r.bezahlt_datum, r._version, p.leistung_id, p.beschreibung, p.einzelpreis, p.\"stückzahl\", p.mwst FROM rechnungen r LEFT JOIN rechnungspositionen p ON p.rechnung_id = r.id WHERE r.id = ?1 ORDER BY p.id",
+                [id_str],
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        let mut header: Option<RechnungRowData> = None;
+        let mut positionen: Vec<Rechnungsposition> = Vec::new();
+
+        while let Some(row) = rows
+            .next()
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?
+        {
+            if header.is_none() {
+                header = Some(parse_rechnung_header(&row)?);
+            }
+            if let Ok(position) = parse_position_from_row(&row) {
+                positionen.push(position);
+            }
+        }
+
+        let header = header.ok_or(RepositoryError::NotFound)?;
+        let version = header.version;
+        let geladen = geladene_rechnung_from_parts(&header, positionen)?;
+        Ok(Versioned::new(version, geladen))
+    }
+
+    async fn update(&self, rechnung: &mut Versioned<Rechnung>) -> RepositoryResult<()> {
+        let id_str = rechnung.id().0.to_string();
+        let version = rechnung.v();
+        let (status, bezahlt_datum) = match &**rechnung {
+            Rechnung::Offen(_) => ("offen", None),
+            Rechnung::Bezahlt(bezahlt) => (
+                "bezahlt",
+                Some(format_naive_date(bezahlt.bezahlt_datum())),
+            ),
+        };
+
+        let mut guard = self.tx.lock().await;
+        let tx = guard.as_mut().ok_or(RepositoryError::Conflict)?;
+
+        let result = tx
+            .execute(
+                "UPDATE rechnungen SET status = ?1, bezahlt_datum = ?2, _version = _version + 1 WHERE id = ?3 AND _version = ?4",
+                libsql::params![status, bezahlt_datum, id_str, version],
+            )
+            .await
+            .contextualize_with(libsql_error_to_persistence_error)?;
+
+        if result != 1 {
+            Err(RepositoryError::VersionMismatch {
+                expected: version,
+                actual: None,
+            })?;
+        }
+
+        rechnung.increment();
+        Ok(())
+    }
 }

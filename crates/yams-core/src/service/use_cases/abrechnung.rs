@@ -9,7 +9,8 @@ use crate::{
     application::uow::Versioned,
     domain::{
         Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen, LeistungQuelle,
-        Menge, Preis, Produkt, ProduktId, Ratio, RechnungOffen, behandlung::NeueBehandlung,
+        Menge, Preis, Produkt, ProduktId, Ratio, Rechnung, RechnungId, RechnungOffen,
+        behandlung::NeueBehandlung,
         leistung::NeueLeistung, produkt::NeuesProdukt,
     },
     service::{
@@ -470,5 +471,62 @@ impl UseCase<Vec<RechnungOffen>> for TagesabschlussDurchführen {
             "tagesabschluss abgeschlossen"
         );
         Ok(rechnungen)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RechnungAlsBezahltMarkieren {
+    pub rechnung_id: RechnungId,
+    pub bezahlt_datum: NaiveDate,
+}
+
+#[derive(thiserror::Error, Debug, Clone, Copy)]
+pub enum RechnungAlsBezahltMarkierenFehler {
+    #[error("persistenzfehler")]
+    Persistenz,
+    #[error("rechnung nicht gefunden")]
+    RechnungNichtGefunden,
+    #[error("rechnung ist bereits bezahlt")]
+    BereitsBezahlt,
+}
+
+#[async_trait]
+impl UseCase<Rechnung> for RechnungAlsBezahltMarkieren {
+    type Error = Report<RechnungAlsBezahltMarkierenFehler>;
+
+    async fn perform(self, ctx: ExecutionContext<'_>) -> Result<Rechnung, Self::Error> {
+        let uow = ctx
+            .enter()
+            .await
+            .change_context(RechnungAlsBezahltMarkierenFehler::Persistenz)?;
+
+        let result = async {
+            let mut versioned = uow
+                .rechnungen()
+                .find_by_id(self.rechnung_id.clone())
+                .await
+                .change_context(RechnungAlsBezahltMarkierenFehler::RechnungNichtGefunden)?;
+
+            let bezahlt = match versioned.cloned_data() {
+                Rechnung::Offen(offen) => Rechnung::Bezahlt(offen.als_bezahlt(self.bezahlt_datum)),
+                Rechnung::Bezahlt(_) => {
+                    return Err(Report::new(
+                        RechnungAlsBezahltMarkierenFehler::BereitsBezahlt,
+                    ));
+                }
+            };
+
+            *versioned = bezahlt.clone();
+            uow.rechnungen()
+                .update(&mut versioned)
+                .await
+                .change_context(RechnungAlsBezahltMarkierenFehler::Persistenz)?;
+
+            Ok(bezahlt)
+        }
+        .await;
+
+        uow.finish(result, RechnungAlsBezahltMarkierenFehler::Persistenz)
+            .await
     }
 }

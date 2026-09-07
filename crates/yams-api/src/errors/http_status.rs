@@ -13,8 +13,8 @@ use yams_core::service::{
     LeistungManuellErfassenFehler, ProduktErstellenFehler, SeminarBuchungAnlegenFehler,
     SeminarBuchungStornierenFehler, SeminarErstellenFehler, SeminarTerminAbsagenFehler,
     SeminarTerminAktualisierenFehler, SeminarTerminAlsAbgehaltenMarkierenFehler,
-    SeminarTerminPlanenFehler, SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
-    TagesabschlussDurchführenFehler,
+    SeminarTerminPlanenFehler,     SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
+    TagesabschlussDurchführenFehler, RechnungAlsBezahltMarkierenFehler,
 };
 
 use super::ValidationError;
@@ -68,6 +68,7 @@ fn nested_http_status<C: ThreadSafeError>(error: &Report<C>) -> Option<StatusCod
         .or_else(|| mapped::<C, SeminarBuchungStornierenFehler>(error))
         .or_else(|| mapped::<C, SeminarTerminAbsagenFehler>(error))
         .or_else(|| mapped::<C, SeminarTerminAlsAbgehaltenMarkierenFehler>(error))
+        .or_else(|| mapped::<C, RechnungAlsBezahltMarkierenFehler>(error))
         .or_else(|| mapped::<C, RepositoryError>(error))
         .or_else(|| mapped::<C, ObjectStoreError>(error))
         .or_else(|| mapped::<C, ValidationError>(error))
@@ -225,6 +226,18 @@ impl HttpStatusMapping for TagesabschlussDurchführenFehler {
             TagesabschlussDurchführenFehler::Pdf | TagesabschlussDurchführenFehler::Speicher => {
                 Some(StatusCode::INTERNAL_SERVER_ERROR)
             }
+        }
+    }
+}
+
+impl HttpStatusMapping for RechnungAlsBezahltMarkierenFehler {
+    fn http_status(&self) -> Option<StatusCode> {
+        match self {
+            RechnungAlsBezahltMarkierenFehler::Persistenz => None,
+            RechnungAlsBezahltMarkierenFehler::RechnungNichtGefunden => {
+                Some(StatusCode::NOT_FOUND)
+            }
+            RechnungAlsBezahltMarkierenFehler::BereitsBezahlt => Some(StatusCode::CONFLICT),
         }
     }
 }

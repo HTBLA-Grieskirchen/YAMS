@@ -20,6 +20,7 @@ use crate::{
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
         ProduktErstellung, SeminarBuchungErstellung, SeminarErstellung, SeminarTerminAbsage,
         SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
+        RechnungBezahltMarkieren,
     },
     schema::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
@@ -261,6 +262,18 @@ impl YamsApiSpec {
     #[oai(path = "/rechnungen/:id/pdf", method = "get")]
     async fn rechnung_pdf(&self, id: Path<Uuid>) -> StreamBinaryResponse {
         self.app_api.rechnung_pdf(id.0).await.into()
+    }
+
+    #[oai(path = "/rechnungen/:id/bezahlt", method = "post")]
+    async fn rechnung_als_bezahlt_markieren(
+        &self,
+        id: Path<Uuid>,
+        body: Json<RechnungBezahltMarkieren>,
+    ) -> TypicalJsonResponse<Rechnung> {
+        self.app_api
+            .rechnung_als_bezahlt_markieren(id.0, body.0)
+            .await
+            .into()
     }
 
     #[oai(path = "/seminar", method = "post")]

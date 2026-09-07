@@ -6,6 +6,7 @@ export {
   useLeistungAusProduktBuchenMutation,
   useLeistungManuellErfassenMutation,
   useProduktErstellenMutation,
+  useRechnungAlsBezahltMarkierenMutation,
   useSeminarBuchungAnlegenMutation,
   useSeminarBuchungStornierenMutation,
   useSeminarErstellenMutation,

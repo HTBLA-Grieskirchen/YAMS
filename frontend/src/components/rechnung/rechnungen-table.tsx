@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RechnungStatus } from "@/api/schema";
 import type { Klient, Rechnung } from "@/api/types";
 import { RechnungDownloadButton } from "@/components/rechnung/rechnung-download-button";
+import { RechnungBezahltButton } from "@/components/rechnung/rechnung-bezahlt-button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -50,7 +51,7 @@ export function RechnungenTable({
           {showKlient ? <TableHeader>Klient</TableHeader> : null}
           <TableHeader>Betrag</TableHeader>
           <TableHeader>Status</TableHeader>
-          <TableHeader className="w-24" />
+          <TableHeader>Aktionen</TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -83,10 +84,19 @@ export function RechnungenTable({
                 </Badge>
               </TableCell>
               <TableCell>
-                <RechnungDownloadButton
-                  rechnungId={rechnung.id}
-                  rechnungsnummer={rechnung.rechnungsnummer}
-                />
+                <div className="flex flex-col gap-2">
+                  <RechnungDownloadButton
+                    rechnungId={rechnung.id}
+                    rechnungsnummer={rechnung.rechnungsnummer}
+                  />
+                  {rechnung.status === RechnungStatus.Offen ? (
+                    <RechnungBezahltButton rechnungId={rechnung.id} />
+                  ) : rechnung.bezahltDatum ? (
+                    <span className="text-xs text-zinc-500">
+                      Bezahlt am {formatDate(rechnung.bezahltDatum)}
+                    </span>
+                  ) : null}
+                </div>
               </TableCell>
             </TableRow>
           );

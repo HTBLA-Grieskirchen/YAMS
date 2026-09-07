@@ -6,10 +6,10 @@ use chrono::NaiveDate;
 use crate::application::{ResultReport, uow::Versioned};
 use crate::domain::{
     Behandlung, BehandlungId, Haustier, HaustierId, Klient, KlientId, Leistung, LeistungId,
-    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungId, RechnungOffen, Seminar, SeminarId, SeminarTermin,
-    SeminarTerminGeplant, SeminarTerminId, behandlung::NeueBehandlung, haustier::NeuesHaustier,
-    klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt, seminar::NeuesSeminar,
-    seminar_termin::NeuerSeminarTermin,
+    LeistungOffen, Produkt, ProduktId, Rechnung, RechnungId, RechnungOffen, Seminar, SeminarId,
+    SeminarTermin, SeminarTerminGeplant, SeminarTerminId, behandlung::NeueBehandlung,
+    haustier::NeuesHaustier, klient::NeuerKlient, leistung::NeueLeistung, produkt::NeuesProdukt,
+    seminar::NeuesSeminar, seminar_termin::NeuerSeminarTermin,
 };
 
 pub type RepositoryResult<T> = ResultReport<T, RepositoryError>;

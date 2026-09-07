@@ -215,9 +215,7 @@ export function LeistungBuchenForm({
         <Alert variant="info">Zuerst ein Produkt im Katalog anlegen.</Alert>
       ) : null}
       {quelle === "behandlung" && behandlungen.length === 0 ? (
-        <Alert variant="info">
-          Zuerst eine Behandlung im Katalog anlegen.
-        </Alert>
+        <Alert variant="info">Zuerst eine Behandlung im Katalog anlegen.</Alert>
       ) : null}
       {!klientId ? (
         <Alert variant="info">Bitte einen Klienten wählen.</Alert>

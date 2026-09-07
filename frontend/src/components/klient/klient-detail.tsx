@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
 
 import type { Klient } from "@/api/types";
 import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
 import { KlientLeistungenSection } from "@/components/klient/klient-leistungen";
 import { KlientRechnungenSection } from "@/components/klient/klient-rechnungen-section";
+import { SetBreadcrumbLabel } from "@/components/layout/page-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { SetBreadcrumbLabel } from "@/components/layout/page-chrome";
 import { formatDate } from "@/lib/format";
 import { paths } from "@/lib/navigation";
 

@@ -45,8 +45,7 @@ export const paths = {
   klienten: "/klient",
   klientNeu: "/klient/neu",
   klientDetail: "/klient/detail",
-  klient: (id: string) =>
-    `/klient/detail?id=${encodeURIComponent(id)}`,
+  klient: (id: string) => `/klient/detail?id=${encodeURIComponent(id)}`,
   katalog: "/katalog",
   leistung: "/leistung",
   leistungForKlient: (id: string) =>

@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-
-import { RechnungStatus } from "@/api/schema";
 import { useAlleKlientenQuery, useAlleRechnungenQuery } from "@/api/hooks";
+import { RechnungStatus } from "@/api/schema";
 import { RechnungenTable } from "@/components/rechnung/rechnungen-table";
 import { Alert } from "@/components/ui/alert";
 import { SearchInput } from "@/components/ui/search-input";
@@ -18,7 +17,9 @@ export function RechnungenOverview() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("alle");
 
   const klientenById = useMemo(() => {
-    return new Map((klientenQuery.data ?? []).map((klient) => [klient.id, klient]));
+    return new Map(
+      (klientenQuery.data ?? []).map((klient) => [klient.id, klient]),
+    );
   }, [klientenQuery.data]);
 
   const filtered = useMemo(() => {

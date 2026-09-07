@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/mod.rs": {
-    "mtime": 1788796830.218571,
-    "seen": 1788797054.113063,
-    "ast_hash": "10753210f3f8ec5f0af7aef0b66f8a17",
+    "mtime": 1788798242.9590836,
+    "seen": 1788798318.3704078,
+    "ast_hash": "c24e5e42e9d931d83db1741771eb0297",
     "semantic_hash": ""
   },
   "crates/yams-api/src/api/requests/mod.rs": {
@@ -126,9 +126,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/spec.rs": {
-    "mtime": 1788796701.7105582,
-    "seen": 1788797054.1149275,
-    "ast_hash": "91edcb21df3e27c88f0e9fdd1f48508f",
+    "mtime": 1788798242.9990835,
+    "seen": 1788798318.3738909,
+    "ast_hash": "5d3c1139d9313ad94705e6f59ab9afed",
     "semantic_hash": ""
   },
   "crates/yams-core/Cargo.toml": {
@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/application/ports/repos.rs": {
-    "mtime": 1788796757.766579,
-    "seen": 1788797054.1168053,
-    "ast_hash": "dd2134f55442f27b16b3acebdc9968d3",
+    "mtime": 1788798243.1310835,
+    "seen": 1788798318.3772016,
+    "ast_hash": "27329ac7e90f53de25606e1daef2eeeb",
     "semantic_hash": ""
   },
   "crates/yams-core/src/application/uow.rs": {
@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/service/use_cases/abrechnung.rs": {
-    "mtime": 1788796757.766579,
-    "seen": 1788797054.1186109,
-    "ast_hash": "9e29a4d511f9fd431c85669fb2487421",
+    "mtime": 1788798243.2190835,
+    "seen": 1788798318.3796837,
+    "ast_hash": "2a67fc6ba37e7c75224e675412f420f3",
     "semantic_hash": ""
   },
   "crates/yams-core/src/service/use_cases/haustier.rs": {
@@ -1290,9 +1290,9 @@
     "semantic_hash": ""
   },
   "crates/yams-persistence/src/repos/rechnung.rs": {
-    "mtime": 1788796677.266559,
-    "seen": 1788797054.1218336,
-    "ast_hash": "acef02ed29f0e826e2d69cc763020170",
+    "mtime": 1788798243.4230835,
+    "seen": 1788798318.3824031,
+    "ast_hash": "e8488d3be509b2236e2b3c7c13dbf064",
     "semantic_hash": ""
   },
   "specs/abrechnung.md": {
@@ -1344,9 +1344,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/http-client.ts": {
-    "mtime": 1788796966.1665514,
-    "seen": 1788797054.134319,
-    "ast_hash": "633c76dcc252cb0273e143f3928705a8",
+    "mtime": 1788798242.4310837,
+    "seen": 1788798318.3940206,
+    "ast_hash": "0165766bfd4e106deecc3b692ae250de",
     "semantic_hash": ""
   },
   "frontend/src/api/index.ts": {
@@ -1362,9 +1362,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/tauri-client.ts": {
-    "mtime": 1788796966.8185513,
-    "seen": 1788797054.1347573,
-    "ast_hash": "270d8b2fc6356ca92dcbc1e91c8a68d2",
+    "mtime": 1788798227.903084,
+    "seen": 1788798318.3942475,
+    "ast_hash": "54977713620ca1ebdbad62bd568683d5",
     "semantic_hash": ""
   },
   "frontend/src/api/types.ts": {
@@ -1392,15 +1392,15 @@
     "semantic_hash": ""
   },
   "frontend/src/api/hooks/mutations.ts": {
-    "mtime": 1788797464.8304572,
-    "seen": 1788797487.878876,
-    "ast_hash": "a9f16eddda87b6afa1a443c29c27232d",
+    "mtime": 1788798106.0983803,
+    "seen": 1788798318.3939507,
+    "ast_hash": "4d0e7735c2bdc95fbb2088c43b37da19",
     "semantic_hash": ""
   },
   "frontend/src/api/hooks/queries.ts": {
-    "mtime": 1788792338.7312038,
-    "seen": 1788793528.039445,
-    "ast_hash": "b65fcc5f90815338b5ac81f73bf7bedf",
+    "mtime": 1788798241.7350836,
+    "seen": 1788798318.393955,
+    "ast_hash": "d303b5a0469796ac2a9ad464dbf846f2",
     "semantic_hash": ""
   },
   "frontend/src/api/hooks/use-yams-api-ready.ts": {
@@ -1752,9 +1752,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/errors/http_status.rs": {
-    "mtime": 1788796703.1745582,
-    "seen": 1788797054.1135273,
-    "ast_hash": "487ac8f1334562848ff926ac724cd48f",
+    "mtime": 1788798242.9710836,
+    "seen": 1788798318.3714254,
+    "ast_hash": "fc8f575348ab68893cd077ae5bc6b04d",
     "semantic_hash": ""
   },
   "crates/yams-persistence/src/migrations/v0004_leistungen_quelle_mwst.rs": {
@@ -1770,15 +1770,15 @@
     "semantic_hash": ""
   },
   "crates/yams-core/src/application/instrumented_repos.rs": {
-    "mtime": 1788796757.766579,
-    "seen": 1788797054.116332,
-    "ast_hash": "78f4018899f17d06fad347bf525d89d2",
+    "mtime": 1788798243.1230836,
+    "seen": 1788798318.3763216,
+    "ast_hash": "e9e15cc96039bc3eba54a34222556ea4",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/seminar-buchung-form.tsx": {
-    "mtime": 1788793531.279038,
-    "seen": 1788793922.7683463,
-    "ast_hash": "100089bcc9052f00350d9d6f82dd0150",
+    "mtime": 1788798229.387084,
+    "seen": 1788798318.396256,
+    "ast_hash": "61ae7e83d18b69e9042f3434098b31b0",
     "semantic_hash": ""
   },
   "frontend/src/components/workflow/seminar-form.tsx": {
@@ -1830,51 +1830,51 @@
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/katalog-overview.tsx": {
-    "mtime": 1788795431.034733,
-    "seen": 1788795530.0245383,
-    "ast_hash": "a174a92870f0202343220714712815ea",
+    "mtime": 1788798242.4350836,
+    "seen": 1788798318.3949015,
+    "ast_hash": "1fcf9850cab72d0eb43f2b75ae3947a7",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-detail.tsx": {
-    "mtime": 1788796214.3106046,
-    "seen": 1788796395.1857939,
-    "ast_hash": "4396934f4dd3ae91ed24253167efa890",
+    "mtime": 1788798106.1103804,
+    "seen": 1788798318.3949752,
+    "ast_hash": "d2b55aa7a13949cc7cb419d3854f02b4",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-register-form.tsx": {
-    "mtime": 1788797475.4544652,
-    "seen": 1788797487.8801606,
-    "ast_hash": "b8037583806b875f44cb55d16bc013b0",
+    "mtime": 1788798106.1343803,
+    "seen": 1788798318.3949819,
+    "ast_hash": "84b651476c05c0a5bd6fed690c485439",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-table.tsx": {
-    "mtime": 1788795738.8466983,
-    "seen": 1788796395.1858685,
-    "ast_hash": "5a7faa9d4983dba3a41abc858e6c38bb",
+    "mtime": 1788798242.4590836,
+    "seen": 1788798318.394984,
+    "ast_hash": "9331e36572cdcb24399f595a6633109f",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/app-shell.tsx": {
-    "mtime": 1788793445.7590482,
-    "seen": 1788793528.0396137,
-    "ast_hash": "1489df20362c1800e2ba5923695cedb2",
+    "mtime": 1788798229.823084,
+    "seen": 1788798318.3950522,
+    "ast_hash": "0c9a817d61982ccd5a7d82e0117c14ae",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/page-chrome.tsx": {
-    "mtime": 1788793438.747047,
-    "seen": 1788793528.039615,
-    "ast_hash": "9358ae795c4bbe205bfa983fe3a548b6",
+    "mtime": 1788798106.1223803,
+    "seen": 1788798318.395054,
+    "ast_hash": "474fe057f4a32f10df9d4435b02bcd0b",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/sidebar.tsx": {
-    "mtime": 1788793900.0069566,
-    "seen": 1788793922.7668262,
-    "ast_hash": "0d1251bece7f8f119a04576f7f636693",
+    "mtime": 1788798242.4350836,
+    "seen": 1788798318.395057,
+    "ast_hash": "0a18e57a2e90d3b7ce87b8f6408ecc1d",
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/seminar-overview.tsx": {
-    "mtime": 1788795461.3387344,
-    "seen": 1788795530.024785,
-    "ast_hash": "c985d4e0298e3a3be7a2c45ecf7b2931",
+    "mtime": 1788798242.4510837,
+    "seen": 1788798318.3951328,
+    "ast_hash": "5103cd6a691d1852cd989ad651e51f8b",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/badge.tsx": {
@@ -1890,15 +1890,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/table.tsx": {
-    "mtime": 1788793416.4990237,
-    "seen": 1788793528.039858,
-    "ast_hash": "1332daac5586788a74287754bb0e1b45",
+    "mtime": 1788798242.4470835,
+    "seen": 1788798318.395822,
+    "ast_hash": "7d9b65b687470a94610ae8374d2bffb6",
     "semantic_hash": ""
   },
   "frontend/src/lib/config.ts": {
-    "mtime": 1788792432.9111643,
-    "seen": 1788793528.0400133,
-    "ast_hash": "ae60d718aed8155cbcc25820d86d8b94",
+    "mtime": 1788798242.4310837,
+    "seen": 1788798318.396704,
+    "ast_hash": "a27738be2c2d9971ad2cfd67f0189d85",
     "semantic_hash": ""
   },
   "frontend/src/lib/format.ts": {
@@ -1908,9 +1908,9 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/navigation.ts": {
-    "mtime": 1788797654.7904043,
-    "seen": 1788797674.7352538,
-    "ast_hash": "0c555e724f617d25b32d2fdac50f2dae",
+    "mtime": 1788798242.4230835,
+    "seen": 1788798318.3968549,
+    "ast_hash": "2cecbe850fe1229e5e896bfc20473a62",
     "semantic_hash": ""
   },
   "frontend/src/standalone-config.json": {
@@ -1920,15 +1920,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/abrechnung/abrechnung-panel.tsx": {
-    "mtime": 1788796221.3066201,
-    "seen": 1788796395.185492,
-    "ast_hash": "b7b968b2fd73034f6a421c152181795f",
+    "mtime": 1788798242.4310837,
+    "seen": 1788798318.394897,
+    "ast_hash": "b731b3c39afc29e6fb9a72cbde779824",
     "semantic_hash": ""
   },
   "frontend/src/api/schema.ts": {
-    "mtime": 1788796953.058553,
-    "seen": 1788797054.1347432,
-    "ast_hash": "ca07c69feb740eb4249d112a53aa4a0d",
+    "mtime": 1788798242.4550836,
+    "seen": 1788798318.394245,
+    "ast_hash": "59d7f1d73fb7ba4a1daa13cc517ae686",
     "semantic_hash": ""
   },
   "frontend/src/app/abrechnung/page.tsx": {
@@ -1944,9 +1944,9 @@
     "semantic_hash": ""
   },
   "frontend/src/app/klient/detail/page.tsx": {
-    "mtime": 1788797475.9304652,
-    "seen": 1788797487.8793085,
-    "ast_hash": "9117847c613916541bd6a5fa89aaa6c1",
+    "mtime": 1788798106.0943804,
+    "seen": 1788798318.394486,
+    "ast_hash": "b38b402631a25cf33fd9867d0162fdde",
     "semantic_hash": ""
   },
   "frontend/src/app/klient/neu/page.tsx": {
@@ -1956,15 +1956,15 @@
     "semantic_hash": ""
   },
   "frontend/src/app/klient/page.tsx": {
-    "mtime": 1788797654.9984043,
-    "seen": 1788797674.7327003,
-    "ast_hash": "67b0941c4a79654041ebef80b3d693b0",
+    "mtime": 1788798242.4270835,
+    "seen": 1788798318.3945546,
+    "ast_hash": "1762f820aec5c9cb506258d7749bd92d",
     "semantic_hash": ""
   },
   "frontend/src/app/objekte/page.tsx": {
-    "mtime": 1788794527.146869,
-    "seen": 1788794560.6893382,
-    "ast_hash": "67fb0e31b7a1d3d6a85e72faca685cf6",
+    "mtime": 1788798106.0983803,
+    "seen": 1788798318.3946552,
+    "ast_hash": "993bae8a89d5fd1555be2274ac6db423",
     "semantic_hash": ""
   },
   "frontend/src/app/page.tsx": {
@@ -1986,27 +1986,27 @@
     "semantic_hash": ""
   },
   "frontend/src/app/leistung/page.tsx": {
-    "mtime": 1788795450.6107323,
-    "seen": 1788795530.024278,
-    "ast_hash": "0868c4663d13ac13d9326961e586f981",
+    "mtime": 1788798106.0943804,
+    "seen": 1788798318.3946517,
+    "ast_hash": "c3ff02748f2bc118d9272d7d1c243503",
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/behandlung-create-form.tsx": {
-    "mtime": 1788795386.3427424,
-    "seen": 1788795530.0245342,
-    "ast_hash": "b3b986b7e71ea83584548adf64c88863",
+    "mtime": 1788798242.4390836,
+    "seen": 1788798318.394899,
+    "ast_hash": "83ad0b0ac6bfe6d08957186034fac0cf",
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/produkt-create-form.tsx": {
-    "mtime": 1788795386.3427424,
-    "seen": 1788795530.0245404,
-    "ast_hash": "db60083c2090d24436a229729c216b42",
+    "mtime": 1788798242.4350836,
+    "seen": 1788798318.3949037,
+    "ast_hash": "2c7f1c127da8e29d4ebcd81b28147931",
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/seminar-create-form.tsx": {
-    "mtime": 1788795389.1027417,
-    "seen": 1788795530.024542,
-    "ast_hash": "b161ab14cc4a235f74eff8106b50d1ea",
+    "mtime": 1788798242.4310837,
+    "seen": 1788798318.394907,
+    "ast_hash": "f99797ee14b503d617dabf3f7a3cce3e",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/haustier-create-form.tsx": {
@@ -2016,27 +2016,27 @@
     "semantic_hash": ""
   },
   "frontend/src/components/leistung/leistung-buchen-form.tsx": {
-    "mtime": 1788795405.038738,
-    "seen": 1788795530.024783,
-    "ast_hash": "2a48a1468fc2bafd19c3c613ff4226a1",
+    "mtime": 1788798242.4430835,
+    "seen": 1788798318.3950589,
+    "ast_hash": "b1aae7d5be6ccf26d7de57cb77af2457",
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/termin-buchung-form.tsx": {
-    "mtime": 1788795414.826736,
-    "seen": 1788795530.0247872,
-    "ast_hash": "0f7995015578529a364d8eeebfd0155c",
+    "mtime": 1788798242.4510837,
+    "seen": 1788798318.3951347,
+    "ast_hash": "6b6de3a5047877b9d205648c9d13ade1",
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/termin-detail-panel.tsx": {
-    "mtime": 1788795484.0267339,
-    "seen": 1788795530.0247886,
-    "ast_hash": "7e0709fd0101863d436a0896bba35a6d",
+    "mtime": 1788798242.4470835,
+    "seen": 1788798318.3951366,
+    "ast_hash": "b05f684973053d48f93d6d4c147df6dc",
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/termin-plan-form.tsx": {
-    "mtime": 1788795409.630737,
-    "seen": 1788795530.0247903,
-    "ast_hash": "d8667ce049d586ec1b045d1f52a449cf",
+    "mtime": 1788798242.4430835,
+    "seen": 1788798318.395139,
+    "ast_hash": "b430b5b3c78444f450880502b560b1b4",
     "semantic_hash": ""
   },
   "frontend/src/app/rechnungen/page.tsx": {
@@ -2046,15 +2046,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-leistungen.tsx": {
-    "mtime": 1788795805.5106912,
-    "seen": 1788796395.1857965,
-    "ast_hash": "6eb328bf2dc5c1a5182e70decd84f3ea",
+    "mtime": 1788798242.4390836,
+    "seen": 1788798318.3949778,
+    "ast_hash": "3d6dab282c3156dbdc2df32ac6e880e7",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-rechnungen-section.tsx": {
-    "mtime": 1788796207.1025968,
-    "seen": 1788796395.1858082,
-    "ast_hash": "45aeaf4b90908e02b01b68c5611c0621",
+    "mtime": 1788798106.1063805,
+    "seen": 1788798318.3949795,
+    "ast_hash": "c29462d70ef44bcf52295aaa4e1bf354",
     "semantic_hash": ""
   },
   "frontend/src/components/rechnung/rechnung-download-button.tsx": {
@@ -2064,21 +2064,21 @@
     "semantic_hash": ""
   },
   "frontend/src/components/rechnung/rechnungen-overview.tsx": {
-    "mtime": 1788796205.5705967,
-    "seen": 1788796395.18616,
-    "ast_hash": "5cd7b3810fca6a8cf6be8879e6f2e71a",
+    "mtime": 1788798242.4390836,
+    "seen": 1788798318.3951287,
+    "ast_hash": "8bc90819a6fa3e6096dea8116a0932e6",
     "semantic_hash": ""
   },
   "frontend/src/components/rechnung/rechnungen-table.tsx": {
-    "mtime": 1788796977.9185343,
-    "seen": 1788797054.138979,
-    "ast_hash": "575067c5a343e0aa30677760e4b5ea67",
+    "mtime": 1788798106.1263804,
+    "seen": 1788798318.3951306,
+    "ast_hash": "e6e2f495878b37fb60db0ddf6e3ae255",
     "semantic_hash": ""
   },
   "frontend/src/components/rechnung/rechnung-bezahlt-button.tsx": {
-    "mtime": 1788796972.4185507,
-    "seen": 1788797054.1388113,
-    "ast_hash": "db91b80f50d9f3d02f946bf386620f63",
+    "mtime": 1788798242.4390836,
+    "seen": 1788798318.3950615,
+    "ast_hash": "45b00e23d95721d97187088c36f45e21",
     "semantic_hash": ""
   }
 }

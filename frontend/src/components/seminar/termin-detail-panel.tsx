@@ -90,9 +90,7 @@ export function TerminDetailPanel({
   }
 
   const mutationError =
-    abgehaltenMutation.error ??
-    absagenMutation.error ??
-    stornoMutation.error;
+    abgehaltenMutation.error ?? absagenMutation.error ?? stornoMutation.error;
 
   return (
     <Card>

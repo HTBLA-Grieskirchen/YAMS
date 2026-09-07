@@ -310,10 +310,9 @@ impl RechnungRepository for SQLiteRechnungRepository {
         let version = rechnung.v();
         let (status, bezahlt_datum) = match &**rechnung {
             Rechnung::Offen(_) => ("offen", None),
-            Rechnung::Bezahlt(bezahlt) => (
-                "bezahlt",
-                Some(format_naive_date(bezahlt.bezahlt_datum())),
-            ),
+            Rechnung::Bezahlt(bezahlt) => {
+                ("bezahlt", Some(format_naive_date(bezahlt.bezahlt_datum())))
+            }
         };
 
         let mut guard = self.tx.lock().await;

@@ -3,17 +3,15 @@
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { Button } from "@/components/ui/button";
-import { Sidebar } from "@/components/layout/sidebar";
 import { usePageChrome } from "@/components/layout/page-chrome";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Button } from "@/components/ui/button";
 import {
   breadcrumbsForPathname,
   homeNavItem,
   navActionsForPathname,
   sidebarCategories,
 } from "@/lib/navigation";
-import { cn } from "@/lib/cn";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -34,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <label
         htmlFor="main-drawer"
+        aria-label="Navigation schließen"
         className="pointer-events-none fixed inset-0 z-40 bg-black/50 opacity-0 transition-opacity peer-checked:pointer-events-auto peer-checked:opacity-100 lg:hidden"
       />
 

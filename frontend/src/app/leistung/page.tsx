@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import { LeistungBuchenForm } from "@/components/leistung/leistung-buchen-form";
 import {

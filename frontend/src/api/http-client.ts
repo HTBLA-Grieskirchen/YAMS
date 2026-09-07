@@ -154,7 +154,10 @@ export class HttpYamsApi implements YamsApi {
     );
   }
 
-  async rechnungAlsBezahltMarkieren(id: string, body: RechnungBezahltMarkieren) {
+  async rechnungAlsBezahltMarkieren(
+    id: string,
+    body: RechnungBezahltMarkieren,
+  ) {
     return unwrap(
       await this.client.POST("/rechnungen/{id}/bezahlt", {
         params: { path: { id } },

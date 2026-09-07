@@ -30,7 +30,10 @@ export function SeminarCreateForm() {
   }
 
   return (
-    <form className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800" onSubmit={handleSubmit}>
+    <form
+      className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+      onSubmit={handleSubmit}
+    >
       <h3 className="text-sm font-semibold">Neues Seminar</h3>
       <p className="text-xs text-zinc-500">
         Stammdaten — Termine werden unter Seminar verwaltet.

@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
-
+import { cn } from "@/lib/cn";
 import type { NavCategory, NavItem } from "@/lib/navigation";
 import { isNavItemActive } from "@/lib/navigation";
-import { cn } from "@/lib/cn";
 
 type SidebarProps = {
   categories: NavCategory[];
@@ -54,11 +51,7 @@ export function Sidebar({ categories, homeItem, pathname }: SidebarProps) {
               </h3>
               <div className="space-y-1">
                 {category.items.map((item) => (
-                  <SidebarLink
-                    key={item.id}
-                    item={item}
-                    pathname={pathname}
-                  />
+                  <SidebarLink key={item.id} item={item} pathname={pathname} />
                 ))}
               </div>
             </div>
@@ -71,13 +64,7 @@ export function Sidebar({ categories, homeItem, pathname }: SidebarProps) {
   );
 }
 
-function SidebarLink({
-  item,
-  pathname,
-}: {
-  item: NavItem;
-  pathname: string;
-}) {
+function SidebarLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const Icon = item.icon;
   const active = isNavItemActive(pathname, item.href, item.recursive);
 

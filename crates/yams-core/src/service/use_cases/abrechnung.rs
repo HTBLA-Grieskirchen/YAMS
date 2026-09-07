@@ -10,8 +10,7 @@ use crate::{
     domain::{
         Behandlung, BehandlungId, HaustierId, KlientId, Leistung, LeistungOffen, LeistungQuelle,
         Menge, Preis, Produkt, ProduktId, Ratio, Rechnung, RechnungId, RechnungOffen,
-        behandlung::NeueBehandlung,
-        leistung::NeueLeistung, produkt::NeuesProdukt,
+        behandlung::NeueBehandlung, leistung::NeueLeistung, produkt::NeuesProdukt,
     },
     service::{
         ExecutionContext, UseCase,

@@ -30,7 +30,10 @@ export function BehandlungCreateForm() {
   }
 
   return (
-    <form className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800" onSubmit={handleSubmit}>
+    <form
+      className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+      onSubmit={handleSubmit}
+    >
       <h3 className="text-sm font-semibold">Neue Behandlung</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Name">

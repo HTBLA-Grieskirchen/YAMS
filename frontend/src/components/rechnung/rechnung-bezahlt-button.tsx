@@ -12,7 +12,9 @@ type RechnungBezahltButtonProps = {
   rechnungId: string;
 };
 
-export function RechnungBezahltButton({ rechnungId }: RechnungBezahltButtonProps) {
+export function RechnungBezahltButton({
+  rechnungId,
+}: RechnungBezahltButtonProps) {
   const mutation = useRechnungAlsBezahltMarkierenMutation();
   const [bezahltDatum, setBezahltDatum] = useState(todayIsoDate());
 

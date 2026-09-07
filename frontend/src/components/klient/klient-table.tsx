@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CheckCircle2,
   ChevronDown,
@@ -11,10 +10,15 @@ import {
   Phone,
   TriangleAlert,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useAlleKlientenQuery, useAlleLeistungenQuery, useAlleRechnungenQuery } from "@/api/hooks";
+import {
+  useAlleKlientenQuery,
+  useAlleLeistungenQuery,
+  useAlleRechnungenQuery,
+} from "@/api/hooks";
 import type { Klient, Leistung, Rechnung } from "@/api/types";
 import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
 import {
@@ -73,7 +77,11 @@ export function KlientTable() {
     );
   }, [filter, klientenQuery.data]);
 
-  if (klientenQuery.isPending || leistungenQuery.isPending || rechnungenQuery.isPending) {
+  if (
+    klientenQuery.isPending ||
+    leistungenQuery.isPending ||
+    rechnungenQuery.isPending
+  ) {
     return <p className="text-sm text-zinc-500">Lade Klienten…</p>;
   }
 

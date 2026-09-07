@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { yamsKeys } from "../query-keys";
 import { getYamsApi } from "../index";
+import { yamsKeys } from "../query-keys";
 import type {
   BehandlungErstellung,
   HaustierErstellung,
@@ -11,13 +10,13 @@ import type {
   LeistungAusProduktErstellung,
   LeistungManuelleErstellung,
   ProduktErstellung,
+  RechnungBezahltMarkieren,
   SeminarBuchungErstellung,
   SeminarErstellung,
   SeminarTerminAbsage,
   SeminarTerminAktualisierung,
   SeminarTerminErstellung,
   TagesabschlussErstellung,
-  RechnungBezahltMarkieren,
 } from "../types";
 import { useYamsApiReady } from "./use-yams-api-ready";
 

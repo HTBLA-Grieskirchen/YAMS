@@ -2,17 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-import {
-  useAlleSeminareQuery,
-  useAlleSeminarTermineQuery,
-} from "@/api/hooks";
+import { useAlleSeminareQuery, useAlleSeminarTermineQuery } from "@/api/hooks";
 import { SeminarTerminStatus } from "@/api/schema";
 import type { SeminarTermin } from "@/api/types";
 import { TerminDetailPanel } from "@/components/seminar/termin-detail-panel";
 import { TerminPlanForm } from "@/components/seminar/termin-plan-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { SearchInput } from "@/components/ui/search-input";
 import {
   Card,
   CardContent,
@@ -20,8 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { matchesSearchQuery } from "@/lib/format";
+import { SearchInput } from "@/components/ui/search-input";
 import { cn } from "@/lib/cn";
+import { matchesSearchQuery } from "@/lib/format";
 
 type TerminFilter = "alle" | "geplant" | "vergangen";
 
@@ -34,7 +31,9 @@ export function SeminarOverview() {
 
   const seminareById = useMemo(
     () =>
-      new Map((seminareQuery.data ?? []).map((seminar) => [seminar.id, seminar])),
+      new Map(
+        (seminareQuery.data ?? []).map((seminar) => [seminar.id, seminar]),
+      ),
     [seminareQuery.data],
   );
 

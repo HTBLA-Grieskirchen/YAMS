@@ -19,7 +19,8 @@ export default function KlientenPage() {
           <div>
             <CardTitle>Klienten</CardTitle>
             <CardDescription>
-              Übersicht aller Klienten mit expandierbaren Details und Haustieren.
+              Übersicht aller Klienten mit expandierbaren Details und
+              Haustieren.
             </CardDescription>
           </div>
           <Link href={paths.klientNeu}>

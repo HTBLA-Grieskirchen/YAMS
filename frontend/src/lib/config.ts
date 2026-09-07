@@ -31,11 +31,12 @@ async function loadStandaloneConfig(): Promise<FrontendConfig> {
 }
 
 async function loadTauriConfig(): Promise<FrontendConfig> {
-  const config = (await invoke<Omit<FrontendConfig, "isTauri">>(
-    "frontend_config",
-  )) as any;
-  config.isTauri = true;
-  return config as FrontendConfig;
+  const config =
+    await invoke<Omit<FrontendConfig, "isTauri">>("frontend_config");
+  return {
+    ...config,
+    isTauri: true,
+  };
 }
 
 async function loadConfig(): Promise<FrontendConfig> {

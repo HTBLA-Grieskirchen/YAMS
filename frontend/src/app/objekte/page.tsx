@@ -1,10 +1,10 @@
-import { ObjektePanel } from "@/components/workflow/objekte-panel";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ObjektePanel } from "@/components/workflow/objekte-panel";
 
 export default function ObjektePage() {
   return (

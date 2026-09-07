@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import { useAlleKlientenQuery } from "@/api/hooks";
 import { KlientDetail } from "@/components/klient/klient-detail";

@@ -90,12 +90,12 @@ export function SeminarBuchungForm({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!termin?.id) {
+    if (!termin?.id || !form) {
       return;
     }
     const updated = await mutation.mutateAsync({
       terminId: termin.id,
-      body: form!,
+      body: form,
     });
     onBooked(updated);
     setForm(defaultBuchung(klient?.id ?? ""));

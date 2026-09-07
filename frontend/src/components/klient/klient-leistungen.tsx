@@ -132,7 +132,8 @@ export function KlientLeistungenSummaryBadges({
       ) : null}
       {summary.bezahlt.count > 0 ? (
         <Badge variant="success">
-          {summary.bezahlt.count} bezahlt · {formatEuroSum(summary.bezahlt.sum)} €
+          {summary.bezahlt.count} bezahlt · {formatEuroSum(summary.bezahlt.sum)}{" "}
+          €
         </Badge>
       ) : null}
     </div>
@@ -164,7 +165,9 @@ export function KlientLeistungenSection({
     }
 
     const entries =
-      rechnungenQuery.data?.map((rechnung) => [rechnung.id, rechnung] as const) ??
+      rechnungenQuery.data?.map(
+        (rechnung) => [rechnung.id, rechnung] as const,
+      ) ??
       klientRechnungenQuery.data?.map(
         (rechnung) => [rechnung.id, rechnung] as const,
       ) ??
@@ -215,7 +218,10 @@ export function KlientLeistungenSection({
         <KlientLeistungenSummaryBadges summary={summary} />
         <ul className="space-y-2">
           {klientLeistungen.slice(0, 5).map((leistung) => {
-            const status = resolveLeistungPaymentStatus(leistung, rechnungenById);
+            const status = resolveLeistungPaymentStatus(
+              leistung,
+              rechnungenById,
+            );
             return (
               <li
                 key={leistung.id}
@@ -307,7 +313,10 @@ function LeistungenTable({
         </TableHead>
         <TableBody>
           {leistungen.map((leistung) => {
-            const status = resolveLeistungPaymentStatus(leistung, rechnungenById);
+            const status = resolveLeistungPaymentStatus(
+              leistung,
+              rechnungenById,
+            );
             return (
               <TableRow key={leistung.id}>
                 <TableCell>{formatDate(leistung.leistungsdatum)}</TableCell>

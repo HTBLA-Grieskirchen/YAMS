@@ -4,8 +4,8 @@ import Link from "next/link";
 
 import { RechnungStatus } from "@/api/schema";
 import type { Klient, Rechnung } from "@/api/types";
-import { RechnungDownloadButton } from "@/components/rechnung/rechnung-download-button";
 import { RechnungBezahltButton } from "@/components/rechnung/rechnung-bezahlt-button";
+import { RechnungDownloadButton } from "@/components/rechnung/rechnung-download-button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,

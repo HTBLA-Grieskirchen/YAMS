@@ -19,7 +19,10 @@ type TerminBuchungFormProps = {
   onBooked: (termin: SeminarTermin) => void;
 };
 
-export function TerminBuchungForm({ termin, onBooked }: TerminBuchungFormProps) {
+export function TerminBuchungForm({
+  termin,
+  onBooked,
+}: TerminBuchungFormProps) {
   const klientenQuery = useAlleKlientenQuery();
   const mutation = useSeminarBuchungAnlegenMutation();
   const klienten = klientenQuery.data ?? [];
@@ -33,9 +36,7 @@ export function TerminBuchungForm({ termin, onBooked }: TerminBuchungFormProps) 
     [termin.buchungen],
   );
 
-  const availableKlienten = klienten.filter(
-    (k) => !bookedKlientIds.has(k.id),
-  );
+  const availableKlienten = klienten.filter((k) => !bookedKlientIds.has(k.id));
 
   useEffect(() => {
     if (
@@ -72,7 +73,10 @@ export function TerminBuchungForm({ termin, onBooked }: TerminBuchungFormProps) 
   }
 
   return (
-    <form className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800" onSubmit={handleSubmit}>
+    <form
+      className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800"
+      onSubmit={handleSubmit}
+    >
       <h3 className="text-sm font-semibold">Teilnehmer buchen</h3>
 
       {availableKlienten.length === 0 ? (
@@ -112,9 +116,7 @@ export function TerminBuchungForm({ termin, onBooked }: TerminBuchungFormProps) 
       <Button
         type="submit"
         disabled={
-          availableKlienten.length === 0 ||
-          !klientId ||
-          mutation.isPending
+          availableKlienten.length === 0 || !klientId || mutation.isPending
         }
       >
         {mutation.isPending ? "Buchen…" : "Teilnehmer buchen"}

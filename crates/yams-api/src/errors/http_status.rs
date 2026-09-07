@@ -10,11 +10,12 @@ use yams_core::ports::{ObjectStoreError, RepositoryError};
 use yams_core::service::{
     AuflistenFehler, BehandlungErstellenFehler, HaustierErstellenFehler, KlientErstellenFehler,
     LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchenFehler,
-    LeistungManuellErfassenFehler, ProduktErstellenFehler, SeminarBuchungAnlegenFehler,
-    SeminarBuchungStornierenFehler, SeminarErstellenFehler, SeminarTerminAbsagenFehler,
-    SeminarTerminAktualisierenFehler, SeminarTerminAlsAbgehaltenMarkierenFehler,
-    SeminarTerminPlanenFehler,     SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
-    TagesabschlussDurchführenFehler, RechnungAlsBezahltMarkierenFehler,
+    LeistungManuellErfassenFehler, ProduktErstellenFehler, RechnungAlsBezahltMarkierenFehler,
+    SeminarBuchungAnlegenFehler, SeminarBuchungStornierenFehler, SeminarErstellenFehler,
+    SeminarTerminAbsagenFehler, SeminarTerminAktualisierenFehler,
+    SeminarTerminAlsAbgehaltenMarkierenFehler, SeminarTerminPlanenFehler,
+    SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
+    TagesabschlussDurchführenFehler,
 };
 
 use super::ValidationError;
@@ -234,9 +235,7 @@ impl HttpStatusMapping for RechnungAlsBezahltMarkierenFehler {
     fn http_status(&self) -> Option<StatusCode> {
         match self {
             RechnungAlsBezahltMarkierenFehler::Persistenz => None,
-            RechnungAlsBezahltMarkierenFehler::RechnungNichtGefunden => {
-                Some(StatusCode::NOT_FOUND)
-            }
+            RechnungAlsBezahltMarkierenFehler::RechnungNichtGefunden => Some(StatusCode::NOT_FOUND),
             RechnungAlsBezahltMarkierenFehler::BereitsBezahlt => Some(StatusCode::CONFLICT),
         }
     }

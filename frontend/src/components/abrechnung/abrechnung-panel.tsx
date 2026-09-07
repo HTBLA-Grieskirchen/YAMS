@@ -1,13 +1,12 @@
 "use client";
 
 import { type FormEvent, useMemo, useState } from "react";
-
-import { LeistungStatus } from "@/api/schema";
 import {
   useAlleKlientenQuery,
   useAlleLeistungenQuery,
   useTagesabschlussDurchführenMutation,
 } from "@/api/hooks";
+import { LeistungStatus } from "@/api/schema";
 import type { Rechnung } from "@/api/types";
 import { RechnungenTable } from "@/components/rechnung/rechnungen-table";
 import { Alert } from "@/components/ui/alert";
@@ -29,8 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/format";
 import { todayIsoDate } from "@/lib/dates";
+import { formatDate } from "@/lib/format";
 
 export function AbrechnungPanel() {
   const leistungenQuery = useAlleLeistungenQuery();
@@ -42,7 +41,9 @@ export function AbrechnungPanel() {
   );
 
   const klientenById = useMemo(() => {
-    return new Map((klientenQuery.data ?? []).map((klient) => [klient.id, klient]));
+    return new Map(
+      (klientenQuery.data ?? []).map((klient) => [klient.id, klient]),
+    );
   }, [klientenQuery.data]);
 
   const offeneLeistungen = useMemo(() => {
@@ -100,7 +101,9 @@ export function AbrechnungPanel() {
                     const klient = klientenById.get(leistung.klientId);
                     return (
                       <TableRow key={leistung.id}>
-                        <TableCell>{formatDate(leistung.leistungsdatum)}</TableCell>
+                        <TableCell>
+                          {formatDate(leistung.leistungsdatum)}
+                        </TableCell>
                         <TableCell className="font-medium">
                           {leistung.beschreibung}
                         </TableCell>
@@ -158,7 +161,9 @@ export function AbrechnungPanel() {
               <Button
                 type="submit"
                 disabled={
-                  mutation.isPending || offeneLeistungen.length === 0 || isLoading
+                  mutation.isPending ||
+                  offeneLeistungen.length === 0 ||
+                  isLoading
                 }
               >
                 {mutation.isPending

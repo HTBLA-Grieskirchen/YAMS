@@ -18,9 +18,9 @@ use crate::{
     requests::{
         BehandlungErstellung, HaustierErstellung, KlientErstellung,
         LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
-        ProduktErstellung, SeminarBuchungErstellung, SeminarErstellung, SeminarTerminAbsage,
-        SeminarTerminAktualisierung, SeminarTerminErstellung, TagesabschlussErstellung,
-        RechnungBezahltMarkieren,
+        ProduktErstellung, RechnungBezahltMarkieren, SeminarBuchungErstellung, SeminarErstellung,
+        SeminarTerminAbsage, SeminarTerminAktualisierung, SeminarTerminErstellung,
+        TagesabschlussErstellung,
     },
     schema::{
         Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,

@@ -62,9 +62,7 @@ export function TableHeader({
   className,
   ...props
 }: ThHTMLAttributes<HTMLTableCellElement>) {
-  return (
-    <th className={cn("px-4 py-3 font-semibold", className)} {...props} />
-  );
+  return <th className={cn("px-4 py-3 font-semibold", className)} {...props} />;
 }
 
 export function TableCell({

@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-
 import { yamsKeys } from "../query-keys";
+import type { YamsApi } from "../yams-api";
 import { useYamsApiReady } from "./use-yams-api-ready";
+
+function requireApi(api: YamsApi | null): YamsApi {
+  if (!api) {
+    throw new Error("YamsApi is not ready");
+  }
+  return api;
+}
 
 export function useHealthQuery() {
   const { api, isReady } = useYamsApiReady();
@@ -95,31 +102,34 @@ export function useAlleSeminarTermineQuery() {
 
 export function useHaustierByIdQuery(id: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedId = id ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.haustiere.detail(id ?? ""),
-    queryFn: () => api?.haustierById(id!),
-    enabled: isReady && id !== undefined && id.length > 0,
+    queryKey: yamsKeys.haustiere.detail(resolvedId),
+    queryFn: () => requireApi(api).haustierById(resolvedId),
+    enabled: isReady && resolvedId.length > 0,
   });
 }
 
 export function useRechnungenFürKlientQuery(klientId: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedKlientId = klientId ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.rechnungen.byKlient(klientId ?? ""),
-    queryFn: () => api?.rechnungenFürKlient(klientId!),
-    enabled: isReady && klientId !== undefined && klientId.length > 0,
+    queryKey: yamsKeys.rechnungen.byKlient(resolvedKlientId),
+    queryFn: () => requireApi(api).rechnungenFürKlient(resolvedKlientId),
+    enabled: isReady && resolvedKlientId.length > 0,
   });
 }
 
 export function useRechnungPdfQuery(id: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedId = id ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.rechnungen.pdf(id ?? ""),
-    queryFn: () => api?.rechnungPdf(id!),
-    enabled: isReady && id !== undefined && id.length > 0,
+    queryKey: yamsKeys.rechnungen.pdf(resolvedId),
+    queryFn: () => requireApi(api).rechnungPdf(resolvedId),
+    enabled: isReady && resolvedId.length > 0,
   });
 }
 
@@ -128,58 +138,64 @@ export function useTeilnahmebestätigungPdfQuery(
   buchungId: string | undefined,
 ) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedTerminId = terminId ?? "";
+  const resolvedBuchungId = buchungId ?? "";
 
   return useQuery({
     queryKey: yamsKeys.teilnahmebestätigung.pdf(
-      terminId ?? "",
-      buchungId ?? "",
+      resolvedTerminId,
+      resolvedBuchungId,
     ),
-    queryFn: () => api?.teilnahmebestätigungPdf(terminId!, buchungId!),
+    queryFn: () =>
+      requireApi(api).teilnahmebestätigungPdf(
+        resolvedTerminId,
+        resolvedBuchungId,
+      ),
     enabled:
-      isReady &&
-      terminId !== undefined &&
-      terminId.length > 0 &&
-      buchungId !== undefined &&
-      buchungId.length > 0,
+      isReady && resolvedTerminId.length > 0 && resolvedBuchungId.length > 0,
   });
 }
 
 export function useSeminarByIdQuery(id: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedId = id ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.seminare.detail(id ?? ""),
-    queryFn: () => api?.seminarById(id!),
-    enabled: isReady && id !== undefined && id.length > 0,
+    queryKey: yamsKeys.seminare.detail(resolvedId),
+    queryFn: () => requireApi(api).seminarById(resolvedId),
+    enabled: isReady && resolvedId.length > 0,
   });
 }
 
 export function useSeminarTerminByIdQuery(id: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedId = id ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.seminarTermine.detail(id ?? ""),
-    queryFn: () => api?.seminarTerminById(id!),
-    enabled: isReady && id !== undefined && id.length > 0,
+    queryKey: yamsKeys.seminarTermine.detail(resolvedId),
+    queryFn: () => requireApi(api).seminarTerminById(resolvedId),
+    enabled: isReady && resolvedId.length > 0,
   });
 }
 
 export function useSeminarUmsatzVorschauQuery(terminId: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedTerminId = terminId ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.seminarTermine.umsatz(terminId ?? ""),
-    queryFn: () => api?.seminarUmsatzVorschau(terminId!),
-    enabled: isReady && terminId !== undefined && terminId.length > 0,
+    queryKey: yamsKeys.seminarTermine.umsatz(resolvedTerminId),
+    queryFn: () => requireApi(api).seminarUmsatzVorschau(resolvedTerminId),
+    enabled: isReady && resolvedTerminId.length > 0,
   });
 }
 
 export function useSeminarUmsatzPrognoseQuery(stichtag: string | undefined) {
   const { api, isReady } = useYamsApiReady();
+  const resolvedStichtag = stichtag ?? "";
 
   return useQuery({
-    queryKey: yamsKeys.seminarPrognose(stichtag ?? ""),
-    queryFn: () => api?.seminarUmsatzPrognose(stichtag!),
-    enabled: isReady && stichtag !== undefined && stichtag.length > 0,
+    queryKey: yamsKeys.seminarPrognose(resolvedStichtag),
+    queryFn: () => requireApi(api).seminarUmsatzPrognose(resolvedStichtag),
+    enabled: isReady && resolvedStichtag.length > 0,
   });
 }

@@ -20,8 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { matchesSearchQuery } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { matchesSearchQuery } from "@/lib/format";
 
 type KatalogTab = "produkte" | "behandlungen" | "seminare";
 
@@ -35,7 +35,12 @@ export function KatalogOverview() {
   const produkte = useMemo(
     () =>
       (produkteQuery.data ?? []).filter((p) =>
-        matchesSearchQuery(filter, [p.name, p.beschreibung, p.einzelpreis, p.mwst]),
+        matchesSearchQuery(filter, [
+          p.name,
+          p.beschreibung,
+          p.einzelpreis,
+          p.mwst,
+        ]),
       ),
     [filter, produkteQuery.data],
   );
@@ -91,7 +96,10 @@ export function KatalogOverview() {
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
-          <TabButton active={tab === "produkte"} onClick={() => setTab("produkte")}>
+          <TabButton
+            active={tab === "produkte"}
+            onClick={() => setTab("produkte")}
+          >
             Produkte
           </TabButton>
           <TabButton
@@ -100,7 +108,10 @@ export function KatalogOverview() {
           >
             Behandlungen
           </TabButton>
-          <TabButton active={tab === "seminare"} onClick={() => setTab("seminare")}>
+          <TabButton
+            active={tab === "seminare"}
+            onClick={() => setTab("seminare")}
+          >
             Seminare
           </TabButton>
         </div>
@@ -113,9 +124,7 @@ export function KatalogOverview() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">
-          {isLoading ? (
-            <p className="text-sm text-zinc-500">Lade…</p>
-          ) : null}
+          {isLoading ? <p className="text-sm text-zinc-500">Lade…</p> : null}
           {error ? <Alert variant="error">{String(error)}</Alert> : null}
 
           {tab === "produkte" && !isLoading && !error ? (

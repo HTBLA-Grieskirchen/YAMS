@@ -2,7 +2,10 @@
 
 import { type FormEvent, useEffect, useState } from "react";
 
-import { useAlleSeminareQuery, useSeminarTerminPlanenMutation } from "@/api/hooks";
+import {
+  useAlleSeminareQuery,
+  useSeminarTerminPlanenMutation,
+} from "@/api/hooks";
 import type { SeminarTerminErstellung } from "@/api/types";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -54,13 +57,14 @@ export function TerminPlanForm({ onPlanned }: TerminPlanFormProps) {
   }
 
   return (
-    <form className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800" onSubmit={handleSubmit}>
+    <form
+      className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+      onSubmit={handleSubmit}
+    >
       <h3 className="text-sm font-semibold">Termin planen</h3>
 
       {seminare.length === 0 ? (
-        <Alert variant="info">
-          Zuerst ein Seminar im Katalog anlegen.
-        </Alert>
+        <Alert variant="info">Zuerst ein Seminar im Katalog anlegen.</Alert>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Seminar" className="sm:col-span-2">
@@ -117,9 +121,7 @@ export function TerminPlanForm({ onPlanned }: TerminPlanFormProps) {
 
       <Button
         type="submit"
-        disabled={
-          seminare.length === 0 || !seminarId || mutation.isPending
-        }
+        disabled={seminare.length === 0 || !seminarId || mutation.isPending}
       >
         {mutation.isPending ? "Speichern…" : "Termin planen"}
       </Button>

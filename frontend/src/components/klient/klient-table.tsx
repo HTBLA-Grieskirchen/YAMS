@@ -136,10 +136,10 @@ function KlientTableRow({ klient }: { klient: Klient }) {
                 Akte öffnen
               </Link>
               <Link
-                href={paths.abrechnung}
+                href={paths.leistungForKlient(klient.id)}
                 className="block rounded-md px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
-                Abrechnung starten
+                Leistung buchen
               </Link>
             </div>
           </details>

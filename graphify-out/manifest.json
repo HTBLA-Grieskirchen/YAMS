@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   ".cursor/AGENTS.md": {
-    "mtime": 1788794524.9148679,
-    "seen": 1788794560.6915746,
-    "ast_hash": "a20ccceae3c16c42cd281d1b81036b03",
+    "mtime": 1788795470.6707346,
+    "seen": 1788795530.026434,
+    "ast_hash": "68e5a2ab871c382e6cba12b05dc8807f",
     "semantic_hash": ""
   },
   ".github/workflows/publish.yml": {
@@ -1392,9 +1392,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/hooks/mutations.ts": {
-    "mtime": 1788792338.7312038,
-    "seen": 1788793528.0394435,
-    "ast_hash": "4b230a38605f5a9d94a62e44d6a33ded",
+    "mtime": 1788795459.9187346,
+    "seen": 1788795530.0233264,
+    "ast_hash": "e768aee24e1674da700c2166ea659426",
     "semantic_hash": ""
   },
   "frontend/src/api/hooks/queries.ts": {
@@ -1830,15 +1830,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/katalog/katalog-overview.tsx": {
-    "mtime": 1788793463.583043,
-    "seen": 1788793528.0396097,
-    "ast_hash": "8d0911fbd8df0a76e3e8980e6f5cb4c3",
+    "mtime": 1788795431.034733,
+    "seen": 1788795530.0245383,
+    "ast_hash": "a174a92870f0202343220714712815ea",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-detail.tsx": {
-    "mtime": 1788793460.1990428,
-    "seen": 1788793528.0396109,
-    "ast_hash": "81db59fe3abd8c00947bf7d3bf3e6186",
+    "mtime": 1788795449.6107318,
+    "seen": 1788795530.0245466,
+    "ast_hash": "1d1291e533019b05fca78756b2193932",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-register-form.tsx": {
@@ -1848,9 +1848,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-table.tsx": {
-    "mtime": 1788793490.8149788,
-    "seen": 1788793528.039613,
-    "ast_hash": "992d1507da6e17fedce63fda24b6bec2",
+    "mtime": 1788795452.1787329,
+    "seen": 1788795530.0245988,
+    "ast_hash": "bf9fbfee058099ed4d6765f3e9876682",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/app-shell.tsx": {
@@ -1872,15 +1872,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/seminar/seminar-overview.tsx": {
-    "mtime": 1788793514.2950432,
-    "seen": 1788793528.039618,
-    "ast_hash": "f7f724f16628a3841b50f1b72407e62d",
-    "semantic_hash": ""
-  },
-  "frontend/src/components/seminar/seminar-workflow-panel.tsx": {
-    "mtime": 1788793478.5510092,
-    "seen": 1788793528.0396187,
-    "ast_hash": "f889940e4a7aea98de69e384cf01704b",
+    "mtime": 1788795461.3387344,
+    "seen": 1788795530.024785,
+    "ast_hash": "c985d4e0298e3a3be7a2c45ecf7b2931",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/badge.tsx": {
@@ -1914,9 +1908,9 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/navigation.ts": {
-    "mtime": 1788794517.4228654,
-    "seen": 1788794560.691211,
-    "ast_hash": "c63730e32db634837fecc0c6aaf489f4",
+    "mtime": 1788795452.8787332,
+    "seen": 1788795530.0261836,
+    "ast_hash": "8bb6f59688abe058b7edd81c0e9dfd5b",
     "semantic_hash": ""
   },
   "frontend/src/standalone-config.json": {
@@ -1989,6 +1983,60 @@
     "mtime": 1788794515.4108648,
     "seen": 1788794560.6896582,
     "ast_hash": "b9e799044a0e55745fcdf3f336da13ac",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/leistung/page.tsx": {
+    "mtime": 1788795450.6107323,
+    "seen": 1788795530.024278,
+    "ast_hash": "0868c4663d13ac13d9326961e586f981",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/katalog/behandlung-create-form.tsx": {
+    "mtime": 1788795386.3427424,
+    "seen": 1788795530.0245342,
+    "ast_hash": "b3b986b7e71ea83584548adf64c88863",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/katalog/produkt-create-form.tsx": {
+    "mtime": 1788795386.3427424,
+    "seen": 1788795530.0245404,
+    "ast_hash": "db60083c2090d24436a229729c216b42",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/katalog/seminar-create-form.tsx": {
+    "mtime": 1788795389.1027417,
+    "seen": 1788795530.024542,
+    "ast_hash": "b161ab14cc4a235f74eff8106b50d1ea",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/klient/haustier-create-form.tsx": {
+    "mtime": 1788795394.5987403,
+    "seen": 1788795530.0245442,
+    "ast_hash": "7f598825f095eed86c875e562b22632c",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/leistung/leistung-buchen-form.tsx": {
+    "mtime": 1788795405.038738,
+    "seen": 1788795530.024783,
+    "ast_hash": "2a48a1468fc2bafd19c3c613ff4226a1",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/seminar/termin-buchung-form.tsx": {
+    "mtime": 1788795414.826736,
+    "seen": 1788795530.0247872,
+    "ast_hash": "0f7995015578529a364d8eeebfd0155c",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/seminar/termin-detail-panel.tsx": {
+    "mtime": 1788795484.0267339,
+    "seen": 1788795530.0247886,
+    "ast_hash": "7e0709fd0101863d436a0896bba35a6d",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/seminar/termin-plan-form.tsx": {
+    "mtime": 1788795409.630737,
+    "seen": 1788795530.0247903,
+    "ast_hash": "d8667ce049d586ec1b045d1f52a449cf",
     "semantic_hash": ""
   }
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -9,6 +8,8 @@ import {
 } from "@/api/hooks";
 import { SeminarTerminStatus } from "@/api/schema";
 import type { SeminarTermin } from "@/api/types";
+import { TerminDetailPanel } from "@/components/seminar/termin-detail-panel";
+import { TerminPlanForm } from "@/components/seminar/termin-plan-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -19,199 +20,195 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { SeminarWorkflowPanel } from "@/components/seminar/seminar-workflow-panel";
 import { matchesSearchQuery } from "@/lib/format";
-import { paths } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 
-type TerminFilter = "kommend" | "zukunft" | "vergangen";
-
-function terminTimestamp(termin: SeminarTermin): number {
-  return new Date(termin.beginn).getTime();
-}
-
-function classifyTermin(termin: SeminarTermin, now: number): TerminFilter {
-  const start = terminTimestamp(termin);
-  const end = new Date(termin.ende).getTime();
-  if (end < now) return "vergangen";
-  if (start >= now) return "zukunft";
-  return "kommend";
-}
+type TerminFilter = "alle" | "geplant" | "vergangen";
 
 export function SeminarOverview() {
   const seminareQuery = useAlleSeminareQuery();
   const termineQuery = useAlleSeminarTermineQuery();
   const [filter, setFilter] = useState("");
-  const [category, setCategory] = useState<TerminFilter>("kommend");
-  const [showPastInUpcoming, setShowPastInUpcoming] = useState(true);
+  const [category, setCategory] = useState<TerminFilter>("geplant");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const seminareById = useMemo(() => {
-    return new Map((seminareQuery.data ?? []).map((seminar) => [seminar.id, seminar]));
-  }, [seminareQuery.data]);
+  const seminareById = useMemo(
+    () =>
+      new Map((seminareQuery.data ?? []).map((seminar) => [seminar.id, seminar])),
+    [seminareQuery.data],
+  );
+
+  const termine = termineQuery.data ?? [];
+  const now = Date.now();
 
   const filteredTermine = useMemo(() => {
-    const now = Date.now();
-    const all = (termineQuery.data ?? []).filter((termin) => {
-      const seminar = seminareById.get(termin.seminarId);
-      return matchesSearchQuery(filter, [
-        seminar?.titel,
-        termin.status,
-        termin.ort.ortName,
-        termin.ort.adresse?.straßeUndHausnummer,
-        termin.ort.adresse?.stadt,
-      ]);
-    });
-
-    if (category === "zukunft") {
-      return all
-        .filter((termin) => terminTimestamp(termin) >= now)
-        .sort((a, b) => terminTimestamp(a) - terminTimestamp(b));
-    }
-
-    if (category === "vergangen") {
-      return all
-        .filter((termin) => new Date(termin.ende).getTime() < now)
-        .sort((a, b) => terminTimestamp(b) - terminTimestamp(a));
-    }
-
-    const upcoming = all
+    return termine
       .filter((termin) => {
-        const bucket = classifyTermin(termin, now);
-        if (bucket === "zukunft") return true;
-        if (bucket === "vergangen") return showPastInUpcoming;
+        const seminar = seminareById.get(termin.seminarId);
+        if (
+          !matchesSearchQuery(filter, [
+            seminar?.titel,
+            termin.status,
+            termin.ort.ortName,
+            termin.ort.adresse?.stadt,
+          ])
+        ) {
+          return false;
+        }
+        if (category === "geplant") {
+          return termin.status === SeminarTerminStatus.Geplant;
+        }
+        if (category === "vergangen") {
+          return (
+            termin.status !== SeminarTerminStatus.Geplant ||
+            new Date(termin.ende).getTime() < now
+          );
+        }
         return true;
       })
-      .sort((a, b) => terminTimestamp(a) - terminTimestamp(b));
+      .sort(
+        (a, b) => new Date(a.beginn).getTime() - new Date(b.beginn).getTime(),
+      );
+  }, [category, filter, now, seminareById, termine]);
 
-    return upcoming.slice(0, 8);
-  }, [
-    category,
-    filter,
-    seminareById,
-    showPastInUpcoming,
-    termineQuery.data,
-  ]);
+  const selectedTermin = useMemo(() => {
+    const id = selectedId ?? filteredTermine[0]?.id ?? null;
+    if (!id) return null;
+    return termine.find((t) => t.id === id) ?? null;
+  }, [filteredTermine, selectedId, termine]);
 
   const isLoading = seminareQuery.isPending || termineQuery.isPending;
   const error = seminareQuery.error ?? termineQuery.error;
 
+  function handleTerminUpdated(updated: SeminarTermin) {
+    setSelectedId(updated.id);
+  }
+
   return (
     <div className="space-y-6 p-6">
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <CardTitle>Seminar-Termine</CardTitle>
-                <CardDescription>
-                  Übersicht wie in der Legacy-Events-Ansicht: filtern, suchen,
-                  Termine verwalten.
-                </CardDescription>
-              </div>
-              <SearchInput
-                value={filter}
-                onChange={(event) => setFilter(event.target.value)}
-                placeholder="Seminar suchen…"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <label className="text-sm text-zinc-600 dark:text-zinc-400">
-                Anzeige
-                <select
-                  className="mt-1 block h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-                  value={category}
-                  onChange={(event) =>
-                    setCategory(event.target.value as TerminFilter)
-                  }
-                >
-                  <option value="kommend">Kommende</option>
-                  <option value="zukunft">Alle zukünftigen</option>
-                  <option value="vergangen">Vergangene</option>
-                </select>
-              </label>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold tracking-tight">Seminar</h1>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Termine planen, Teilnehmer buchen und Termine verwalten.
+        </p>
+      </div>
 
-              {category === "kommend" ? (
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={showPastInUpcoming}
-                    onChange={(event) =>
-                      setShowPastInUpcoming(event.target.checked)
-                    }
-                  />
-                  Vergangene einbeziehen
-                </label>
-              ) : null}
-            </div>
-
-            {isLoading ? (
-              <p className="text-sm text-zinc-500">Lade Termine…</p>
-            ) : null}
-            {error ? <Alert variant="error">{String(error)}</Alert> : null}
-
-            <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {!isLoading && filteredTermine.length === 0 ? (
-                <p className="py-6 text-sm text-zinc-500">
-                  Keine Termine in dieser Ansicht.
-                </p>
-              ) : null}
-
-              {filteredTermine.map((termin) => {
-                const seminar = seminareById.get(termin.seminarId);
-                return (
-                  <article key={termin.id} className="py-4">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className="font-medium">
-                          {seminar?.titel ?? "Seminar"}
-                        </h3>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {new Date(termin.beginn).toLocaleString("de-AT")} –{" "}
-                          {new Date(termin.ende).toLocaleString("de-AT")}
-                        </p>
-                        <p className="text-sm text-zinc-500">
-                          {termin.ort.ortName ?? "Ort offen"} ·{" "}
-                          {termin.buchungen.length} Buchung(en)
-                        </p>
-                      </div>
-                      <Badge variant={statusBadgeVariant(termin.status)}>
-                        {termin.status}
-                      </Badge>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Kalender</CardTitle>
-              <CardDescription>Platzhalter wie in Legacy.</CardDescription>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <CardTitle>Termine</CardTitle>
+                  <CardDescription>
+                    {filteredTermine.length} Termin(e) in dieser Ansicht
+                  </CardDescription>
+                </div>
+                <SearchInput
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  placeholder="Termin suchen…"
+                />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-zinc-300 text-sm text-zinc-500 dark:border-zinc-700">
-                Kalender folgt
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["geplant", "Geplant"],
+                    ["alle", "Alle"],
+                    ["vergangen", "Vergangen/Abgeschlossen"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setCategory(value)}
+                    className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-medium",
+                      category === value
+                        ? "bg-emerald-600 text-white"
+                        : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {isLoading ? (
+                <p className="text-sm text-zinc-500">Lade Termine…</p>
+              ) : null}
+              {error ? <Alert variant="error">{String(error)}</Alert> : null}
+
+              <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                {!isLoading && filteredTermine.length === 0 ? (
+                  <p className="py-4 text-sm text-zinc-500">
+                    Keine Termine — plane einen neuen Termin.
+                  </p>
+                ) : null}
+
+                {filteredTermine.map((termin) => {
+                  const seminar = seminareById.get(termin.seminarId);
+                  const active =
+                    selectedTermin?.id === termin.id ||
+                    (!selectedId && termin.id === filteredTermine[0]?.id);
+                  return (
+                    <button
+                      key={termin.id}
+                      type="button"
+                      onClick={() => setSelectedId(termin.id)}
+                      className={cn(
+                        "w-full py-4 text-left transition-colors",
+                        active && "bg-emerald-50/60 dark:bg-emerald-950/20",
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium">
+                            {seminar?.titel ?? "Seminar"}
+                          </p>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {new Date(termin.beginn).toLocaleString("de-AT")}
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {termin.buchungen.length} Teilnehmer ·{" "}
+                            {termin.ort.ortName ?? "Ort offen"}
+                          </p>
+                        </div>
+                        <Badge variant={statusBadgeVariant(termin.status)}>
+                          {termin.status}
+                        </Badge>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
-          <Link
-            href={paths.abrechnung}
-            className={cn(
-              "block rounded-xl border border-zinc-200 bg-white p-4 text-sm shadow-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-900",
-            )}
-          >
-            Klient für Buchung im Abrechnungs-Workflow anlegen →
-          </Link>
+          <TerminPlanForm />
+        </div>
+
+        <div>
+          {selectedTermin ? (
+            <TerminDetailPanel
+              termin={selectedTermin}
+              seminar={seminareById.get(selectedTermin.seminarId)}
+              onUpdated={handleTerminUpdated}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Termin-Details</CardTitle>
+                <CardDescription>
+                  Wähle einen Termin oder lege einen neuen an.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
         </div>
       </div>
-
-      <SeminarWorkflowPanel />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 import type { Klient } from "@/api/types";
+import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,8 +50,17 @@ export function KlientDetail({ klient }: KlientDetailProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <InfoRow icon={Mail} label="E-Mail" value={klient.email} href={`mailto:${klient.email}`} />
-              <InfoRow icon={Phone} label="Mobilnummer" value={klient.mobilnummer} />
+              <InfoRow
+                icon={Mail}
+                label="E-Mail"
+                value={klient.email}
+                href={`mailto:${klient.email}`}
+              />
+              <InfoRow
+                icon={Phone}
+                label="Mobilnummer"
+                value={klient.mobilnummer}
+              />
               <InfoRow
                 icon={MapPin}
                 label="Adresse"
@@ -59,8 +69,8 @@ export function KlientDetail({ klient }: KlientDetailProps) {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Link href={paths.abrechnung}>
-                <Button>Abrechnung starten</Button>
+              <Link href={paths.leistungForKlient(klient.id)}>
+                <Button>Leistung buchen</Button>
               </Link>
             </div>
           </CardContent>
@@ -77,19 +87,21 @@ export function KlientDetail({ klient }: KlientDetailProps) {
             {klient.haustiere.length === 0 ? (
               <p className="text-sm text-zinc-500">Noch keine Haustiere.</p>
             ) : (
-              <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <ul className="mb-4 divide-y divide-zinc-200 dark:divide-zinc-800">
                 {klient.haustiere.map((haustier) => (
                   <li key={haustier.id} className="py-3 text-sm">
                     <p className="font-medium">
                       {haustier.name} ({haustier.tierart})
                     </p>
                     <p className="text-zinc-500">
-                      Geb. {formatDate(haustier.geburtstag)}
+                      Geb. {formatDate(haustier.geburtstag)} ·{" "}
+                      {haustier.beschreibung}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
+            <HaustierCreateForm klientId={klient.id} />
           </CardContent>
         </Card>
       </div>

@@ -48,6 +48,7 @@ export function useHaustierErstellenMutation() {
     },
     onSuccess: (haustier) => {
       queryClient.invalidateQueries({ queryKey: yamsKeys.haustiere.all() });
+      queryClient.invalidateQueries({ queryKey: yamsKeys.klienten.all() });
       queryClient.setQueryData(
         yamsKeys.haustiere.detail(haustier.id),
         haustier,
@@ -228,6 +229,9 @@ export function useSeminarBuchungAnlegenMutation() {
         termin,
       );
       queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
+      queryClient.invalidateQueries({
         queryKey: yamsKeys.seminarTermine.umsatz(termin.id),
       });
     },
@@ -257,6 +261,9 @@ export function useSeminarBuchungStornierenMutation() {
         termin,
       );
       queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
+      queryClient.invalidateQueries({
         queryKey: yamsKeys.seminarTermine.umsatz(termin.id),
       });
     },
@@ -285,6 +292,9 @@ export function useSeminarTerminAbsagenMutation() {
         yamsKeys.seminarTermine.detail(termin.id),
         termin,
       );
+      queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
     },
   });
 }
@@ -305,6 +315,9 @@ export function useSeminarTerminAbgehaltenMutation() {
         yamsKeys.seminarTermine.detail(termin.id),
         termin,
       );
+      queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
     },
   });
 }
@@ -331,6 +344,9 @@ export function useSeminarTerminAktualisierenMutation() {
         yamsKeys.seminarTermine.detail(termin.id),
         termin,
       );
+      queryClient.invalidateQueries({
+        queryKey: yamsKeys.seminarTermine.all(),
+      });
     },
   });
 }

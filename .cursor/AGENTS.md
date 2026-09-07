@@ -329,7 +329,7 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 2. **Shell first** — every page renders inside `AppShell` via root `layout.tsx` + `AppChrome`; page-specific actions come from `navActionsForPathname`.
 3. **German UL in UI** — labels match domain (`Klient`, `Behandlung`, `Tagesabschluss`); English only in code/comments.
 4. **Lists are scannable** — prefer sticky-header tables + inline expansion over card stacks for master data.
-5. **Workflows stay focused** — Abrechnung lists open Leistungen + Tagesabschluss action; Seminar keeps its own panel. No multi-step billing wizard in UI.
+5. **Workflows stay focused** — Abrechnung: offene Leistungen + Tagesabschluss. Leistung buchen, Katalog, Seminar, Klient/Haustier sind eigenständige Verwaltungsseiten (kein linearer Wizard).
 6. **Server state via TanStack Query only** — pages consume hooks; no MobX/local mirrors of API lists.
 7. **No theme/language pickers** — single default styling; KIS over personalization chrome.
 

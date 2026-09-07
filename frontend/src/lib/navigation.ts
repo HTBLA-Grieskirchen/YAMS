@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
   CalendarDays,
+  ClipboardList,
   Database,
   Home,
   Receipt,
@@ -34,6 +35,9 @@ export const paths = {
   klient: (id: string) =>
     `/klient/detail?id=${encodeURIComponent(id)}`,
   katalog: "/katalog",
+  leistung: "/leistung",
+  leistungForKlient: (id: string) =>
+    `/leistung?klientId=${encodeURIComponent(id)}`,
   seminar: "/seminar",
   abrechnung: "/abrechnung",
   objekte: "/objekte",
@@ -55,6 +59,13 @@ export const sidebarCategories: NavCategory[] = [
         label: "Katalog",
         href: paths.katalog,
         icon: BookOpen,
+        recursive: true,
+      },
+      {
+        id: "leistung",
+        label: "Leistung",
+        href: paths.leistung,
+        icon: ClipboardList,
         recursive: true,
       },
       {
@@ -105,6 +116,7 @@ const routeLabels: Record<string, string> = {
   neu: "Neu",
   detail: "Detail",
   katalog: "Katalog",
+  leistung: "Leistung",
   seminar: "Seminar",
   abrechnung: "Abrechnung",
   objekte: "Objekte",

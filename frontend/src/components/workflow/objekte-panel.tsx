@@ -24,7 +24,7 @@ import {
 type EntityListProps<T> = {
   title: string;
   description: string;
-  query: UseQueryResult<T[]>;
+  query: UseQueryResult<T[] | undefined>;
   renderItem: (item: T) => ReactNode;
   itemKey: (item: T) => string;
   emptyLabel: string;

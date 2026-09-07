@@ -1,6 +1,6 @@
 # YAMS — Repository Context
 
-YAMS is a Rust backend for veterinary practice management (Rust edition **2024**, **async** throughout). The codebase follows **Domain-Driven Design** and **hexagonal architecture**. Business crates are prefixed `yams-`. The frontend (Next.js + Tauri) is a separate concern — only touch it when explicitly asked.
+YAMS is a Rust backend for veterinary practice management (Rust edition **2024**, **async** throughout). The codebase follows **Domain-Driven Design** and **hexagonal architecture**. Business crates are prefixed `yams-`. The frontend (Next.js App Router + Tauri) is documented under **Frontend** below.
 
 ## Workspace Layout
 
@@ -15,7 +15,7 @@ yams/
 ├── backend/server/         # Standalone HTTP server (yams-server)
 ├── frontend/
 │   ├── src-tauri/          # Tauri shell (embedded deployment)
-│   └── src/                # Next.js UI (deferred — minimal context here)
+│   └── src/                # Next.js UI (App Router, TanStack Query, Tauri shell)
 ├── tasks/                  # mise task definitions
 ├── specs/                  # Architecture specs — may lag code; trust implementation
 └── mise.toml               # Tool, env, and task orchestration
@@ -309,6 +309,35 @@ Next.js in `frontend/`, Tauri shell in `frontend/src-tauri/`. OpenAPI types at `
 `QueryClientProvider` wraps `YamsApiProvider` in `src/app/providers.tsx`.
 
 **Remote dev (browser + `yams-server`)** — Next and the API must use different ports (`mise run dev:frontend+server`: API `:3000`, Next `:3001`). Cross-origin fetch requires CORS on `yams-server` (localhost / 127.0.0.1). Set `NEXT_PUBLIC_YAMS_API_URL` (or edit `src/yams-config.json`) when the API is not at `http://127.0.0.1:3000/api`. Use matching hostnames (`localhost` vs `127.0.0.1`) in the browser URL and API URL.
+
+### UI design (legacy parity)
+
+Recreate **workflow and visual language** from `frontend-legacy/`, not its stack (MobX, HeroUI, Pages Router).
+
+| Legacy pattern | New frontend |
+|----------------|--------------|
+| Sidebar categories (Management) | `components/layout/sidebar.tsx` + `lib/navigation.ts` |
+| Top navbar breadcrumbs + page actions | `components/layout/app-shell.tsx` |
+| Entity tables with expandable rows | `components/klient/klient-table.tsx`, `components/ui/table.tsx` |
+| Card forms for create flows | `components/klient/klient-register-form.tsx` + workflow cards |
+| Events overview (filter/search/list) | `components/seminar/seminar-overview.tsx` |
+| Tabbed sub-areas | Katalog Produkte/Behandlungen tabs; workflows as dedicated routes |
+
+**Philosophy**
+
+1. **Route = task** — `/klient`, `/katalog`, `/seminar`, `/abrechnung`, `/objekte`; home redirects to `/klient`.
+2. **Shell first** — every page renders inside `AppShell` (sidebar + breadcrumb navbar); page-specific actions come from `navActionsForPathname`.
+3. **German UL in UI** — labels match domain (`Klient`, `Behandlung`, `Tagesabschluss`); English only in code/comments.
+4. **Lists are scannable** — prefer sticky-header tables + inline expansion over card stacks for master data.
+5. **Workflows stay guided** — Abrechnung/Seminar keep step chips (`WorkflowSteps`) and sequential forms; entity CRUD lives on dedicated pages.
+6. **Server state via TanStack Query only** — pages consume hooks; no MobX/local mirrors of API lists.
+7. **Theme** — light/dark/system via `ThemeProvider` + CSS variables in `globals.css`; emerald primary accent.
+
+**Key paths**
+
+- Layout shell: `frontend/src/app/(app)/layout.tsx`
+- Navigation config: `frontend/src/lib/navigation.ts`
+- Klient management: `frontend/src/app/(app)/klient/**`, `frontend/src/components/klient/**`
 
 ## Conventions for Contributors
 

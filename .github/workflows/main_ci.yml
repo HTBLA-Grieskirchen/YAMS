@@ -9,6 +9,10 @@ on:
       - main
   workflow_call:
 
+concurrency:
+  group: main-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
+
 jobs:
   verify:
     name: Check and test
@@ -40,7 +44,7 @@ jobs:
         run: mise run test
 
   smoke-build:
-    name: Smoke build (${{ matrix.platform }})
+    name: Smoke build
     needs: verify
     strategy:
       matrix:

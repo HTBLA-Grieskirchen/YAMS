@@ -48,6 +48,7 @@ export function YamsApiProvider({ children }: { children: ReactNode }) {
     async function bootstrap() {
       setLoading(true);
       setError(null);
+      setApi(null);
 
       try {
         const config = await getConfig();

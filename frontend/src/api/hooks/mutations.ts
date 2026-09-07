@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { yamsKeys } from "../query-keys";
+import { getYamsApi } from "../index";
 import type {
   BehandlungErstellung,
   HaustierErstellung,
@@ -168,20 +169,17 @@ export function useTagesabschlussDurchführenMutation() {
 }
 
 export function useRechnungAlsBezahltMarkierenMutation() {
-  const { api } = useYamsApiReady();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       rechnungId,
       body,
     }: {
       rechnungId: string;
       body: RechnungBezahltMarkieren;
     }) => {
-      if (!api) {
-        throw new Error("YamsApi is not ready");
-      }
+      const api = await getYamsApi();
       return api.rechnungAlsBezahltMarkieren(rechnungId, body);
     },
     onSuccess: (rechnung) => {

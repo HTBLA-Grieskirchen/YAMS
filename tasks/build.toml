@@ -7,7 +7,7 @@ run = "cargo build -p yams-server --release"
 ["build:frontend"]
 description = "Build the Next.js frontend"
 dir = "{{ vars.REPO_ROOT }}/frontend"
-depends = ["sync:openapi --release"]
+depends = ["sync:openapi"]
 run = "npm run build"
 
 ["build:tauri"]

@@ -15,7 +15,7 @@ cargo clippy --workspace \
 description = "Check the frontend types"
 dir = "{{ vars.REPO_ROOT }}/frontend"
 depends = [
-  "sync:openapi --release"
+  "sync:openapi"
 ]
 run = "npm run check:ts"
 

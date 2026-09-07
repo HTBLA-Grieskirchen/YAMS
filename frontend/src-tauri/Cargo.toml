@@ -1,3 +1,5 @@
+cargo-features = ["profile-rustflags", "trim-paths"]
+
 [package]
 name = "yams-tauri"
 description = "A management software for patients and animals"
@@ -11,7 +13,7 @@ repository.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "^2.0", features = [] }
+tauri-build = { version = "^2.0", default-features = false, features = ["config-toml"] }
 
 [dependencies]
 yams-core = { path = "../../crates/yams-core" }
@@ -34,6 +36,7 @@ tauri-plugin-shell = "2.3.5"
 tauri-plugin-fs = "2.0"
 url = { version = "^2.3.1", features = ["serde"] }
 directories = "6.0.0"
+
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-appender = { workspace = true }
@@ -41,3 +44,12 @@ tracing-appender = { workspace = true }
 [dev-dependencies]
 test-log = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true # Ensures debug symbols are removed.
+trim-paths = "all" # Removes potentially privileged information from your binaries.
+rustflags = ["-Cdebuginfo=0", "-Zthreads=8"] # Better compile performance.

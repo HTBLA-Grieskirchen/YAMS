@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { useAlleSeminareQuery, useAlleSeminarTermineQuery } from "@/api/hooks";
 import { SeminarTerminStatus } from "@/api/schema";
 import type { SeminarTermin } from "@/api/types";
 import { TerminDetailPanel } from "@/components/seminar/termin-detail-panel";
+import {
+  buildTerminEventsByDay,
+  TerminCalendar,
+} from "@/components/seminar/termin-calendar";
 import { TerminPlanForm } from "@/components/seminar/termin-plan-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +32,11 @@ export function SeminarOverview() {
   const [filter, setFilter] = useState("");
   const [category, setCategory] = useState<TerminFilter>("geplant");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
+    null,
+  );
+  const [planPrefillDate, setPlanPrefillDate] = useState<string | null>(null);
+  const planFormRef = useRef<HTMLDivElement>(null);
 
   const seminareById = useMemo(
     () =>
@@ -76,11 +85,26 @@ export function SeminarOverview() {
     return termine.find((t) => t.id === id) ?? null;
   }, [filteredTermine, selectedId, termine]);
 
+  const visibleTerminIds = useMemo(
+    () => new Set(filteredTermine.map((termin) => termin.id)),
+    [filteredTermine],
+  );
+
+  const eventsByDay = useMemo(
+    () => buildTerminEventsByDay(termine, visibleTerminIds),
+    [termine, visibleTerminIds],
+  );
+
   const isLoading = seminareQuery.isPending || termineQuery.isPending;
   const error = seminareQuery.error ?? termineQuery.error;
 
   function handleTerminUpdated(updated: SeminarTermin) {
     setSelectedId(updated.id);
+  }
+
+  function handlePlanTerminOnDate(date: string) {
+    setPlanPrefillDate(date);
+    planFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -186,10 +210,22 @@ export function SeminarOverview() {
             </CardContent>
           </Card>
 
-          <TerminPlanForm />
+          <div ref={planFormRef}>
+            <TerminPlanForm
+              prefillDate={planPrefillDate}
+              onPlanned={() => setPlanPrefillDate(null)}
+            />
+          </div>
         </div>
 
-        <div>
+        <div className="space-y-6">
+          <TerminCalendar
+            eventsByDay={eventsByDay}
+            selectedDate={selectedCalendarDate}
+            onSelectDate={setSelectedCalendarDate}
+            onPlanTermin={handlePlanTerminOnDate}
+          />
+
           {selectedTermin ? (
             <TerminDetailPanel
               termin={selectedTermin}

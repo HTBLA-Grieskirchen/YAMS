@@ -12,13 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { datetimeLocalToIso, defaultDatetimeLocal } from "@/lib/dates";
+import { datetimeLocalForDate, datetimeLocalToIso, defaultDatetimeLocal } from "@/lib/dates";
 
 type TerminPlanFormProps = {
   onPlanned?: () => void;
+  prefillDate?: string | null;
 };
 
-export function TerminPlanForm({ onPlanned }: TerminPlanFormProps) {
+export function TerminPlanForm({ onPlanned, prefillDate }: TerminPlanFormProps) {
   const seminareQuery = useAlleSeminareQuery();
   const mutation = useSeminarTerminPlanenMutation();
   const seminare = seminareQuery.data ?? [];
@@ -35,6 +36,12 @@ export function TerminPlanForm({ onPlanned }: TerminPlanFormProps) {
       setSeminarId(seminare[0]?.id ?? "");
     }
   }, [seminare, seminarId]);
+
+  useEffect(() => {
+    if (!prefillDate) return;
+    setBeginnLocal(datetimeLocalForDate(prefillDate, 10));
+    setEndeLocal(datetimeLocalForDate(prefillDate, 16));
+  }, [prefillDate]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();

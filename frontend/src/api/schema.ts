@@ -758,7 +758,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/rechnung/{klient_id}": {
+    "/klient/{klient_id}/rechnungen": {
         parameters: {
             query?: never;
             header?: never;
@@ -810,7 +810,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/rechnung/{id}/pdf": {
+    "/rechnungen/{id}/pdf": {
         parameters: {
             query?: never;
             header?: never;
@@ -1407,7 +1407,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/seminar-termin/{id}/buchung/{buchung_id}/teilnahmebest\u00E4tigung": {
+    "/seminar-termin/{id}/buchung/{buchung_id}/teilnahmebestaetigung": {
         parameters: {
             query?: never;
             header?: never;

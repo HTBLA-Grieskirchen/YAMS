@@ -250,7 +250,7 @@ impl YamsApiSpec {
         self.app_api.alle_rechnungen().await.into()
     }
 
-    #[oai(path = "/rechnung/:klient_id", method = "get")]
+    #[oai(path = "/klient/:klient_id/rechnungen", method = "get")]
     async fn rechnungen_für_klient(
         &self,
         klient_id: Path<Uuid>,
@@ -258,7 +258,7 @@ impl YamsApiSpec {
         self.app_api.rechnungen_für_klient(klient_id.0).await.into()
     }
 
-    #[oai(path = "/rechnung/:id/pdf", method = "get")]
+    #[oai(path = "/rechnungen/:id/pdf", method = "get")]
     async fn rechnung_pdf(&self, id: Path<Uuid>) -> StreamBinaryResponse {
         self.app_api.rechnung_pdf(id.0).await.into()
     }
@@ -359,10 +359,10 @@ impl YamsApiSpec {
     }
 
     #[oai(
-        path = "/seminar-termin/:id/buchung/:buchung_id/teilnahmebestätigung",
+        path = "/seminar-termin/:id/buchung/:buchung_id/teilnahmebestaetigung",
         method = "get"
     )]
-    async fn teilnahmebestätigung_pdf(
+    async fn teilnahmebestaetigung_pdf(
         &self,
         id: Path<Uuid>,
         buchung_id: Path<Uuid>,

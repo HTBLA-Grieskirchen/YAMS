@@ -9,6 +9,7 @@ import {
   useTagesabschlussDurchführenMutation,
 } from "@/api/hooks";
 import type { Rechnung } from "@/api/types";
+import { RechnungenTable } from "@/components/rechnung/rechnungen-table";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -128,10 +129,17 @@ export function AbrechnungPanel() {
         </CardHeader>
         <CardContent>
           {resultRechnungen ? (
-            <Alert variant="success">
-              Tagesabschluss abgeschlossen — {resultRechnungen.length}{" "}
-              Rechnung(en) erstellt.
-            </Alert>
+            <div className="space-y-4">
+              <Alert variant="success">
+                Tagesabschluss abgeschlossen — {resultRechnungen.length}{" "}
+                Rechnung(en) erstellt.
+              </Alert>
+              <RechnungenTable
+                rechnungen={resultRechnungen}
+                klientenById={klientenById}
+                showKlient
+              />
+            </div>
           ) : (
             <form className="space-y-4" onSubmit={handleTagesabschluss}>
               <Field label="Abschlussdatum">

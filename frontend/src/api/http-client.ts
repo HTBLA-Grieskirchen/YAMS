@@ -30,9 +30,11 @@ async function unwrap<T>(result: { data?: T; error?: unknown }): Promise<T> {
 
 export class HttpYamsApi implements YamsApi {
   private readonly client: JsonClient;
+  private readonly baseUrl: string;
 
   constructor(baseUrl: string) {
-    this.client = createClient<paths>({ baseUrl });
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.client = createClient<paths>({ baseUrl: this.baseUrl });
   }
 
   async health(): Promise<string> {
@@ -145,31 +147,32 @@ export class HttpYamsApi implements YamsApi {
 
   async rechnungenFürKlient(klientId: string) {
     return unwrap(
-      await this.client.GET("/rechnung/{klient_id}", {
+      await this.client.GET("/klient/{klient_id}/rechnungen", {
         params: { path: { klient_id: klientId } },
       }),
     );
   }
 
   async rechnungPdf(id: string) {
-    return unwrap(
-      await this.client.GET("/rechnung/{id}/pdf", {
-        params: { path: { id } },
-        parseAs: "blob",
-      }),
-    );
+    return this.fetchPdf(`/rechnungen/${encodeURIComponent(id)}/pdf`);
   }
 
   async teilnahmebestätigungPdf(terminId: string, buchungId: string) {
-    return unwrap(
-      await this.client.GET(
-        "/seminar-termin/{id}/buchung/{buchung_id}/teilnahmebestätigung",
-        {
-          params: { path: { id: terminId, buchung_id: buchungId } },
-          parseAs: "blob",
-        },
-      ),
+    return this.fetchPdf(
+      `/seminar-termin/${encodeURIComponent(terminId)}/buchung/${encodeURIComponent(buchungId)}/teilnahmebestaetigung`,
     );
+  }
+
+  private async fetchPdf(path: string): Promise<Blob> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      headers: { Accept: "application/pdf" },
+    });
+
+    if (!response.ok) {
+      throw ApiError.fromUnknown(await response.text());
+    }
+
+    return response.blob();
   }
 
   async seminarErstellen(body: SeminarErstellung) {

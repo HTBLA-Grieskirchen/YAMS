@@ -135,7 +135,7 @@ export class TauriYamsApi implements YamsApi {
     terminId: string,
     buchungId: string,
   ): Promise<Blob> {
-    const bytes = await invokeCommand<number[]>("teilnahmebestätigung_pdf", {
+    const bytes = await invokeCommand<number[]>("teilnahmebestaetigung_pdf", {
       termin_id: terminId,
       buchung_id: buchungId,
     });

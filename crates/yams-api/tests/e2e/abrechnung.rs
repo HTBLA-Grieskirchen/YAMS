@@ -155,14 +155,16 @@ async fn tagesabschluss_returns_rechnungen_as_json() {
     );
 
     let klient1_id = klient1["id"].as_str().unwrap();
-    let (status, fetched) = api.get_json(&format!("/api/rechnung/{klient1_id}")).await;
+    let (status, fetched) = api
+        .get_json(&format!("/api/klient/{klient1_id}/rechnungen"))
+        .await;
     assert_status_ok(status);
     assert_eq!(fetched.as_array().unwrap().len(), 1);
     assert_eq!(fetched[0]["id"], rechnung_klient1["id"]);
 
     let rechnung_id = rechnung_klient1["id"].as_str().unwrap();
     let (status, pdf, content_type) = api
-        .get_bytes(&format!("/api/rechnung/{rechnung_id}/pdf"))
+        .get_bytes(&format!("/api/rechnungen/{rechnung_id}/pdf"))
         .await;
     assert_status_ok(status);
     assert!(content_type.contains("application/pdf"));
@@ -174,7 +176,7 @@ async fn tagesabschluss_returns_rechnungen_as_json() {
     );
 
     let (status, _, _) = api
-        .get_bytes("/api/rechnung/00000000-0000-0000-0000-000000000000/pdf")
+        .get_bytes("/api/rechnungen/00000000-0000-0000-0000-000000000000/pdf")
         .await;
     assert_eq!(status, poem::http::StatusCode::NOT_FOUND);
 }

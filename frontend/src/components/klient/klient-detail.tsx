@@ -5,6 +5,8 @@ import { Mail, MapPin, Phone } from "lucide-react";
 
 import type { Klient } from "@/api/types";
 import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
+import { KlientLeistungenSection } from "@/components/klient/klient-leistungen";
+import { KlientRechnungenSection } from "@/components/klient/klient-rechnungen-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +75,30 @@ export function KlientDetail({ klient }: KlientDetailProps) {
                 <Button>Leistung buchen</Button>
               </Link>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Leistungen</CardTitle>
+            <CardDescription>
+              Offene und abgerechnete Leistungen des Klienten.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <KlientLeistungenSection klientId={klient.id} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Rechnungen</CardTitle>
+            <CardDescription>
+              Offene und bezahlte Rechnungen des Klienten.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <KlientRechnungenSection klientId={klient.id} />
           </CardContent>
         </Card>
 

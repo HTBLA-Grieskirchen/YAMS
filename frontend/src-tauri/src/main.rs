@@ -79,7 +79,7 @@ fn main() {
             commands::tagesabschluss_durchführen,
             commands::rechnungen_für_klient,
             commands::rechnung_pdf,
-            commands::teilnahmebestätigung_pdf,
+            commands::teilnahmebestaetigung_pdf,
             commands::seminar_erstellen,
             commands::seminar_by_id,
             commands::seminar_termin_planen,

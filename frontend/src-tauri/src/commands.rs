@@ -147,7 +147,7 @@ pub async fn rechnung_pdf(id: Uuid, ctx: State<'_, YamsAppApi>) -> Result<Vec<u8
 }
 
 #[tauri::command]
-pub async fn teilnahmebestätigung_pdf(
+pub async fn teilnahmebestaetigung_pdf(
     termin_id: Uuid,
     buchung_id: Uuid,
     ctx: State<'_, YamsAppApi>,

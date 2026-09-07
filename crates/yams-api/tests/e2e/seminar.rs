@@ -112,7 +112,7 @@ async fn seminar_flow_books_holds_and_forecasts() {
     let termin_id = termin["id"].as_str().unwrap();
     let (status, pdf, content_type) = api
         .get_bytes(&format!(
-            "/api/seminar-termin/{termin_id}/buchung/{buchung_id}/teilnahmebestätigung"
+            "/api/seminar-termin/{termin_id}/buchung/{buchung_id}/teilnahmebestaetigung"
         ))
         .await;
     assert_status_ok(status);

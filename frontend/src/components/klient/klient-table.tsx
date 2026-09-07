@@ -14,9 +14,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { useAlleKlientenQuery } from "@/api/hooks";
-import type { Klient } from "@/api/types";
+import { useAlleKlientenQuery, useAlleLeistungenQuery, useAlleRechnungenQuery } from "@/api/hooks";
+import type { Klient, Leistung, Rechnung } from "@/api/types";
 import { HaustierCreateForm } from "@/components/klient/haustier-create-form";
+import {
+  KlientLeistungenSection,
+  KlientLeistungenSummaryBadges,
+  summarizeKlientLeistungen,
+} from "@/components/klient/klient-leistungen";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { SearchInput } from "@/components/ui/search-input";
@@ -33,7 +38,25 @@ import { paths } from "@/lib/navigation";
 
 export function KlientTable() {
   const klientenQuery = useAlleKlientenQuery();
+  const leistungenQuery = useAlleLeistungenQuery();
+  const rechnungenQuery = useAlleRechnungenQuery();
   const [filter, setFilter] = useState("");
+
+  const rechnungenById = useMemo(() => {
+    return new Map(
+      (rechnungenQuery.data ?? []).map((rechnung) => [rechnung.id, rechnung]),
+    );
+  }, [rechnungenQuery.data]);
+
+  const leistungenByKlientId = useMemo(() => {
+    const grouped = new Map<string, Leistung[]>();
+    for (const leistung of leistungenQuery.data ?? []) {
+      const existing = grouped.get(leistung.klientId) ?? [];
+      existing.push(leistung);
+      grouped.set(leistung.klientId, existing);
+    }
+    return grouped;
+  }, [leistungenQuery.data]);
 
   const filtered = useMemo(() => {
     const klienten = klientenQuery.data ?? [];
@@ -50,12 +73,18 @@ export function KlientTable() {
     );
   }, [filter, klientenQuery.data]);
 
-  if (klientenQuery.isPending) {
+  if (klientenQuery.isPending || leistungenQuery.isPending || rechnungenQuery.isPending) {
     return <p className="text-sm text-zinc-500">Lade Klienten…</p>;
   }
 
-  if (klientenQuery.error) {
-    return <Alert variant="error">{String(klientenQuery.error)}</Alert>;
+  if (klientenQuery.error || leistungenQuery.error || rechnungenQuery.error) {
+    return (
+      <Alert variant="error">
+        {String(
+          klientenQuery.error ?? leistungenQuery.error ?? rechnungenQuery.error,
+        )}
+      </Alert>
+    );
   }
 
   return (
@@ -81,13 +110,19 @@ export function KlientTable() {
               <TableHeader>Nachname</TableHeader>
               <TableHeader>Vorname</TableHeader>
               <TableHeader>Geburtstag</TableHeader>
+              <TableHeader>Leistungen</TableHeader>
               <TableHeader className="w-12" />
               <TableHeader className="w-12" />
             </TableRow>
           </TableHead>
           <TableBody>
             {filtered.map((klient) => (
-              <KlientTableRow key={klient.id} klient={klient} />
+              <KlientTableRow
+                key={klient.id}
+                klient={klient}
+                leistungen={leistungenByKlientId.get(klient.id) ?? []}
+                rechnungenById={rechnungenById}
+              />
             ))}
           </TableBody>
         </Table>
@@ -96,9 +131,22 @@ export function KlientTable() {
   );
 }
 
-function KlientTableRow({ klient }: { klient: Klient }) {
+function KlientTableRow({
+  klient,
+  leistungen,
+  rechnungenById,
+}: {
+  klient: Klient;
+  leistungen: Leistung[];
+  rechnungenById: Map<string, Rechnung>;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [showHaustierForm, setShowHaustierForm] = useState(false);
+
+  const leistungenSummary = useMemo(
+    () => summarizeKlientLeistungen(leistungen, rechnungenById),
+    [leistungen, rechnungenById],
+  );
 
   function openHaustierForm() {
     setExpanded(true);
@@ -118,6 +166,9 @@ function KlientTableRow({ klient }: { klient: Klient }) {
         <TableCell className="font-medium">{klient.nachname}</TableCell>
         <TableCell>{klient.vorname}</TableCell>
         <TableCell>{formatDate(klient.geburtstag)}</TableCell>
+        <TableCell>
+          <KlientLeistungenSummaryBadges summary={leistungenSummary} />
+        </TableCell>
         <TableCell>
           <button
             type="button"
@@ -142,7 +193,7 @@ function KlientTableRow({ klient }: { klient: Klient }) {
 
       {expanded ? (
         <TableRow className="bg-zinc-50 dark:bg-zinc-900/40">
-          <TableCell colSpan={6} className="overflow-visible">
+          <TableCell colSpan={7} className="overflow-visible">
             <div className="max-w-2xl space-y-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
               <p className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">
                 Weitere Informationen
@@ -205,6 +256,18 @@ function KlientTableRow({ klient }: { klient: Klient }) {
                     ))}
                   </ul>
                 )}
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold tracking-wide text-zinc-500 uppercase">
+                  Leistungen
+                </p>
+                <KlientLeistungenSection
+                  klientId={klient.id}
+                  leistungen={leistungen}
+                  rechnungenById={rechnungenById}
+                  compact
+                />
               </div>
 
               {showHaustierForm ? (

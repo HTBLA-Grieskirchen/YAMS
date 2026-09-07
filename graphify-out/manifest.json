@@ -126,9 +126,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/src/spec.rs": {
-    "mtime": 1788784064.2416902,
-    "seen": 1788793528.0333257,
-    "ast_hash": "f939a8089b0c1d2ce6da192c9e7914b4",
+    "mtime": 1788796145.8385155,
+    "seen": 1788796395.17389,
+    "ast_hash": "b103359ada9c9a3d39dfc718fcf32104",
     "semantic_hash": ""
   },
   "crates/yams-core/Cargo.toml": {
@@ -858,9 +858,9 @@
     "semantic_hash": "1be34a5c61c2c35365de3dab14298f0b"
   },
   "frontend/src-tauri/src/commands.rs": {
-    "mtime": 1788499140.4681118,
-    "seen": 1788512272.6957195,
-    "ast_hash": "d3751a2425a7d87314837c8904f0537d",
+    "mtime": 1788796145.0585155,
+    "seen": 1788796395.1838193,
+    "ast_hash": "e75c442e88e9dd001eb4f583d040d010",
     "semantic_hash": ""
   },
   "frontend/src-tauri/src/config.rs": {
@@ -870,9 +870,9 @@
     "semantic_hash": ""
   },
   "frontend/src-tauri/src/main.rs": {
-    "mtime": 1788784064.2416902,
-    "seen": 1788793528.0393991,
-    "ast_hash": "52fd8c51777ed681bdc7d1d8fbebdbc8",
+    "mtime": 1788796145.0585155,
+    "seen": 1788796395.1838727,
+    "ast_hash": "c446c17483875711d7011c3ec5fd08bb",
     "semantic_hash": ""
   },
   "frontend/src-tauri/tauri.conf.json": {
@@ -1344,9 +1344,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/http-client.ts": {
-    "mtime": 1788792338.7312038,
-    "seen": 1788793528.0395057,
-    "ast_hash": "184673b5bff7d21cffa48cd68fb531db",
+    "mtime": 1788796196.8106334,
+    "seen": 1788796395.1842477,
+    "ast_hash": "f29987ae023d3a0db80374e25c396d72",
     "semantic_hash": ""
   },
   "frontend/src/api/index.ts": {
@@ -1362,9 +1362,9 @@
     "semantic_hash": ""
   },
   "frontend/src/api/tauri-client.ts": {
-    "mtime": 1788792338.7312038,
-    "seen": 1788793528.0395129,
-    "ast_hash": "335ceca9271902d4fe51b75f582af0e3",
+    "mtime": 1788796196.354636,
+    "seen": 1788796395.1844175,
+    "ast_hash": "38cc1b5a8b03c32b807cb2e8b1575be8",
     "semantic_hash": ""
   },
   "frontend/src/api/types.ts": {
@@ -1530,9 +1530,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/tests/e2e/abrechnung.rs": {
-    "mtime": 1788511531.5718358,
-    "seen": 1788512272.6866608,
-    "ast_hash": "5712038f183358c2427752404bc7f401",
+    "mtime": 1788796147.0945153,
+    "seen": 1788796395.1738954,
+    "ast_hash": "81aac61be1d21f363fc8d79f219f9242",
     "semantic_hash": ""
   },
   "crates/yams-api/tests/e2e/haustier.rs": {
@@ -1602,9 +1602,9 @@
     "semantic_hash": ""
   },
   "crates/yams-api/tests/e2e/seminar.rs": {
-    "mtime": 1788784063.8845317,
-    "seen": 1788793528.0334003,
-    "ast_hash": "b287a934efedd60a97534145244715be",
+    "mtime": 1788796145.2305155,
+    "seen": 1788796395.1742725,
+    "ast_hash": "e41695a7157e257e5f2848f4a8ce995a",
     "semantic_hash": ""
   },
   "crates/yams-core/src/domain/seminar.rs": {
@@ -1836,9 +1836,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-detail.tsx": {
-    "mtime": 1788795449.6107318,
-    "seen": 1788795530.0245466,
-    "ast_hash": "1d1291e533019b05fca78756b2193932",
+    "mtime": 1788796214.3106046,
+    "seen": 1788796395.1857939,
+    "ast_hash": "4396934f4dd3ae91ed24253167efa890",
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-register-form.tsx": {
@@ -1848,9 +1848,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/klient/klient-table.tsx": {
-    "mtime": 1788795607.058723,
-    "seen": 1788795614.3367746,
-    "ast_hash": "bb484e141c2704725763ddde0accfbbb",
+    "mtime": 1788795738.8466983,
+    "seen": 1788796395.1858685,
+    "ast_hash": "5a7faa9d4983dba3a41abc858e6c38bb",
     "semantic_hash": ""
   },
   "frontend/src/components/layout/app-shell.tsx": {
@@ -1908,9 +1908,9 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/navigation.ts": {
-    "mtime": 1788795452.8787332,
-    "seen": 1788795530.0261836,
-    "ast_hash": "8bb6f59688abe058b7edd81c0e9dfd5b",
+    "mtime": 1788796214.3106046,
+    "seen": 1788796395.1881948,
+    "ast_hash": "987a34d88a83a85aa9d5880ceb2c5244",
     "semantic_hash": ""
   },
   "frontend/src/standalone-config.json": {
@@ -1920,15 +1920,15 @@
     "semantic_hash": ""
   },
   "frontend/src/components/abrechnung/abrechnung-panel.tsx": {
-    "mtime": 1788793896.51096,
-    "seen": 1788793922.7666187,
-    "ast_hash": "2d9f882f64daeff3ef85c510c00ce149",
+    "mtime": 1788796221.3066201,
+    "seen": 1788796395.185492,
+    "ast_hash": "b7b968b2fd73034f6a421c152181795f",
     "semantic_hash": ""
   },
   "frontend/src/api/schema.ts": {
-    "mtime": 1788794551.6548915,
-    "seen": 1788794560.6891675,
-    "ast_hash": "055218c810a442d30854022851edc7ef",
+    "mtime": 1788796192.66264,
+    "seen": 1788796395.1844156,
+    "ast_hash": "3aca8a4b3938ce2d25d1a37f1597643d",
     "semantic_hash": ""
   },
   "frontend/src/app/abrechnung/page.tsx": {
@@ -2037,6 +2037,42 @@
     "mtime": 1788795409.630737,
     "seen": 1788795530.0247903,
     "ast_hash": "d8667ce049d586ec1b045d1f52a449cf",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/rechnungen/page.tsx": {
+    "mtime": 1788796207.438597,
+    "seen": 1788796395.1854234,
+    "ast_hash": "87b9869c1d1354acf10995fe21dc5147",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/klient/klient-leistungen.tsx": {
+    "mtime": 1788795805.5106912,
+    "seen": 1788796395.1857965,
+    "ast_hash": "6eb328bf2dc5c1a5182e70decd84f3ea",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/klient/klient-rechnungen-section.tsx": {
+    "mtime": 1788796207.1025968,
+    "seen": 1788796395.1858082,
+    "ast_hash": "45aeaf4b90908e02b01b68c5611c0621",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/rechnung/rechnung-download-button.tsx": {
+    "mtime": 1788796341.1466298,
+    "seen": 1788796395.1861575,
+    "ast_hash": "095630b91179b2be460903ada4ea4fbc",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/rechnung/rechnungen-overview.tsx": {
+    "mtime": 1788796205.5705967,
+    "seen": 1788796395.18616,
+    "ast_hash": "5cd7b3810fca6a8cf6be8879e6f2e71a",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/rechnung/rechnungen-table.tsx": {
+    "mtime": 1788796202.6586018,
+    "seen": 1788796395.186162,
+    "ast_hash": "c6857392708da5c4b144ec71cabf8bdc",
     "semantic_hash": ""
   }
 }

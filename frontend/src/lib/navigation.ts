@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   Database,
+  FileText,
   Home,
   Receipt,
   User,
@@ -40,6 +41,7 @@ export const paths = {
     `/leistung?klientId=${encodeURIComponent(id)}`,
   seminar: "/seminar",
   abrechnung: "/abrechnung",
+  rechnungen: "/rechnungen",
   objekte: "/objekte",
 } as const;
 
@@ -88,6 +90,13 @@ export const sidebarCategories: NavCategory[] = [
         recursive: true,
       },
       {
+        id: "rechnungen",
+        label: "Rechnungen",
+        href: paths.rechnungen,
+        icon: FileText,
+        recursive: true,
+      },
+      {
         id: "objekte",
         label: "Objekte",
         href: paths.objekte,
@@ -119,6 +128,7 @@ const routeLabels: Record<string, string> = {
   leistung: "Leistung",
   seminar: "Seminar",
   abrechnung: "Abrechnung",
+  rechnungen: "Rechnungen",
   objekte: "Objekte",
 };
 

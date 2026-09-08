@@ -2,7 +2,7 @@ use yams_core::{
     App,
     application::{AppBuilder, SetUowProvider},
 };
-use yams_persistence::SQLiteInstance;
+use yams_sqlite::SQLiteInstance;
 
 #[path = "../../yams-core/tests/cases/mod.rs"]
 mod cases;

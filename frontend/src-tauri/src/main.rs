@@ -4,7 +4,7 @@ use tauri::Manager;
 use yams_api::YamsAppApi;
 use yams_core::{App, ports::RepositoryError};
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_persistence::SQLiteInstance;
+use yams_sqlite::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
 
 mod commands;

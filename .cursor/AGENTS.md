@@ -9,7 +9,7 @@ yams/
 ├── crates/
 │   ├── yams-core/          # Domain, use cases, port definitions
 │   ├── yams-api/           # Public API surface (DTOs, YamsAppApi, OpenAPI)
-│   ├── yams-persistence/   # SQLite/libsql repository adapter
+│   ├── yams-sqlite/   # SQLite/libsql repository adapter
 │   ├── yams-fakes/         # In-memory adapters, FixedClock, future factories/seeding
 │   └── molting/            # Generic async migration framework
 ├── backend/server/         # Standalone HTTP server (yams-server)
@@ -38,7 +38,7 @@ yams/
 └────────────────────────┬────────────────────────────────┘
                          ▼
 ┌─────────────────────────────────────────────────────────┐
-│  yams-persistence — SQLite UoW, repos, migrations       │
+│  yams-sqlite — SQLite UoW, repos, migrations       │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -208,7 +208,7 @@ Consumers:
 
 After schema or route changes, run `mise run sync:openapi` to refresh `frontend/src/api/schema.ts`.
 
-## yams-persistence — Driven Adapter
+## yams-sqlite — Driven Adapter
 
 Single repository adapter (SQLite via libsql). Name may become more specific when additional adapters appear.
 
@@ -220,7 +220,7 @@ Single repository adapter (SQLite via libsql). Name may become more specific whe
 
 ## molting
 
-Generic async migration framework used by yams-persistence. Provides `UpMigration`, `DownMigration`, `MigrationRegistry`, `MigrationTarget` traits. Persistence implements `MigrationTarget` for `SQLiteConnection`.
+Generic async migration framework used by yams-sqlite. Provides `UpMigration`, `DownMigration`, `MigrationRegistry`, `MigrationTarget` traits. Persistence implements `MigrationTarget` for `SQLiteConnection`.
 
 ## Deployment Modes
 
@@ -255,7 +255,7 @@ In Tauri, Next.js reads config **only** from the `frontend_config` invoke. Brows
 |--------------------|--------------------------------------------|-------------------------------------------|
 | Domain unit        | `#[cfg(test)]` in the domain source file   | Isolated VO/aggregate math (Preis, MwSt, contact validation) |
 | Business conform   | `yams-core/tests/cases/` (integration)     | Full use-case flows with `yams-fakes`     |
-| Adapter conformance| `yams-persistence/tests/`                  | Same cases as core, real SQLite UoW        |
+| Adapter conformance| `yams-sqlite/tests/`                  | Same cases as core, real SQLite UoW        |
 | E2E / API          | `yams-api/tests/e2e/`                      | Poem `YamsApiTestClient` JSON nested at `/api`; `base_app_builder()` (SQLite, overridable adapters) |
 
 ### yams-fakes
@@ -264,7 +264,7 @@ In Tauri, Next.js reads config **only** from the `frontend_config` invoke. Brows
 
 ### Shared Conformance Pattern
 
-`base_app_builder()` in `yams-core/tests/business_conform.rs` wires `yams_fakes::FakeUnitOfWorkProvider`. Cases live in `yams-core/tests/cases/` and are shared via `#[path]` in `yams-persistence/tests/business_conform.rs`, which overrides `base_app_builder()` to `SQLiteInstance::in_temp_dir()`. Tests that need a fixed date use `yams_fakes::FixedClock` on either builder.
+`base_app_builder()` in `yams-core/tests/business_conform.rs` wires `yams_fakes::FakeUnitOfWorkProvider`. Cases live in `yams-core/tests/cases/` and are shared via `#[path]` in `yams-sqlite/tests/business_conform.rs`, which overrides `base_app_builder()` to `SQLiteInstance::in_temp_dir()`. Tests that need a fixed date use `yams_fakes::FixedClock` on either builder.
 
 Persistence proves adapter conformance by running the same case suite against real SQLite.
 
@@ -342,7 +342,7 @@ Recreate **workflow and visual language** from `frontend-legacy/`, not its stack
 ## Conventions for Contributors
 
 1. **New feature?** Walk the vertical slice in order, German feature names (`seminar.rs`, not `model.rs`):
-   `domain/` (unit tests in the same file) → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-persistence/repos/` → migration in `migrations/` (if schema change) → use-case case in `yams-core/tests/cases/` → API e2e in `yams-api/tests/e2e/` when the public surface changed → `mise run sync:openapi` (if API surface changed).
+   `domain/` (unit tests in the same file) → `application/ports/` → `service/use_cases/` → `yams-api` (`requests/`, `schema/`, `YamsAppApi` method, `spec.rs` route if HTTP) → `yams-sqlite/repos/` → migration in `migrations/` (if schema change) → use-case case in `yams-core/tests/cases/` → API e2e in `yams-api/tests/e2e/` when the public surface changed → `mise run sync:openapi` (if API surface changed).
 2. **Domain changes stay in core.** API DTOs are a separate translation layer; never leak serde/openapi concerns into core.
 3. **All mutations through `App::execute`.** No direct repo calls from adapters.
 4. **Prefer types over runtime checks.** If a value can be invalid, make it impossible to construct without validation.

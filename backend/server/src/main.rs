@@ -12,7 +12,7 @@ use tracing_setup::init_tracing;
 use yams_api::{errors::InternalServerError, openapi_service};
 use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_persistence::SQLiteInstance;
+use yams_sqlite::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
 
 #[derive(Debug, Error)]

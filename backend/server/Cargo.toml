@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dependencies]
 yams-core = { path = "../../crates/yams-core" }
-yams-persistence = { path = "../../crates/yams-persistence" }
+yams-sqlite = { path = "../../crates/yams-sqlite" }
 yams-api = { path = "../../crates/yams-api" }
 yams-filesystemstore = { path = "../../crates/yams-filesystemstore" }
 yams-typstreports = { path = "../../crates/yams-typstreports" }

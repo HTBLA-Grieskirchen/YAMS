@@ -18,7 +18,7 @@
 - **Naming**: Deutsche Feldnamen, JSON `camelCase` (z. B. `vorName`, `ländercode`).
 - **Spec Export**: Binary `export_spec` druckt OpenAPI nach stdout.
 
-## Persistence (`yams-persistence`)
+## Persistence (`yams-sqlite`)
 
 - **Driver**: `libsql` (SQLite).
 - **Schema**: SQL-Migrationen via `molting` in `migrations/`.

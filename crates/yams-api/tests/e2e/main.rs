@@ -15,7 +15,7 @@ use serde_json::Value;
 use yams_api::openapi_service;
 use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_persistence::SQLiteInstance;
+use yams_sqlite::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
 
 fn e2e_pdf_renderer() -> Arc<TypstPdfRenderer> {

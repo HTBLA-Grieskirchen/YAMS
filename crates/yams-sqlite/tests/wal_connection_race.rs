@@ -7,7 +7,7 @@ use chrono::Utc;
 use yams_core::App;
 use yams_core::domain::{Adresse, Ländercode, klient::NeuerKlient};
 use yams_core::ports::RepositoryError;
-use yams_persistence::SQLiteInstance;
+use yams_sqlite::SQLiteInstance;
 
 async fn app() -> Arc<App> {
     let mut sqlite = SQLiteInstance::in_temp_dir().await.unwrap();

@@ -1,5 +1,5 @@
 [package]
-name = "yams-persistence"
+name = "yams-sqlite"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

@@ -37,6 +37,12 @@ jobs:
           cache: true
           cache_key: mise-v1-{{platform}}-{{file_hash}}
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev gdk-pixbuf2.0-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev pkg-config libsoup-3.0-dev libjavascriptcoregtk-4.1-dev libwebkit2gtk-4.1-dev
+     
       - name: Check formatting and linting
         run: mise run check
 
@@ -74,7 +80,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libgtk-3-dev gdk-pixbuf2.0-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev pkg-config libsoup-3.0-dev libjavascriptcoregtk-4.1-dev libwebkit2gtk-4.1-dev
 
       - name: Smoke build
         run: mise run build

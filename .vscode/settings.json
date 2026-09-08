@@ -6,5 +6,8 @@
   "rust-analyzer.cargo.features": [
     //"openapi",
     //"serde"
-  ]
+  ],
+  "search.exclude": {
+    "**/graphify-out": true
+  }
 }

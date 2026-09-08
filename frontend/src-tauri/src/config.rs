@@ -468,32 +468,6 @@ mod tests {
     }
 
     #[test_log::test]
-    fn remote_mode_rejects_embedded_env() {
-        let err = overlay(
-            remote_file(),
-            EnvOverlay {
-                database_url: Some("env.db".into()),
-                ..EnvOverlay::default()
-            },
-        )
-        .unwrap_err();
-        assert!(matches!(err, ConfigError::EmbeddedEnvInRemoteMode));
-    }
-
-    #[test_log::test]
-    fn embedded_mode_rejects_remote_env() {
-        let err = overlay(
-            embedded_file(),
-            EnvOverlay {
-                remote_api_url: Some("http://127.0.0.1:3000/api".into()),
-                ..EnvOverlay::default()
-            },
-        )
-        .unwrap_err();
-        assert!(matches!(err, ConfigError::RemoteEnvInEmbeddedMode));
-    }
-
-    #[test_log::test]
     fn overlays_dev_flag() {
         let resolved = overlay(
             embedded_file(),

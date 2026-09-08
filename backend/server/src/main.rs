@@ -65,9 +65,13 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     let scheduler_handle = if config.scheduler.enabled {
         let store = SQLiteStateStore::new(sqlite.clone());
         Some(
-            start(Arc::new(build_app(sqlite.clone())), store, &config.scheduler)
-                .await
-                .change_context(BackendServerError)?,
+            start(
+                Arc::new(build_app(sqlite.clone())),
+                store,
+                &config.scheduler,
+            )
+            .await
+            .change_context(BackendServerError)?,
         )
     } else {
         None

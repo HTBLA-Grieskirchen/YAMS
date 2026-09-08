@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use chrono_tz::Tz;
-use scheduler::{Scheduler, SchedulerConfig, SchedulerError, SchedulerReport};
 use error_stack::{Report, ResultExt};
+use scheduler::{Scheduler, SchedulerConfig, SchedulerError, SchedulerReport};
 use tracing::info;
 use yams_core::App;
 
 use crate::errors::YamsSchedulerStartError;
-use crate::jobs::{build_tagesabschluss_job, TAGESABSCHLUSS_CRON};
+use crate::jobs::{TAGESABSCHLUSS_CRON, build_tagesabschluss_job};
 use crate::sqlite_state_store::SQLiteStateStore;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

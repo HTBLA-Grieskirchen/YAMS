@@ -10,7 +10,7 @@ use scheduler::{JobState, StateStore};
 use yams_sqlite::SQLiteInstance;
 
 use crate::errors::{
-    libsql_error_to_store_error, migration_error_to_store_error, SQLiteStateStoreError,
+    SQLiteStateStoreError, libsql_error_to_store_error, migration_error_to_store_error,
 };
 use crate::migrations::{MIGRATION_HISTORY_TABLE, SCHEDULER_MIGRATIONS};
 
@@ -37,11 +37,9 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteStateStore {
         &self,
     ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, libsql::Error>> + '_>> {
         Box::pin(async move {
-            let connection = self
-                .instance
-                .connect()
-                .await
-                .map_err(|_| libsql::Error::Misuse("scheduler migration connection failed".into()))?;
+            let connection = self.instance.connect().await.map_err(|_| {
+                libsql::Error::Misuse("scheduler migration connection failed".into())
+            })?;
             let tx = connection
                 .transaction_with_behavior(libsql::TransactionBehavior::Exclusive)
                 .await?;
@@ -82,11 +80,10 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteStateStore {
         new_version: Option<usize>,
         implementation: impl AppliableMigration<libsql::Transaction, libsql::Error> + Send,
     ) -> Result<(), libsql::Error> {
-        let connection = self
-            .instance
-            .connect()
-            .await
-            .map_err(|_| libsql::Error::Misuse("scheduler migration connection failed".into()))?;
+        let connection =
+            self.instance.connect().await.map_err(|_| {
+                libsql::Error::Misuse("scheduler migration connection failed".into())
+            })?;
         let mut tx = connection
             .transaction_with_behavior(libsql::TransactionBehavior::Exclusive)
             .await?;
@@ -132,18 +129,12 @@ impl StateStore for SQLiteStateStore {
 
         Ok(Some(JobState {
             job_id: job_id.to_string(),
-            trigger_count: row
-                .get::<u64>(0)
-                .map_err(libsql_error_to_store_error)? as u32,
-            last_run_at: parse_optional_timestamp(
-                row.get(1).map_err(libsql_error_to_store_error)?,
-            ),
+            trigger_count: row.get::<u64>(0).map_err(libsql_error_to_store_error)? as u32,
+            last_run_at: parse_optional_timestamp(row.get(1).map_err(libsql_error_to_store_error)?),
             last_success_at: parse_optional_timestamp(
                 row.get(2).map_err(libsql_error_to_store_error)?,
             ),
-            next_run_at: parse_optional_timestamp(
-                row.get(3).map_err(libsql_error_to_store_error)?,
-            ),
+            next_run_at: parse_optional_timestamp(row.get(3).map_err(libsql_error_to_store_error)?),
             last_error: row.get(4).map_err(libsql_error_to_store_error)?,
         }))
     }
@@ -182,7 +173,11 @@ impl StateStore for SQLiteStateStore {
 }
 
 fn parse_optional_timestamp(value: Option<String>) -> Option<DateTime<Utc>> {
-    value.and_then(|raw| DateTime::parse_from_rfc3339(&raw).ok().map(|dt| dt.with_timezone(&Utc)))
+    value.and_then(|raw| {
+        DateTime::parse_from_rfc3339(&raw)
+            .ok()
+            .map(|dt| dt.with_timezone(&Utc))
+    })
 }
 
 fn format_optional_timestamp(value: Option<DateTime<Utc>>) -> Option<String> {

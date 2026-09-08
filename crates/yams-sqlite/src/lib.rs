@@ -86,8 +86,7 @@ impl SQLiteInstance {
     }
 
     pub async fn in_temp_dir() -> ResultReport<Self, RepositoryError> {
-        let temp_dir =
-            TempDir::new("yams-sqlite").contextualize(RepositoryError::Connection)?;
+        let temp_dir = TempDir::new("yams-sqlite").contextualize(RepositoryError::Connection)?;
         let path = temp_dir.path().join("yams.db");
         Ok(Self {
             variant: InstanceType::TempDir {

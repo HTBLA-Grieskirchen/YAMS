@@ -7945,6 +7945,7 @@ dependencies = [
  "tokio",
  "toml 1.1.5+spec-1.1.0",
  "tracing",
+ "tracing-appender",
  "tracing-subscriber",
  "yams-core",
  "yams-filesystemstore",
@@ -7957,6 +7958,7 @@ name = "yams-server"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "chrono-tz",
  "clap",
  "error-stack",
  "poem",
@@ -8008,8 +8010,10 @@ name = "yams-tauri"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "chrono-tz",
  "directories",
  "error-stack",
+ "iana-time-zone",
  "serde",
  "serde_json",
  "tauri",

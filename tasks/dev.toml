@@ -11,6 +11,7 @@ run = "cargo run -p yams-server --"
 
 ["dev:scheduler"]
 description = "Start standalone scheduler daemon"
+env.YAMS_LOG_DIR = "{{ vars.REPO_ROOT }}/data.local/logs/"
 env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/data.local/yams.db"
 env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/data.local/storage/"
 run = "cargo run -p yams-scheduler --"

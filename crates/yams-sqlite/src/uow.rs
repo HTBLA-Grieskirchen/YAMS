@@ -63,28 +63,6 @@ impl UnitOfWorkProvider for SQLiteInstance {
     }
 }
 
-#[derive(Clone)]
-pub struct SharedSQLiteInstance {
-    inner: Arc<SQLiteInstance>,
-}
-
-impl SharedSQLiteInstance {
-    pub fn new(instance: Arc<SQLiteInstance>) -> Self {
-        Self { inner: instance }
-    }
-
-    pub fn as_arc(&self) -> Arc<SQLiteInstance> {
-        Arc::clone(&self.inner)
-    }
-}
-
-#[async_trait]
-impl UnitOfWorkProvider for SharedSQLiteInstance {
-    async fn begin(&self) -> ResultReport<Box<dyn UnitOfWorkImpl>, RepositoryError> {
-        self.inner.begin().await
-    }
-}
-
 #[async_trait]
 impl UnitOfWorkImpl for SQLiteUnitOfWork {
     async fn commit(self: Box<Self>) -> RepositoryResult<()> {

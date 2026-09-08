@@ -121,10 +121,6 @@ impl SQLiteInstance {
         })
     }
 
-    pub async fn connect(&self) -> ResultReport<SQLiteConnection, RepositoryError> {
-        self.create_connection().await
-    }
-
     pub async fn migrate_repos_to_latest(&self) -> ResultReport<(), RepositoryError> {
         let mut connection = self.create_connection().await?;
         MIGRATIONS
@@ -133,9 +129,7 @@ impl SQLiteInstance {
             .contextualize_with(migration_error_to_persistence_error)
     }
 
-    pub(crate) async fn create_connection(
-        &self,
-    ) -> ResultReport<SQLiteConnection, RepositoryError> {
+    pub async fn create_connection(&self) -> ResultReport<SQLiteConnection, RepositoryError> {
         match &self.variant {
             InstanceType::Local(db) => {
                 let connection = db

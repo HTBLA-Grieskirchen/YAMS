@@ -21,7 +21,7 @@ yams-sqlite = { path = "../../crates/yams-sqlite" }
 yams-api = { path = "../../crates/yams-api", default-features = false, features = ["serde"] }
 yams-filesystemstore = { path = "../../crates/yams-filesystemstore" }
 yams-typstreports = { path = "../../crates/yams-typstreports" }
-yams-scheduler = { path = "../../backend/scheduler" }
+yams-scheduler = { path = "../../backend/scheduler", default-features = false }
 
 thiserror = { workspace = true}
 error-stack = { workspace = true }
@@ -31,6 +31,8 @@ serde_json = { workspace = true }
 toml = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+chrono-tz = { workspace = true }
+iana-time-zone = "0.1"
 
 tauri = { version = "2.11.0", features = [] }
 tauri-plugin-shell = "2.3.5"
@@ -44,4 +46,3 @@ tracing-appender = { workspace = true }
 
 [dev-dependencies]
 test-log = { workspace = true }
-tracing-subscriber = { workspace = true }

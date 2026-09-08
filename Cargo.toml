@@ -29,6 +29,7 @@ toml = "1.1.5"
 uuid = { version = "1.21.0", features = ["v4", "serde"] }
 clap = { version = "4.5.59", features = ["derive", "env"] }
 chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10.4"
 rust_decimal = { version = "1.0", features = ["serde"] }
 rustc-hash = "2.1.0"
 futures = "0.3"
@@ -40,8 +41,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
 test-log = { version = "0.2", default-features = false, features = ["trace"] }
-cloudiful-scheduler = "0.4.12"
-chrono-tz = "0.10.4"
+cloudiful-scheduler = { version = "0.4.12", default-features = false }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 [profile.release]
 codegen-units = 1 # Allows LLVM to perform better optimization.

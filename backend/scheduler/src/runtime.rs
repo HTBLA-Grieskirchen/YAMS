@@ -1,76 +1,67 @@
-use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
 
 use chrono_tz::Tz;
-use error_stack::{Report, ResultExt};
-use scheduler::{Scheduler, SchedulerConfig, SchedulerError, SchedulerReport};
+use scheduler::{
+    InMemoryStateStore, Scheduler, SchedulerConfig, SchedulerError, SchedulerReport, StateStore,
+};
 use tracing::info;
 use yams_core::App;
 
-use crate::errors::YamsSchedulerStartError;
-use crate::jobs::{TAGESABSCHLUSS_CRON, build_tagesabschluss_job};
-use crate::sqlite_state_store::SQLiteStateStore;
+use crate::jobs::{TAGESABSCHLUSS_CRON, run};
+use crate::observer::TracingObserver;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase", default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct YamsSchedulerConfig {
-    pub enabled: bool,
-    pub timezone: String,
+    pub timezone: Tz,
 }
 
 impl Default for YamsSchedulerConfig {
     fn default() -> Self {
         Self {
-            enabled: false,
-            timezone: "Europe/Vienna".into(),
+            timezone: chrono_tz::Europe::Vienna,
         }
     }
 }
 
-pub struct YamsSchedulerHandle {
-    join: tokio::task::JoinHandle<Result<SchedulerReport, SchedulerError>>,
+pub struct YamsScheduler<S: StateStore = InMemoryStateStore> {
+    app: App,
+    store: S,
 }
 
-impl YamsSchedulerHandle {
-    pub async fn shutdown(self) {
-        self.join.abort();
-        let _ = self.join.await;
+impl YamsScheduler {
+    pub fn new(app: App) -> Self {
+        Self {
+            app,
+            store: InMemoryStateStore::new(),
+        }
     }
 }
 
-pub async fn start(
-    app: Arc<App>,
-    mut store: SQLiteStateStore,
-    config: &YamsSchedulerConfig,
-) -> Result<YamsSchedulerHandle, Report<YamsSchedulerStartError>> {
-    if !config.enabled {
-        return Err(Report::new(YamsSchedulerStartError::Start));
+impl<S: StateStore + Send + Sync + 'static> YamsScheduler<S> {
+    pub fn state_store<SS: StateStore>(self, store: SS) -> YamsScheduler<SS> {
+        YamsScheduler {
+            app: self.app,
+            store,
+        }
     }
 
-    store
-        .migrate_to_latest()
-        .await
-        .change_context(YamsSchedulerStartError::Migration)?;
+    pub fn start(
+        self,
+        config: YamsSchedulerConfig,
+    ) -> Pin<Box<dyn Future<Output = Result<SchedulerReport, SchedulerError>> + Send>> {
+        let scheduler_config = SchedulerConfig {
+            timezone: config.timezone,
+            ..SchedulerConfig::default()
+        };
 
-    let timezone = config
-        .timezone
-        .parse::<Tz>()
-        .change_context(YamsSchedulerStartError::Timezone)?;
+        let scheduler = Scheduler::with_observer(scheduler_config, self.store, TracingObserver);
+        info!(
+            timezone = %config.timezone,
+            cron = TAGESABSCHLUSS_CRON,
+            "starting yams scheduler"
+        );
 
-    let scheduler_config = SchedulerConfig {
-        timezone,
-        ..SchedulerConfig::default()
-    };
-
-    let job = build_tagesabschluss_job(app);
-
-    let scheduler = Scheduler::with_log_observer(scheduler_config, store);
-    info!(
-        timezone = %config.timezone,
-        cron = TAGESABSCHLUSS_CRON,
-        "starting yams scheduler"
-    );
-
-    let join = tokio::spawn(async move { scheduler.run(job).await });
-
-    Ok(YamsSchedulerHandle { join })
+        run(scheduler, self.app)
+    }
 }

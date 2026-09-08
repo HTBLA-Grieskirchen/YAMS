@@ -5,18 +5,22 @@ use tauri::Manager;
 use yams_api::YamsAppApi;
 use yams_core::{App, ports::RepositoryError};
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_scheduler::{SQLiteStateStore, YamsSchedulerHandle, start};
-use yams_sqlite::{SQLiteInstance, SharedSQLiteInstance};
+use yams_scheduler::{
+    SQLiteStateStore, SchedulerError, SchedulerReport, YamsScheduler, YamsSchedulerConfig,
+};
+use yams_sqlite::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
 
 mod commands;
 mod config;
 mod tracing_setup;
 
-use crate::config::{DeploymentMode, FrontendConfigDto};
+use crate::config::{DeploymentMode, EmbeddedScheduler, FrontendConfigDto};
+
+struct SchedulerTask(tauri::async_runtime::JoinHandle<Result<SchedulerReport, SchedulerError>>);
 
 #[allow(dead_code)]
-struct SchedulerState(YamsSchedulerHandle);
+struct SchedulerState(SchedulerTask);
 
 #[tauri::command]
 fn frontend_config(config: tauri::State<'_, FrontendConfigDto>) -> FrontendConfigDto {
@@ -34,8 +38,8 @@ fn main() {
                 DeploymentMode::Embedded {
                     database_url,
                     object_store_dir,
+                    scheduler,
                 } => {
-                    let scheduler_config = config.scheduler.clone();
                     let (api, scheduler_handle) = tauri::async_runtime::block_on(async {
                         let sqlite = Arc::new(SQLiteInstance::local(database_url).await?);
                         sqlite.migrate_repos_to_latest().await?;
@@ -47,26 +51,29 @@ fn main() {
 
                         let build_app = |sqlite: Arc<SQLiteInstance>| {
                             App::builder()
-                                .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite)))
+                                .uow_provider(Box::new(sqlite.clone()))
                                 .object_store(object_store.clone())
                                 .pdf_renderer(pdf_renderer.clone())
                                 .build()
                         };
 
                         let app = build_app(sqlite.clone());
-                        let scheduler_handle = if scheduler_config.enabled {
-                            let store = SQLiteStateStore::new(sqlite.clone());
-                            Some(
-                                start(
-                                    Arc::new(build_app(sqlite.clone())),
-                                    store,
-                                    &scheduler_config,
-                                )
-                                .await
-                                .expect("failed to start scheduler"),
-                            )
-                        } else {
-                            None
+                        let scheduler_handle = match scheduler {
+                            EmbeddedScheduler::Enabled { timezone } => {
+                                let mut store = SQLiteStateStore::new(sqlite.clone());
+                                store
+                                    .migrate_to_latest()
+                                    .await
+                                    .expect("failed to migrate scheduler store");
+                                Some(SchedulerTask(tauri::async_runtime::spawn(
+                                    YamsScheduler::new(build_app(sqlite.clone()))
+                                        .state_store(store)
+                                        .start(YamsSchedulerConfig {
+                                            timezone: *timezone,
+                                        }),
+                                )))
+                            }
+                            EmbeddedScheduler::Disabled => None,
                         };
 
                         Ok::<_, Report<RepositoryError>>((

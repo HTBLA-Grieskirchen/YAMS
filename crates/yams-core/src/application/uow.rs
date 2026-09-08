@@ -1,4 +1,5 @@
 use std::ops::{ControlFlow, Deref, DerefMut};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use error_stack::{FrameKind, Report, ResultExt};
@@ -211,6 +212,13 @@ pub trait UnitOfWorkImpl: Send + Sync {
 #[async_trait]
 pub trait UnitOfWorkProvider: Send + Sync {
     async fn begin(&self) -> RepositoryResult<Box<dyn UnitOfWorkImpl>>;
+}
+
+#[async_trait]
+impl<T: UnitOfWorkProvider + ?Sized> UnitOfWorkProvider for Arc<T> {
+    async fn begin(&self) -> RepositoryResult<Box<dyn UnitOfWorkImpl>> {
+        (**self).begin().await
+    }
 }
 
 pub struct Versioned<T> {

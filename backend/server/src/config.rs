@@ -3,7 +3,22 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use yams_scheduler::YamsSchedulerConfig;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ServerSchedulerConfig {
+    pub enabled: bool,
+    pub timezone: String,
+}
+
+impl Default for ServerSchedulerConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            timezone: "Europe/Vienna".into(),
+        }
+    }
+}
 
 const DEFAULT_CONFIG_FILE: &str = "yams-server.json";
 
@@ -29,7 +44,7 @@ pub struct ServerConfig {
     pub database_url: String,
     pub object_store_dir: PathBuf,
     pub log_dir: Option<PathBuf>,
-    pub scheduler: YamsSchedulerConfig,
+    pub scheduler: ServerSchedulerConfig,
 }
 
 impl Default for ServerConfig {
@@ -41,7 +56,7 @@ impl Default for ServerConfig {
             database_url: "yams.db".into(),
             object_store_dir: PathBuf::from("storage/"),
             log_dir: None,
-            scheduler: YamsSchedulerConfig::default(),
+            scheduler: ServerSchedulerConfig::default(),
         }
     }
 }

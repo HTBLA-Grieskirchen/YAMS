@@ -3,6 +3,7 @@ mod tracing_setup;
 
 use std::sync::Arc;
 
+use chrono_tz::Tz;
 use error_stack::{Report, ResultExt};
 use poem::http::StatusCode;
 use poem::middleware::{CatchPanic, Compression, Cors, Middleware, RequestId, ReuseId, Tracing};
@@ -13,13 +14,24 @@ use tracing_setup::init_tracing;
 use yams_api::{errors::InternalServerError, openapi_service};
 use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_scheduler::{SQLiteStateStore, start};
-use yams_sqlite::{SQLiteInstance, SharedSQLiteInstance};
+use yams_scheduler::{
+    SQLiteStateStore, SchedulerError, SchedulerReport, YamsScheduler, YamsSchedulerConfig,
+};
+use yams_sqlite::SQLiteInstance;
 use yams_typstreports::TypstPdfRenderer;
 
 #[derive(Debug, Error)]
 #[error("Backend server fatal error")]
 pub struct BackendServerError;
+
+struct SchedulerTask(tokio::task::JoinHandle<Result<SchedulerReport, SchedulerError>>);
+
+impl SchedulerTask {
+    async fn shutdown(self) {
+        self.0.abort();
+        let _ = self.0.await;
+    }
+}
 
 fn catch_panic() -> CatchPanic<impl poem::middleware::PanicHandler> {
     CatchPanic::new().with_handler(|err| {
@@ -54,7 +66,7 @@ async fn main() -> Result<(), Report<BackendServerError>> {
 
     let build_app = |sqlite: Arc<SQLiteInstance>| {
         App::builder()
-            .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite.clone())))
+            .uow_provider(Box::new(sqlite.clone()))
             .object_store(object_store.clone())
             .pdf_renderer(pdf_renderer.clone())
             .build()
@@ -63,16 +75,21 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     let app = build_app(sqlite.clone());
 
     let scheduler_handle = if config.scheduler.enabled {
-        let store = SQLiteStateStore::new(sqlite.clone());
-        Some(
-            start(
-                Arc::new(build_app(sqlite.clone())),
-                store,
-                &config.scheduler,
-            )
+        let timezone = config
+            .scheduler
+            .timezone
+            .parse::<Tz>()
+            .change_context(BackendServerError)?;
+        let mut store = SQLiteStateStore::new(sqlite.clone());
+        store
+            .migrate_to_latest()
             .await
-            .change_context(BackendServerError)?,
-        )
+            .change_context(BackendServerError)?;
+        Some(SchedulerTask(tokio::spawn(
+            YamsScheduler::new(build_app(sqlite.clone()))
+                .state_store(store)
+                .start(YamsSchedulerConfig { timezone }),
+        )))
     } else {
         None
     };

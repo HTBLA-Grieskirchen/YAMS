@@ -4,15 +4,24 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use error_stack::Report;
-use molting::{AppliableMigration, MigrationTarget};
+use molting::{AppliableMigration, MigrationError, MigrationTarget};
 use scheduler::{JobState, StateStore};
+use thiserror::Error;
 use yams_sqlite::SQLiteInstance;
 
-use crate::errors::{
-    SQLiteStateStoreError, libsql_error_to_store_error, migration_error_to_store_error,
-};
-use crate::migrations::{MIGRATION_HISTORY_TABLE, SCHEDULER_MIGRATIONS};
+use crate::migrations::MIGRATIONS;
+
+#[derive(Debug, Error)]
+pub enum SQLiteStateStoreError {
+    #[error("sqlite persistence error")]
+    Persistence,
+    #[error("scheduler store error")]
+    Store,
+}
+
+fn libsql_error_to_store_error(_: libsql::Error) -> SQLiteStateStoreError {
+    SQLiteStateStoreError::Store
+}
 
 pub struct SQLiteStateStore {
     instance: Arc<SQLiteInstance>,
@@ -23,11 +32,8 @@ impl SQLiteStateStore {
         Self { instance }
     }
 
-    pub async fn migrate_to_latest(&mut self) -> Result<(), Report<SQLiteStateStoreError>> {
-        SCHEDULER_MIGRATIONS
-            .apply(self, None)
-            .await
-            .map_err(migration_error_to_store_error)
+    pub async fn migrate_to_latest(&mut self) -> Result<(), MigrationError<libsql::Error>> {
+        MIGRATIONS.apply(self, None).await
     }
 }
 
@@ -37,31 +43,25 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteStateStore {
         &self,
     ) -> Pin<Box<dyn Future<Output = Result<Option<usize>, libsql::Error>> + '_>> {
         Box::pin(async move {
-            let connection = self.instance.connect().await.map_err(|_| {
+            let connection = self.instance.create_connection().await.map_err(|_| {
                 libsql::Error::Misuse("scheduler migration connection failed".into())
             })?;
             let tx = connection
                 .transaction_with_behavior(libsql::TransactionBehavior::Exclusive)
                 .await?;
             tx.execute(
-                &format!(
-                    "CREATE TABLE IF NOT EXISTS {table} (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        version INTEGER,
-                        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )",
-                    table = MIGRATION_HISTORY_TABLE
-                ),
+                "CREATE TABLE IF NOT EXISTS _scheduler_migration_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    version INTEGER,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )",
                 (),
             )
             .await?;
 
             let mut rows = tx
                 .query(
-                    &format!(
-                        "SELECT version FROM {table} ORDER BY applied_at DESC, version DESC LIMIT 1",
-                        table = MIGRATION_HISTORY_TABLE
-                    ),
+                    "SELECT version FROM _scheduler_migration_history ORDER BY applied_at DESC, version DESC LIMIT 1",
                     (),
                 )
                 .await?;
@@ -81,7 +81,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteStateStore {
         implementation: impl AppliableMigration<libsql::Transaction, libsql::Error> + Send,
     ) -> Result<(), libsql::Error> {
         let connection =
-            self.instance.connect().await.map_err(|_| {
+            self.instance.create_connection().await.map_err(|_| {
                 libsql::Error::Misuse("scheduler migration connection failed".into())
             })?;
         let mut tx = connection
@@ -91,10 +91,7 @@ impl MigrationTarget<libsql::Transaction, libsql::Error> for SQLiteStateStore {
         implementation.run(&mut tx).await?;
 
         tx.execute(
-            &format!(
-                "INSERT INTO {table} (version) VALUES (?1)",
-                table = MIGRATION_HISTORY_TABLE
-            ),
+            "INSERT INTO _scheduler_migration_history (version) VALUES (?1)",
             [new_version.map(|v| v as i64)],
         )
         .await?;
@@ -110,7 +107,7 @@ impl StateStore for SQLiteStateStore {
     async fn load(&self, job_id: &str) -> Result<Option<JobState>, Self::Error> {
         let connection = self
             .instance
-            .connect()
+            .create_connection()
             .await
             .map_err(|_| SQLiteStateStoreError::Persistence)?;
 
@@ -142,7 +139,7 @@ impl StateStore for SQLiteStateStore {
     async fn save(&self, state: &JobState) -> Result<(), Self::Error> {
         let connection = self
             .instance
-            .connect()
+            .create_connection()
             .await
             .map_err(|_| SQLiteStateStoreError::Persistence)?;
 

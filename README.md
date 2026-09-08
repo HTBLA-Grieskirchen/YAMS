@@ -21,13 +21,15 @@ The latest versions can be seen and downloaded on the
 
 ## Usage
 
-Once installed, the local app can be configured using a `yamsconfig.json` file which is searched for in the
+Once installed, the local app can be configured using a `yams.toml` file which is searched for in the
 system's default config path.
 
 ## Technologies
 
 We decided to use the following technologies:
 
+- **Development**
+  - Environment: [mise-en-place](https://github.com/jdx/mise)
 - **Backend**
   - Language: Rust
   - Database: [libsql](https://libsql.org) (SQLite)
@@ -39,3 +41,7 @@ We decided to use the following technologies:
   - Design: [TailwindCSS](https://tailwindcss.com/), [HeroUI](https://heroui.com/)
 - **Desktop App**
   - Framework: [Tauri](https://tauri.app)
+
+### Contributing
+
+mise handles almost everything for you. Just make sure to define `env = ["dev"]` in your local-only `.miserc.toml` file to get the full development environment.

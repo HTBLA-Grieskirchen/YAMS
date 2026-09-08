@@ -25,7 +25,7 @@ Resolution order: **config path → file → env → CLI**.
 
 Default file: `yams-server.json` in the current working directory. Override with `YAMS_CONFIG_PATH` or `--config-path`. Missing default file falls back to built-in defaults. An explicit path that is missing or malformed is an error.
 
-Dev file used by mise: [`backend/config.dev.json`](config.dev.json). Mise also sets absolute `YAMS_DATABASE_URL` and `YAMS_OBJECT_STORE_DIR` so the server is not cwd-dependent.
+mise sets environment variables for the server suitable for a dev environment automatically.
 
 | Source | Keys |
 |--------|------|

@@ -18,8 +18,8 @@ import {
   calendarMonthLabel,
   calendarWeekdayLabels,
   isoDateFromInstant,
-  toIsoDate,
   todayIsoDate,
+  toIsoDate,
 } from "@/lib/dates";
 
 export type TerminDaySummary = {
@@ -42,7 +42,9 @@ export function TerminCalendar({
   onPlanTermin,
 }: TerminCalendarProps) {
   const [visibleMonth, setVisibleMonth] = useState(() => {
-    const initial = selectedDate ? new Date(`${selectedDate}T12:00:00`) : new Date();
+    const initial = selectedDate
+      ? new Date(`${selectedDate}T12:00:00`)
+      : new Date();
     return new Date(initial.getFullYear(), initial.getMonth(), 1);
   });
 
@@ -94,10 +96,7 @@ export function TerminCalendar({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-zinc-200 text-center text-xs font-medium text-zinc-500 dark:bg-zinc-800">
           {weekdayLabels.map((label) => (
-            <div
-              key={label}
-              className="bg-white py-2 dark:bg-zinc-950"
-            >
+            <div key={label} className="bg-white py-2 dark:bg-zinc-950">
               {label}
             </div>
           ))}
@@ -109,8 +108,7 @@ export function TerminCalendar({
             const isSelected = selectedDate === isoDate;
             const isToday = isoDate === today;
             const hasVisible = (summary?.visible ?? 0) > 0;
-            const hasHiddenOnly =
-              (summary?.total ?? 0) > 0 && !hasVisible;
+            const hasHiddenOnly = (summary?.total ?? 0) > 0 && !hasVisible;
 
             return (
               <button
@@ -130,7 +128,9 @@ export function TerminCalendar({
                     "bg-emerald-50/40 dark:bg-emerald-950/15",
                   isSelected &&
                     "ring-2 ring-inset ring-emerald-600 dark:ring-emerald-500",
-                  isToday && !isSelected && "font-semibold text-emerald-700 dark:text-emerald-400",
+                  isToday &&
+                    !isSelected &&
+                    "font-semibold text-emerald-700 dark:text-emerald-400",
                 )}
               >
                 <time
@@ -138,7 +138,9 @@ export function TerminCalendar({
                   className={cn(
                     "flex size-7 items-center justify-center rounded-full text-sm",
                     isSelected && "bg-emerald-600 font-semibold text-white",
-                    isToday && !isSelected && "bg-emerald-100 dark:bg-emerald-950/50",
+                    isToday &&
+                      !isSelected &&
+                      "bg-emerald-100 dark:bg-emerald-950/50",
                   )}
                 >
                   {day.getDate()}

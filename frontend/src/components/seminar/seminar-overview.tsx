@@ -5,11 +5,11 @@ import { useMemo, useRef, useState } from "react";
 import { useAlleSeminareQuery, useAlleSeminarTermineQuery } from "@/api/hooks";
 import { SeminarTerminStatus } from "@/api/schema";
 import type { SeminarTermin } from "@/api/types";
-import { TerminDetailPanel } from "@/components/seminar/termin-detail-panel";
 import {
   buildTerminEventsByDay,
   TerminCalendar,
 } from "@/components/seminar/termin-calendar";
+import { TerminDetailPanel } from "@/components/seminar/termin-detail-panel";
 import { TerminPlanForm } from "@/components/seminar/termin-plan-form";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -32,9 +32,9 @@ export function SeminarOverview() {
   const [filter, setFilter] = useState("");
   const [category, setCategory] = useState<TerminFilter>("geplant");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(
-    null,
-  );
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
+    string | null
+  >(null);
   const [planPrefillDate, setPlanPrefillDate] = useState<string | null>(null);
   const planFormRef = useRef<HTMLDivElement>(null);
 

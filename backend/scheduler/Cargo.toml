@@ -1,0 +1,43 @@
+[package]
+name = "yams-scheduler"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+[lib]
+name = "yams_scheduler"
+
+[[bin]]
+name = "yams-scheduler"
+required-features = ["cli"]
+
+[features]
+cli = ["dep:clap", "dep:toml", "dep:serde_json", "dep:tracing-subscriber"]
+
+[dependencies]
+yams-core = { path = "../../crates/yams-core" }
+yams-sqlite = { path = "../../crates/yams-sqlite" }
+yams-filesystemstore = { path = "../../crates/yams-filesystemstore" }
+yams-typstreports = { path = "../../crates/yams-typstreports" }
+molting = { path = "../../crates/molting" }
+
+cloudiful-scheduler = { workspace = true }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+error-stack = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+libsql = { workspace = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }
+
+clap = { workspace = true, optional = true }
+toml = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
+
+[dev-dependencies]
+test-log = { workspace = true }

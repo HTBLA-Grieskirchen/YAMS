@@ -2,6 +2,7 @@
 members = [
     "crates/*",
     "backend/server",
+    "backend/scheduler",
     "frontend/src-tauri",
 ]
 resolver = "2"
@@ -37,6 +38,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
 test-log = { version = "0.2", default-features = false, features = ["trace"] }
+cloudiful-scheduler = "0.4.12"
+chrono-tz = "0.10.4"
 
 [profile.release]
 codegen-units = 1 # Allows LLVM to perform better optimization.
@@ -44,5 +47,3 @@ lto = true # Enables link-time-optimizations.
 opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
 panic = "abort" # Higher performance by disabling panic handlers.
 strip = true # Ensures debug symbols are removed.
-trim-paths = "all" # Removes potentially privileged information from your binaries.
-rustflags = ["-Cdebuginfo=0", "-Zthreads=2"] # Better compile performance.

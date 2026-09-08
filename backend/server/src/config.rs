@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use yams_scheduler::YamsSchedulerConfig;
 
 const DEFAULT_CONFIG_FILE: &str = "yams-server.json";
 
@@ -28,6 +29,7 @@ pub struct ServerConfig {
     pub database_url: String,
     pub object_store_dir: PathBuf,
     pub log_dir: Option<PathBuf>,
+    pub scheduler: YamsSchedulerConfig,
 }
 
 impl Default for ServerConfig {
@@ -39,6 +41,7 @@ impl Default for ServerConfig {
             database_url: "yams.db".into(),
             object_store_dir: PathBuf::from("storage/"),
             log_dir: None,
+            scheduler: YamsSchedulerConfig::default(),
         }
     }
 }
@@ -73,6 +76,10 @@ pub struct Cli {
     /// Directory for rotated JSON log files (omit to disable logging)
     #[arg(long, env = "YAMS_LOG_DIR")]
     pub log_dir: Option<PathBuf>,
+
+    /// Enable the background scheduler
+    #[arg(long, env = "YAMS_SCHEDULER_ENABLED")]
+    pub scheduler_enabled: Option<bool>,
 }
 
 pub fn load() -> Result<ServerConfig, ConfigError> {
@@ -147,6 +154,9 @@ fn overlay(mut config: ServerConfig, cli: &Cli) -> ServerConfig {
     }
     if let Some(log_dir) = &cli.log_dir {
         config.log_dir = Some(log_dir.clone());
+    }
+    if let Some(enabled) = cli.scheduler_enabled {
+        config.scheduler.enabled = enabled;
     }
     config
 }

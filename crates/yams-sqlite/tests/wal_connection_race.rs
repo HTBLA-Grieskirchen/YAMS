@@ -11,7 +11,7 @@ use yams_sqlite::SQLiteInstance;
 
 async fn app() -> Arc<App> {
     let mut sqlite = SQLiteInstance::in_temp_dir().await.unwrap();
-    sqlite.migrate_to_latest().await.unwrap();
+    sqlite.migrate_repos_to_latest().await.unwrap();
     Arc::new(App::builder().uow_provider(Box::new(sqlite)).build())
 }
 

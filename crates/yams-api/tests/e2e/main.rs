@@ -25,7 +25,7 @@ fn e2e_pdf_renderer() -> Arc<TypstPdfRenderer> {
 
 pub async fn base_app_builder() -> App {
     let mut sqlite = SQLiteInstance::in_temp_dir().await.unwrap();
-    sqlite.migrate_to_latest().await.unwrap();
+    sqlite.migrate_repos_to_latest().await.unwrap();
     App::builder()
         .uow_provider(Box::new(sqlite))
         .object_store(Arc::new(FileSystemObjectStore::in_temp_dir().unwrap()))

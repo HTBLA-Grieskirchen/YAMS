@@ -1,10 +1,12 @@
-use error_stack::Report;
 use std::sync::Arc;
+
+use error_stack::Report;
 use tauri::Manager;
 use yams_api::YamsAppApi;
 use yams_core::{App, ports::RepositoryError};
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_sqlite::SQLiteInstance;
+use yams_scheduler::{SQLiteStateStore, YamsSchedulerHandle, start};
+use yams_sqlite::{SQLiteInstance, SharedSQLiteInstance};
 use yams_typstreports::TypstPdfRenderer;
 
 mod commands;
@@ -12,6 +14,9 @@ mod config;
 mod tracing_setup;
 
 use crate::config::{DeploymentMode, FrontendConfigDto};
+
+#[allow(dead_code)]
+struct SchedulerState(YamsSchedulerHandle);
 
 #[tauri::command]
 fn frontend_config(config: tauri::State<'_, FrontendConfigDto>) -> FrontendConfigDto {
@@ -30,24 +35,52 @@ fn main() {
                     database_url,
                     object_store_dir,
                 } => {
-                    let db_instance = tauri::async_runtime::block_on(async {
-                        let mut sqlite = SQLiteInstance::local(database_url).await?;
-                        sqlite.migrate_to_latest().await?;
-                        Ok::<_, Report<RepositoryError>>(sqlite)
+                    let scheduler_config = config.scheduler.clone();
+                    let (api, scheduler_handle) = tauri::async_runtime::block_on(async {
+                        let sqlite = Arc::new(SQLiteInstance::local(database_url).await?);
+                        sqlite.migrate_repos_to_latest().await?;
+
+                        let object_store = FileSystemObjectStore::new(object_store_dir)
+                            .expect("failed to initialize object store");
+                        let object_store = Arc::new(object_store);
+                        let pdf_renderer = Arc::new(TypstPdfRenderer::new());
+
+                        let build_app = |sqlite: Arc<SQLiteInstance>| {
+                            App::builder()
+                                .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite)))
+                                .object_store(object_store.clone())
+                                .pdf_renderer(pdf_renderer.clone())
+                                .build()
+                        };
+
+                        let app = build_app(sqlite.clone());
+                        let scheduler_handle = if scheduler_config.enabled {
+                            let store = SQLiteStateStore::new(sqlite.clone());
+                            Some(
+                                start(
+                                    Arc::new(build_app(sqlite.clone())),
+                                    store,
+                                    &scheduler_config,
+                                )
+                                .await
+                                .expect("failed to start scheduler"),
+                            )
+                        } else {
+                            None
+                        };
+
+                        Ok::<_, Report<RepositoryError>>((
+                            YamsAppApi::new(app),
+                            scheduler_handle,
+                        ))
                     })
                     .expect("failed to initialize LibSQL adapter");
 
-                    let object_store = FileSystemObjectStore::new(object_store_dir)
-                        .expect("failed to initialize object store");
-                    let app = App::builder()
-                        .uow_provider(Box::new(db_instance))
-                        .object_store(Arc::new(object_store))
-                        .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
-                        .build();
-                    let api = YamsAppApi::new(app);
-
                     tauri_app.manage(api.inner_app());
                     tauri_app.manage(api);
+                    if let Some(handle) = scheduler_handle {
+                        tauri_app.manage(SchedulerState(handle));
+                    }
                 }
                 DeploymentMode::Remote { remote_api_url } => {
                     tracing::info!(%remote_api_url, "Tauri running in remote mode; skipping embedded backend");

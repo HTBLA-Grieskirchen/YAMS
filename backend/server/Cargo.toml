@@ -12,6 +12,7 @@ yams-sqlite = { path = "../../crates/yams-sqlite" }
 yams-api = { path = "../../crates/yams-api" }
 yams-filesystemstore = { path = "../../crates/yams-filesystemstore" }
 yams-typstreports = { path = "../../crates/yams-typstreports" }
+yams-scheduler = { path = "../scheduler" }
 
 thiserror = { workspace = true }
 error-stack = { workspace = true }

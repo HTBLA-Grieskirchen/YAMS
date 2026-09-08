@@ -4,6 +4,7 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use url::Url;
+use yams_scheduler::YamsSchedulerConfig;
 
 const DEFAULT_CONFIG_FILE_NAME: &str = "yams.json";
 
@@ -95,6 +96,7 @@ pub struct TauriConfig {
     pub deployment: DeploymentMode,
     pub dev: bool,
     pub log_dir: PathBuf,
+    pub scheduler: YamsSchedulerConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -108,6 +110,8 @@ enum TauriFileConfig {
         dev: bool,
         #[serde(default)]
         log_dir: Option<PathBuf>,
+        #[serde(default)]
+        scheduler: YamsSchedulerConfig,
     },
     #[serde(rename_all = "camelCase")]
     Remote {
@@ -116,6 +120,8 @@ enum TauriFileConfig {
         dev: bool,
         #[serde(default)]
         log_dir: Option<PathBuf>,
+        #[serde(default)]
+        scheduler: YamsSchedulerConfig,
     },
 }
 
@@ -127,6 +133,7 @@ impl From<TauriFileConfig> for TauriConfig {
                 object_store_dir,
                 dev,
                 log_dir,
+                scheduler,
             } => Self {
                 deployment: DeploymentMode::Embedded {
                     database_url,
@@ -134,15 +141,18 @@ impl From<TauriFileConfig> for TauriConfig {
                 },
                 dev,
                 log_dir: log_dir.unwrap_or_else(default_log_dir),
+                scheduler,
             },
             TauriFileConfig::Remote {
                 remote_api_url,
                 dev,
                 log_dir,
+                scheduler: _,
             } => Self {
                 deployment: DeploymentMode::Remote { remote_api_url },
                 dev,
                 log_dir: log_dir.unwrap_or_else(default_log_dir),
+                scheduler: YamsSchedulerConfig::default(),
             },
         }
     }
@@ -158,6 +168,7 @@ impl TauriConfig {
             },
             dev: false,
             log_dir: default_log_dir(),
+            scheduler: YamsSchedulerConfig::default(),
         }
     }
 
@@ -193,6 +204,7 @@ struct EnvOverlay {
     remote_api_url: Option<String>,
     dev: Option<bool>,
     log_dir: Option<PathBuf>,
+    scheduler_enabled: Option<bool>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -223,6 +235,9 @@ fn env_overlay() -> Result<EnvOverlay, ConfigError> {
             .ok()
             .map(|value| parse_bool(&value)),
         log_dir: std::env::var_os("YAMS_LOG_DIR").map(PathBuf::from),
+        scheduler_enabled: std::env::var("YAMS_SCHEDULER_ENABLED")
+            .ok()
+            .map(|value| parse_bool(&value)),
     })
 }
 
@@ -311,6 +326,13 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
                 },
                 dev: env.dev.unwrap_or(config.dev),
                 log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
+                scheduler: {
+                    let mut scheduler = config.scheduler;
+                    if let Some(enabled) = env.scheduler_enabled {
+                        scheduler.enabled = enabled;
+                    }
+                    scheduler
+                },
             })
         }
         ModeKind::Remote => {
@@ -328,6 +350,7 @@ fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigEr
                 deployment: DeploymentMode::Remote { remote_api_url },
                 dev: env.dev.unwrap_or(config.dev),
                 log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
+                scheduler: YamsSchedulerConfig::default(),
             })
         }
     }
@@ -363,6 +386,7 @@ mod tests {
             },
             dev: false,
             log_dir: default_log_dir(),
+            scheduler: YamsSchedulerConfig::default(),
         }
     }
 
@@ -373,6 +397,7 @@ mod tests {
             },
             dev: true,
             log_dir: default_log_dir(),
+            scheduler: YamsSchedulerConfig::default(),
         }
     }
 
@@ -398,6 +423,7 @@ mod tests {
                 },
                 dev: true,
                 log_dir: default_log_dir(),
+                scheduler: YamsSchedulerConfig::default(),
             }
         );
     }

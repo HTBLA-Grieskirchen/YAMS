@@ -122,7 +122,11 @@ impl SQLiteInstance {
         })
     }
 
-    pub async fn migrate_to_latest(&mut self) -> ResultReport<(), RepositoryError> {
+    pub async fn connect(&self) -> ResultReport<SQLiteConnection, RepositoryError> {
+        self.create_connection().await
+    }
+
+    pub async fn migrate_repos_to_latest(&self) -> ResultReport<(), RepositoryError> {
         let mut connection = self.create_connection().await?;
         MIGRATIONS
             .apply(&mut connection, None)

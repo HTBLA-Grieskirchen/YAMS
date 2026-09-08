@@ -1,18 +1,20 @@
 mod config;
 mod tracing_setup;
 
+use std::sync::Arc;
+
 use error_stack::{Report, ResultExt};
 use poem::http::StatusCode;
 use poem::middleware::{CatchPanic, Compression, Cors, Middleware, RequestId, ReuseId, Tracing};
 use poem::{EndpointExt, IntoResponse, Route, Server, listener::TcpListener};
 use poem_openapi::payload::PlainText;
-use std::sync::Arc;
 use thiserror::Error;
 use tracing_setup::init_tracing;
 use yams_api::{errors::InternalServerError, openapi_service};
 use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_sqlite::SQLiteInstance;
+use yams_scheduler::{SQLiteStateStore, start};
+use yams_sqlite::{SQLiteInstance, SharedSQLiteInstance};
 use yams_typstreports::TypstPdfRenderer;
 
 #[derive(Debug, Error)]
@@ -35,21 +37,41 @@ async fn main() -> Result<(), Report<BackendServerError>> {
     let config = config::load().change_context(BackendServerError)?;
     init_tracing(config.log_dir.as_deref());
 
-    let mut adapter = SQLiteInstance::local(&config.database_url)
-        .await
-        .expect("Failed to initialize database");
-    adapter
-        .migrate_to_latest()
+    let sqlite = Arc::new(
+        SQLiteInstance::local(&config.database_url)
+            .await
+            .change_context(BackendServerError)?,
+    );
+    sqlite
+        .migrate_repos_to_latest()
         .await
         .change_context(BackendServerError)?;
 
     let object_store =
         FileSystemObjectStore::new(config.object_store_dir).change_context(BackendServerError)?;
-    let app = App::builder()
-        .uow_provider(Box::new(adapter))
-        .object_store(Arc::new(object_store))
-        .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
-        .build();
+    let object_store = Arc::new(object_store);
+    let pdf_renderer = Arc::new(TypstPdfRenderer::new());
+
+    let build_app = |sqlite: Arc<SQLiteInstance>| {
+        App::builder()
+            .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite.clone())))
+            .object_store(object_store.clone())
+            .pdf_renderer(pdf_renderer.clone())
+            .build()
+    };
+
+    let app = build_app(sqlite.clone());
+
+    let scheduler_handle = if config.scheduler.enabled {
+        let store = SQLiteStateStore::new(sqlite.clone());
+        Some(
+            start(Arc::new(build_app(sqlite.clone())), store, &config.scheduler)
+                .await
+                .change_context(BackendServerError)?,
+        )
+    } else {
+        None
+    };
 
     let base_path = config.subpath.trim_matches('/');
     let subpath = if base_path.is_empty() {
@@ -96,12 +118,18 @@ async fn main() -> Result<(), Report<BackendServerError>> {
         .with(cors);
 
     tracing::info!("Server started at {}", api_url);
-    Server::new(TcpListener::bind(format!(
+    let result = Server::new(TcpListener::bind(format!(
         "{}:{}",
         config.bind_address, config.bind_port
     )))
     .run(app)
     .await
-    .change_context(BackendServerError)?;
+    .change_context(BackendServerError);
+
+    if let Some(handle) = scheduler_handle {
+        handle.shutdown().await;
+    }
+
+    result?;
     Ok(())
 }

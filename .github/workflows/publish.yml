@@ -61,7 +61,10 @@ jobs:
           tauriScript: "mise run"
           iconPath: resources/logos/yams.png
 
-      - name: Upload server binary
+      - name: Build backend binaries
+        run: mise run build:server build:scheduler
+
+      - name: Upload backend binaries
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -69,9 +72,11 @@ jobs:
           if [ -f target/release/yams-server.exe ]; then
             gh release upload "${GITHUB_REF_NAME}" \
               "target/release/yams-server.exe#yams-server-windows-x64.exe" \
+              "target/release/yams-scheduler.exe#yams-scheduler-windows-x64.exe" \
               --clobber
           else
             gh release upload "${GITHUB_REF_NAME}" \
               "target/release/yams-server#yams-server-linux-x64" \
+              "target/release/yams-scheduler#yams-scheduler-linux-x64" \
               --clobber
           fi

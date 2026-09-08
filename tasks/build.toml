@@ -4,6 +4,10 @@
 description = "Build the standalone backend server binary"
 run = "cargo build -p yams-server --release"
 
+["build:scheduler"]
+description = "Build the standalone scheduler daemon binary"
+run = "cargo build -p yams-scheduler --release"
+
 ["build:frontend"]
 description = "Build the Next.js frontend"
 dir = "{{ vars.REPO_ROOT }}/frontend"
@@ -18,6 +22,6 @@ run = "npm run tauri build"
 
 [build]
 description = "Builds whole project"
-depends = ["build:{server,tauri}"]
+depends = ["build:{server,scheduler,tauri}"]
 
 

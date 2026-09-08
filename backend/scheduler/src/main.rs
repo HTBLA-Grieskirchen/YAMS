@@ -8,7 +8,7 @@ use error_stack::{Report, ResultExt};
 use tracing::info;
 use yams_core::App;
 use yams_filesystemstore::FileSystemObjectStore;
-use yams_scheduler::{SQLiteStateStore, YamsSchedulerConfig, start};
+use yams_scheduler::{SQLiteStateStore, start};
 use yams_sqlite::{SQLiteInstance, SharedSQLiteInstance};
 use yams_typstreports::TypstPdfRenderer;
 
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Report<SchedulerMainError>> {
         FileSystemObjectStore::new(&config.object_store_dir).change_context(SchedulerMainError)?;
     let app = Arc::new(
         App::builder()
-            .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite)))
+            .uow_provider(Box::new(SharedSQLiteInstance::new(sqlite.clone())))
             .object_store(Arc::new(object_store))
             .pdf_renderer(Arc::new(TypstPdfRenderer::new()))
             .build(),

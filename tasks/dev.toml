@@ -9,6 +9,12 @@ env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/data.local/yams.db"
 env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/data.local/storage/"
 run = "cargo run -p yams-server --"
 
+["dev:scheduler"]
+description = "Start standalone scheduler daemon"
+env.YAMS_DATABASE_URL = "{{ vars.REPO_ROOT }}/data.local/yams.db"
+env.YAMS_OBJECT_STORE_DIR = "{{ vars.REPO_ROOT }}/data.local/storage/"
+run = "cargo run -p yams-scheduler --"
+
 ["dev:frontend"]
 description = "Start Next.js dev server"
 dir = "{{ vars.REPO_ROOT }}/frontend"

@@ -7,7 +7,7 @@ use tracing::info;
 use yams_core::App;
 
 use crate::errors::YamsSchedulerStartError;
-use crate::jobs::build_tagesabschluss_job;
+use crate::jobs::{build_tagesabschluss_job, TAGESABSCHLUSS_CRON};
 use crate::sqlite_state_store::SQLiteStateStore;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -15,7 +15,6 @@ use crate::sqlite_state_store::SQLiteStateStore;
 pub struct YamsSchedulerConfig {
     pub enabled: bool,
     pub timezone: String,
-    pub tagesabschluss_cron: String,
 }
 
 impl Default for YamsSchedulerConfig {
@@ -23,7 +22,6 @@ impl Default for YamsSchedulerConfig {
         Self {
             enabled: false,
             timezone: "Europe/Vienna".into(),
-            tagesabschluss_cron: "0 23 * * *".into(),
         }
     }
 }
@@ -63,13 +61,12 @@ pub async fn start(
         ..SchedulerConfig::default()
     };
 
-    let job = build_tagesabschluss_job(app, &config.tagesabschluss_cron)
-        .map_err(|_| Report::new(YamsSchedulerStartError::Cron))?;
+    let job = build_tagesabschluss_job(app);
 
     let scheduler = Scheduler::with_log_observer(scheduler_config, store);
     info!(
         timezone = %config.timezone,
-        cron = %config.tagesabschluss_cron,
+        cron = TAGESABSCHLUSS_CRON,
         "starting yams scheduler"
     );
 

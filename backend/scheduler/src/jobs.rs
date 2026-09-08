@@ -1,19 +1,19 @@
 use std::sync::Arc;
 
 use scheduler::{CronSchedule, Job, Schedule, Task, TaskContext};
-use crate::errors::YamsSchedulerStartError;
 use tracing::{error, info};
 use yams_core::App;
 use yams_core::service::TagesabschlussDurchführen;
 
 pub const TAGESABSCHLUSS_JOB_ID: &str = "tagesabschluss";
 
-pub fn build_tagesabschluss_job(
-    app: Arc<App>,
-    cron: &str,
-) -> Result<Job<Arc<App>>, YamsSchedulerStartError> {
-    let cron = CronSchedule::parse(cron).map_err(|_| YamsSchedulerStartError::Cron)?;
-    Ok(Job::new(
+/// Daily at 23:00 in `SchedulerConfig::timezone` (business requirement, not configurable).
+pub const TAGESABSCHLUSS_CRON: &str = "0 23 * * *";
+
+pub fn build_tagesabschluss_job(app: Arc<App>) -> Job<Arc<App>> {
+    let cron = CronSchedule::parse(TAGESABSCHLUSS_CRON)
+        .expect("hardcoded tagesabschluss cron expression must be valid");
+    Job::new(
         TAGESABSCHLUSS_JOB_ID,
         Schedule::Cron(cron),
         app,
@@ -44,5 +44,5 @@ pub fn build_tagesabschluss_job(
                 }
             }
         }),
-    ))
+    )
 }

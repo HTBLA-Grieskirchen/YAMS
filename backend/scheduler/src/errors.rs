@@ -5,8 +5,6 @@ use molting::MigrationError;
 pub enum YamsSchedulerStartError {
     #[error("invalid scheduler timezone")]
     Timezone,
-    #[error("invalid tagesabschluss cron expression")]
-    Cron,
     #[error("scheduler store migration failed")]
     Migration,
     #[error("scheduler failed to start")]

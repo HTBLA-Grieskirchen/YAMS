@@ -3,3 +3,4 @@
 # due to lifetime capturing across await bounds
 # https://share.google/aimode/viuFtDqpaqp396sCw
 channel = "nightly-2026-08-01"
+profile = "default"

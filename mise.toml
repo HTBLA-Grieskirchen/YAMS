@@ -2,12 +2,16 @@
 idiomatic_version_file_enable_tools = ["rust"]
 jobs = 1
 
+[vars]
+REPO_ROOT = "{{config_root}}"
+
 [tools]
 node = "lts"
 "cargo:cargo-nextest" = "latest"
 
-[vars]
-REPO_ROOT = "{{config_root}}"
+[deps.npm]
+auto = true
+dir = "frontend/"
 
 [task_config]
 includes = [

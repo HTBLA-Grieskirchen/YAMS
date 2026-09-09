@@ -36,3 +36,14 @@ run = """
 #!/usr/bin/env bash
 typstyle . --wrap-text $([ "${usage_check:-}" = "true" ] && echo "--diff" || echo "-i")
 """
+
+["fmt:newline"]
+description = "Ensures every non-binary file ends with a newline"
+usage = """
+flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
+"""
+tools."cargo:lineguard" = { version = "latest" }
+run = """
+lineguard {{ "--fix" if usage.check != "true" else "" }}
+"""
+

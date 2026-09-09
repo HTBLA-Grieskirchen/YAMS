@@ -49,21 +49,25 @@ async fn main() -> Result<(), Report<SchedulerMainError>> {
         log_dir: cli.log_dir,
         timezone: cli.timezone,
     })
-    .change_context(SchedulerMainError)?;
+    .change_context(SchedulerMainError)
+    .attach_opaque("config resolution")?;
     init_tracing(config.log_dir.as_deref());
 
     let sqlite = Arc::new(
         SQLiteInstance::local(&config.database_url)
             .await
-            .change_context(SchedulerMainError)?,
+            .change_context(SchedulerMainError)
+            .attach_opaque("sqlite instance creation")?,
     );
     sqlite
         .migrate_repos_to_latest()
         .await
-        .change_context(SchedulerMainError)?;
+        .change_context(SchedulerMainError)
+        .attach_opaque("sqlite repository migration")?;
 
-    let object_store =
-        FileSystemObjectStore::new(&config.object_store_dir).change_context(SchedulerMainError)?;
+    let object_store = FileSystemObjectStore::new(&config.object_store_dir)
+        .change_context(SchedulerMainError)
+        .attach_opaque("file system object store initialization")?;
     let app = App::builder()
         .uow_provider(Box::new(sqlite.clone()))
         .object_store(Arc::new(object_store))
@@ -74,7 +78,8 @@ async fn main() -> Result<(), Report<SchedulerMainError>> {
     store
         .migrate_to_latest()
         .await
-        .change_context(SchedulerMainError)?;
+        .change_context(SchedulerMainError)
+        .attach_opaque("sqlite job state store migration")?;
 
     let join = tokio::spawn(YamsScheduler::new(app).state_store(store).start(
         YamsSchedulerConfig {
@@ -85,7 +90,8 @@ async fn main() -> Result<(), Report<SchedulerMainError>> {
     info!("yams-scheduler running");
     tokio::signal::ctrl_c()
         .await
-        .change_context(SchedulerMainError)?;
+        .change_context(SchedulerMainError)
+        .attach_opaque("ctrl+c signal handling")?;
     join.abort();
     let _ = join.await;
     info!("yams-scheduler stopped");

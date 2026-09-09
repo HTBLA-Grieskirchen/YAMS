@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use molting::{AppliableMigration, MigrationError, MigrationTarget};
-use scheduler::{JobState, StateStore};
+use scheduler::{JobState, StateStore, StoreErrorKind};
 use thiserror::Error;
 use yams_sqlite::SQLiteInstance;
 
@@ -166,6 +166,32 @@ impl StateStore for SQLiteStateStore {
             .await
             .map_err(libsql_error_to_store_error)?;
         Ok(())
+    }
+
+    async fn delete(&self, job_id: &str) -> Result<(), Self::Error> {
+        let connection = self
+            .instance
+            .create_connection()
+            .await
+            .map_err(|_| SQLiteStateStoreError::Persistence)?;
+        connection
+            .execute(
+                "DELETE FROM _scheduler_job_state WHERE job_id = ?1",
+                [job_id],
+            )
+            .await
+            .map_err(libsql_error_to_store_error)?;
+        Ok(())
+    }
+
+    fn classify_error(error: &Self::Error) -> scheduler::StoreErrorKind
+    where
+        Self: Sized,
+    {
+        match error {
+            SQLiteStateStoreError::Persistence => StoreErrorKind::Connection,
+            SQLiteStateStoreError::Store => StoreErrorKind::Data,
+        }
     }
 }
 

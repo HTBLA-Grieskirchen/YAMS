@@ -42,10 +42,7 @@ description = "Ensures every non-binary file ends with a newline"
 usage = """
 flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formatting"
 """
-tools."pipx:eof-fixer" = { version = "latest" }
+tools."cargo:lineguard" = { version = "0.2.1" }
 run = """
-eof-fixer . {{ "--check" if usage.check else "|| true" }}
-"""
-run_windows = """
-eof-fixer . {{ "--check" if usage.check else "; exit 0" }}
+lineguard . {{ "--fix" if usage.check != "true" else "" }} -r
 """

@@ -34,6 +34,7 @@ jobs:
       - name: Install mise
         uses: jdx/mise-action@v4
         with:
+          reshim: true
           cache: true
           cache_key: mise-v1-{{platform}}-{{file_hash}}
 
@@ -73,6 +74,7 @@ jobs:
       - name: Install mise
         uses: jdx/mise-action@v4
         with:
+          reshim: true
           cache: true
           cache_key: mise-v1-{{platform}}-{{file_hash}}
 

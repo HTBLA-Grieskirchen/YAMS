@@ -13,7 +13,7 @@ export async function deleteAnimal(animal: Animal): Promise<Result<any>> {
   );
   const response = await query(
     `
-        UPDATE client SET animals -= [type::thing($animalTable, $animalID)]; 
+        UPDATE client SET animals -= [type::thing($animalTable, $animalID)];
         DELETE type::thing($animalTable, $animalID);
 `,
     {
@@ -41,7 +41,7 @@ export async function patchAnimal(
       `
         IF ( SELECT true FROM type::thing($animalTable, $animalID) ) THEN
             ( UPDATE type::thing($animalTable, $animalID) SET birthdate = $newBirthdate, name = $newName, race = type::thing($raceTable, $raceID) )
-        ELSE 
+        ELSE
             ( CREATE type::table($animalTable) SET birthdate = $newBirthdate, name = $newName, race = type::thing($raceTable, $raceID) )
         END
 `,

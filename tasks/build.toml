@@ -23,5 +23,3 @@ run = "npm run tauri build"
 [build]
 description = "Builds whole project"
 depends = ["build:{server,scheduler,tauri}"]
-
-

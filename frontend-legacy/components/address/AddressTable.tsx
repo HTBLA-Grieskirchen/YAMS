@@ -352,8 +352,8 @@ const EditButtons = observer(
         }}
       >
         <button
-          className={`btn btn-success btn-sm -mx-4 
-        ${invalid ? "cursor-not-allowed" : ""} 
+          className={`btn btn-success btn-sm -mx-4
+        ${invalid ? "cursor-not-allowed" : ""}
         ${submitted ? "loading" : ""}`}
           disabled={invalid || submitted}
         >
@@ -413,7 +413,7 @@ const AddressUsageInfo = observer(
       <div className="grid">
         <div className="tabs -mb-px">
           <div
-            className={`tab tab-lifted 
+            className={`tab tab-lifted
                 ${!clients.length ? "cursor-no-drop" : ""}
                 ${selectedTab == "clients" ? "tab-active" : ""}
                 `}
@@ -422,7 +422,7 @@ const AddressUsageInfo = observer(
             Clients (<span className="font-bold">{clients.length}</span>)
           </div>
           <div
-            className={`tab tab-lifted 
+            className={`tab tab-lifted
                 ${!events.length ? "cursor-no-drop" : ""}
                 ${selectedTab == "events" ? "tab-active" : ""}
                 `}

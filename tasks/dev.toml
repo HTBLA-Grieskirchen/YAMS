@@ -42,4 +42,3 @@ flag "--mode <mode>" env="YAMS_MODE" help="Mode to use for the dev server" defau
 }
 """
 run = { task = "dev:_tauri", env = { "YAMS_MODE" = "{{ usage.mode }}", "YAMS_SCHEDULER_ENABLED" = '{{ "1" if usage.mode == "embedded" else "0" }}' } }
-

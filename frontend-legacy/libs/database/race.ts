@@ -35,10 +35,10 @@ export async function patchRace(
 ): Promise<Result<any>> {
   const response = await query(
     `
-        IF ( SELECT true FROM type::thing($raceTable, $raceID) ) THEN 
+        IF ( SELECT true FROM type::thing($raceTable, $raceID) ) THEN
             ( UPDATE type::thing($raceTable, $raceID) SET description = $newDescription, animal_species = $newSpecies )
         ELSE
-            ( CREATE type::table($raceTable) SET description = $newDescription, animal_species = $newSpecies )            
+            ( CREATE type::table($raceTable) SET description = $newDescription, animal_species = $newSpecies )
         END
 `,
     {

@@ -52,7 +52,7 @@ jobs:
 
   smoke-build:
     name: Smoke build
-    needs: verify
+    #needs: verify
     strategy:
       matrix:
         platform: [ubuntu-latest, windows-latest]
@@ -76,6 +76,7 @@ jobs:
         with:
           reshim: true
           cache: true
+          export_path: false
           cache_key: mise-v1-{{platform}}-{{file_hash}}
 
       - name: Install Linux dependencies
@@ -83,6 +84,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev gdk-pixbuf2.0-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf libglib2.0-dev pkg-config libsoup-3.0-dev libjavascriptcoregtk-4.1-dev libwebkit2gtk-4.1-dev
+
+      - name: Display npm executable path and content
+        if: runner.os == 'Windows'
+        run: |
+          Get-Command npm | Select-Object -ExpandProperty Source
+          Get-Content (Get-Command npm | Select-Object -ExpandProperty Source)
+     
+   
+      - run: mise ls
 
       - name: Smoke build
         run: mise run build

@@ -71,6 +71,7 @@ impl Deref for SQLiteConnection {
 impl SQLiteInstance {
     pub async fn local(path: impl AsRef<Path>) -> ResultReport<Self, RepositoryError> {
         let path = path.as_ref();
+        tracing::info!(path = %path.display(), "intializing local database instance");
         let this = Self {
             variant: InstanceType::Local(
                 libsql::Builder::new_local(path)
@@ -88,6 +89,7 @@ impl SQLiteInstance {
     pub async fn in_temp_dir() -> ResultReport<Self, RepositoryError> {
         let temp_dir = TempDir::new("yams-sqlite").contextualize(RepositoryError::Connection)?;
         let path = temp_dir.path().join("yams.db");
+        tracing::info!(path = %path.display(), "intializing temp dir database instance");
         Ok(Self {
             variant: InstanceType::TempDir {
                 db: libsql::Builder::new_local(path)
@@ -102,6 +104,7 @@ impl SQLiteInstance {
 
     pub async fn in_memory() -> ResultReport<Self, RepositoryError> {
         let memory_uuid = Uuid::new_v4();
+        tracing::info!(memory_uuid = %memory_uuid, "intializing in-memory database instance");
         let db =
             libsql::Builder::new_local(format!("file:{}.db?mode=memory&cache=shared", memory_uuid))
                 .build()
@@ -121,6 +124,7 @@ impl SQLiteInstance {
         })
     }
 
+    #[tracing::instrument(skip(self), err(Debug))]
     pub async fn migrate_repos_to_latest(&self) -> ResultReport<(), RepositoryError> {
         let mut connection = self.create_connection().await?;
         MIGRATIONS

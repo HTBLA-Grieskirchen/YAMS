@@ -25,6 +25,8 @@ rustc-hash = { workspace = true }
 tempdir = "0.3.7"
 async-lock = "3.4.2"
 
+tracing = { workspace = true }
+
 [dev-dependencies]
 pollster = { version = "0.4.0", features = ["macro"] }
 bon = { workspace = true }

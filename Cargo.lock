@@ -7999,6 +7999,7 @@ dependencies = [
  "tempdir",
  "test-log",
  "thiserror 2.0.20",
+ "tracing",
  "tracing-subscriber",
  "uuid",
  "yams-core",

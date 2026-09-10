@@ -13,5 +13,5 @@ flag "--release" env="YAMS_SYNC_OPENAPI_RELEASE" help="Build the OpenAPI spec in
 run = """
 #!/usr/bin/env bash
 OPENAPI_CMD=$([ "${usage_release:-}" = "true" ] && echo "--release")
-mise run export:openapi $OPENAPI_CMD | npx openapi-typescript -o src/api/schema.ts --enum-values --empty-objects-unknown --enum --dedupe-enums
+mise run --no-deps export:openapi $OPENAPI_CMD | npx openapi-typescript -o src/api/schema.ts --enum-values --empty-objects-unknown --enum --dedupe-enums
 """

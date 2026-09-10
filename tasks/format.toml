@@ -44,5 +44,5 @@ flag "--check" env="YAMS_FMT_CHECK" help="Only performs a check of the formattin
 """
 tools."cargo:lineguard" = { version = "0.2.1" }
 run = """
-lineguard . {{ "--fix" if usage.check != "true" else "" }} -r
+lineguard .{{ " --fix " if not usage.check else " " }}-r
 """

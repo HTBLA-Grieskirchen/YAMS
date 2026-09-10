@@ -11,7 +11,8 @@ node = "lts"
 "cargo:cargo-nextest" = "latest"
 
 [deps.npm]
-auto = true
+# Would love to have this auto, but it's not working on windows
+#auto = true
 dir = "frontend/"
 
 [task_config]

@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::sync::OnceLock;
 
+use tracing::Level;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::{EnvFilter, Layer, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -30,7 +31,7 @@ pub fn init_tracing(log_dir: Option<&Path>) {
     let json_layer = fmt::layer()
         .json()
         .with_writer(non_blocking)
-        .with_filter(filter);
+        .with_filter(filter.add_directive(Level::DEBUG.into()));
 
     tracing_subscriber::registry()
         .with(stdout_layer)

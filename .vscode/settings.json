@@ -1,0 +1,9 @@
+{
+  "git.enabled": false,
+  "rust-analyzer.cargo.features": [
+
+  ],
+  "search.exclude": {
+    "**/graphify-out": true
+  }
+}

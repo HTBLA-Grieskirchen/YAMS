@@ -1,0 +1,17 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+["export:openapi"]
+description = "Export OpenAPI spec to stdout"
+raw = true
+run = "cargo run -p yams-api --bin export_spec --features openapi"
+
+["sync:openapi"]
+description = "Sync OpenAPI spec from backend to frontend"
+dir = "{{ vars.REPO_ROOT }}/frontend"
+usage = """
+flag "--release" env="YAMS_SYNC_OPENAPI_RELEASE" help="Build the OpenAPI spec in release mode"
+"""
+run = """
+#!/usr/bin/env bash
+OPENAPI_CMD=$([ "${usage_release:-}" = "true" ] && echo "--release")
+mise run --no-deps export:openapi $OPENAPI_CMD | npx openapi-typescript -o src/api/schema.ts --enum-values --empty-objects-unknown --enum --dedupe-enums
+"""

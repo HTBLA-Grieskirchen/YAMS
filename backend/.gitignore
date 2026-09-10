@@ -1,1 +1,3 @@
-/surreal_data/
+/yams.db
+/yams.db-shm
+/yams.db-wal

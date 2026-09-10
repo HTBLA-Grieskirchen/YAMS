@@ -1,0 +1,490 @@
+pub mod requests;
+
+use std::sync::Arc;
+
+use error_stack::Report;
+use http::StatusCode;
+use uuid::Uuid;
+use yams_core::{
+    App, ResultReport,
+    domain::{
+        HaustierId, KlientId, RechnungId, SeminarBuchungId, SeminarId,
+        SeminarTermin as DomainSeminarTermin, SeminarTerminId,
+    },
+    ports::{ObjectStoreError, ObjectStream, RepositoryError},
+    service::{
+        AlleBehandlungenAuflisten, AlleHaustiereAuflisten, AlleKlientenAuflisten,
+        AlleLeistungenAuflisten, AlleProdukteAuflisten, AlleRechnungenAuflisten,
+        AlleSeminarTermineAuflisten, AlleSeminareAuflisten, AufgelisteterKlient, AuflistenFehler,
+        BehandlungErstellen, BehandlungErstellenFehler, HaustierErstellen, HaustierErstellenFehler,
+        KlientErstellen, KlientErstellenFehler, LeistungAusBehandlungBuchen,
+        LeistungAusBehandlungBuchenFehler, LeistungAusProduktBuchen,
+        LeistungAusProduktBuchenFehler, LeistungManuellErfassen, LeistungManuellErfassenFehler,
+        ProduktErstellen, ProduktErstellenFehler, RechnungAlsBezahltMarkierenFehler,
+        SeminarBuchungAnlegenFehler, SeminarBuchungStornieren, SeminarBuchungStornierenFehler,
+        SeminarErstellen, SeminarErstellenFehler, SeminarTerminAbsagenFehler,
+        SeminarTerminAktualisierenFehler, SeminarTerminAlsAbgehaltenMarkierenFehler,
+        SeminarTerminPlanen, SeminarTerminPlanenFehler, SeminarUmsatzPrognoseBisDatum,
+        SeminarUmsatzPrognoseBisDatumFehler, SeminarUmsatzVorschauFehler,
+        TagesabschlussDurchführen, TagesabschlussDurchführenFehler, rechnung_pdf_laden,
+        teilnahme_pdf_laden,
+    },
+    uow::Versioned,
+};
+
+use crate::{
+    errors::ValidationError,
+    requests::{
+        BehandlungErstellung, HaustierErstellung, KlientErstellung,
+        LeistungAusBehandlungErstellung, LeistungAusProduktErstellung, LeistungManuelleErstellung,
+        ProduktErstellung, RechnungBezahltMarkieren, SeminarBuchungErstellung, SeminarErstellung,
+        SeminarTerminAbsage, SeminarTerminAktualisierung, SeminarTerminErstellung,
+        TagesabschlussErstellung, abgehalten_use_case, buchung_id,
+        into_rechnung_als_bezahlt_markieren,
+    },
+    schema::{
+        Behandlung, Haustier, Klient, Leistung, Produkt, Rechnung, Seminar, SeminarTermin,
+        SeminarUmsatzPrognose, SeminarUmsatzVorschau, schema_behandlung_from_domain,
+        schema_haustier_from_domain, schema_klient_from_domain, schema_leistung_from_domain,
+        schema_leistung_from_domain_leistung, schema_produkt_from_domain,
+        schema_prognose_from_domain, schema_rechnung_from_domain,
+        schema_rechnung_from_domain_rechnung, schema_seminar_from_domain,
+        schema_seminar_termin_from_domain, schema_umsatz_from_domain,
+    },
+};
+
+#[derive(Clone)]
+pub struct YamsAppApi {
+    app: Arc<App>,
+}
+
+impl YamsAppApi {
+    pub fn new(app: App) -> Self {
+        Self { app: Arc::new(app) }
+    }
+
+    pub fn inner_app(&self) -> Arc<App> {
+        self.app.clone()
+    }
+}
+
+fn bad_request<C: yams_core::ThreadSafeError>(
+    report: Report<ValidationError>,
+    context: C,
+) -> Report<C> {
+    report
+        .attach_opaque(StatusCode::BAD_REQUEST)
+        .change_context(context)
+}
+
+impl YamsAppApi {
+    pub async fn klient_erstellen(
+        &self,
+        body: KlientErstellung,
+    ) -> ResultReport<Klient, KlientErstellenFehler> {
+        let klient = self
+            .app
+            .execute(
+                KlientErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, KlientErstellenFehler::Erstellung))?,
+            )
+            .await?;
+        Ok(schema_klient_from_domain(klient, vec![]))
+    }
+
+    pub async fn haustier_erstellen(
+        &self,
+        body: HaustierErstellung,
+    ) -> ResultReport<Haustier, HaustierErstellenFehler> {
+        let use_case = match HaustierErstellen::try_from(body) {
+            Ok(use_case) => use_case,
+            Err(error) => match error {},
+        };
+        let haustier = self.app.execute(use_case).await?;
+        Ok(schema_haustier_from_domain(haustier))
+    }
+
+    pub async fn alle_haustiere(&self) -> ResultReport<Vec<Haustier>, AuflistenFehler> {
+        let haustiere = self.app.execute(AlleHaustiereAuflisten).await?;
+        Ok(haustiere
+            .into_iter()
+            .map(schema_haustier_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_klienten(&self) -> ResultReport<Vec<Klient>, AuflistenFehler> {
+        let klienten = self.app.execute(AlleKlientenAuflisten).await?;
+        Ok(klienten
+            .into_iter()
+            .map(|AufgelisteterKlient { klient, haustiere }| {
+                schema_klient_from_domain(klient, haustiere)
+            })
+            .collect())
+    }
+
+    pub async fn alle_produkte(&self) -> ResultReport<Vec<Produkt>, AuflistenFehler> {
+        let produkte = self.app.execute(AlleProdukteAuflisten).await?;
+        Ok(produkte
+            .into_iter()
+            .map(schema_produkt_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_behandlungen(&self) -> ResultReport<Vec<Behandlung>, AuflistenFehler> {
+        let behandlungen = self.app.execute(AlleBehandlungenAuflisten).await?;
+        Ok(behandlungen
+            .into_iter()
+            .map(schema_behandlung_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_leistungen(&self) -> ResultReport<Vec<Leistung>, AuflistenFehler> {
+        let leistungen = self.app.execute(AlleLeistungenAuflisten).await?;
+        Ok(leistungen
+            .into_iter()
+            .map(schema_leistung_from_domain_leistung)
+            .collect())
+    }
+
+    pub async fn alle_rechnungen(&self) -> ResultReport<Vec<Rechnung>, AuflistenFehler> {
+        let rechnungen = self.app.execute(AlleRechnungenAuflisten).await?;
+        Ok(rechnungen
+            .into_iter()
+            .map(schema_rechnung_from_domain_rechnung)
+            .collect())
+    }
+
+    pub async fn alle_seminare(&self) -> ResultReport<Vec<Seminar>, AuflistenFehler> {
+        let seminare = self.app.execute(AlleSeminareAuflisten).await?;
+        Ok(seminare
+            .into_iter()
+            .map(schema_seminar_from_domain)
+            .collect())
+    }
+
+    pub async fn alle_seminar_termine(&self) -> ResultReport<Vec<SeminarTermin>, AuflistenFehler> {
+        let termine = self.app.execute(AlleSeminarTermineAuflisten).await?;
+        Ok(termine
+            .into_iter()
+            .map(schema_seminar_termin_from_domain)
+            .collect())
+    }
+
+    pub async fn haustier_by_id(&self, id: Uuid) -> ResultReport<Haustier, RepositoryError> {
+        let haustier = self
+            .app
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let result = uow.haustiere().find_by_id(HaustierId(id)).await;
+                uow.finish(result, RepositoryError::OperationFailed).await
+            })
+            .await?
+            .into_data();
+        Ok(schema_haustier_from_domain(haustier))
+    }
+
+    pub async fn produkt_erstellen(
+        &self,
+        body: ProduktErstellung,
+    ) -> ResultReport<Produkt, ProduktErstellenFehler> {
+        let produkt = self
+            .app
+            .execute(
+                ProduktErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, ProduktErstellenFehler::Erstellung))?,
+            )
+            .await?;
+        Ok(schema_produkt_from_domain(produkt))
+    }
+
+    pub async fn behandlung_erstellen(
+        &self,
+        body: BehandlungErstellung,
+    ) -> ResultReport<Behandlung, BehandlungErstellenFehler> {
+        let behandlung = self
+            .app
+            .execute(
+                BehandlungErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, BehandlungErstellenFehler::Erstellung))?,
+            )
+            .await?;
+        Ok(schema_behandlung_from_domain(behandlung))
+    }
+
+    pub async fn leistung_aus_produkt_buchen(
+        &self,
+        body: LeistungAusProduktErstellung,
+    ) -> ResultReport<Leistung, LeistungAusProduktBuchenFehler> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungAusProduktBuchen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungAusProduktBuchenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn leistung_aus_behandlung_buchen(
+        &self,
+        body: LeistungAusBehandlungErstellung,
+    ) -> ResultReport<Leistung, LeistungAusBehandlungBuchenFehler> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungAusBehandlungBuchen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungAusBehandlungBuchenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn leistung_manuell_erfassen(
+        &self,
+        body: LeistungManuelleErstellung,
+    ) -> ResultReport<Leistung, LeistungManuellErfassenFehler> {
+        let leistung = self
+            .app
+            .execute(
+                LeistungManuellErfassen::try_from(body)
+                    .map_err(|e| bad_request(e, LeistungManuellErfassenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_leistung_from_domain(leistung))
+    }
+
+    pub async fn tagesabschluss_durchführen(
+        &self,
+        body: TagesabschlussErstellung,
+    ) -> ResultReport<Vec<Rechnung>, TagesabschlussDurchführenFehler> {
+        let rechnungen = self
+            .app
+            .execute(TagesabschlussDurchführen::from(body))
+            .await?;
+        Ok(rechnungen
+            .into_iter()
+            .map(schema_rechnung_from_domain)
+            .collect())
+    }
+
+    pub async fn rechnungen_für_klient(
+        &self,
+        klient_id: Uuid,
+    ) -> ResultReport<Vec<Rechnung>, RepositoryError> {
+        let rechnungen = self
+            .app
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let result = uow
+                    .rechnungen()
+                    .find_by_klient_id(KlientId(klient_id))
+                    .await;
+                uow.finish(result, RepositoryError::OperationFailed).await
+            })
+            .await?
+            .into_iter()
+            .map(Versioned::into_data);
+        Ok(rechnungen
+            .map(schema_rechnung_from_domain_rechnung)
+            .collect())
+    }
+
+    pub async fn rechnung_als_bezahlt_markieren(
+        &self,
+        rechnung_id: Uuid,
+        body: RechnungBezahltMarkieren,
+    ) -> ResultReport<Rechnung, RechnungAlsBezahltMarkierenFehler> {
+        let rechnung = self
+            .app
+            .execute(into_rechnung_als_bezahlt_markieren(rechnung_id, body))
+            .await?;
+        Ok(schema_rechnung_from_domain_rechnung(rechnung))
+    }
+
+    pub async fn rechnung_pdf(
+        &self,
+        rechnung_id: Uuid,
+    ) -> ResultReport<ObjectStream, ObjectStoreError> {
+        let pdf = self
+            .app
+            .execute_fn(async move |ctx| {
+                rechnung_pdf_laden(ctx.object_store(), &RechnungId(rechnung_id)).await
+            })
+            .await?;
+        match pdf {
+            Some(stream) => Ok(stream),
+            None => Err(Report::new(ObjectStoreError::Operation)
+                .attach("pdf not found")
+                .attach_opaque(StatusCode::NOT_FOUND)),
+        }
+    }
+
+    pub async fn teilnahmebestätigung_pdf(
+        &self,
+        termin_id: Uuid,
+        buchung_id: Uuid,
+    ) -> ResultReport<ObjectStream, ObjectStoreError> {
+        let pdf = self
+            .app
+            .execute_fn(async move |ctx| {
+                teilnahme_pdf_laden(
+                    ctx.object_store(),
+                    &SeminarTerminId(termin_id),
+                    &SeminarBuchungId(buchung_id),
+                )
+                .await
+            })
+            .await?;
+        match pdf {
+            Some(stream) => Ok(stream),
+            None => Err(Report::new(ObjectStoreError::Operation)
+                .attach("pdf not found")
+                .attach_opaque(StatusCode::NOT_FOUND)),
+        }
+    }
+
+    pub async fn seminar_erstellen(
+        &self,
+        body: SeminarErstellung,
+    ) -> ResultReport<Seminar, SeminarErstellenFehler> {
+        let seminar = self
+            .app
+            .execute(
+                SeminarErstellen::try_from(body)
+                    .map_err(|e| bad_request(e, SeminarErstellenFehler::Erstellung))?,
+            )
+            .await?;
+        Ok(schema_seminar_from_domain(seminar))
+    }
+
+    pub async fn seminar_by_id(&self, id: Uuid) -> ResultReport<Seminar, RepositoryError> {
+        let seminar = self
+            .app
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let result = uow.seminare().find_by_id(SeminarId(id)).await;
+                uow.finish(result, RepositoryError::OperationFailed).await
+            })
+            .await?
+            .into_data();
+        Ok(schema_seminar_from_domain(seminar))
+    }
+
+    pub async fn seminar_termin_planen(
+        &self,
+        body: SeminarTerminErstellung,
+    ) -> ResultReport<SeminarTermin, SeminarTerminPlanenFehler> {
+        let termin = self
+            .app
+            .execute(
+                SeminarTerminPlanen::try_from(body)
+                    .map_err(|e| bad_request(e, SeminarTerminPlanenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_seminar_termin_from_domain(
+            DomainSeminarTermin::from(termin),
+        ))
+    }
+
+    pub async fn seminar_termin_by_id(
+        &self,
+        id: Uuid,
+    ) -> ResultReport<SeminarTermin, RepositoryError> {
+        let termin = self
+            .app
+            .execute_fn(async |ctx| {
+                let uow = ctx.enter().await?;
+                let result = uow.seminar_termine().find_by_id(SeminarTerminId(id)).await;
+                uow.finish(result, RepositoryError::OperationFailed).await
+            })
+            .await?
+            .into_data();
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_aktualisieren(
+        &self,
+        id: Uuid,
+        body: SeminarTerminAktualisierung,
+    ) -> ResultReport<SeminarTermin, SeminarTerminAktualisierenFehler> {
+        let termin = self
+            .app
+            .execute(
+                body.into_use_case(id)
+                    .map_err(|e| bad_request(e, SeminarTerminAktualisierenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_buchung_anlegen(
+        &self,
+        termin_id: Uuid,
+        body: SeminarBuchungErstellung,
+    ) -> ResultReport<SeminarTermin, SeminarBuchungAnlegenFehler> {
+        let termin = self
+            .app
+            .execute(
+                body.into_use_case(termin_id)
+                    .map_err(|e| bad_request(e, SeminarBuchungAnlegenFehler::Persistenz))?,
+            )
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_buchung_stornieren(
+        &self,
+        termin_id: Uuid,
+        buchung: Uuid,
+    ) -> ResultReport<SeminarTermin, SeminarBuchungStornierenFehler> {
+        let termin = self
+            .app
+            .execute(SeminarBuchungStornieren {
+                termin_id: SeminarTerminId(termin_id),
+                buchung_id: buchung_id(buchung),
+            })
+            .await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_absagen(
+        &self,
+        termin_id: Uuid,
+        body: SeminarTerminAbsage,
+    ) -> ResultReport<SeminarTermin, SeminarTerminAbsagenFehler> {
+        let termin = self.app.execute(body.into_use_case(termin_id)).await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_termin_abgehalten(
+        &self,
+        termin_id: Uuid,
+    ) -> ResultReport<SeminarTermin, SeminarTerminAlsAbgehaltenMarkierenFehler> {
+        let termin = self.app.execute(abgehalten_use_case(termin_id)).await?;
+        Ok(schema_seminar_termin_from_domain(termin))
+    }
+
+    pub async fn seminar_umsatz_vorschau(
+        &self,
+        termin_id: Uuid,
+    ) -> ResultReport<SeminarUmsatzVorschau, SeminarUmsatzVorschauFehler> {
+        let umsatz = self
+            .app
+            .execute(yams_core::service::SeminarUmsatzVorschau {
+                termin_id: SeminarTerminId(termin_id),
+            })
+            .await?;
+        Ok(schema_umsatz_from_domain(umsatz))
+    }
+
+    pub async fn seminar_umsatz_prognose(
+        &self,
+        stichtag: chrono::NaiveDate,
+    ) -> ResultReport<SeminarUmsatzPrognose, SeminarUmsatzPrognoseBisDatumFehler> {
+        let prognose = self
+            .app
+            .execute(SeminarUmsatzPrognoseBisDatum { stichtag })
+            .await?;
+        Ok(schema_prognose_from_domain(prognose))
+    }
+}

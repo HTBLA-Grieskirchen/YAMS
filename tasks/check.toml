@@ -1,0 +1,13 @@
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+["check:format"]
+description = "Check the formatting of the code"
+depends = ["YAMS_FMT_CHECK=true fmt:?*"]
+
+["check:lint"]
+description = "Check the linting of the code"
+depends = ["lint:?*"]
+
+["check"]
+description = "Check the code"
+depends = ["check:format", "check:lint"]

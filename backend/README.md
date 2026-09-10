@@ -1,44 +1,42 @@
-# Backend <img src="../resources/builton-surrealdb-light.svg" alt="using SurrealDB" height="35"/>
+# Backend
 
-The backend is implemented using [SurrealDB](https://surrealdb.com) and its embedded or native Rest capabilities. This
-allows us to directly access the DB with authentication and saves us from having to write
-a custom backend.
+The backend is implemented using [libsql](https://libsql.org) (SQLite) with a hexagonal architecture in Rust.
 
-## Server
+## Architecture
 
-If the DB is intended to be used for centralized data storage - thus requiring it to be installed
-on a remote server - the following chapters help to set up the system on the server.
+The backend follows the Hexagonal Architecture (Ports and Adapters) pattern:
 
-### Installation
+- **Core Domain**: Pure Rust business logic and repository traits.
+- **Persistence Adapter**: Implementation of repository traits using `libsql`.
+- **Standalone Server**: REST API using `poem-openapi`.
+- **Tauri Embedded**: Embedded Rust module within the Tauri application.
 
-The DB can be installed locally using the provided scripts.
+## Standalone Server
 
-#### Steps
+To run the standalone webserver:
 
-- Change working directory to where this README resides
-- Execute `./scripts/install.sh` to run the [install script](scripts/install.sh). 
+```bash
+mise run dev:server
+```
 
-The script installs the DB from the official online sources, starts it in a screen session and imports
-the provided [setup.surql](setup.surql) file.
+### Configuration
 
-#### Prerequisites
+Resolution order: **config path → file → env → CLI**.
 
-- Linux OS
-- `bash` installed
-- `screen` installed
+Default file: `yams-server.json` in the current working directory. Override with `YAMS_CONFIG_PATH` or `--config-path`. Missing default file falls back to built-in defaults. An explicit path that is missing or malformed is an error.
 
-Alternatively the DB can be installed as described [here](https://surrealdb.com/install). It can then
-manually be run in the background (like [this](scripts/start.sh)) and the setup can be loaded using
-[this command](scripts/setup.sh).
+mise sets environment variables for the server suitable for a dev environment automatically.
 
-## Embedded
+| Source | Keys |
+|--------|------|
+| File (camelCase JSON) | `databaseUrl`, `objectStoreDir`, `bindAddress`, `port`, `subpath` |
+| Env / CLI | `YAMS_DATABASE_URL` / `--database-url`, `YAMS_OBJECT_STORE_DIR` / `--object-store-dir`, `BIND_ADDRESS` / `--bind-address`, `PORT` / `--port`, `SUBPATH` / `--subpath` |
+| Tracing | `YAMS_LOG_LEVEL` (default `info`) |
 
-When the whole software runs locally as desktop application, SurrealDB is provided
-as embedded library in the Tauri backend code. It also uses the [`setup.surql`](setup.surql)
-script to initialize the DB upon first use.
+## Spec Export
 
-## Miscellaneous
+To export the OpenAPI spec:
 
-The [`setup.surql`](setup.surql) SurrealQL script, which configures and prepares the DB to be used with this project,
-can be used in any way (f.e. to setup dev environments). It represents the [Data Model](../resources/Sabine_Projekt.pdf)
-in a way understandable for SurrealDB.
+```bash
+mise run sync:openapi
+```

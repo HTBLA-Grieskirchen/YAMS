@@ -1,0 +1,28 @@
+[settings]
+experimental = true
+idiomatic_version_file_enable_tools = ["rust"]
+jobs = 1
+
+[vars]
+REPO_ROOT = "{{config_root}}"
+
+[tools]
+node = "lts"
+"cargo:cargo-nextest" = "latest"
+
+[deps.npm]
+# Would love to have this auto, but it's not working on windows
+#auto = true
+dir = "frontend/"
+
+[task_config]
+includes = [
+    "tasks/format.toml",
+    "tasks/linting.toml",
+    "tasks/check.toml",
+    "tasks/fixes.toml",
+    "tasks/tests.toml",
+    "tasks/dev.toml",
+    "tasks/misc.toml",
+    "tasks/build.toml"
+]

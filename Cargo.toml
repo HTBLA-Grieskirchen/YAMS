@@ -1,0 +1,54 @@
+cargo-features = ["profile-rustflags", "trim-paths"]
+
+[workspace]
+members = [
+    "crates/*",
+    "backend/server",
+    "backend/scheduler",
+    "frontend/src-tauri",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Tim Peko <timerertim@gmail.com>", "David Rathmair", "Dominik Wernsdorfer", "Julian Bachinger", "David Edthaler", "Daniel Ferihumer"]
+license-file = "../../LICENSE"
+edition = "2024"
+repository = "https://github.com/HTBLA-Grieskirchen/YAMS/"
+
+[workspace.dependencies]
+thiserror = "2.0.20"
+# Maybe switch to rootcause?
+# Or custom/snafu inspired solution
+error-stack = { version = "0.8.0", default-features = false, features = ["std"] }
+bon = { version   = "3.9.3" }
+async-trait = "0.1.92"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "1.1.5"
+uuid = { version = "1.21.0", features = ["v4", "serde"] }
+clap = { version = "4.5.59", features = ["derive", "env"] }
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10.4"
+rust_decimal = { version = "1.0", features = ["serde"] }
+rustc-hash = "2.1.0"
+futures = "0.3"
+libsql = { version = "0.9.29", default-features = false, features = ["serde", "core"] }
+poem = "3.0"
+poem-openapi = { version = "5.1.16", features = ["swagger-ui", "uuid", "redoc"] }
+http = "1.5.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+test-log = { version = "0.2", default-features = false, features = ["trace"] }
+cloudiful-scheduler = { version = "0.4.12", default-features = false }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+[profile.release]
+codegen-units = 1 # Allows LLVM to perform better optimization.
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true # Ensures debug symbols are removed.
+trim-paths = "all" # Removes potentially privileged information from your binaries.
+rustflags = ["-Cdebuginfo=0", "-Zthreads=2"] # Better compile performance.

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "diffx-finish-review": {
+      "source": "wong2/diffx",
+      "sourceType": "github",
+      "skillPath": "skills/diffx-finish-review/SKILL.md",
+      "computedHash": "4395bb5b50dd97662787cae571ce52374c21a090f4bd89fbfcfb5125911d3c0c"
+    },
+    "diffx-start-review": {
+      "source": "wong2/diffx",
+      "sourceType": "github",
+      "skillPath": "skills/diffx-start-review/SKILL.md",
+      "computedHash": "787eba53b14bd699800e31515dc8bd6ec37e57dd6a0eb7c251b63b83c2edf8fc"
+    }
+  }
+}

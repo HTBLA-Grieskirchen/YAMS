@@ -1,238 +1,663 @@
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::path::{Path, PathBuf};
 
+use chrono_tz::Tz;
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use url::Url;
 
-fn dev_var_set() -> bool {
-    let dev_var: &str = &std::env::var("YAMS_DEV").unwrap_or("0".to_string());
-    match dev_var {
-        "1" => true,
-        _ => false
+const DEFAULT_CONFIG_FILE_NAME: &str = "yams.json";
+
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("config file `{path}` does not exist")]
+    NotFound { path: String },
+    #[error("failed to read config file `{path}`: {source}")]
+    Io {
+        path: String,
+        source: std::io::Error,
+    },
+    #[error("config file `{path}` is malformed: {message}")]
+    Malformed { path: String, message: String },
+    #[error("YAMS_MODE=embedded requires YAMS_DATABASE_URL and YAMS_OBJECT_STORE_DIR")]
+    EmbeddedEnvIncomplete,
+    #[error("YAMS_MODE=remote requires YAMS_REMOTE_API_URL")]
+    RemoteEnvIncomplete,
+    #[error("YAMS_DATABASE_URL and YAMS_OBJECT_STORE_DIR are only valid when mode is embedded")]
+    EmbeddedEnvInRemoteMode,
+    #[error("YAMS_REMOTE_API_URL is only valid when mode is remote")]
+    RemoteEnvInEmbeddedMode,
+    #[error("invalid YAMS_MODE `{0}`; expected `embedded` or `remote`")]
+    InvalidMode(String),
+    #[error("invalid YAMS_REMOTE_API_URL: {0}")]
+    InvalidRemoteApiUrl(String),
+    #[error("invalid scheduler timezone `{timezone}`")]
+    InvalidSchedulerTimezone { timezone: String },
+}
+
+pub fn project_dirs() -> ProjectDirs {
+    ProjectDirs::from("at", "HTL Grieskirchen", "YAMS").expect("unsupported OS")
+}
+
+pub fn default_log_dir() -> PathBuf {
+    project_dirs().data_dir().join("logs")
+}
+
+/// Resolve log directory before tracing init (env beats config file beats default).
+pub fn resolve_log_dir() -> PathBuf {
+    if let Some(dir) = std::env::var_os("YAMS_LOG_DIR") {
+        return PathBuf::from(dir);
     }
+    let path = std::env::var_os("YAMS_CONFIG_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(default_config_path);
+    peek_log_dir_from_file(&path).unwrap_or_else(default_log_dir)
 }
 
-fn project_dirs() -> ProjectDirs {
-    ProjectDirs::from("at", "HTL Grieskirchen", "YAMS")
-        .expect("unsupported OS")
-}
-
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct YAMSFileConfig {
-    #[serde(skip_serializing, skip_deserializing, default = "YAMSFileConfig::default_dirs")]
-    pub dirs: ProjectDirs,
-
-    #[serde(default)]
-    pub remote_database_location: Option<String>,
-}
-
-impl YAMSFileConfig { fn default_dirs() -> ProjectDirs { YAMSFileConfig::default().dirs } }
-
-
-#[derive(Serialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct YAMSFrontendConfig {
-    #[serde(skip_serializing)]
-    file_config: Arc<YAMSFileConfig>,
-    #[serde(skip_serializing)]
-    backend_config: *const YAMSBackendConfig,
-
-    pub remote_database_location: Option<Url>,
-}
-
-#[derive(Debug)]
-pub struct YAMSBackendConfig {
-    file_config: Arc<YAMSFileConfig>,
-    frontend_config: *const YAMSFrontendConfig,
-
-    is_in_dev: bool,
-    pub local_database_location: String,
-    pub uses_local_database: bool,
-}
-
-
-impl Default for YAMSFileConfig {
-    fn default() -> Self {
-        Self {
-            dirs: project_dirs(),
-            remote_database_location: None,
+fn peek_log_dir_from_file(path: &Path) -> Option<PathBuf> {
+    let contents = std::fs::read_to_string(path).ok()?;
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("toml") => {
+            let value: toml::Value = toml::from_str(&contents).ok()?;
+            value
+                .get("logDir")
+                .and_then(|v| v.as_str())
+                .map(PathBuf::from)
+        }
+        _ => {
+            let value: serde_json::Value = serde_json::from_str(&contents).ok()?;
+            value
+                .get("logDir")
+                .and_then(|v| v.as_str())
+                .map(PathBuf::from)
         }
     }
 }
 
+fn resolve_log_dir_overlay(file: Option<PathBuf>, env: Option<PathBuf>) -> PathBuf {
+    env.or(file).unwrap_or_else(default_log_dir)
+}
 
-impl YAMSFileConfig {
-    pub fn load() -> (YAMSBackendConfig, YAMSFrontendConfig) {
-        let dirs = project_dirs();
+fn default_config_path() -> PathBuf {
+    project_dirs().config_dir().join(DEFAULT_CONFIG_FILE_NAME)
+}
 
-        let file_location = if dev_var_set() {
-            ["..", "yamsconfig.json"]
-                .iter().collect::<PathBuf>()
-        } else {
-            dirs.config_dir().join("yamsconfig.json")
-        };
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EmbeddedScheduler {
+    Disabled,
+    Enabled { timezone: Tz },
+}
 
-        if let Ok(content) = std::fs::read_to_string(&file_location) {
-            let file_config_result = serde_json::from_str::<YAMSFileConfig>(&content);
-            if let Ok(file_config) = file_config_result {
-                return file_config.to_configs();
+impl Default for EmbeddedScheduler {
+    fn default() -> Self {
+        Self::Enabled {
+            timezone: system_timezone(),
+        }
+    }
+}
+
+fn system_timezone() -> Tz {
+    iana_time_zone::get_timezone()
+        .ok()
+        .and_then(|name| name.parse().ok())
+        .unwrap_or(chrono_tz::Europe::Vienna)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "mode", rename_all = "camelCase")]
+enum SchedulerFileSetting {
+    Disabled,
+    Enabled { timezone: Option<String> },
+}
+
+impl Default for SchedulerFileSetting {
+    fn default() -> Self {
+        Self::Enabled { timezone: None }
+    }
+}
+
+fn scheduler_from_file(setting: SchedulerFileSetting) -> Result<EmbeddedScheduler, ConfigError> {
+    match setting {
+        SchedulerFileSetting::Disabled => Ok(EmbeddedScheduler::Disabled),
+        SchedulerFileSetting::Enabled { timezone } => {
+            let timezone = match timezone {
+                Some(raw) => raw
+                    .parse::<Tz>()
+                    .map_err(|_| ConfigError::InvalidSchedulerTimezone { timezone: raw })?,
+                None => system_timezone(),
+            };
+            Ok(EmbeddedScheduler::Enabled { timezone })
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DeploymentMode {
+    Embedded {
+        database_url: String,
+        object_store_dir: PathBuf,
+        scheduler: EmbeddedScheduler,
+    },
+    Remote {
+        remote_api_url: Url,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TauriConfig {
+    pub deployment: DeploymentMode,
+    pub dev: bool,
+    pub log_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "mode", rename_all = "camelCase")]
+enum TauriFileConfig {
+    #[serde(rename_all = "camelCase")]
+    Embedded {
+        database_url: String,
+        object_store_dir: PathBuf,
+        #[serde(default)]
+        dev: bool,
+        #[serde(default)]
+        log_dir: Option<PathBuf>,
+        #[serde(default)]
+        scheduler: SchedulerFileSetting,
+    },
+    #[serde(rename_all = "camelCase")]
+    Remote {
+        remote_api_url: Url,
+        #[serde(default)]
+        dev: bool,
+        #[serde(default)]
+        log_dir: Option<PathBuf>,
+    },
+}
+
+impl From<TauriFileConfig> for Result<TauriConfig, ConfigError> {
+    fn from(file: TauriFileConfig) -> Self {
+        match file {
+            TauriFileConfig::Embedded {
+                database_url,
+                object_store_dir,
+                dev,
+                log_dir,
+                scheduler,
+            } => Ok(TauriConfig {
+                deployment: DeploymentMode::Embedded {
+                    database_url,
+                    object_store_dir,
+                    scheduler: scheduler_from_file(scheduler)?,
+                },
+                dev,
+                log_dir: log_dir.unwrap_or_else(default_log_dir),
+            }),
+            TauriFileConfig::Remote {
+                remote_api_url,
+                dev,
+                log_dir,
+            } => Ok(TauriConfig {
+                deployment: DeploymentMode::Remote { remote_api_url },
+                dev,
+                log_dir: log_dir.unwrap_or_else(default_log_dir),
+            }),
+        }
+    }
+}
+
+impl TauriConfig {
+    pub fn production_default() -> Self {
+        let data = project_dirs().data_dir().to_path_buf();
+        Self {
+            deployment: DeploymentMode::Embedded {
+                database_url: data.join("yams.db").to_string_lossy().into_owned(),
+                object_store_dir: data.join("objects"),
+                scheduler: EmbeddedScheduler::default(),
+            },
+            dev: false,
+            log_dir: default_log_dir(),
+        }
+    }
+
+    pub fn frontend_dto(&self) -> FrontendConfigDto {
+        match &self.deployment {
+            DeploymentMode::Embedded { .. } => FrontendConfigDto::Embedded { dev: self.dev },
+            DeploymentMode::Remote { remote_api_url } => FrontendConfigDto::Remote {
+                remote_api_url: remote_api_url.to_string(),
+                dev: self.dev,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "mode", rename_all = "camelCase")]
+pub enum FrontendConfigDto {
+    Embedded {
+        dev: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Remote {
+        remote_api_url: String,
+        dev: bool,
+    },
+}
+
+#[derive(Debug, Default)]
+struct EnvOverlay {
+    mode: Option<ModeKind>,
+    database_url: Option<String>,
+    object_store_dir: Option<PathBuf>,
+    remote_api_url: Option<String>,
+    dev: Option<bool>,
+    log_dir: Option<PathBuf>,
+    scheduler_enabled: Option<bool>,
+    scheduler_timezone: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ModeKind {
+    Embedded,
+    Remote,
+}
+
+pub fn load() -> Result<TauriConfig, ConfigError> {
+    let path = std::env::var_os("YAMS_CONFIG_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(default_config_path);
+    let explicit = std::env::var_os("YAMS_CONFIG_PATH").is_some();
+    let file = load_file(&path, explicit)?;
+    overlay(file, env_overlay()?)
+}
+
+fn env_overlay() -> Result<EnvOverlay, ConfigError> {
+    Ok(EnvOverlay {
+        mode: match std::env::var("YAMS_MODE") {
+            Ok(value) => Some(parse_mode(&value)?),
+            Err(_) => None,
+        },
+        database_url: std::env::var("YAMS_DATABASE_URL").ok(),
+        object_store_dir: std::env::var_os("YAMS_OBJECT_STORE_DIR").map(PathBuf::from),
+        remote_api_url: std::env::var("YAMS_REMOTE_API_URL").ok(),
+        dev: std::env::var("YAMS_DEV")
+            .ok()
+            .map(|value| parse_bool(&value)),
+        log_dir: std::env::var_os("YAMS_LOG_DIR").map(PathBuf::from),
+        scheduler_enabled: std::env::var("YAMS_SCHEDULER_ENABLED")
+            .ok()
+            .map(|value| parse_bool(&value)),
+        scheduler_timezone: std::env::var("YAMS_SCHEDULER_TIMEZONE").ok(),
+    })
+}
+
+fn parse_mode(value: &str) -> Result<ModeKind, ConfigError> {
+    match value {
+        "embedded" => Ok(ModeKind::Embedded),
+        "remote" => Ok(ModeKind::Remote),
+        other => Err(ConfigError::InvalidMode(other.to_string())),
+    }
+}
+
+fn parse_bool(value: &str) -> bool {
+    matches!(value.to_ascii_lowercase().as_str(), "1" | "true" | "yes")
+}
+
+fn load_file(path: &Path, explicit: bool) -> Result<TauriConfig, ConfigError> {
+    match std::fs::read_to_string(path) {
+        Ok(contents) => match parse_config_file::<TauriFileConfig>(path, &contents) {
+            Ok(file) => Result::<TauriConfig, ConfigError>::from(file),
+            Err(message) => {
+                if explicit {
+                    Err(ConfigError::Malformed {
+                        path: path.display().to_string(),
+                        message,
+                    })
+                } else {
+                    tracing::warn!(
+                        path = %path.display(),
+                        error = %message,
+                        "config file is malformed; using defaults"
+                    );
+                    Ok(TauriConfig::production_default())
+                }
+            }
+        },
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            if explicit {
+                Err(ConfigError::NotFound {
+                    path: path.display().to_string(),
+                })
             } else {
-                println!("The config file {{{:?}}} is malformed. \
-                 Resorting to default config.", file_location);
+                tracing::warn!(
+                    path = %path.display(),
+                    "config file does not exist; using defaults"
+                );
+                Ok(TauriConfig::production_default())
+            }
+        }
+        Err(source) => Err(ConfigError::Io {
+            path: path.display().to_string(),
+            source,
+        }),
+    }
+}
+
+fn overlay_scheduler(
+    scheduler: EmbeddedScheduler,
+    env: &EnvOverlay,
+) -> Result<EmbeddedScheduler, ConfigError> {
+    let mut scheduler = scheduler;
+    if let Some(enabled) = env.scheduler_enabled {
+        scheduler = if enabled {
+            EmbeddedScheduler::Enabled {
+                timezone: match &env.scheduler_timezone {
+                    Some(raw) => {
+                        raw.parse::<Tz>()
+                            .map_err(|_| ConfigError::InvalidSchedulerTimezone {
+                                timezone: raw.clone(),
+                            })?
+                    }
+                    None => match scheduler {
+                        EmbeddedScheduler::Enabled { timezone } => timezone,
+                        EmbeddedScheduler::Disabled => system_timezone(),
+                    },
+                },
             }
         } else {
-            println!("The config file {{{:?}}} does not exist. \
-                 Resorting to default config.", file_location);
-        }
-
-        YAMSFileConfig::default_configs()
-    }
-
-    pub fn to_configs(self) -> (YAMSBackendConfig, YAMSFrontendConfig) {
-        let arc_self = Arc::new(self);
-
-        let mut backend_config: YAMSBackendConfig = Arc::clone(&arc_self).into();
-
-        let mut frontend_config: YAMSFrontendConfig = Arc::clone(&arc_self).into();
-
-        backend_config.frontend_config = &frontend_config;
-        frontend_config.backend_config = &backend_config;
-
-        (backend_config, frontend_config)
-    }
-
-    pub fn default_configs() -> (YAMSBackendConfig, YAMSFrontendConfig) {
-        let arc_self = Arc::new(YAMSFileConfig::default());
-
-        let mut backend_config = YAMSBackendConfig::default();
-        backend_config.file_config = Arc::clone(&arc_self);
-
-        let mut frontend_config = YAMSFrontendConfig::default();
-        frontend_config.file_config = Arc::clone(&arc_self);
-
-        backend_config.frontend_config = &frontend_config;
-        frontend_config.backend_config = &backend_config;
-
-        (backend_config, frontend_config)
-    }
-}
-
-impl YAMSBackendConfig {
-    pub fn as_frontend_config(&self) -> &YAMSFrontendConfig {
-        unsafe {
-            &*self.frontend_config
-        }
-    }
-
-    pub fn as_file_config(&self) -> &YAMSFileConfig {
-        &*self.file_config
-    }
-
-    pub fn dirs(&self) -> &ProjectDirs {
-        &self.file_config.dirs
-    }
-
-    pub fn in_dev(&self) -> bool {
-        self.is_in_dev
-    }
-}
-
-impl From<Arc<YAMSFileConfig>> for YAMSBackendConfig {
-    fn from(file_config: Arc<YAMSFileConfig>) -> Self {
-        let in_dev = dev_var_set();
-
-        let location = if in_dev {
-            format!("file:{}", ["..", "..", "backend", "surreal_data"]
-                .iter().collect::<PathBuf>().to_str().unwrap())
-        } else {
-            format!("file:{}", file_config.dirs.data_dir().join("surreal_data").to_str().unwrap())
+            EmbeddedScheduler::Disabled
         };
+    } else if let Some(raw) = &env.scheduler_timezone {
+        let timezone = raw
+            .parse::<Tz>()
+            .map_err(|_| ConfigError::InvalidSchedulerTimezone {
+                timezone: raw.clone(),
+            })?;
+        if matches!(scheduler, EmbeddedScheduler::Enabled { .. }) {
+            scheduler = EmbeddedScheduler::Enabled { timezone };
+        }
+    }
+    Ok(scheduler)
+}
 
-        let uses_local_database = (&file_config).remote_database_location.is_none();
+fn overlay(config: TauriConfig, env: EnvOverlay) -> Result<TauriConfig, ConfigError> {
+    let current = match &config.deployment {
+        DeploymentMode::Embedded { .. } => ModeKind::Embedded,
+        DeploymentMode::Remote { .. } => ModeKind::Remote,
+    };
+    let target = env.mode.unwrap_or(current);
 
-        Self {
-            file_config,
-            frontend_config: std::ptr::null(),
-
-            is_in_dev: in_dev,
-            local_database_location: location,
-            uses_local_database,
+    match target {
+        ModeKind::Embedded => {
+            let (database_url, object_store_dir, scheduler) = match config.deployment {
+                DeploymentMode::Embedded {
+                    database_url,
+                    object_store_dir,
+                    scheduler,
+                } => (
+                    env.database_url.clone().unwrap_or(database_url),
+                    env.object_store_dir.clone().unwrap_or(object_store_dir),
+                    scheduler,
+                ),
+                DeploymentMode::Remote { .. } => {
+                    let database_url = env
+                        .database_url
+                        .clone()
+                        .ok_or(ConfigError::EmbeddedEnvIncomplete)?;
+                    let object_store_dir = env
+                        .object_store_dir
+                        .clone()
+                        .ok_or(ConfigError::EmbeddedEnvIncomplete)?;
+                    (database_url, object_store_dir, EmbeddedScheduler::default())
+                }
+            };
+            Ok(TauriConfig {
+                deployment: DeploymentMode::Embedded {
+                    database_url,
+                    object_store_dir,
+                    scheduler: overlay_scheduler(scheduler, &env)?,
+                },
+                dev: env.dev.unwrap_or(config.dev),
+                log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
+            })
+        }
+        ModeKind::Remote => {
+            let remote_api_url = match config.deployment {
+                DeploymentMode::Remote { remote_api_url } => match env.remote_api_url {
+                    Some(value) => parse_url(&value)?,
+                    None => remote_api_url,
+                },
+                DeploymentMode::Embedded { .. } => {
+                    let value = env.remote_api_url.ok_or(ConfigError::RemoteEnvIncomplete)?;
+                    parse_url(&value)?
+                }
+            };
+            Ok(TauriConfig {
+                deployment: DeploymentMode::Remote { remote_api_url },
+                dev: env.dev.unwrap_or(config.dev),
+                log_dir: resolve_log_dir_overlay(Some(config.log_dir), env.log_dir),
+            })
         }
     }
 }
 
-impl Default for YAMSBackendConfig {
-    fn default() -> Self {
-        let in_dev = dev_var_set();
-        let dirs = project_dirs();
+fn parse_url(value: &str) -> Result<Url, ConfigError> {
+    Url::parse(value).map_err(|err| ConfigError::InvalidRemoteApiUrl(err.to_string()))
+}
 
-        let location = if in_dev {
-            format!("file:{}", ["..", "..", "backend", "surreal_data"]
-                .iter().collect::<PathBuf>().to_str().unwrap())
-        } else {
-            format!("file:{}", dirs.data_dir().join("surreal_data").to_str().unwrap())
-        };
-
-        Self {
-            file_config: Arc::new(Default::default()),
-            frontend_config: std::ptr::null(),
-
-            is_in_dev: in_dev,
-            local_database_location: location,
-            uses_local_database: true,
-        }
+fn parse_config_file<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    contents: &str,
+) -> Result<T, String> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("toml") => toml::from_str(contents).map_err(|err| err.to_string()),
+        Some("json") => serde_json::from_str(contents).map_err(|err| err.to_string()),
+        Some(ext) => Err(format!(
+            "unsupported config format `.{ext}`; use `.json` or `.toml`"
+        )),
+        None => serde_json::from_str(contents).map_err(|err| err.to_string()),
     }
 }
 
-impl YAMSFrontendConfig {
-    pub fn as_backend_config(&self) -> &YAMSBackendConfig {
-        unsafe {
-            &*self.backend_config
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn embedded_file() -> TauriConfig {
+        TauriConfig {
+            deployment: DeploymentMode::Embedded {
+                database_url: "file.db".into(),
+                object_store_dir: PathBuf::from("objects/"),
+                scheduler: EmbeddedScheduler::Enabled {
+                    timezone: chrono_tz::Europe::Vienna,
+                },
+            },
+            dev: false,
+            log_dir: default_log_dir(),
         }
     }
 
-    pub fn as_file_config(&self) -> &YAMSFileConfig {
-        &*self.file_config
-    }
-
-    pub fn dirs(&self) -> &ProjectDirs {
-        &self.file_config.dirs
-    }
-}
-
-impl From<Arc<YAMSFileConfig>> for YAMSFrontendConfig {
-    fn from(file_config: Arc<YAMSFileConfig>) -> Self {
-        let remote_database_location = file_config.remote_database_location.clone().filter(|s| {
-            !s.is_empty() && Url::parse(&s).is_ok()
-        }).map(|s| Url::parse(&s).unwrap());
-
-        Self {
-            file_config,
-            backend_config: std::ptr::null(),
-
-            remote_database_location,
+    fn remote_file() -> TauriConfig {
+        TauriConfig {
+            deployment: DeploymentMode::Remote {
+                remote_api_url: Url::parse("http://127.0.0.1:3000/api").unwrap(),
+            },
+            dev: true,
+            log_dir: default_log_dir(),
         }
     }
-}
 
-impl Default for YAMSFrontendConfig {
-    fn default() -> Self {
-        Self {
-            file_config: Arc::new(Default::default()),
-            backend_config: std::ptr::null(),
+    #[test_log::test]
+    fn deserializes_embedded_file() {
+        let config = Result::<TauriConfig, ConfigError>::from(
+            serde_json::from_str::<TauriFileConfig>(
+                r#"{
+                "mode": "embedded",
+                "databaseUrl": "yams.db",
+                "objectStoreDir": "objects/",
+                "dev": true,
+                "scheduler": { "mode": "enabled", "timezone": "Europe/Vienna" }
+            }"#,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config,
+            TauriConfig {
+                deployment: DeploymentMode::Embedded {
+                    database_url: "yams.db".into(),
+                    object_store_dir: PathBuf::from("objects/"),
+                    scheduler: EmbeddedScheduler::Enabled {
+                        timezone: chrono_tz::Europe::Vienna,
+                    },
+                },
+                dev: true,
+                log_dir: default_log_dir(),
+            }
+        );
+    }
 
-            remote_database_location: None,
+    #[test_log::test]
+    fn deserializes_remote_file() {
+        let config = Result::<TauriConfig, ConfigError>::from(
+            serde_json::from_str::<TauriFileConfig>(
+                r#"{
+                "mode": "remote",
+                "remoteApiUrl": "http://127.0.0.1:3000/api",
+                "dev": true
+            }"#,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(config, remote_file());
+    }
+
+    #[test_log::test]
+    fn overlays_embedded_paths() {
+        let resolved = overlay(
+            embedded_file(),
+            EnvOverlay {
+                database_url: Some("env.db".into()),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap();
+        match resolved.deployment {
+            DeploymentMode::Embedded { database_url, .. } => {
+                assert_eq!(database_url, "env.db");
+            }
+            DeploymentMode::Remote { .. } => panic!("expected embedded"),
         }
     }
+
+    #[test_log::test]
+    fn switching_to_remote_requires_url() {
+        let err = overlay(
+            embedded_file(),
+            EnvOverlay {
+                mode: Some(ModeKind::Remote),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap_err();
+        assert!(matches!(err, ConfigError::RemoteEnvIncomplete));
+    }
+
+    #[test_log::test]
+    fn switching_to_remote_with_url() {
+        let resolved = overlay(
+            embedded_file(),
+            EnvOverlay {
+                mode: Some(ModeKind::Remote),
+                remote_api_url: Some("http://127.0.0.1:3000/api".into()),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap();
+        match resolved.deployment {
+            DeploymentMode::Remote { remote_api_url } => {
+                assert_eq!(remote_api_url.as_str(), "http://127.0.0.1:3000/api");
+            }
+            DeploymentMode::Embedded { .. } => panic!("expected remote"),
+        }
+    }
+
+    #[test_log::test]
+    fn overlays_dev_flag() {
+        let resolved = overlay(
+            embedded_file(),
+            EnvOverlay {
+                dev: Some(true),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap();
+        assert!(resolved.dev);
+    }
+
+    #[test_log::test]
+    fn deserializes_log_dir_from_file() {
+        let config = Result::<TauriConfig, ConfigError>::from(
+            serde_json::from_str::<TauriFileConfig>(
+                r#"{
+                "mode": "embedded",
+                "databaseUrl": "yams.db",
+                "objectStoreDir": "objects/",
+                "logDir": "/var/log/yams",
+                "scheduler": { "mode": "disabled" }
+            }"#,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(config.log_dir, PathBuf::from("/var/log/yams"));
+    }
+
+    #[test_log::test]
+    fn deserializes_log_dir_from_toml_file() {
+        let config = Result::<TauriConfig, ConfigError>::from(
+            parse_config_file::<TauriFileConfig>(
+                Path::new("config.toml"),
+                r#"
+mode = "embedded"
+databaseUrl = "yams.db"
+objectStoreDir = "objects/"
+logDir = "/var/log/yams"
+scheduler = { mode = "disabled" }
+"#,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(config.log_dir, PathBuf::from("/var/log/yams"));
+    }
+
+    #[test_log::test]
+    fn overlays_log_dir_from_env() {
+        let resolved = overlay(
+            embedded_file(),
+            EnvOverlay {
+                log_dir: Some(PathBuf::from("/tmp/yams-logs")),
+                ..EnvOverlay::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(resolved.log_dir, PathBuf::from("/tmp/yams-logs"));
+    }
+
+    #[test_log::test]
+    fn frontend_dto_omits_backend_paths() {
+        assert_eq!(
+            embedded_file().frontend_dto(),
+            FrontendConfigDto::Embedded { dev: false }
+        );
+        assert_eq!(
+            remote_file().frontend_dto(),
+            FrontendConfigDto::Remote {
+                remote_api_url: "http://127.0.0.1:3000/api".into(),
+                dev: true,
+            }
+        );
+    }
 }
-
-unsafe impl Send for YAMSBackendConfig {}
-
-unsafe impl Sync for YAMSBackendConfig {}
-
-unsafe impl Send for YAMSFrontendConfig {}
-
-unsafe impl Sync for YAMSFrontendConfig {}

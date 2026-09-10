@@ -1,0 +1,14 @@
+["fix:fmt"]
+description = "Format all the code"
+depends = ["fmt:*"]
+
+["fix:lint"]
+description = "Apply all lint suggestions"
+depends = ["YAMS_LINT_FIX=true lint:?*"]
+
+["fix"]
+description = "Fix all the code, ensure all guidelines"
+run = [
+    {task = "fix:lint"},
+    {task = "fix:fmt"}
+]

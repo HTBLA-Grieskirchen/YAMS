@@ -1,0 +1,2 @@
+[build]
+rustflags = ["-Z", "higher-ranked-assumptions"]

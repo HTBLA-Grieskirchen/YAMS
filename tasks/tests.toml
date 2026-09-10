@@ -1,0 +1,7 @@
+["test:crates"]
+description = "Tests all the project crates"
+run = "cargo nextest run --all-targets"
+
+["test"]
+description = "Run all project tests"
+depends = ["test:crates"]

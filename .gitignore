@@ -1,3 +1,13 @@
 .idea/
 node_modules
 history.txt
+
+target/
+*.local/
+*.local.*
+
+.miserc.toml
+
+graphify-out/cost.json
+graphify-out/cache/
+graphify-out/*/

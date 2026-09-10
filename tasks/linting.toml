@@ -1,0 +1,36 @@
+["lint:crates"]
+description = "Check all rust crates"
+usage = """
+flag "--fix" env="YAMS_LINT_FIX" help="Apply all lint suggestions"
+flag "--allow-dirty" env="YAMS_LINT_FIX_DIRTY" help="Allow dirty working directory"
+"""
+run = '''
+#!/usr/bin/env bash
+cargo clippy --workspace \
+  $([ "${usage_fix:-}" = "true" ] && echo "--fix") \
+  $([ "${usage_fix:-}" = "true" ] && [ "${usage_allow_dirty:-}" = "true" ] && echo "--allow-dirty")
+'''
+
+["lint:check:ts"]
+description = "Check the frontend types"
+dir = "{{ vars.REPO_ROOT }}/frontend"
+depends = [
+  "sync:openapi"
+]
+run = "npm run check:ts"
+
+["lint:frontend"]
+description = "Lint frontend"
+dir = "{{ vars.REPO_ROOT }}/frontend"
+usage = """
+flag "--fix" env="YAMS_LINT_FIX" help="Apply all lint suggestions"
+flag "--allow-unsafe" env="YAMS_LINT_FIX_UNSAFE" help="Allow unsafe lint suggestions"
+"""
+run = """
+#!/usr/bin/env bash
+if [ "${usage_fix:-}" = "true" ]; then
+  npm run fix:lint $([ "${usage_allow_unsafe:-}" = "true" ] && echo "-- --unsafe")
+else
+  npm run check:lint
+fi
+"""

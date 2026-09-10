@@ -1,0 +1,58 @@
+[package]
+name = "yams-scheduler"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license-file.workspace = true
+repository.workspace = true
+
+[lib]
+name = "yams_scheduler"
+
+[[bin]]
+name = "yams-scheduler"
+path = "src/bin/yams_scheduler/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+cli = [
+    "dep:clap",
+    "dep:toml",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:tracing-subscriber",
+    "dep:tracing-appender",
+    "dep:tokio",
+    "dep:yams-filesystemstore",
+    "dep:yams-typstreports",
+]
+
+[dependencies]
+yams-core = { path = "../../crates/yams-core" }
+yams-sqlite = { path = "../../crates/yams-sqlite" }
+molting = { path = "../../crates/molting" }
+
+cloudiful-scheduler = { workspace = true }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+thiserror = { workspace = true }
+error-stack = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+libsql = { workspace = true }
+
+clap = { workspace = true, optional = true }
+toml = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
+tracing-appender = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true, features = ["signal"] }
+yams-filesystemstore = { path = "../../crates/yams-filesystemstore", optional = true }
+yams-typstreports = { path = "../../crates/yams-typstreports", optional = true }
+
+[dev-dependencies]
+test-log = { workspace = true }
+# replace with pollster
+tokio = { workspace = true }
